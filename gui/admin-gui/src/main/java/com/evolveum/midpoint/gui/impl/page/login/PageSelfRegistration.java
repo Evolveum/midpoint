@@ -292,9 +292,11 @@ public class PageSelfRegistration extends PageAbstractFlow {
                 }
             }
         });
-        if (!"password".equals(input.getId())) {
-            input.getBaseFormComponent().add(AttributeModifier.append("class", () -> input.getBaseFormComponent().hasErrorMessage() ? INVALID_FIELD_CLASS : ""));
-        }
+        input.getFormComponents().forEach(formComponent -> {
+            formComponent.add(AttributeModifier.append("class", () -> formComponent.hasErrorMessage() ? INVALID_FIELD_CLASS : ""));
+            formComponent.add(AttributeModifier.append("aria-invalid", () -> formComponent.hasErrorMessage() ? "true" : "false"));
+            formComponent.add(AttributeModifier.append("aria-required", () -> formComponent.isRequired() ? "true" : null));
+        });
     }
 
     private void createPasswordPanel(WebMarkupContainer staticRegistrationForm) {
@@ -368,11 +370,20 @@ public class PageSelfRegistration extends PageAbstractFlow {
                     createStringResource("PageSelfRegistration.registration.error", message)
                             .getString());
             target.add(getFeedbackPanel());
+            markPasswordInvalidIfPolicyViolated(target);
             LOGGER.error("Failed to register user {}. Reason {}", getUserModel().getObject(), result.getMessage());
             return;
         }
         target.add(getFeedbackPanel());
         target.add(PageSelfRegistration.this);
+    }
+
+    private void markPasswordInvalidIfPolicyViolated(AjaxRequestTarget target) {
+        PasswordPanel passwordPanel = (PasswordPanel)
+                get(createComponentPath(ID_MAIN_FORM, ID_CONTENT_AREA, ID_STATIC_FORM, ID_PASSWORD));
+        if (passwordPanel != null) {
+            passwordPanel.refreshPasswordPolicyState(target);
+        }
     }
 
     private void afterUserRegistration(AjaxRequestTarget target) {

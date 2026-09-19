@@ -22,8 +22,6 @@ import org.apache.wicket.model.IModel;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
-import org.apache.wicket.model.LoadableDetachableModel;
-
 /**
  * Created by Viliam Repan (lazyman).
  */
@@ -64,15 +62,16 @@ public abstract class MenuItemLinkPanel<T extends Serializable> extends BasePane
         };
         link.add(new AttributeModifier("data-component-id", () ->
                 MenuItemLinkPanel.this.getModelObject().isActive() ? link.getPageRelativePath() : null));
-        link.add(AttributeAppender.append("aria-pressed", () ->
-                getModelObject().isActive() ? "true" : "false"
-        ));
+        link.add(AttributeAppender.append("aria-current", () -> getModelObject().isActive() ? "page" : null));
+        link.add(AttributeAppender.append("aria-expanded", () ->
+                getModelObject().isEmpty() ? null : (getModelObject().isOpen() ? "true" : "false")));
         link.setOutputMarkupId(true);
         add(link);
 
         WebMarkupContainer icon = new WebMarkupContainer(ID_ICON);
         icon.add(AttributeAppender.append("class",
                 () -> StringUtils.isNotEmpty(getModelObject().getIconCss()) ? getModelObject().getIconCss() : "far fa-fw fa-circle"));
+        icon.add(AttributeAppender.append("aria-hidden", "true"));
         link.add(icon);
 
         Label label = new Label(ID_LABEL, createLabelModel());
@@ -84,17 +83,6 @@ public abstract class MenuItemLinkPanel<T extends Serializable> extends BasePane
         link.add(badge);
 
         WebMarkupContainer chevron = new WebMarkupContainer(ID_CHEVRON);
-        IModel<String> chevronTitleModel = LoadableDetachableModel.of(() -> {
-            if (isChevronLinkVisible()) {
-                String labelValue = getModelObject().getLabel();
-                if (labelValue != null) {
-                    String labelTitle = getString(labelValue, null, labelValue);
-                    return String.format("%s - %s", labelTitle, getString("MenuItemLinkPanel.chevron"));
-                }
-                return getString("MenuItemLinkPanel.chevron");
-            }
-            return null;
-        });
         chevron.add(new AjaxEventBehavior("click") {
             @Serial private static final long serialVersionUID = 1L;
 
@@ -106,9 +94,7 @@ public abstract class MenuItemLinkPanel<T extends Serializable> extends BasePane
             }
         });
 
-        chevron.add(AttributeAppender.append("aria-label", chevronTitleModel));
-        chevron.add(AttributeAppender.append("title", chevronTitleModel));
-        chevron.add(AttributeAppender.append("aria-pressed", () -> getModelObject().isOpen() ? "true" : "false"));
+        chevron.add(AttributeAppender.append("aria-hidden", "true"));
         chevron.setOutputMarkupId(true);
         chevron.add(AttributeAppender.append("class",
                 () -> getModelObject().isOpen() ? "fa fa-chevron-down" : "fa fa-chevron-left"));

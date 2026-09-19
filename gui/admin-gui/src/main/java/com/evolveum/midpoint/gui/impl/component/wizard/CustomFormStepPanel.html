@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<!--
+  ~ Copyright (c) 2026 Evolveum
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:extend>
+    <div wicket:id="feedbackContainer" class="col-8 feedbackContainer">
+        <div wicket:id="feedback" class="messagePanel"/>
+    </div>
+    <div class="col-8 card shadow-sm">
+        <div class="p-2 ps-3 pe-3" wicket:id="header" style="cursor: pointer">
+            <div class="d-flex">
+                <span>
+                    <i class="fa fa-filter"></i>
+                    <span style="text-decoration: none;">
+                        <label wicket:id="headerLabel"/>
+                    </span>
+                </span>
+                <button wicket:id="expandCollapseButton" wicket:message="title:PrismObjectPanel.expandCollapseContainer" class="btn btn-tool text-body ms-auto p-0" trigger="hover"></button>
+            </div>
+        </div>
+        <div class="border-top p-3" wicket:id="panel"/>
+    </div>
+</wicket:extend>
+</html>

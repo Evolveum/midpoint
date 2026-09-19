@@ -350,9 +350,13 @@ Please note that the following parameters can be used in any kind of notifier.
 | recipientExpression
 | ExpressionType
 | 0..1
-| Recipient(s) that should get the notifications.
-(TODO: Exact form is to be determined yet, but here may be mail addresses, phone numbers, etc.
-We need to think how to distinguish these kinds of destinations.) Default: mail address of the requestee - user that is being dealt with by repository object change or within a workflow; or account owner, if the e-mail address is not empty.
+| Recipients that should get the notifications.
+Expression should preferably return a focus object that can be later used by a transport
+to extract the addresses and also to determine the language for multi-language message templates.
+Alternatively, an address as a string can be returned directly - mail address, phone number, etc.
+Obviously, this is not flexible enough for notifiers sending messages with multiple different transports.
+Expression can return multiple values and multiple expressions can be specified.
+The results of all the values are merged and message for each recipient (or address) is sent.
 
 
 | ccExpression

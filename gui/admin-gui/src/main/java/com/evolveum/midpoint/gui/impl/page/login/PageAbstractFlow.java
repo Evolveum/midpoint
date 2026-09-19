@@ -16,9 +16,11 @@ import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.apache.wicket.util.visit.IVisit;
 
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
@@ -147,6 +149,12 @@ public abstract class PageAbstractFlow extends PageRegistrationBase {
 
     private void showErrors(AjaxRequestTarget target) {
         target.add(getFeedbackPanel());
+
+        getMainForm().visitChildren(FormComponent.class, (FormComponent<?> component, IVisit<Void> visit) -> {
+            if (component.hasErrorMessage()) {
+                target.add(component);
+            }
+        });
     }
 
     protected DynamicFormPanel<UserType> getDynamicFormPanel() {

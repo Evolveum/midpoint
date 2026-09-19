@@ -209,6 +209,11 @@ public class NormalizationAwareResourceAttributeDefinition<T>
     }
 
     @Override
+    public String getExternalGroup() {
+        return originalDefinition.getExternalGroup();
+    }
+
+    @Override
     public String getDocumentation() {
         return originalDefinition.getDocumentation();
     }

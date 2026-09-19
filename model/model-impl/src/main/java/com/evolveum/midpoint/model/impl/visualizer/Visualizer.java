@@ -351,7 +351,7 @@ public class Visualizer {
                 PrismContainer<?> pc = (PrismContainer<?>) item;
                 if (jumpIntoContainerWithSingleContainerableItem(pc)) {
                     visualizeItems(visualization, pc.getValue().getItems(), descriptive, context, task, result);
-                    return;
+                    continue;
                 }
 
                 PrismContainerDefinition<?> def = pc.getDefinition();

@@ -8,9 +8,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.sche
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.*;
-import com.evolveum.midpoint.gui.api.util.MappingDirection;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.MappingUtils;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -20,8 +18,6 @@ import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
-
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.IModel;
@@ -29,13 +25,10 @@ import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-
-import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.MappingUtils.getPathBaseOnMappingType;
 
 /**
  * Utility methods for smart integration configuration in resource schema handling.
@@ -172,187 +165,6 @@ public class SmartIntegrationWrapperUtils {
     public static <C extends Containerable> @NotNull IModel<PrismContainerWrapper<C>> createCorrelationItemContainerModel(
             @NotNull IModel<PrismContainerValueWrapper<ItemsSubCorrelatorType>> model, @Nullable ItemPath path) {
         return PrismContainerWrapperModel.fromContainerValueWrapper(model, path);
-    }
-
-    /**
-     * Finds a mapping related to the provided correlation item.
-     *
-     * <p>The method searches both newly created and existing mappings and
-     * matches them using the correlation item's target path reference.</p> //TODO fix me after decision in #12036
-     */
-    public static @Nullable PrismContainerValueWrapper<MappingType> findRelatedMapping(
-            @NotNull PageBase pageBase,
-            @NotNull PrismContainerValueWrapper<CorrelationItemType> correlationItemWrapper,
-            @Nullable PrismContainerWrapper<?> mappings,
-            @NotNull ItemPath parentPath,
-            @NotNull MappingDirection mappingDirection) {
-        ItemPathType correlationItemRef = correlationItemWrapper.getRealValue().getRef();
-
-        if (correlationItemRef == null) {
-            LOGGER.error("Correlation item reference is null. Processed mapping likely has no target configured.");
-            return null;
-        }
-
-        List<PrismContainerValueWrapper<MappingType>> allMappings = new ArrayList<>();
-
-        try {
-            PrismContainerWrapper<?> container = findMappingsSourceContainer(
-                    correlationItemWrapper, mappings, parentPath);
-
-            if (container == null || container.getValues() == null || container.getValues().isEmpty()) {
-                LOGGER.warn("Couldn't find related resource attribute definition.");
-                return null;
-            }
-
-            ItemPath mappingsPath = getPathBaseOnMappingType(mappingDirection);
-
-            for (PrismContainerValueWrapper<?> value : container.getValues()) {
-                PrismContainerWrapper<MappingType> mappingContainer = value.findContainer(mappingsPath);
-
-                if (mappingContainer == null || mappingContainer.getValues() == null) {
-                    continue;
-                }
-
-                allMappings.addAll(mappingContainer.getValues());
-            }
-
-        } catch (SchemaException e) {
-            LOGGER.error("Couldn't find related resource attribute definition.", e);
-            return null;
-        }
-
-        return allMappings.stream()
-                .filter(mapping -> isRelatedMapping(mapping, correlationItemRef, pageBase, mappingDirection))
-                .findFirst()
-                .orElse(null);
-    }
-
-    /**
-     * Resolves the container holding mappings for the processed correlation item.
-     * <p>Falls back to the supplied mappings container when the original
-     * container is missing or empty.</p>
-     */
-    private static @Nullable PrismContainerWrapper<?> findMappingsSourceContainer(
-            @NotNull PrismContainerValueWrapper<CorrelationItemType> correlationItemWrapper,
-            @Nullable PrismContainerWrapper<?> mappings,
-            @NotNull ItemPath parentPath)
-            throws SchemaException {
-
-        PrismContainerValueWrapper<CorrelationSuggestionType> suggestionWrapper =
-                correlationItemWrapper.getParentContainerValue(CorrelationSuggestionType.class);
-
-        PrismContainerWrapper<?> container;
-
-        if (suggestionWrapper != null) {
-            container = suggestionWrapper.findContainer(CorrelationSuggestionType.F_ATTRIBUTES);
-        } else {
-            PrismContainerValueWrapper<?> parentContainerValue =
-                    correlationItemWrapper.getParentContainerValue(ResourceObjectTypeDefinitionType.class);
-
-            if (parentContainerValue == null) {
-                parentContainerValue = correlationItemWrapper
-                        .getParentContainerValue(AssociationSynchronizationExpressionEvaluatorType.class);
-            }
-
-            container = parentContainerValue != null
-                    ? parentContainerValue.findContainer(parentPath)
-                    : null;
-        }
-
-        if (container == null || WebPrismUtil.isEmptyContainer(container.getItem())) {
-            return mappings;
-        }
-
-        return container;
-    }
-
-    /**
-     * Determines whether the mapping corresponds to the provided
-     * correlation item reference.
-     * <p>Ensures required virtual items are available before comparing
-     * mapping target paths.</p>
-     */
-    private static boolean isRelatedMapping(
-            @NotNull PrismContainerValueWrapper<MappingType> inboundMapping,
-            @NotNull ItemPathType correlationItemRef,
-            @NotNull PageBase pageBase,
-            @NotNull MappingDirection mappingDirection) {
-
-        VariableBindingDefinitionType target = inboundMapping.getRealValue().getTarget();
-
-        if (target == null || target.getPath() == null) {
-            return false;
-        }
-
-        PrismContainerValueWrapper<?> parentContainerValue = findMappingParentContainer(inboundMapping);
-
-        if (parentContainerValue == null) {
-            return false;
-        }
-
-        PrismPropertyDefinition<Object> propertyRefDef = resolveRefPropertyDefinition(parentContainerValue);
-
-        if (propertyRefDef == null) {
-            LOGGER.warn("Couldn't resolve ref property definition for related mapping.");
-            return false;
-        }
-
-        MappingUtils.createVirtualItemInMapping(
-                inboundMapping,
-                parentContainerValue,
-                propertyRefDef,
-                pageBase,
-                AbstractAttributeMappingsDefinitionType.F_REF,
-                mappingDirection);
-
-        return correlationItemRef.equals(target.getPath());
-    }
-
-    /**
-     * Returns the parent container that owns the mapping definition.
-     */
-    private static @Nullable PrismContainerValueWrapper<?> findMappingParentContainer(
-            @NotNull PrismContainerValueWrapper<MappingType> inboundMapping) {
-
-        PrismContainerValueWrapper<?> parentContainerValue =
-                inboundMapping.getParentContainerValue(ResourceAttributeDefinitionType.class);
-
-        if (parentContainerValue != null) {
-            return parentContainerValue;
-        }
-
-        return inboundMapping.getParentContainerValue(AttributeInboundMappingsDefinitionType.class);
-    }
-
-    /**
-     * Resolves the definition of the reference property used by mappings.
-     * <p>Attempts to obtain the definition directly from the container
-     * definition and falls back to the existing property wrapper when
-     * no container definition is available.</p>
-     */
-    private static @Nullable PrismPropertyDefinition<Object> resolveRefPropertyDefinition(
-            @NotNull PrismContainerValueWrapper<?> parentContainerValue) {
-
-        PrismContainerDefinition<?> definition = parentContainerValue.getDefinition();
-
-        if (definition != null) {
-            return definition.findPropertyDefinition(AbstractAttributeMappingsDefinitionType.F_REF);
-        }
-
-        try {
-            PrismPropertyWrapper<Object> refProperty =
-                    parentContainerValue.findProperty(AbstractAttributeMappingsDefinitionType.F_REF);
-
-            if (refProperty == null || refProperty.getItem() == null) {
-                return null;
-            }
-
-            return refProperty.getItem().getDefinition();
-
-        } catch (SchemaException e) {
-            LOGGER.warn("Couldn't find ref property definition for related mapping.", e);
-            return null;
-        }
     }
 
     public static void discardDraftMapping(

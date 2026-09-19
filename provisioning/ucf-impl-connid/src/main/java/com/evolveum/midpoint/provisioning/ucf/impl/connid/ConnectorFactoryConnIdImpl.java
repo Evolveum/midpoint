@@ -476,6 +476,15 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
                     configPropertiesCtd.mutator().createPropertyDefinition(icfPropertyName, xsdTypeName);
             propertyDefinition.setDisplayName(icfProperty.getDisplayName(null));
             propertyDefinition.setHelp(icfProperty.getHelpMessage(null));
+            // ICF assigns a default group message key ("<name>.group") to every property,
+            // so getGroup() never returns null. A property is only explicitly grouped
+            // if the resolved group differs from that default.
+            // NOTE: ConnID does not  return group key, but rather translated message
+            String group = icfProperty.getGroup(null);
+            String defaultGroup = icfPropertyName + ".group";
+            if (group != null && !group.isEmpty() && !group.equals(defaultGroup)) {
+                propertyDefinition.setExternalGroup(group);
+            }
             propertyDefinition.setMaxOccurs(multivalue ? -1 : 1);
             if (icfProperty.isRequired() && icfProperty.getValue() == null) {
                 // If ICF says that the property is required it may not be in fact really required if it also has a default value
@@ -536,6 +545,20 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
 
     DirectoryScanningInfoManager getLocalConnectorInfoManager() {
         return localConnectorInfoManager;
+    }
+
+    /**
+     * Reloads the local connector bundle at the given URI in the UCF framework so that a
+     * subsequently generated configuration schema and newly created connector instances
+     * reflect any bundle modifications.
+     *
+     * <p>The ICF framework caches {@code ConnectorInfoManager} instances (and their
+     * {@code BundleClassLoader}s) per URL in a singleton; the cache is cleared first so that
+     * the bundle is re-read from disk with a fresh classloader.
+     */
+    void reloadLocalConnector(URI bundle) {
+        connectorInfoManagerFactory.clearLocalCache();
+        localConnectorInfoManager.reloadConnector(bundle);
     }
 
     /**

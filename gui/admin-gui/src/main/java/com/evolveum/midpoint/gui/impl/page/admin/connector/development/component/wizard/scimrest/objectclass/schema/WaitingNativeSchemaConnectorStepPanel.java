@@ -50,7 +50,8 @@ public class WaitingNativeSchemaConnectorStepPanel extends WaitingObjectClassScr
     @Override
     protected String getNewTaskToken(Task task, OperationResult result, boolean regenerate) {
         return getDetailsModel().getConnectorDevelopmentOperation().submitGenerateNativeSchema(
-                getObjectClassModel().getObject().getRealValue().getName(), regenerate, task, result);
+                getObjectClassModel().getObject().getRealValue().getName(), regenerate,
+                getRepairScript(), getRepairErrors(), task, result);
     }
 
     @Override

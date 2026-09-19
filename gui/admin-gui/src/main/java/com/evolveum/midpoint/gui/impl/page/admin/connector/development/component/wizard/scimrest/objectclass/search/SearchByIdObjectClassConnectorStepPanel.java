@@ -21,6 +21,9 @@ import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorDevelopmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationTypeType;
+import com.evolveum.midpoint.gui.impl.component.wizard.collapse.HelpTab;
+import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.ConnectorWizardHelpTopics;
+import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.ConnectorDevelopmentWizardUtil;
 
 /**
  * Parent wizard step for Search By ID (search one / read by ID) script generation flow.
@@ -62,5 +65,10 @@ public class SearchByIdObjectClassConnectorStepPanel extends AbstractObjectClass
     @Override
     protected IModel<?> getSubTextModel() {
         return createStringResource("PageConnectorDevelopment.wizard.step.objectClassSearchById.subText");
+    }
+
+    @Override
+    protected List<HelpTab> computeHelpTabs() {
+        return ConnectorDevelopmentWizardUtil.helpTabs(getDetailsModel(), ConnectorWizardHelpTopics.APPLICATION_IDENTIFICATION, null);
     }
 }

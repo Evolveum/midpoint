@@ -13,6 +13,7 @@ import com.evolveum.midpoint.schema.processor.ShadowReferenceAttributeDefinition
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.model.api.MetadataItemProcessingSpec;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.enforcer.api.ItemSecurityConstraints;
@@ -82,11 +83,23 @@ public class WrapperContext {
     private boolean suppliedObjectFromAuthorizedCase;
 
     /**
+     * Precomputed edit/security definition for supplied/transient objects. When set, wrapper creation uses this
+     * definition instead of recomputing it from the wrapped object.
+     */
+    private PrismObjectDefinition<?> precomputedEditSecurityDefinition;
+
+    /**
      * usually virtual containers are created only whtn the whole object wrapper is created
      * however, there are situations, when we need to create those virtual containers even
      * when a concrete container wrapper is beeing created.
      */
     private boolean forceCreateVirtualContainers;
+
+    /**
+     * When set, {@link #forceCreateVirtualContainer(List)} is ignored: no virtual containers are
+     * hooked into this context, so items are not moved into (and hidden behind) virtual sections.
+     */
+    private boolean virtualContainersDisabled;
 
     public WrapperContext(Task task, OperationResult result) {
         this.task = task;
@@ -314,13 +327,32 @@ public class WrapperContext {
         this.suppliedObjectFromAuthorizedCase = suppliedObjectFromAuthorizedCase;
     }
 
+    public PrismObjectDefinition<?> getPrecomputedEditSecurityDefinition() {
+        return precomputedEditSecurityDefinition;
+    }
+
+    public void setPrecomputedEditSecurityDefinition(PrismObjectDefinition<?> precomputedEditSecurityDefinition) {
+        this.precomputedEditSecurityDefinition = precomputedEditSecurityDefinition;
+    }
+
     public void forceCreateVirtualContainer(List<VirtualContainersSpecificationType> virtualContainers) {
+        if (virtualContainersDisabled) {
+            return;
+        }
         this.virtualContainers.addAll(virtualContainers);
         this.forceCreateVirtualContainers = true;
     }
 
     public boolean isForceCreateVirtualContainers() {
         return forceCreateVirtualContainers;
+    }
+
+    public void setVirtualContainersDisabled(boolean virtualContainersDisabled) {
+        this.virtualContainersDisabled = virtualContainersDisabled;
+    }
+
+    public boolean isVirtualContainersDisabled() {
+        return virtualContainersDisabled;
     }
 
     public void setSecurityConstraints(ItemSecurityConstraints securityConstraints) {
@@ -352,6 +384,8 @@ public class WrapperContext {
         ctx.setShowedByWizard(isShowedByWizard);
         ctx.setSecurityConstraints(securityConstraints);
         ctx.setSuppliedObjectFromAuthorizedCase(suppliedObjectFromAuthorizedCase);
+        ctx.setPrecomputedEditSecurityDefinition(precomputedEditSecurityDefinition);
+        ctx.setVirtualContainersDisabled(virtualContainersDisabled);
         return ctx;
     }
 

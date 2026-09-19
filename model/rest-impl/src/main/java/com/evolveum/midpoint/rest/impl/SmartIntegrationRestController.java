@@ -240,6 +240,20 @@ public class SmartIntegrationRestController extends AbstractRestController {
         }
     }
 
+    @GetMapping(SmartIntegrationConstants.RPC_SUGGEST_FOCUS_TYPE_STATUS_INFO)
+    public ResponseEntity<?> getSuggestFocusTypeStatus(
+            @RequestParam("token") @NotNull String token
+    ) {
+        var task = initRequest();
+        var result = createSubresult(task, OPERATION_SUGGEST_FOCUS_TYPE);
+
+        return handleStatusInfo(
+                task,
+                result,
+                (service) -> service.getSuggestFocusTypeOperationStatus(token, task, result)
+        );
+    }
+
     /**
      * Retrieves information about the configured AI smart integration service.
      */
@@ -313,12 +327,14 @@ public class SmartIntegrationRestController extends AbstractRestController {
 
         if (statusInfo.getResult() instanceof ObjectTypesSuggestionType objectTypesSuggestionType) {
             abstractSmartIntegrationOperationResultType.setObjectTypesSuggestion(objectTypesSuggestionType);
-        } else if (statusInfo.getResult() instanceof MappingsSuggestionType objectTypesSuggestionType) {
-            abstractSmartIntegrationOperationResultType.setMappingsSuggestion(objectTypesSuggestionType);
+        } else if (statusInfo.getResult() instanceof MappingsSuggestionType mappingsSuggestionType) {
+            abstractSmartIntegrationOperationResultType.setMappingsSuggestion(mappingsSuggestionType);
         } else if (statusInfo.getResult() instanceof CorrelationSuggestionsType correlationSuggestionsType) {
             abstractSmartIntegrationOperationResultType.setCorrelationSuggestions(correlationSuggestionsType);
         } else if (statusInfo.getResult() instanceof AssociationsSuggestionType associationSuggestionType) {
             abstractSmartIntegrationOperationResultType.setAssociationsSuggestionType(associationSuggestionType);
+        } else if (statusInfo.getResult() instanceof FocusTypeSuggestionType focusTypeSuggestionType) {
+            abstractSmartIntegrationOperationResultType.setFocusTypeSuggestionType(focusTypeSuggestionType);
         }
 
         return abstractSmartIntegrationOperationResultType;

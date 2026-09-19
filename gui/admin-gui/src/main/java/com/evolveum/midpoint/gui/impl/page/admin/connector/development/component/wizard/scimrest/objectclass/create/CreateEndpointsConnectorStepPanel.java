@@ -25,6 +25,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationTypeType;
 
 import java.util.Collection;
 import java.util.List;
+import com.evolveum.midpoint.gui.impl.component.wizard.collapse.HelpTab;
+import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.ConnectorWizardHelpTopics;
+import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.ConnectorDevelopmentWizardUtil;
 
 /**
  * @author lskublik
@@ -77,5 +80,10 @@ public class CreateEndpointsConnectorStepPanel extends EndpointsConnectorStepPan
     @Override
     protected ItemPath getScriptItemName() {
         return ConnDevObjectClassInfoType.F_CREATE_SCRIPT;
+    }
+
+    @Override
+    protected List<HelpTab> computeHelpTabs() {
+        return ConnectorDevelopmentWizardUtil.helpTabs(getDetailsModel(), ConnectorWizardHelpTopics.CREATE_ENDPOINT, ConnectorWizardHelpTopics.ENDPOINT_SELECTION);
     }
 }

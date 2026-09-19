@@ -294,3 +294,7 @@
   font-weight: 600;
   line-height: 1;
 }
+
+.bg-white-until-hover:not(:hover) {
+  background-color: white;
+}

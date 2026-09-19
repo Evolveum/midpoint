@@ -1871,6 +1871,13 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="focusTypeSuggestionType" type="tns:FocusTypeSuggestionType" minOccurs="0" >
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Suggested focus type definitions.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="connDevCreateConnectorResult" type="tns:ConnDevCreateConnectorResultType" minOccurs="0" />
             <xsd:element name="connDevDiscoverGlobalInformationResult" type="tns:ConnDevDiscoverGlobalInformationResultType" minOccurs="0" />
             <xsd:element name="connDevDiscoverDocumentationResult" type="tns:ConnDevDiscoverDocumentationResultType" minOccurs="0" />

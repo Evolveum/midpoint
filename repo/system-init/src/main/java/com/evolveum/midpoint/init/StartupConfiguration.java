@@ -12,6 +12,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
+import java.util.regex.Pattern;
 
 import ch.qos.logback.classic.LoggerContext;
 import ch.qos.logback.classic.joran.JoranConfigurator;
@@ -26,6 +27,11 @@ import org.apache.commons.configuration2.interpol.Lookup;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.EnvironmentAware;
+import org.springframework.core.env.AbstractEnvironment;
+import org.springframework.core.env.EnumerablePropertySource;
+import org.springframework.core.env.Environment;
+import org.springframework.core.env.PropertySource;
 
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.common.configuration.api.ProfilingMode;
@@ -38,12 +44,6 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-
-import org.springframework.context.EnvironmentAware;
-import org.springframework.core.env.AbstractEnvironment;
-import org.springframework.core.env.EnumerablePropertySource;
-import org.springframework.core.env.Environment;
-import org.springframework.core.env.PropertySource;
 
 public class StartupConfiguration implements MidpointConfiguration, EnvironmentAware {
 
@@ -60,28 +60,30 @@ public class StartupConfiguration implements MidpointConfiguration, EnvironmentA
     private static final Trace LOGGER = TraceManager.getTrace(StartupConfiguration.class);
 
     /**
-     * List of configuration keys or JVM override keys that should hide their values.
-     * Short keys are used for dumps to the log, qualified JVM argument keys are for About page.
+     * Configuration keys and JVM property names whose values must be hidden although their
+     * name does not look like a secret (e.g. JDBC URL may contain credentials).
+     * Keys with password-like names are detected by {@link #SENSITIVE_KEY_PATTERN},
+     * both are combined in {@link #isSensitiveKey(String)}.
      */
-    public static final List<String> SENSITIVE_CONFIGURATION_VARIABLES = Arrays.asList(
-            "jdbcPassword",
-            "keyStorePassword",
+    public static final List<String> SENSITIVE_VARIABLES = Arrays.asList(
             "midpoint.repository.dataSource",
             "midpoint.repository.jdbcUrl",
             "midpoint.repository.jdbcUsername",
-            "midpoint.repository.jdbcPassword",
             "midpoint.audit.dataSource",
             "midpoint.audit.jdbcUrl",
-            "midpoint.audit.jdbcUsername",
-            "midpoint.audit.jdbcPassword",
-            "midpoint.keystore.keyStorePassword",
-            MidpointConfiguration.ADMINISTRATOR_INITIAL_PASSWORD
+            "midpoint.audit.jdbcUsername"
     );
     public static final String SENSITIVE_VALUE_OUTPUT = "[*****]";
 
     /**
+     * Any key containing one of these words (case-insensitive) is treated as sensitive.
+     */
+    private static final Pattern SENSITIVE_KEY_PATTERN = Pattern.compile(
+            "password|passwd|pwd|secret|token|credential|api[._-]?key", Pattern.CASE_INSENSITIVE);
+
+    /**
      * For troubleshooting, enable it via JVM argument: -Dmidpoint.printSensitiveValues
-     * This only allows the printing in the log, About page always hides sensitive values.
+     * It disables hiding of sensitive values both in the startup log and on the About page.
      */
     private static final boolean PRINT_SENSITIVE_VALUES = System.getProperty("midpoint.printSensitiveValues") != null;
 
@@ -331,14 +333,47 @@ public class StartupConfiguration implements MidpointConfiguration, EnvironmentA
      * Returns provided value for printing or string replacement for sensitive values (passwords).
      */
     private String valuePrintout(String key, Object value) {
-        return PRINT_SENSITIVE_VALUES
-                || SENSITIVE_CONFIGURATION_VARIABLES.stream().noneMatch(s -> key.contains(s))
+        return PRINT_SENSITIVE_VALUES || !isSensitiveKey(key)
                 ? String.valueOf(value)
                 : SENSITIVE_VALUE_OUTPUT;
     }
 
     public static boolean isPrintSensitiveValues() {
         return PRINT_SENSITIVE_VALUES;
+    }
+
+    /**
+     * Returns true if the value of configuration key, system property or environment variable
+     * with the given name should be hidden when printed.
+     */
+    public static boolean isSensitiveKey(String key) {
+        if (key == null) {
+            return false;
+        }
+        if (SENSITIVE_KEY_PATTERN.matcher(key).find()) {
+            return true;
+        }
+        return SENSITIVE_VARIABLES.stream().anyMatch(key::contains);
+    }
+
+    /**
+     * Hides the value of JVM argument (e.g. -Dkey=value) when its key is sensitive.
+     * Everything before the first "=" is considered a key, the rest is the value.
+     * Arguments without "=" or with non-sensitive key are returned unchanged.
+     */
+    public static String maskSensitiveArgument(String argument) {
+        if (argument == null) {
+            return null;
+        }
+        int index = argument.indexOf('=');
+        if (index < 0) {
+            return argument;
+        }
+        String key = argument.substring(0, index);
+        if (!isSensitiveKey(key)) {
+            return argument;
+        }
+        return key + "=" + SENSITIVE_VALUE_OUTPUT;
     }
 
     private String readFile(String filename) throws IOException {

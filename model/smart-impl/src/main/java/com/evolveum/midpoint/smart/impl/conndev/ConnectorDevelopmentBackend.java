@@ -12,6 +12,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.Resource;
 import com.evolveum.midpoint.smart.api.conndev.ConnDevArtifactValidationResult;
+import com.evolveum.midpoint.smart.api.conndev.ConnDevScriptFormat;
 import com.evolveum.midpoint.smart.api.conndev.ConnectorDevelopmentArtifacts;
 import com.evolveum.midpoint.smart.api.conndev.SupportedAuthorization;
 import com.evolveum.midpoint.smart.impl.conndev.activity.ConnDevBeans;
@@ -68,8 +69,6 @@ public abstract class ConnectorDevelopmentBackend {
     ConnDevBeans beans;
     private ConnectorDevelopmentType development;
     private EditableConnector editableConnector;
-    protected boolean deleteConnectorSchema = false;
-    protected boolean skipConfigurationPropsUpgrade = true;
 
     public ConnectorDevelopmentBackend(ConnDevBeans beans, ConnectorDevelopmentType development, Task task, OperationResult result) {
         this.beans = beans;
@@ -215,6 +214,18 @@ public abstract class ConnectorDevelopmentBackend {
             throw new UnsupportedOperationException("No connector class found for object class " + artifact.getObjectClass());
         }
 
+        // A regenerate can switch the artifact's format (Groovy <-> YAML), which changes its
+        // filename extension. If the previously-saved artifact had a different filename, that file
+        // is now orphaned - remove it, so the connector bundle doesn't end up shipping both.
+        @SuppressWarnings("unchecked")
+        PrismContainer<ConnDevArtifactType> existingContainer =
+                (PrismContainer<ConnDevArtifactType>) development.asPrismContainerValue().findItem(itemPath, PrismContainer.class);
+        String previousFilename = existingContainer != null && existingContainer.getRealValue() != null
+                ? existingContainer.getRealValue().getFilename() : null;
+        if (previousFilename != null && !previousFilename.equals(artifact.getFilename())) {
+            editableConnector().deleteFileIfExists(previousFilename);
+        }
+
         saveConnectorFile(artifact.getFilename(), artifact.getContent());
         // Saving through the script's own step is the user's declaration that it's fixed and back
         // in use - clears a stale disabled:true left over from disabling it as a broken sibling
@@ -309,12 +320,13 @@ public abstract class ConnectorDevelopmentBackend {
     /**
      * Validates the script by the connector itself (supported only in development mode) using
      * the testing resource. If the testing resource isn't configured yet, or the artifact isn't
-     * a groovy script, the script is considered valid (nothing to check against). Any failure to
-     * even run the check (testing resource unreachable, deployed connector broken, doesn't
-     * support script validation, ...) is reported as an error, blocking the save.
+     * a groovy or YAML script, the script is considered valid (nothing to check against). Any
+     * failure to even run the check (testing resource unreachable, deployed connector broken,
+     * doesn't support script validation, ...) is reported as an error, blocking the save.
      */
     public ConnDevArtifactValidationResult validateArtifact(ConnDevArtifactType artifact) {
-        if (artifact.getFilename() == null || !artifact.getFilename().endsWith(".groovy")) {
+        var filename = artifact.getFilename();
+        if (!ConnDevScriptFormat.hasRecognizedExtension(filename)) {
             return ConnDevArtifactValidationResult.success();
         }
         var testing = developmentObject().getTesting();
@@ -323,8 +335,9 @@ public abstract class ConnectorDevelopmentBackend {
         }
         var testingResourceOid = testing.getTestingResource().getOid();
 
+        var format = ConnDevScriptFormat.fromFilename(filename);
         var script = new ProvisioningScriptType()
-                .language("groovy")
+                .language(format.name().toLowerCase())
                 .code(artifact.getContent())
                 .host(ProvisioningScriptHostType.RESOURCE);
         script.getArgument().add(scriptArgument("operation", "build"));
@@ -523,6 +536,9 @@ public abstract class ConnectorDevelopmentBackend {
         };
     }
 
+    /** A generated script's code together with the generation service's {@code format} verdict. */
+    private record GeneratedScript(String content, ConnDevScriptFormat format) {}
+
     private ConnDevArtifactType generateAuthorizationScript(ConnDevGenerateArtifactDefinitionType input, ConnectorDevelopmentArtifacts.KnownArtifactType classification, boolean skipCache) {
         var auths = developmentObject().getConnector().getAuth();
         if (auths.isEmpty()) {
@@ -543,11 +559,14 @@ public abstract class ConnectorDevelopmentBackend {
         body.set("preferredAuthorizations", authArray);
 
         try (var job = client().postJob("codegen/{sessionId}/authorization", body, apiType(), skipCache)) {
-            String content = job.waitAndProcess(SLEEP_TIME, canRun(), json -> json.get("code").asText());
-            if (content == null || content.isBlank()) {
+            var generated = job.waitAndProcess(SLEEP_TIME, canRun(),
+                    json -> new GeneratedScript(json.get("code").asText(),
+                            ConnDevScriptFormat.fromResponseField(ConnDevJsonMapper.toText(json.get("format")))));
+            if (generated.content() == null || generated.content().isBlank()) {
                 return null;
             }
-            return classification.create().content(content);
+            var artifact = classification.create().content(generated.content());
+            return artifact.filename(generated.format().withExtension(artifact.getFilename()));
         } catch (IOException e) {
             throw new SystemException("Couldn't generate authorization script", e);
         }
@@ -564,7 +583,7 @@ public abstract class ConnectorDevelopmentBackend {
         var objectClass = artifactSpec.getObjectClass();
         var classification = ConnectorDevelopmentArtifacts.classify(artifactSpec);
         var body = repairContextBody(input);
-        var content = switch (classification) {
+        var generated = switch (classification) {
             case NATIVE_SCHEMA_DEFINITION -> generateObjectClassScript(artifactSpec,
                     "native-schema", "native schema script", body, skipCache);
             case SEARCH_ALL_DEFINITION -> generateObjectClassScript(artifactSpec,
@@ -582,8 +601,10 @@ public abstract class ConnectorDevelopmentBackend {
             case RELATIONSHIP_SCHEMA_DEFINITION -> generateRelation(artifactSpec, input.getRelation(), body, skipCache);
             default -> throw new IllegalStateException("Unexpected script type: " + classification);
         };
-        content = content.replace("${objectClass}", objectClass);
-        return artifactSpec.content(content);
+        var content = generated.content().replace("${objectClass}", objectClass);
+        return artifactSpec
+                .filename(generated.format().withExtension(artifactSpec.getFilename()))
+                .content(content);
     }
 
     private ObjectNode repairContextBody(ConnDevGenerateArtifactDefinitionType input) {
@@ -605,18 +626,22 @@ public abstract class ConnectorDevelopmentBackend {
         return body;
     }
 
-    private String generateRelation(ConnDevArtifactType artifactSpec, List<ConnDevRelationInfoType> relation, ObjectNode body, boolean skipCache) {
+    private GeneratedScript generateRelation(ConnDevArtifactType artifactSpec, List<ConnDevRelationInfoType> relation, ObjectNode body, boolean skipCache) {
         try(var job = client().postJob("codegen/{sessionId}/relations/" + artifactSpec.getObjectClass(), body, null, skipCache)) {
-            return job.waitAndProcess(SLEEP_TIME, canRun(), json -> json.get("code").asText());
+            return job.waitAndProcess(SLEEP_TIME, canRun(),
+                    json -> new GeneratedScript(json.get("code").asText(),
+                            ConnDevScriptFormat.fromResponseField(ConnDevJsonMapper.toText(json.get("format")))));
         } catch (IOException e) {
             throw new SystemException("Couldn't generate relation for objectClass " + artifactSpec.getObjectClass(), e);
         }
     }
 
-    private String generateObjectClassScript(ConnDevArtifactType artifactSpec, String endpointSuffix, String scriptDescription, ObjectNode body, boolean skipCache) {
+    private GeneratedScript generateObjectClassScript(ConnDevArtifactType artifactSpec, String endpointSuffix, String scriptDescription, ObjectNode body, boolean skipCache) {
         var apiType = "connid".equals(endpointSuffix) ? null : apiType();
         try(var job = client().postJob("codegen/{sessionId}/classes/"+ artifactSpec.getObjectClass() + "/" + endpointSuffix, body, apiType, skipCache)) {
-            return job.waitAndProcess(SLEEP_TIME, canRun(), json -> json.get("code").asText());
+            return job.waitAndProcess(SLEEP_TIME, canRun(),
+                    json -> new GeneratedScript(json.get("code").asText(),
+                            ConnDevScriptFormat.fromResponseField(ConnDevJsonMapper.toText(json.get("format")))));
         } catch (IOException e) {
             throw new SystemException("Couldn't generate " + scriptDescription + " for objectClass " + artifactSpec.getObjectClass(), e);
         }
@@ -669,13 +694,18 @@ public abstract class ConnectorDevelopmentBackend {
         return ret;
     }
 
+    /**
+     * (Re)generates the connector's {@code configurationOverride.properties} file based on the
+     * currently selected authentication types: configuration properties belonging to the
+     * non-selected types are marked with {@code ignore}, so that ICF excludes them from the
+     * connector configuration schema.
+     *
+     * <p>The stored connector configuration schema is not touched here; to make the updated
+     * file effective, call {@link #refreshConnectorSchema(OperationResult)} afterwards.
+     */
     public void updateConfigurationOverride() throws SchemaException, ExpressionEvaluationException, CommunicationException,
             SecurityViolationException, ConfigurationException, ObjectNotFoundException, PolicyViolationException,
             ObjectAlreadyExistsException, SubscriptionComplianceException {
-        if (skipConfigurationPropsUpgrade) {
-            return;
-        }
-
         var props = new Properties();
         updateConfigurationOverride(props);
 
@@ -683,17 +713,26 @@ public abstract class ConnectorDevelopmentBackend {
             props.store(stream, null);
             var propString = stream.toString(StandardCharsets.UTF_8);
             editableConnector().saveFile(CONFIGURATION_OVERRIDE, propString);
+
+            refreshConnectorSchema(result);
+
         } catch (IOException e) {
             throw new SystemException("Couldn't write connector configuration override (" + CONFIGURATION_OVERRIDE + ")", e);
         }
-        var connRef = development.getConnector().getConnectorRef();
-        if (connRef != null && deleteConnectorSchema) {
-            var delta = PrismContext.get().deltaFor(ConnectorType.class)
-                            .item(ConnectorType.F_SCHEMA).replace()
-                            .<ConnectorType>asObjectDelta(connRef.getOid());
-            beans.modelService.executeChanges( List.of(delta), null, task, result);
+    }
 
+    /**
+     * Reloads the connector bundle in the UCF framework, regenerates the connector configuration
+     * schema and stores it into the connector object in the repository, so that it reflects the
+     * current (possibly modified) bundle content.
+     */
+    public void refreshConnectorSchema(OperationResult parentResult) throws ObjectNotFoundException, SchemaException, ConfigurationException, SubscriptionComplianceException,
+    ObjectAlreadyExistsException {
+        var connRef = development.getConnector() != null ? development.getConnector().getConnectorRef() : null;
+        if (connRef == null || connRef.getOid() == null) {
+            throw new ConfigurationException("No connector created in " + development.getOid());
         }
+        beans.provisioningService.refreshConnectorConfigurationSchema(connRef.getOid(), task, parentResult);
     }
 
     protected void updateConfigurationOverride(Properties props) {
@@ -930,17 +969,6 @@ public abstract class ConnectorDevelopmentBackend {
         }
     }
 
-    private String filenameFrom(ProcessedDocumentation documentation) {
-        /*
-        var suffix = switch (documentation.contentType()) {
-            case "application/yaml" -> "yml";
-            case "application/json" -> "json";
-            default -> "txt";
-        };
-        */
-        return documentation.uri();
-    }
-
     /**
      * Connector-agnostic dev-schema refresh: refreshes the testing resource, and if it exposes the
      * shared {@code conndev_ObjectClass} (SCIM/SQL/... in development mode), reads the development
@@ -1001,6 +1029,17 @@ public abstract class ConnectorDevelopmentBackend {
         var connector = developmentObject().getConnector();
         var integrationType = connector != null ? connector.getIntegrationType() : null;
         return integrationType != null ? integrationType.value() : null;
+    }
+
+    /**
+     * The connector intent for the generation service ({@code intent} query parameter of the
+     * object-class extraction endpoint). {@code null} when not set, so the service applies its
+     * own default (Identity Management &amp; Governance).
+     */
+    protected String connectorIntent() {
+        var connector = developmentObject().getConnector();
+        var intent = connector != null ? connector.getIntent() : null;
+        return intent != null ? intent.value() : null;
     }
 
     /**
@@ -1070,7 +1109,7 @@ public abstract class ConnectorDevelopmentBackend {
 
     public List<ConnDevBasicObjectClassInfoType> discoverObjectClassesUsingDocumentation(
             List<ConnDevBasicObjectClassInfoType> connectorDiscovered, boolean includeUnrelated, boolean skipCache) {
-        try (var job = client().postJob("digester/{sessionId}/classes", apiType(), skipCache)) {
+        try (var job = client().postJob("digester/{sessionId}/classes", apiType(), connectorIntent(), skipCache)) {
             return job.waitAndProcess(SLEEP_TIME, canRun(), o -> {
                 var ret = new ArrayList<ConnDevBasicObjectClassInfoType>();
                 var jsonClasses = o.get("objectClasses");

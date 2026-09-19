@@ -23,6 +23,7 @@ import com.evolveum.midpoint.web.component.data.column.ImagePanel;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
 
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.util.TooltipBehavior;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -39,6 +40,7 @@ import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.model.PropertyModel;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -68,11 +70,13 @@ public class CorrelationExistingMappingTable<P extends Containerable> extends Ba
     protected void onInitialize() {
         super.onInitialize();
 
-        Label textLabel = new Label(ID_TEXT, createStringResource("ExistingMappingTable.text"));
+        Label textLabel = new Label(ID_TEXT,
+                createStringResource("ExistingMappingTable.text" + (!isSelectableTable() ? ".view" : "")));
         textLabel.setOutputMarkupId(true);
         add(textLabel);
 
-        Label subTextLabel = new Label(ID_SUBTEXT, createStringResource("ExistingMappingTable.subText"));
+        Label subTextLabel = new Label(ID_SUBTEXT,
+                createStringResource("ExistingMappingTable.subText" + (!isSelectableTable() ? ".view" : "")));
         subTextLabel.setOutputMarkupId(true);
         add(subTextLabel);
 
@@ -86,56 +90,18 @@ public class CorrelationExistingMappingTable<P extends Containerable> extends Ba
                 null) {
 
             @Override
+            protected String getTableContainerAdditionalCssClasses() {
+                return super.getTableContainerAdditionalCssClasses() + " rounded overflow-hidden";
+            }
+
+            @Override
             protected ItemName getItemNameOfContainerWithMappings() {
                 return ResourceObjectTypeDefinitionType.F_ATTRIBUTE;
             }
 
             @Override
             protected IModel<List<PrismContainerValueWrapper<MappingType>>> getMappingValuesModel() {
-                if (!isAssociationView()) {
-                    return super.getMappingValuesModel();
-                }
-
-                return new LoadableDetachableModel<>() {
-                    @Override
-                    protected List<PrismContainerValueWrapper<MappingType>> load() {
-                        List<PrismContainerValueWrapper<MappingType>> result = new ArrayList<>();
-
-                        addVirtualMappings(result,
-                                AssociationSynchronizationExpressionEvaluatorType.F_OBJECT_REF,
-                                MappingDirection.OBJECTS);
-
-                        addVirtualMappings(result,
-                                AssociationSynchronizationExpressionEvaluatorType.F_ATTRIBUTE,
-                                MappingDirection.ATTRIBUTE);
-
-                        return result;
-                    }
-
-                    private void addVirtualMappings(
-                            List<PrismContainerValueWrapper<MappingType>> result,
-                            ItemName sourceItem,
-                            MappingDirection direction) {
-
-                        IModel<PrismContainerWrapper<MappingType>> model = createVirtualMappingContainerModel(
-                                getPageBase(),
-                                getValueModel(),
-                                sourceItem,
-                                AbstractAttributeMappingsDefinitionType.F_REF,
-                                direction);
-
-                        PrismContainerWrapper<MappingType> container = model.getObject();
-                        if (container != null && container.getValues() != null) {
-                            List<PrismContainerValueWrapper<MappingType>> values = container.getValues();
-                            values.forEach(value -> {
-                                MappingType mapping = value.getRealValue();
-                                if (mapping != null && mapping.getTarget() != null) {
-                                    result.add(value);
-                                }
-                            });
-                        }
-                    }
-                };
+                return createContainerValueModel();
             }
 
             @Override
@@ -158,6 +124,11 @@ public class CorrelationExistingMappingTable<P extends Containerable> extends Ba
                 return initSearch(headerId);
             }
 
+            @Override
+            protected boolean isHeaderVisible() {
+                return isSelectableTable();
+            }
+
             @Contract(pure = true)
             @Override
             protected @NotNull MappingUsedFor getSelectedTypeOfMappings() {
@@ -166,11 +137,7 @@ public class CorrelationExistingMappingTable<P extends Containerable> extends Ba
 
             @Override
             protected void excludeMappings(@NotNull List<PrismContainerValueWrapper<MappingType>> list, MappingUsedFor usedFor) {
-                list.removeIf(valueWrapper -> {
-                    InboundMappingType realValue = (InboundMappingType) valueWrapper.getRealValue();
-                    InboundMappingUseType valueUse = realValue.getUse();
-                    return valueUse != null && MappingUsedFor.valueOf(valueUse.name()) == MappingUsedFor.SYNCHRONIZATION;
-                });
+                list.removeIf(valueWrapper -> isExcludeMapping(valueWrapper));
             }
 
             @Override
@@ -193,32 +160,34 @@ public class CorrelationExistingMappingTable<P extends Containerable> extends Ba
             protected @NotNull List<IColumn<PrismContainerValueWrapper<MappingType>, String>> createDefaultColumns() {
                 List<IColumn<PrismContainerValueWrapper<MappingType>, String>> columns = new ArrayList<>();
 
-                columns.add(new CheckBoxHeaderColumn<>() {
-                    @SuppressWarnings("rawtypes")
-                    @Override
-                    protected void onUpdateRow(Item<ICellPopulator<PrismContainerValueWrapper<MappingType>>> cellItem,
-                            AjaxRequestTarget target, DataTable table, IModel<PrismContainerValueWrapper<MappingType>> rowModel,
-                            IModel<Boolean> selected) {
-                        super.onUpdateRow(cellItem, target, table, rowModel, selected);
-                        target.add(getFooter());
-                        target.add(getTable().getDataTableContainer());
-                    }
+                if (isSelectableTable()) {
+                    columns.add(new CheckBoxHeaderColumn<>() {
+                        @SuppressWarnings("rawtypes")
+                        @Override
+                        protected void onUpdateRow(Item<ICellPopulator<PrismContainerValueWrapper<MappingType>>> cellItem,
+                                AjaxRequestTarget target, DataTable table, IModel<PrismContainerValueWrapper<MappingType>> rowModel,
+                                IModel<Boolean> selected) {
+                            super.onUpdateRow(cellItem, target, table, rowModel, selected);
+                            target.add(getFooter());
+                            target.add(getTable().getDataTableContainer());
+                        }
 
-                    @Override
-                    protected IModel<Boolean> getHeaderDisplayModel() {
-                        int selectedObjectsCount = CorrelationExistingMappingTable.this.getTable().getSelectedObjectsCount();
-                        boolean initialState = selectedObjectsCount == getDataProvider().size();
-                        return new Model<>(initialState);
-                    }
+                        @Override
+                        protected IModel<Boolean> getHeaderDisplayModel() {
+                            int selectedObjectsCount = CorrelationExistingMappingTable.this.getTable().getSelectedObjectsCount();
+                            boolean initialState = selectedObjectsCount == getDataProvider().size();
+                            return new Model<>(initialState);
+                        }
 
-                    @SuppressWarnings("rawtypes")
-                    @Override
-                    protected void onUpdateHeader(AjaxRequestTarget target, boolean selected, DataTable table) {
-                        super.onUpdateHeader(target, selected, table);
-                        target.add(getFooter());
-                        target.add(getTable().getDataTableContainer());
-                    }
-                });
+                        @SuppressWarnings("rawtypes")
+                        @Override
+                        protected void onUpdateHeader(AjaxRequestTarget target, boolean selected, DataTable table) {
+                            super.onUpdateHeader(target, selected, table);
+                            target.add(getFooter());
+                            target.add(getTable().getDataTableContainer());
+                        }
+                    });
+                }
 
                 IModel<PrismContainerDefinition<MappingType>> mappingTypeDef =
                         getMappingTypeDefinition();
@@ -245,6 +214,13 @@ public class CorrelationExistingMappingTable<P extends Containerable> extends Ba
                         return new Label(componentId, getPageBase().createStringResource(
                                 getRefColumnPrefix() + getMappingType().name() + "." + getItemNameOfRefAttribute()));
                     }
+                });
+
+                columns.add(new PrismPropertyWrapperColumn<MappingType, String>(
+                        mappingTypeDef,
+                        MappingType.F_EXPRESSION,
+                        AbstractItemWrapperColumn.ColumnType.VALUE,
+                        getPageBase()) {
                 });
 
                 columns.add(new PrismPropertyWrapperColumn<MappingType, String>(
@@ -308,6 +284,63 @@ public class CorrelationExistingMappingTable<P extends Containerable> extends Ba
         add(table);
     }
 
+    protected @NotNull IModel<List<PrismContainerValueWrapper<MappingType>>> createContainerValueModel() {
+        if (!isAssociationView()) {
+            return new PropertyModel<>(getTable().getContainerModel(), "values");
+        }
+
+        return new LoadableDetachableModel<>() {
+            @Override
+            protected List<PrismContainerValueWrapper<MappingType>> load() {
+                List<PrismContainerValueWrapper<MappingType>> result = new ArrayList<>();
+
+                addVirtualMappings(result,
+                        AssociationSynchronizationExpressionEvaluatorType.F_OBJECT_REF,
+                        MappingDirection.OBJECTS);
+
+                addVirtualMappings(result,
+                        AssociationSynchronizationExpressionEvaluatorType.F_ATTRIBUTE,
+                        MappingDirection.ATTRIBUTE);
+
+                return result;
+            }
+
+            private void addVirtualMappings(
+                    List<PrismContainerValueWrapper<MappingType>> result,
+                    ItemName sourceItem,
+                    MappingDirection direction) {
+
+                IModel<PrismContainerWrapper<MappingType>> model = createVirtualMappingContainerModel(
+                        getPageBase(),
+                        getModel(),
+                        sourceItem,
+                        AbstractAttributeMappingsDefinitionType.F_REF,
+                        direction);
+
+                PrismContainerWrapper<MappingType> container = model.getObject();
+                if (container != null && container.getValues() != null) {
+                    List<PrismContainerValueWrapper<MappingType>> values = container.getValues();
+                    values.forEach(value -> {
+                        MappingType mapping = value.getRealValue();
+                        if (mapping != null && mapping.getTarget() != null) {
+                            result.add(value);
+                        }
+                    });
+                }
+            }
+        };
+    }
+
+    public boolean isExcludeMapping(PrismContainerValueWrapper<MappingType> valueWrapper) {
+        InboundMappingType realValue = (InboundMappingType) valueWrapper.getRealValue();
+        InboundMappingUseType valueUse = realValue.getUse();
+        return valueUse != null && MappingUsedFor.valueOf(valueUse.name()) == MappingUsedFor.SYNCHRONIZATION;
+    }
+
+    protected boolean isSelectableTable() {
+        return true;
+    }
+
     @Override
     public @NotNull Fragment getFooter() {
         if (footerFragment == null) {
@@ -326,6 +359,7 @@ public class CorrelationExistingMappingTable<P extends Containerable> extends Ba
 
         AjaxIconButton addSelectedMappingsButton = createAddMappingButton();
         addSelectedMappingsButton.setOutputMarkupId(true);
+        addSelectedMappingsButton.add(new VisibleBehaviour(this::isSelectableTable));
         footer.add(addSelectedMappingsButton);
 
         footer.add(new AjaxLink<>(ID_CANCEL) {
@@ -386,7 +420,7 @@ public class CorrelationExistingMappingTable<P extends Containerable> extends Ba
 
     @Override
     public IModel<String> getTitle() {
-        return createStringResource("ExistingMappingTable.title");
+        return createStringResource("ExistingMappingTable.title" + (!isSelectableTable() ? ".view" : ""));
     }
 
     @Override
