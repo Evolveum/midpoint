@@ -102,7 +102,7 @@ public class CertCampaignListItemDto extends Selectable<CertCampaignListItemDto>
         if (end == null) {
             return "";
         } else {
-            long delta = XmlTypeConverter.toMillis(end) - System.currentTimeMillis();
+            long delta = XmlTypeConverter.toMillis(end) - page.getClock().currentTimeMillis();
 
             // round to hours; we always round down
             long precision = 3600000L;      // 1 hour

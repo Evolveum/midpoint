@@ -35,6 +35,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.outlier.OutlierExplanationResolver;
+import com.evolveum.midpoint.common.Clock;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
@@ -106,6 +107,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
     transient @Autowired ModelService modelService;
     transient @Autowired RepositoryService repositoryService;
     transient @Autowired SchemaService schemaService;
+    transient @Autowired Clock clock;
     //poc
     transient @Autowired RelationRegistry relationRegistry;
 
@@ -1254,7 +1256,9 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
             submitSessionOperationStatus(modelService,
                     session,
                     taskOid,
-                    focus, LOGGER, task, result
+                    focus,
+                    clock.currentTimeXMLGregorianCalendar(),
+                    LOGGER, task, result
             );
 
         } catch (CommonException e) {
@@ -1317,6 +1321,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
                     taskOid,
                     RoleAnalysisOperationType.DETECTION,
                     focus,
+                    clock.currentTimeXMLGregorianCalendar(),
                     LOGGER,
                     task,
                     result
@@ -1375,7 +1380,10 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
         submitClusterOperationStatus(modelService,
                 cluster,
                 taskOid,
-                RoleAnalysisOperationType.MIGRATION, focus, LOGGER, task, result
+                RoleAnalysisOperationType.MIGRATION,
+                focus,
+                clock.currentTimeXMLGregorianCalendar(),
+                LOGGER, task, result
         );
 
         switchRoleToActiveLifeState(modelService, roleObject, LOGGER, task, result);
@@ -1444,7 +1452,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
             Collection<PrismContainerValue<?>> collection = new ArrayList<>();
 
             RoleAnalysisOperationStatusType newStatus = updateRoleAnalysisOperationStatus(
-                    repositoryService, roleAnalysisOperationStatus, false, LOGGER, result
+                    repositoryService, roleAnalysisOperationStatus, clock.currentTimeXMLGregorianCalendar(), false, LOGGER, result
             );
 
             if (newStatus != null) {
@@ -1522,7 +1530,8 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
             return RoleAnalysisObjectState.STABLE.getDisplayString();
         }
 
-        RoleAnalysisOperationStatusType newStatus = updateRoleAnalysisOperationStatus(repositoryService, operationStatus, true, LOGGER, result);
+        RoleAnalysisOperationStatusType newStatus = updateRoleAnalysisOperationStatus(
+                repositoryService, operationStatus, clock.currentTimeXMLGregorianCalendar(), true, LOGGER, result);
 
         if (newStatus != null) {
 
@@ -1673,7 +1682,8 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
         }
 
         @NotNull RoleAnalysisOperationStatusType operationStatus = buildOpExecution(
-                taskOid, operationResultStatusType, message, operationType, createTimestamp, focus);
+                taskOid, operationResultStatusType, message, operationType, createTimestamp,
+                clock.currentTimeXMLGregorianCalendar(), focus);
         try {
             ObjectDelta<RoleAnalysisClusterType> delta = PrismContext.get().deltaFor(RoleAnalysisClusterType.class)
                     .item(RoleAnalysisClusterType.F_CANDIDATE_ROLES.append(

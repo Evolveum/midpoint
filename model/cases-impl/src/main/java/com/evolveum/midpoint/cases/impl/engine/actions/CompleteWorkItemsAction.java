@@ -171,7 +171,7 @@ public class CompleteWorkItemsAction extends RequestedAction<CompleteWorkItemsRe
     private void updateCaseHistory(@NotNull CaseWorkItemType workItem, @NotNull AbstractWorkItemOutputType output) {
         WorkItemId workItemId = WorkItemId.create(operation.getCaseOidRequired(), workItem.getId());
         WorkItemCompletionEventType event = new WorkItemCompletionEventType(PrismContext.get());
-        fillInWorkItemEvent(event, operation.getPrincipal(), workItemId, workItem);
+        fillInWorkItemEvent(event, operation.getPrincipal(), workItemId, workItem, beans.clock.currentTimeMillis());
         event.setCause(request.getCauseInformation());
         event.setOutput(output);
         operation.addCaseHistoryEvent(event);
