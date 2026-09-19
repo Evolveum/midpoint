@@ -41,6 +41,7 @@ public class ResourceTestPanel extends BasePanel<String> {
     private final XMLGregorianCalendar startTimestamp = XmlTypeConverter.createXMLGregorianCalendar(System.currentTimeMillis());
     private State state = State.RUNNING;
     private AbstractAjaxTimerBehavior timerBehavior;
+    private OperationResult lastResult;
     private OperationResult lastFailedResult;
 
     private enum State {
@@ -98,6 +99,8 @@ public class ResourceTestPanel extends BasePanel<String> {
 
                     result.computeStatus();
                     failed = result.isError();
+
+                    lastResult = result;
 
                     if (!failed) {
                         try {
@@ -164,6 +167,11 @@ public class ResourceTestPanel extends BasePanel<String> {
 
     public OperationResult getLastFailedResult() {
         return lastFailedResult;
+    }
+
+    /** Result of the last test run, regardless of its outcome. */
+    public OperationResult getLastResult() {
+        return lastResult;
     }
 
     protected IModel<String> getIconCssModel() {
