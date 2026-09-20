@@ -677,7 +677,7 @@ public class TestMisc extends AbstractMiscTest {
         // Expected "own" time for operations without delay [microseconds] = in all operations except "handleObjectFound"
         long expectedNoOpOwnHigh = 200 * 1000L; // this should be enough for 30 objects, but we can increase it if needed
 
-        // Expected "own" time for operations with delay [microseconds] = in "handleObjectFound" operations where the delay is
+        // Expected "own" time for operations with delay [microseconds] = in "handleObjectFound" operations where the delay is spent
         long expectedOwnLow = numGeneratedRoles * OBJECT_PROCESSING_DELAY * 1000L; // minimum is the explicit delay
         long expectedOwnHigh = (long) (expectedOwnLow * SAFETY_MARGIN); // maximum can be a bit higher
 
