@@ -11,7 +11,8 @@ Scope definition controls the set of certification cases that are created when t
 You can configure the following:
 
 objectType ::
-    Defines the type of objects that we are working with.
+    Defines the type of objects to include in the campaign.
+    The campaign certifies the targets attributed to objects of this type.
     The default is `UserType`, however, you can also specify `RoleType`, `OrgType`, `ServiceType`, `FocusType` or `AbstractRoleType` here.
 
 searchFilter ::
@@ -22,12 +23,9 @@ searchFilter ::
 itemSelectionExpression ::
     An expression that selects items that are to be included in the certification.
     The exact use of this expression depends on the certification handler.
-    The direct assignment handler calls this expression individually with each assignment to determine which assignments should be included and which should not.
-
-caseGenerationExpression (not yet implemented) ::
-    Defines an expression that produces certification cases.
-    This can be any expression, whose input is an object that has passed the search filter specified above, and its output is a list of certification cases.
-// TODO Still not impl'd (master, 2026-08), delete this
+    The direct assignment handler calls this expression individually with each assignment to determine which assignments should be included and which should not. +
+    For object selection, use xref:/midpoint/reference/concepts/query/midpoint-query-language/[MQL] which you can edit in the GUI.
+    Target selection must be defined in Groovy via xref:/midpoint/tools/studio/[MidPoint Studio].
 
 == Handler-specific properties
 

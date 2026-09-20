@@ -1,6 +1,6 @@
 = GUI action configuration
 :page-moved-from: /midpoint/reference/roles-policies/policies/certification/actions/, /midpoint/reference/roles-policies/certification/actions/
-:page-nav-title: GUI Action Configuration
+:page-nav-title: GUI action configuration
 :page-upkeep-status: yellow
 :page-display-order: 20
 :page-toc: top
