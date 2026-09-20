@@ -18,6 +18,8 @@ import com.evolveum.midpoint.authentication.api.authorization.Url;
 
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AllowedConnectorsListType;
+
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -337,6 +339,9 @@ public class PageImportObject extends PageAdminConfiguration {
                 } else {
                     options.setModelExecutionOptions(null);
                 }
+                // We need to ensure that the import for `AllowedConnectorsListType` goes through even if it already contains
+                // some extra elements, due to the upgrade of the behaviour in the MidPoint Integration Catalog.
+                options = options.compatFor(AllowedConnectorsListType.COMPLEX_TYPE);
                 getModelService().importObjectsFromStream(stream, inputDescription.dataLanguage, options, task, result);
 
                 result.recomputeStatus();

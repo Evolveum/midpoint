@@ -14,6 +14,8 @@ import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
 import com.evolveum.midpoint.schema.config.ExecuteScriptConfigItem;
 import com.evolveum.midpoint.schema.util.ScriptingBeansUtil;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AllowedConnectorsListType;
+
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.Validate;
@@ -83,7 +85,11 @@ public class PostInitialDataImport extends DataImport {
             }
             Item<?, ?> item = null;
             try {
-                item = prismContext.parserFor(file).parseItem();
+                item = prismContext.parserFor(file)
+                        // We need to ensure that the import for `AllowedConnectorsListType` goes through even if it already contains
+                        // some extra elements, due to the upgrade of the behaviour in the MidPoint Integration Catalog.
+                        .compatFor(AllowedConnectorsListType.COMPLEX_TYPE)
+                        .parseItem();
             } catch (Exception ex) {
                 LoggingUtils.logUnexpectedException(LOGGER, "Couldn't parse file {}", ex, file.getName());
                 mainResult.recordFatalError("Couldn't parse file '" + file.getName() + "'", ex);

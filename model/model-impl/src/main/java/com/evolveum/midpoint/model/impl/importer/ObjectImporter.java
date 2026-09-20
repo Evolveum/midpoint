@@ -59,6 +59,8 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.EvaluationTimeType;
 
+import javax.xml.namespace.QName;
+
 /**
  * Extension of validator used to import objects to the repository.
  *
@@ -135,8 +137,15 @@ public class ObjectImporter {
                 }
             };
             PrismParser parser = prismContext.parserFor(input).language(language);
-            if (options != null && options.isCompatMode() != null && options.isCompatMode()) {
-                parser = parser.compat();
+            if (options != null) {
+                if (options.isCompatMode() != null && options.isCompatMode()) {
+                    parser = parser.compat();
+                } else if (options.getCompatFor() != null && !options.getCompatFor().isEmpty()) {
+                    for (QName objectType : options.getCompatFor()) {
+                        parser = parser.compatFor(objectType);
+                    }
+
+                }
             }
             try {
                 parser.parseObjectsIteratively(handler);
