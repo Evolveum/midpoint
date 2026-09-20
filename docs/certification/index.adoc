@@ -17,8 +17,8 @@ doc-type: intro
 :page-description: This introduces certification campaigns and explains how they work.
 :page-keywords: certification campaign, campaign definition, campaign configuration, campaign dashboard widget
 
-Access certification in midPoint is a means to revisit various access-related configurations and assess whether they still serve their intended purpose.
-Access certifications can, for example, help prevent access accumulation or violation of segregation of duties.
+An access certification in midPoint is a counter-balance to an access request, providing means to revisit various access-related configurations and assess whether they still serve their intended purpose.
+An access certification can, for example, help prevent access accumulation or violation of feature:sod[segregation of duties].
 
 == Introduction
 
@@ -115,7 +115,7 @@ Refer to xref:/midpoint/reference/certification/iteration/[].
 
 [[adhoc-cert]]
 Ad-hoc certification ::
-    A certification campaign created without a pre-existing campaign definition, typically to address a specific situation outside of regular schedules.
+    An instance of an ad-hoc certification campaign is typically created automatically based on a policy rule to address a specific situation outside of regular campaign schedules.
 
 Campaign remediation ::
     The phase after all review stages are completed in which the decisions made by reviewers are carried out.

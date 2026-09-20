@@ -13,7 +13,7 @@ doc-type: guide
 :page-alias: { "parent" : "/midpoint/guides/" }
 :page-upkeep-status: green
 :page-moved-from: /midpoint/reference/roles-policies/certification/tutorial/
-:page-description: A quick access certification tutorial: how to configure a certification campaign definition, create and start a campaign, and how to review its results.
+:page-description: A quick access certification tutorial: how to configure a certification campaign definition, create and start a campaign, and review its results.
 :page-keywords: certification campaign, access campaign, campaign definition, review campaign
 :experimental:
 :page-display-order: 100

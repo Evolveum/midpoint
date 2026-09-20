@@ -33,8 +33,9 @@ handlerUri ::
     However, you can create your own handlers.
 
 scopeDefinition ::
-    While the handler provides basic character of the certification (e.g. "we'll be dealing with direct assignments"), the scope definition says more precisely which objects (in this case, assignments) are involved.
-    For example, the scope can be limited to user-to-role, only certain users, certain roles, etc.
+    While the handler provides basic character of the certification (e.g., "we will be dealing with direct assignments"), the scope definition says more precisely which objects (in this case, assignments) are involved.
+    For example, the scope can be limited to user-to-role, only certain users, certain roles, etc. +
+    See xref:/midpoint/reference/certification/#cert-campaign-workflow[campign workflow] and xref:/midpoint/reference/certification/#terminology[terminology] for details.
 
 ownerRef ::
     Defines the owner of the definition and the related campaigns.
@@ -53,7 +54,8 @@ stageDefinition ::
     It defines, for example, the duration of stages, the reviewer selection process, etc.
 
 reviewStrategy ::
-    Defines the strategy used to compute the review outcome for a given case.
+    Defines the strategy used to compute the review outcome for a given case:
+    what happens when no answer is given by reviewers or how to handle conflicting answers from multiple reviewers of one case.
 
 view ::
     Specifies a view for the presentation of the certification items collections which are created on the basis of the current certification definition.
