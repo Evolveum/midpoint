@@ -11,6 +11,27 @@ The upgrade instructions between releases are in the https://docs.evolveum.com/m
 == 4.11-RC2
 == 4.11-RC1
 
+=== 2026-09-20 Expression profiles are now fully enforced
+
+Task: https://support.evolveum.com/wp/10948[10948]
+Description:
+
+Expression profiles are now enforced throughout the system.
+
+The idea is that the expression profile for any expression present an object in midPoint repository is derived from the object type (with archetype and/or subtype, if present).
+These profiles were partially enforced in the previous versions, but now their enforcement is to the full extent.
+
+Although the default setting is still "allow all" - in order to provide smooth migration - there may be situations where expressions were set up but not enforced.
+In such situations they may now start to fail. Hence, it is necessary to review and optionally adapt your existing expression profile setting to make sure the expressions are compliant with the declared expression profiles.
+
+In rare cases when midPoint cannot determine the expression profile because of missing information about the origin of an expression, it will report them as "TrustDescriptor is required but not set in ..." exceptions.
+This may indicate a bug in midPoint code. Please report it using the support portal.
+
+Required Upgrade Steps:
+
+- Check and test your expressions according to declared expression profiles.
+- Watch the migration guide (to be published before 4.11 release) and set up your profiles and manage your expressions accordingly.
+
 === 2026-09-20 Default expression profiles for midPoint [bulk] actions were changed
 
 Task: https://support.evolveum.com/wp/10948[10948]
