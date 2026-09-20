@@ -170,8 +170,7 @@ public class ClockworkAuditHelper {
 
         for (SystemConfigurationAuditEventRecordingPropertyType property : auditConfiguration.getPropertiesToRecord()) {
             auditHelper.evaluateAuditRecordProperty(
-                    property, auditRecord, primaryObject,
-                    context.getPrivilegedExpressionProfile(), task, result);
+                    property, auditRecord, primaryObject, task, result);
         }
 
         if (auditConfiguration.getEventRecordingExpression() != null) {

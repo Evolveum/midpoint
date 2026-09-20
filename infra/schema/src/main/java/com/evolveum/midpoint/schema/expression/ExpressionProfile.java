@@ -29,7 +29,6 @@ import javax.xml.namespace.QName;
  */
 public class ExpressionProfile implements Serializable { // TODO: DebugDumpable
 
-    /** "Allow all" expression profile. Used to avoid `null` values that mean "not determined". */
     private static final ExpressionProfile FULL = new ExpressionProfile(
             SchemaConstants.FULL_EXPRESSION_PROFILE_ID,
             ExpressionEvaluatorsProfile.full(),
@@ -37,10 +36,6 @@ public class ExpressionProfile implements Serializable { // TODO: DebugDumpable
             FunctionLibrariesProfile.full(),
             AccessDecision.ALLOW);
 
-    /**
-     * Profile that mimics the legacy non-root behavior for bulk actions: there are no expressions allowed. This ensures the
-     * safety of unsafe actions: `execute-script`, `evaluate-expression`, and `notification` (with unsafe custom event handler).
-     */
     private static final ExpressionProfile LEGACY_UNPRIVILEGED_BULK_ACTIONS = new ExpressionProfile(
             SchemaConstants.LEGACY_UNPRIVILEGED_BULK_ACTIONS_PROFILE_ID,
             ExpressionEvaluatorsProfile.none(),
@@ -48,9 +43,6 @@ public class ExpressionProfile implements Serializable { // TODO: DebugDumpable
             FunctionLibrariesProfile.none(),
             AccessDecision.DENY); // this actually does not matter
 
-    /**
-     * Profile that forbids everything.
-     */
     private static final ExpressionProfile NONE = new ExpressionProfile(
             SchemaConstants.NONE_EXPRESSION_PROFILE_ID,
             ExpressionEvaluatorsProfile.none(),
@@ -58,11 +50,6 @@ public class ExpressionProfile implements Serializable { // TODO: DebugDumpable
             FunctionLibrariesProfile.none(),
             AccessDecision.DENY); // this actually does not matter
 
-    /**
-     * Profile for mappings suggested by smart integration (primarily LLMs): allows only MEL script evaluator and excludes
-     * potentially dangerous modules, namely `midpoint` and `crypto`. This profile is used when evaluating AI-generated
-     * or untrusted mapping scripts.
-     */
     private static final ExpressionProfile MAPPINGS_QUALITY_ASSESSMENT = new ExpressionProfile(
             SchemaConstants.MAPPINGS_QUALITY_ASSESSMENT_PROFILE_ID,
             new ExpressionEvaluatorsProfile(
@@ -89,7 +76,6 @@ public class ExpressionProfile implements Serializable { // TODO: DebugDumpable
             FunctionLibrariesProfile.none(),
             AccessDecision.DENY);
 
-    /** Profile that allows "asIs" evaluator only. Used when evaluating empty expressions. */
     private static final ExpressionProfile AS_IS_ONLY = new ExpressionProfile(
             SchemaConstants.AS_IS_ONLY_PROFILE_ID,
             new ExpressionEvaluatorsProfile(
@@ -134,23 +120,65 @@ public class ExpressionProfile implements Serializable { // TODO: DebugDumpable
         this.privilegeElevation = privilegeElevation;
     }
 
+    /**
+     * "Allow all" expression profile. Used to avoid `null` values that mean "not determined".
+     *
+     * DANGEROUS. Use only when you know what you're doing.
+     *
+     * Do not use for tests. See {@code IntegrationTestTools#fullExpressionProfileForTests()} instead.
+     */
     public static @NotNull ExpressionProfile full() {
         return FULL;
     }
 
+    /**
+     * Profile that forbids everything.
+     *
+     * Can be used as a safety mechanism to prevent any expressions from being evaluated e.g. until real profile is determined.
+     */
     public static @NotNull ExpressionProfile none() {
         return NONE;
     }
 
-    public static @NotNull ExpressionProfile legacyUnprivilegedBulkActions() {
+    /**
+     * This is a default for expressions stored in repository objects because of compatibility reasons.
+     * It is set to {@link #full()}, because of backwards compatibility: setting more restrictive profile
+     * may cause system to break.
+     *
+     * DANGEROUS. Deployments should always set a more restrictive profile as a default for authorized objects
+     * in the system configuration.
+     */
+    public static @NotNull ExpressionProfile legacyDefaultForAuthorizedObjects() {
+        return full();
+    }
+
+    /**
+     * Profile that mimics the legacy non-root behavior for bulk actions: there are no expressions allowed. This ensures the
+     * safety of unsafe actions: `execute-script`, `evaluate-expression`, and `notification` (with unsafe custom event handler).
+     */
+    public static @NotNull ExpressionProfile legacyDefaultForUnprivilegedBulkActions() {
         return LEGACY_UNPRIVILEGED_BULK_ACTIONS;
     }
 
-    /** @see #MAPPINGS_QUALITY_ASSESSMENT */
+    /**
+     * Profile that is a legacy default behavior for privileged bulk actions: everything is permitted.
+     *
+     * DANGEROUS. Do not use except for legacy compatibility
+     */
+    public static @NotNull ExpressionProfile legacyDefaultForPrivilegedBulkActions() {
+        return full();
+    }
+
+    /**
+     * Profile for mappings suggested by smart integration (primarily LLMs): allows only MEL script evaluator and excludes
+     * potentially dangerous modules, namely `midpoint` and `crypto`. This profile is used when evaluating AI-generated
+     * or untrusted mapping scripts.
+     */
     public static @NotNull ExpressionProfile mappingsQualityAssessment() {
         return MAPPINGS_QUALITY_ASSESSMENT;
     }
 
+    /** Profile that allows "asIs" evaluator only. Safe. Used when evaluating empty expressions. */
     public static @NotNull ExpressionProfile asIsOnly() {
         return AS_IS_ONLY;
     }

@@ -22,6 +22,7 @@ import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.TestResourceOpNames;
 import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.expression.MidPointTrustDescriptor;
+import com.evolveum.midpoint.schema.expression.ScriptLanguageExpressionProfile;
 import com.evolveum.midpoint.task.api.ExpressionProfileSupplier;
 import com.evolveum.midpoint.util.exception.*;
 
@@ -1145,10 +1146,18 @@ public class IntegrationTestTools {
     }
 
     public static ExpressionProfileSupplier testingFullExpressionProfileSupplier() {
-        return (descriptor, task, result) -> ExpressionProfile.full();
+        return (descriptor, task, result) -> fullExpressionProfileForTests();
     }
 
     public static MidPointTrustDescriptor trustedForTests() {
         return MidPointTrustDescriptor.trusted();
+    }
+
+    public static ExpressionProfile fullExpressionProfileForTests() {
+        return ExpressionProfile.full();
+    }
+
+    public static ScriptLanguageExpressionProfile fullLanguageProfileForTests() {
+        return ScriptLanguageExpressionProfile.full();
     }
 }

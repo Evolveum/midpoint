@@ -25,6 +25,7 @@ import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionEval
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.test.DummyResourceContoller;
+import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
@@ -149,7 +150,7 @@ public abstract class AbstractModelExpressionsTest extends AbstractInternalModel
         PrismPropertyDefinition<String> outputDefinition =
                 getPrismContext().definitionFactory().newPropertyDefinition(
                         PROPERTY_NAME, DOMUtil.XSD_STRING, 0, -1);
-        ExpressionProfile expressionProfile = ExpressionProfile.full();
+        ExpressionProfile expressionProfile = IntegrationTestTools.fullExpressionProfileForTests();
         var scriptExpressionEvaluatorProfile = ScriptExpressionEvaluatorFactory.getEvaluatorProfile(expressionProfile);
         Script script = scriptFactory.createScript(
                 scriptType, outputDefinition, expressionProfile, scriptExpressionEvaluatorProfile, shortTestName, result);
@@ -187,7 +188,7 @@ public abstract class AbstractModelExpressionsTest extends AbstractInternalModel
         ScriptExpressionEvaluatorType scriptType = parseScriptType("expression-" + testName + ".xml");
         PrismPropertyDefinition<Boolean> outputDefinition =
                 getPrismContext().definitionFactory().newPropertyDefinition(PROPERTY_NAME, DOMUtil.XSD_BOOLEAN);
-        var expressionProfile = ExpressionProfile.full();
+        var expressionProfile = IntegrationTestTools.fullExpressionProfileForTests();
         var evaluatorProfile = ScriptExpressionEvaluatorFactory.getEvaluatorProfile(expressionProfile);
         Script script = scriptFactory.createScript(
                 scriptType, outputDefinition, expressionProfile, evaluatorProfile, testName, result);
@@ -577,7 +578,7 @@ public abstract class AbstractModelExpressionsTest extends AbstractInternalModel
         ItemDefinition<?> outputDefinition =
                 getPrismContext().definitionFactory().newPropertyDefinition(
                         PROPERTY_NAME, type, 0, maxOccurs);
-        var expressionProfile = ExpressionProfile.full();
+        var expressionProfile = IntegrationTestTools.fullExpressionProfileForTests();
         var evaluatorProfile = ScriptExpressionEvaluatorFactory.getEvaluatorProfile(expressionProfile);
         Script script = scriptFactory.createScript(
                 scriptType, outputDefinition, expressionProfile, evaluatorProfile, getTestNameShort(), result);

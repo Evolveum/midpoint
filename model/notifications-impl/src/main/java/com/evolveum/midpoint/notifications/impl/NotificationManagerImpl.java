@@ -72,10 +72,6 @@ public class NotificationManagerImpl implements NotificationManager {
             } else {
                 NotificationConfigurationType notificationConfiguration = systemConfiguration.getNotificationConfiguration();
                 for (EventHandlerType eventHandlerBean : notificationConfiguration.getHandler()) {
-                    // Default expression profile for embedded handlers is always "full".
-                    // We don't use archetype manager to avoid wasting cpu cycles
-                    // TODO review in the future
-                    ExpressionProfile profile = ExpressionProfile.full();
                     var ctx = new EventProcessingContext<>(event, task);
                     processEvent(
                             BaseEventHandlerConfigItem.of(

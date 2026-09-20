@@ -22,11 +22,10 @@ import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.common.configuration.api.ExpressionsConfigurationSection;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.schema.expression.ExpressionProfile;
-import com.evolveum.midpoint.schema.expression.ScriptLanguageExpressionProfile;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptExpressionEvaluatorType;
@@ -594,8 +593,8 @@ public class TestGroovyExpressions extends AbstractScriptTest {
             ScriptExpressionEvaluatorType expressionType, ItemDefinition<?> outputDefinition) {
         Script script = new Script(
                 expressionType, Objects.requireNonNull(scriptFactory.getExecutorSimple(expressionType.getLanguage())),
-                ExpressionProfile.full(),
-                ScriptLanguageExpressionProfile.full());
+                IntegrationTestTools.fullExpressionProfileForTests(),
+                IntegrationTestTools.fullLanguageProfileForTests());
         script.setOutputDefinition(outputDefinition);
         script.setObjectResolver(scriptFactory.getObjectResolver());
         script.setFunctionLibraryBindings(new ArrayList<>(scriptFactory.getBuiltInLibraryBindings()));

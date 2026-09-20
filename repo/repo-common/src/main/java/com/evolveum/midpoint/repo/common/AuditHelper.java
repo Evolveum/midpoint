@@ -194,7 +194,7 @@ public class AuditHelper {
     }
 
     public void evaluateAuditRecordProperty(SystemConfigurationAuditEventRecordingPropertyType propertyDef,
-            AuditEventRecord auditRecord, PrismObject<? extends ObjectType> primaryObject, ExpressionProfile expressionProfile, Task task,
+            AuditEventRecord auditRecord, PrismObject<? extends ObjectType> primaryObject, Task task,
             OperationResult parentResult) {
 
         String name = propertyDef.getName();

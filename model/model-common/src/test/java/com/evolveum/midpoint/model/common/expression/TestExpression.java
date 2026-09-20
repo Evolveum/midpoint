@@ -558,7 +558,7 @@ public class TestExpression extends AbstractModelCommonTest {
     private ExpressionProfile compileExpressionProfile(String profileName)
             throws SchemaException, IOException, ConfigurationException {
         if (profileName == null) {
-            return ExpressionProfile.full();
+            return IntegrationTestTools.fullExpressionProfileForTests();
         }
         PrismObject<SystemConfigurationType> systemConfig = PrismTestUtil.parseObject(getSystemConfigurationFile());
         SystemConfigurationExpressionsType expressions = systemConfig.asObjectable().getExpressions();

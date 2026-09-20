@@ -63,7 +63,6 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectDeltaSchemaLevelUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.SystemConfigurationTypeUtil;
@@ -1790,14 +1789,6 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
         return objectTreeDeltas;
     }
 
-    /**
-     * Expression profile to use for "privileged" operations, such as scripting hooks.
-     */
-    public ExpressionProfile getPrivilegedExpressionProfile() {
-        // TODO: determine from system configuration.
-        return MiscSchemaUtil.getExpressionProfileFull();
-    }
-
     public ConstraintsCheckingStrategyType getFocusConstraintsCheckingStrategy() {
         PrismObject<SystemConfigurationType> systemConfiguration = getSystemConfiguration();
         if (systemConfiguration != null) {
@@ -2053,8 +2044,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
     public @NotNull ProvisioningOperationContext createProvisioningOperationContext() {
         return new ProvisioningOperationContext()
                 .requestIdentifier(getRequestIdentifier())
-                .expressionEnvironmentSupplier((task, result) -> new ModelExpressionEnvironment<>(this, null, task, result))
-                .expressionProfile(getPrivilegedExpressionProfile());
+                .expressionEnvironmentSupplier((task, result) -> new ModelExpressionEnvironment<>(this, null, task, result));
     }
 
     public MetadataRecordingStrategyType getShadowMetadataRecordingStrategy() {

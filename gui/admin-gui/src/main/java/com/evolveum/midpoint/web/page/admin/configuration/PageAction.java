@@ -126,7 +126,6 @@ public class PageAction extends PageAdminConfiguration {
                                 parsed.getClass()).getString());
             } else {
                 typed = ScriptingBeansUtil.asExecuteScriptCommand(parsed);
-                typed.setTrustDescriptor(MidPointTrustDescriptor.forCurrentPrincipal());
             }
         } catch (SchemaException | RuntimeException e) {
             result.recordFatalError(createStringResource("PageAction.message.startPerformed.fatalError.parse").getString(), e);
@@ -136,6 +135,7 @@ public class PageAction extends PageAdminConfiguration {
         if (typed != null) {
             if (bulkActionDto.isAsync()) {
                 try {
+                    // FIXME what about the expression profile?
                     getModelInteractionService().submitScriptingExpression(typed, task, result);
                     result.recordStatus(
                             OperationResultStatus.IN_PROGRESS,
@@ -150,6 +150,7 @@ public class PageAction extends PageAdminConfiguration {
                 }
             } else {
                 try {
+                    typed.setTrustDescriptor(MidPointTrustDescriptor.forCurrentPrincipal());
                     //noinspection ConstantConditions
                     BulkActionExecutionResult executionResult =
                             getBulkActionsService().executeBulkAction(

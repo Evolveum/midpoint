@@ -1236,11 +1236,6 @@ public class TestMappingMetadata extends AbstractModelCommonTest {
             }
 
             @Override
-            public ExpressionProfile getPrivilegedExpressionProfile() {
-                return null;
-            }
-
-            @Override
             public @NotNull TaskExecutionMode getTaskExecutionMode() {
                 return TaskExecutionMode.PRODUCTION;
             }

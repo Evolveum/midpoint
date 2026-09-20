@@ -18,6 +18,7 @@ import com.evolveum.midpoint.prism.delta.DeltaFactory;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.*;
 
+import com.evolveum.midpoint.schema.expression.MidPointTrustDescriptor;
 import com.evolveum.midpoint.util.annotation.Experimental;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -911,14 +912,15 @@ public class ModelRestController extends AbstractRestController {
         ResponseEntity<?> response;
         try {
             if (Boolean.TRUE.equals(asynchronous)) {
+                // FIXME expression profile!
                 var taskOid = modelInteraction.submitScriptingExpression(command, task, result);
                 response = createResponseWithLocation(
                         HttpStatus.CREATED,
                         uriGetObject(ObjectTypes.TASK.getRestType(), taskOid),
                         result);
             } else {
+                command.setTrustDescriptor(MidPointTrustDescriptor.forCurrentPrincipal());
                 BulkActionExecutionResult executionResult = bulkActionsService.executeBulkAction(
-                        // detached because of REST origin
                         ExecuteScriptConfigItem.of(command, ConfigurationItemOrigin.rest()),
                         VariablesMap.emptyMap(),
                         BulkActionExecutionOptions.create(),

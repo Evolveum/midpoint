@@ -10,6 +10,11 @@ import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Set;
 
+import com.evolveum.axiom.concepts.CheckedSupplier;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
+
+import com.google.common.base.Preconditions;
 import org.jetbrains.annotations.Nullable;
 import org.jspecify.annotations.NullMarked;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,8 +22,6 @@ import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.common.archetypes.ArchetypeManager;
 import com.evolveum.midpoint.repo.common.SystemObjectCache;
-import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.expression.MidPointTrustDescriptor;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -45,86 +48,125 @@ public class ExpressionProfileManager {
     @Autowired SecurityEnforcer securityEnforcer;
 
     /**
-     * This is a default for expressions stored in repository objects because of compatibility reasons.
-     * In some cases, setting more restrictive profile may cause system to break.
+     * Determines expression profile for {@link ExpressionType} values and (in future) for scripts and maybe other objects.
+     *
+     * NOT to be used for bulk actions.
+     *
+     * @see #determineBulkActionsProfile(MidPointTrustDescriptor, Task, OperationResult)
      */
-    private static final ExpressionProfile DEFAULT_EXPRESSION_PROFILE_FOR_REPOSITORY_OBJECTS = ExpressionProfile.full();
-
-    public ExpressionProfile determineExpressionProfile(
+    private ExpressionProfile determineExpressionProfile(
             MidPointTrustDescriptor trustDescriptor, Task task, OperationResult result)
             throws SecurityViolationException {
+
+        if (trustDescriptor instanceof MidPointTrustDescriptor.CurrentPrincipal) {
+            // This is a special case: we don't want to evaluate any expressions (ExpressionType) from the outside,
+            // so we just return the "none" profile.
+            return ExpressionProfile.none();
+        }
+
         return determineExpressionProfileInternal(
                 trustDescriptor,
                 result,
-                this::getGeneralDefaultProfileId,
-                DEFAULT_EXPRESSION_PROFILE_FOR_REPOSITORY_OBJECTS,
-                ExpressionProfile.none());
+                this::getAuthorizedObjectsDefaultProfileId,
+                () -> trustDescriptor instanceof MidPointTrustDescriptor.AuthorizedObject ?
+                        ExpressionProfile.legacyDefaultForAuthorizedObjects() :
+                        ExpressionProfile.none()); // We don't want to evaluate any expressions from the outside
     }
 
     /**
-     * Determining expression profile for scripting (bulk actions). It is driven by different defaults than the general
-     * expression profile.
+     * Determines expression profile for midPoint (bulk) actions.
+     *
+     * For legacy reasons, it is driven by different defaults than expression profile determination for expressions.
+     *
+     * @see #determineExpressionProfile(MidPointTrustDescriptor, Task, OperationResult)
      */
     public ExpressionProfile determineBulkActionsProfile(
-            MidPointTrustDescriptor trustDescriptor, boolean privileged, Task task, OperationResult result)
+            MidPointTrustDescriptor trustDescriptor, Task task, OperationResult result)
             throws SecurityViolationException {
 
-        // TODO optimize this to avoid checking the enforcer before actually needed
-        boolean authorized;
-        try {
-            authorized = privileged || securityEnforcer.isAuthorizedAll(task, result);
-        } catch (CommonException e) {
-            throw new SecurityViolationException(e); // TODO
-        }
-        var defaultProfile = authorized ? ExpressionProfile.full() : ExpressionProfile.legacyUnprivilegedBulkActions();
+        // This is a supplier that delays (potentially costly) authorization check until really needed and then caches its result
+        // if it's needed in this method twice.
+        CheckedSupplier<Boolean, SecurityViolationException> cachingIsAuthorizedSupplier =
+                new CheckedSupplier<>() {
+                    @Nullable private Boolean cachedValue;
+                    @Override
+                    public Boolean get() throws SecurityViolationException {
+                        try {
+                            if (cachedValue == null) {
+                                cachedValue = securityEnforcer.isAuthorizedAll(task, result);
+                            }
+                            return cachedValue;
+                        } catch (CommonException e) {
+                            throw new SecurityViolationException(e);
+                        }
+                    }
+                };
+
+        ExpressionProfileIdSupplier defaultProfileIdSupplier = (isAuthorizedObjectTrust, lResult) -> {
+            // This is used if the profile cannot be determined from containing [authorized] object type/archetype/subtype.
+            if (cachingIsAuthorizedSupplier.get()) {
+                return getPrivilegedBulkActionsDefaultProfileId(isAuthorizedObjectTrust, lResult);
+            } else {
+                return getUnprivilegedBulkActionsDefaultProfileId(isAuthorizedObjectTrust, lResult);
+            }
+        };
+
+        CheckedSupplier<ExpressionProfile, SecurityViolationException> defaultProfileSupplier = () -> {
+            // This is used if nothing is configured.
+            if (cachingIsAuthorizedSupplier.get()) {
+                return ExpressionProfile.legacyDefaultForPrivilegedBulkActions();
+            } else {
+                return ExpressionProfile.legacyDefaultForUnprivilegedBulkActions();
+            }
+        };
 
         return determineExpressionProfileInternal(
-                trustDescriptor,
-                result,
-                (lResult) -> {
-                    if (authorized) {
-                        return getPrivilegedBulkActionsProfileId(result);
-                    } else {
-                        return getUnprivilegedBulkActionsProfileId(result);
-                    }
-                },
-                defaultProfile, // this is the default for bulk actions in repo objects (e.g., tasks)
-                defaultProfile);
+                trustDescriptor, result, defaultProfileIdSupplier, defaultProfileSupplier);
     }
 
+    /** Common logic for determination of expression profile from trust descriptor. See the code inside. */
     private ExpressionProfile determineExpressionProfileInternal(
             MidPointTrustDescriptor trustDescriptor,
             OperationResult result,
             ExpressionProfileIdSupplier defaultProfileIdSupplier,
-            ExpressionProfile defaultForRepositoryObjects,
-            ExpressionProfile defaultForUntrusted)
+            CheckedSupplier<ExpressionProfile, SecurityViolationException> defaultProfileSupplier)
             throws SecurityViolationException {
+
+        Preconditions.checkArgument(
+                trustDescriptor instanceof MidPointTrustDescriptor.Explicit
+                || trustDescriptor instanceof MidPointTrustDescriptor.AuthorizedObject
+                || trustDescriptor instanceof MidPointTrustDescriptor.CurrentPrincipal,
+                "Unsupported trust descriptor: %s", trustDescriptor);
 
         if (trustDescriptor instanceof MidPointTrustDescriptor.Explicit explicit) {
             return explicit.expressionProfile();
         }
 
         try {
-            String profileId;
+            String profileId = null;
+
+            boolean isAuthorizedObjectTrust = trustDescriptor instanceof MidPointTrustDescriptor.AuthorizedObject;
+
             if (trustDescriptor instanceof MidPointTrustDescriptor.AuthorizedObject authorizedObject) {
-                profileId = determineExpressionProfileId(authorizedObject, result);
-            } else if (trustDescriptor instanceof MidPointTrustDescriptor.CurrentPrincipal) {
-                profileId = null;
-            } else {
-                throw new UnsupportedOperationException("Unsupported trust descriptor: " + trustDescriptor);
+                // This is the best case: we know that the object access was already authorized,
+                // so we can have a look at object type [and archetype/subtype] and determine the profile from that.
+                profileId = determineExpressionProfileIdForAuthorizedObject(authorizedObject, result);
             }
 
             if (profileId == null) {
-                profileId = defaultProfileIdSupplier.getExpressionProfileId(result);
+                // If that's not the case, we have to look at defaults provided within the system configuration.
+                // These are different for bulk actions and for ExpressionType values, so we have to use the supplier
+                // that is passed in.
+                profileId = defaultProfileIdSupplier.getExpressionProfileId(isAuthorizedObjectTrust, result);
             }
-            if (profileId != null) {
-                return systemObjectCache.getExpressionProfile(profileId, result);
+
+            if (profileId == null) {
+                // Out of luck. We have to rely on the default profile supplier.
+                return defaultProfileSupplier.get();
             }
-            if (trustDescriptor instanceof MidPointTrustDescriptor.AuthorizedObject) {
-                return defaultForRepositoryObjects;
-            } else {
-                return defaultForUntrusted;
-            }
+
+            return systemObjectCache.getExpressionProfile(profileId, result);
+
         } catch (CommonException e) {
             throw new SecurityViolationException(
                     "Couldn't determine expression profile for %s: %s".formatted(trustDescriptor, e.getMessage()),
@@ -139,7 +181,7 @@ public class ExpressionProfileManager {
      * as it tries to merge the policy from all archetypes; and it's 1. slow, 2. unreliable, because of ignoring potential
      * conflicts. So, we do it in more explicit way.
      */
-    private @Nullable String determineExpressionProfileId(
+    private @Nullable String determineExpressionProfileIdForAuthorizedObject(
             MidPointTrustDescriptor.AuthorizedObject objectSpec, OperationResult result)
             throws ConfigurationException, SchemaException, ObjectNotFoundException {
 
@@ -173,70 +215,47 @@ public class ExpressionProfileManager {
         }
     }
 
-    /**
-     * Determines expression profile for {@link ConfigurationItemOrigin.External} origin.
-     *
-     * We assume that the configuration item was entered via GUI or provided via REST right by the logged-in principal.
-     * Hence, we allow everything only if the principal is a root. Otherwise, we allow nothing.
-     *
-     * For the "init" channel, we could allow everything, but its safer to assume that the initialization is always
-     * carried out with full privileges, and that it's safe to check the authorization there as well.
-     *
-     * This could be made configurable in the future.
-     */
-    private ExpressionProfile determineExpressionProfileForChannel(String channelUri, Task task, OperationResult result)
-            throws SchemaException, ExpressionEvaluationException, CommunicationException,
-            SecurityViolationException, ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
-        if (SchemaConstants.CHANNEL_INIT_URI.equals(channelUri)
-                || SchemaConstants.CHANNEL_REST_URI.equals(channelUri)
-                || SchemaConstants.CHANNEL_USER_URI.equals(channelUri)) {
-            if (securityEnforcer.isAuthorizedAll(task, result)) {
-                return ExpressionProfile.full();
-            } else {
-                return ExpressionProfile.none();
-            }
-        } else {
-            throw new UnsupportedOperationException("The expression profile cannot be determined for channel: " + channelUri);
-        }
-    }
-
-    private @Nullable String getPrivilegedBulkActionsProfileId(OperationResult result)
+    private @Nullable String getPrivilegedBulkActionsDefaultProfileId(boolean isAuthorizedObjectTrust, OperationResult result)
             throws SchemaException {
         var defaults = getDefaults(result);
         if (defaults == null) {
             return null;
         }
-        var privileged = defaults.getPrivilegedBulkActions();
-        if (privileged != null) {
-            return privileged;
+        var modernDefault = isAuthorizedObjectTrust ?
+                defaults.getBulkActionsInAuthorizedObjects() : defaults.getPrivilegedPrincipal();
+        if (modernDefault != null) {
+            return modernDefault;
         }
-        var otherBulk = defaults.getBulkActions();
-        if (otherBulk != null) {
-            return otherBulk;
+        var legacyDefault1 = defaults.getPrivilegedBulkActions();
+        if (legacyDefault1 != null) {
+            return legacyDefault1;
         }
-        return defaults.getGeneral();
+        return defaults.getBulkActions(); // legacy default 2
     }
 
-    private @Nullable String getUnprivilegedBulkActionsProfileId(OperationResult result)
+    private @Nullable String getUnprivilegedBulkActionsDefaultProfileId(boolean isAuthorizedObjectTrust, OperationResult result)
             throws SchemaException {
         var defaults = getDefaults(result);
         if (defaults == null) {
             return null;
         }
-        var bulkActions = defaults.getBulkActions();
-        if (bulkActions != null) {
-            return bulkActions;
+        var modernDefault = isAuthorizedObjectTrust ?
+                defaults.getBulkActionsInAuthorizedObjects() : defaults.getUnprivilegedPrincipal();
+        if (modernDefault != null) {
+            return modernDefault;
         }
-        return defaults.getGeneral();
+        return defaults.getBulkActions(); // legacy default
     }
 
-    private @Nullable String getGeneralDefaultProfileId(OperationResult result)
+    // NOT to be called for bulk actions, because they have different defaults
+    private @Nullable String getAuthorizedObjectsDefaultProfileId(boolean isAuthorizedObject, OperationResult result)
             throws SchemaException {
+        Preconditions.checkArgument(isAuthorizedObject);
         var defaults = getDefaults(result);
         if (defaults == null) {
             return null;
         }
-        return defaults.getGeneral();
+        return defaults.getAuthorizedObjects();
     }
 
     private @Nullable DefaultExpressionProfilesConfigurationType getDefaults(OperationResult result) throws SchemaException {
@@ -252,7 +271,7 @@ public class ExpressionProfileManager {
 
     public interface ExpressionProfileIdSupplier extends Serializable {
 
-        @Nullable String getExpressionProfileId(OperationResult result)
+        @Nullable String getExpressionProfileId(boolean isAuthorizedObjectTrust, OperationResult result)
                 throws CommonException;
     }
 }

@@ -7,7 +7,6 @@
 package com.evolveum.midpoint.model.api;
 
 import com.evolveum.midpoint.schema.config.ExecuteScriptConfigItem;
-import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -18,11 +17,10 @@ import com.evolveum.midpoint.task.api.Task;
  */
 public record BulkActionExecutionOptions(
         boolean recordProgressAndIterationStatistics,
-        boolean privileged,
         boolean executionPhase) {
 
     public static BulkActionExecutionOptions create() {
-        return new BulkActionExecutionOptions(false, false, false);
+        return new BulkActionExecutionOptions(false, false);
     }
 
     /**
@@ -30,21 +28,13 @@ public record BulkActionExecutionOptions(
      * Used e.g. for non-iterative bulk actions in activities.
      */
     public BulkActionExecutionOptions withRecordProgressAndIterationStatistics() {
-        return new BulkActionExecutionOptions(true, privileged, executionPhase);
-    }
-
-    /**
-     * The difference of "privileged", compared to the regular execution is in the default expression profile used.
-     * Here, it is {@link ExpressionProfile#full()} even for unprivileged users.
-     */
-    public BulkActionExecutionOptions withPrivileged() {
-        return new BulkActionExecutionOptions(recordProgressAndIterationStatistics, true, executionPhase);
+        return new BulkActionExecutionOptions(true, executionPhase);
     }
 
     /**
      * If true, authorizations are checked for execution phase only.
      */
     public BulkActionExecutionOptions withExecutionPhase() {
-        return new BulkActionExecutionOptions(recordProgressAndIterationStatistics, privileged, true);
+        return new BulkActionExecutionOptions(recordProgressAndIterationStatistics, true);
     }
 }
