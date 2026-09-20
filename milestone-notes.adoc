@@ -11,6 +11,25 @@ The upgrade instructions between releases are in the https://docs.evolveum.com/m
 == 4.11-RC2
 == 4.11-RC1
 
+=== 2026-09-20 Default expression profiles for midPoint [bulk] actions were changed
+
+Task: https://support.evolveum.com/wp/10948[10948]
+Description:
+
+As part of hardening the enforcement of expression profiles, the defaults for midPoint actions were changed.
+Please see the documentation.
+
+Required Upgrade Steps:
+
+- Set explicit expression profiles (via archetypes) on all objects that contain midPoint actions - strongly recommended.
+- Migrate now-deprecated default settings to newly introduced ones.
+- Test your deployment thoroughly.
+
+Notes & References:
+
+* Related commits: https://github.com/Evolveum/midpoint/commit/cdb65600deae108be505d7b97e9f8e10748ef1ae[cdb65600]
+* Docs: XSD (DefaultExpressionProfilesConfigurationType); regular documentation and migration guide will be provided soon
+
 === 2026-09-14 Classes related to script execution were renamed
 
 Task: https://support.evolveum.com/wp/10948[10948]
