@@ -334,7 +334,6 @@ class AuditingServiceClient implements ServiceClient {
                     property,
                     record,
                     primaryObject,
-                    null,
                     callContext.task(),
                     result);
         }
@@ -347,7 +346,6 @@ class AuditingServiceClient implements ServiceClient {
                 auditConfiguration.getEventRecordingExpression(),
                 record,
                 primaryObject,
-                null,
                 null,
                 callContext.task(),
                 result);

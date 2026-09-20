@@ -6872,7 +6872,7 @@
                     </xsd:element>
                     <!--
                     TODO: Consider renaming, because returnTypeof type QName is used also in expression, which is a mere level above and can be confusing.
-                     Also - this seems to do nothing at the moment, it probably ends in ScriptExpressionEvaluationContext#suggestedReturnType and is not used further.
+                     Also - this seems to do nothing at the moment, it probably ends in ScriptExecutionContext#suggestedReturnType and is not used further.
                      Related Jira: MID-8552
                     -->
                     <xsd:element name="returnType" type="tns:ScriptExpressionReturnTypeType" minOccurs="0">
@@ -12918,6 +12918,7 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         Evaluator type. This should correspond to the name of evaluator element.
+                        If unqualified, default namespace is "common-3".
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:displayName>ExpressionEvaluatorProfileType.type</a:displayName>
@@ -13301,51 +13302,124 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="bulkActions" type="xsd:string">
+            <xsd:element name="bulkActions" type="xsd:string" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         Expression profile for midPoint actions running under an unprivileged principal.
+
+                        Applies to actions obtained via REST or GUI, but also to actions in objects that were
+                        processed via authorization mechanism (stored in repository or modified by authorized deltas).
+
+                        DEPRECATED. Please replace the use of this setting by the following two:
+
+                         - for actions in repository objects: use expression profiles based on types/archetypes
+                         - for actions provided by user via GUI or REST: use new "unprivilegedPrincipal" setting.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:displayName>DefaultExpressionProfilesConfigurationType.bulkActions</a:displayName>
+                        <a:deprecated>true</a:deprecated>
+                        <a:deprecatedSince>4.11</a:deprecatedSince>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="privilegedBulkActions" type="xsd:string">
+            <xsd:element name="privilegedBulkActions" type="xsd:string" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         Expression profile for midPoint actions running under a privileged principal.
+
+                        Applies to actions obtained via REST or GUI, but also to actions in objects that were
+                        processed via authorization mechanism (stored in repository or modified by authorized deltas).
+
+                        DEPRECATED. Please replace the use of this setting by the following two:
+
+                        - for actions in repository objects: use expression profiles based on types/archetypes
+                        - for actions provided by user via GUI or REST: use new "privilegedPrincipal" setting.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:displayName>DefaultExpressionProfilesConfigurationType.privilegedBulkActions</a:displayName>
+                        <a:deprecated>true</a:deprecated>
+                        <a:deprecatedSince>4.11</a:deprecatedSince>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="customWorkflowNotifications" type="xsd:string">
+            <xsd:element name="unprivilegedPrincipal" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Expression profile for expressions with trust derived from being run under an unprivileged principal.
+
+                        Applies to all expressions and midPoint actions obtained via REST or GUI.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>DefaultExpressionProfilesConfigurationType.unprivilegedPrincipal</a:displayName>
+                        <a:since>4.11</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="privilegedPrincipal" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Expression profile for expressions with trust derived from being run under an unprivileged principal.
+
+                        Applies to all expressions and midPoint actions obtained via REST or GUI.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>DefaultExpressionProfilesConfigurationType.privilegedPrincipal</a:displayName>
+                        <a:since>4.11</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="customWorkflowNotifications" type="xsd:string" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         Expression profile for custom workflow notifications, used e.g. for escalations.
                         Probably a temporary solution until expression profiles are implemented in full, or until
                         custom workflow notifications are removed.
+
+                        Removed since 4.11.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:displayName>DefaultExpressionProfilesConfigurationType.customWorkflowNotifications</a:displayName>
                         <a:experimental>true</a:experimental>
                         <a:deprecated>true</a:deprecated>
                         <a:deprecatedSince>4.8</a:deprecatedSince>
+                        <a:removed>true</a:removed>
+                        <a:removedSince>4.11</a:removedSince>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <!--<xsd:element name="gui" type="xsd:string" minOccurs="0">-->
-            <!--    <xsd:annotation>-->
-            <!--        <xsd:documentation>-->
-            <!--            Expression profile for expressions used in GUI customizations.-->
-            <!--        </xsd:documentation>-->
-            <!--        <xsd:appinfo>-->
-            <!--            <a:displayName>ExpressionProfileType.gui</a:displayName>-->
-            <!--        </xsd:appinfo>-->
-            <!--    </xsd:annotation>-->
-            <!--</xsd:element>-->
+            <xsd:element name="authorizedObjects" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Default expression profile for expressions in objects that already were authorized - meaning they
+                        are stored in repository or processed by the clockwork (after authorization was carried out).
+
+                        Should be set to something that is safe to execute.
+
+                        Note that midPoint actions (bulk actions) are currently not covered by this. Their default profile
+                        is driven by bulkActionsInAuthorizedObjects and (deprecated) bulkActions/privilegedBulkActions settings.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>DefaultExpressionProfilesConfigurationType.default</a:displayName>
+                        <a:since>4.11</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="bulkActionsInAuthorizedObjects" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Default expression profile for midPoint (bulk) actions in objects that already were authorized -
+                        meaning they are stored in repository or processed by the clockwork (after authorization was carried out).
+
+                        Should be set to something that is safe to execute.
+
+                        TEMPORARY MEASURE for migration. You should plan to set this to the same value as "authorizedObjects".
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>DefaultExpressionProfilesConfigurationType.default</a:displayName>
+                        <a:since>4.11</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>

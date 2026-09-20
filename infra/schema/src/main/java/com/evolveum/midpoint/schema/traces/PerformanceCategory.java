@@ -94,7 +94,9 @@ public enum PerformanceCategory {
             "com.evolveum.midpoint.repo.cache.RepositoryCache.invalidateCacheEntries"),
     REPOSITORY_CACHE_OTHER("RCache:O", "Repository cache (other)", singletonList(REPOSITORY_CACHE), Arrays.asList(REPOSITORY_CACHE_READ, REPOSITORY_CACHE_WRITE, INVALIDATE_CACHE_ENTRIES)),
     MAPPING_EVALUATION("Map", "Mapping evaluation", "com.evolveum.midpoint.model.common.mapping.MappingImpl.evaluate"),
-    SCRIPT_EVALUATION("Script", "Script evaluation", "com.evolveum.midpoint.model.common.expression.script.ScriptExpression.evaluate"),
+    SCRIPT_EXECUTION("Script", "Script execution",
+            "com.evolveum.midpoint.model.common.expression.script.ScriptExpression.evaluate", // before 4.11
+            "com.evolveum.midpoint.model.common.expression.script.Script.execute"),
     NOTIFICATIONS("Notify", "Notifications", "com.evolveum.midpoint.notifications.impl.NotificationHook.invoke",
             "com.evolveum.midpoint.notifications.impl.AccountOperationListener.notify*"),
     NOTIFICATION_TRANSPORTS("NTrans", "Notification transports",
@@ -116,7 +118,7 @@ public enum PerformanceCategory {
             "org.identityconnectors.framework.api.ConnectorFacade.getSupportedOperations",
             "org.identityconnectors.framework.api.ConnectorFacade.schema"),
     ICF_OTHER("ConnId:O", "ConnId (other)", singletonList(ICF), Arrays.asList(ICF_READ, ICF_WRITE, ICF_SCHEMA)),
-    EXTERNAL("Ext", "External", Arrays.asList(REPOSITORY, MAPPING_EVALUATION, SCRIPT_EVALUATION, NOTIFICATION_TRANSPORTS, AUDIT, ICF), emptyList()),
+    EXTERNAL("Ext", "External", Arrays.asList(REPOSITORY, MAPPING_EVALUATION, SCRIPT_EXECUTION, NOTIFICATION_TRANSPORTS, AUDIT, ICF), emptyList()),
     EXTERNAL_PLUS_REPO_CACHE("Ext+RC", "External plus repo cache", Arrays.asList(EXTERNAL, REPOSITORY_CACHE), emptyList());
 
     private final String shortLabel;

@@ -32,7 +32,6 @@ import com.evolveum.midpoint.repo.common.expression.ExpressionEnvironmentThreadL
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.MiscUtil;
@@ -286,7 +285,6 @@ class DelineationMatcher {
             return ExpressionUtil.evaluateConditionDefaultTrue(
                     context.createVariablesMap(),
                     classificationConditionBean,
-                    MiscSchemaUtil.getExpressionProfile(),
                     context.getBeans().expressionFactory,
                     desc,
                     task,

@@ -49,6 +49,7 @@ public interface MidpointConfiguration {
     String WEB_APP_CONFIGURATION = "midpoint.webApplication";
     String WORKFLOW_CONFIGURATION = "midpoint.workflow";
     String INTERNALS_CONFIGURATION = "midpoint.internals";
+    String EXPRESSIONS_CONFIGURATION = "midpoint.expressions";
 
     String ADMINISTRATOR_INITIAL_PASSWORD = "midpoint.administrator.initialPassword";
 
@@ -114,8 +115,18 @@ public interface MidpointConfiguration {
     /**
      * @return "midpoint.system" section of the system configuration
      */
-    @NotNull
-    SystemConfigurationSection getSystemSection();
+    @NotNull SystemConfigurationSection getSystemSection();
+
+    /** Returns "midpoint.expressions" section of the system configuration. */
+    @NotNull ExpressionsConfigurationSection getExpressionsSection();
+
+    /**
+     * Returns {@code true} if unsafe expressions (Groovy, Velocity, Python, etc) are disallowed globally for this system.
+     * It is to prevent even system administrators from using unsafe expressions.
+     */
+    default boolean isSafeExpressionsOnly() {
+        return getExpressionsSection().isSafeExpressionsOnly();
+    }
 
     /**
      * Returns true if the configuration key matches any of provided regular expression patterns.

@@ -22,6 +22,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.common.expression.script.ScriptExecutionContext;
 import com.evolveum.midpoint.schema.TaskExecutionMode;
 
 import org.apache.commons.collections4.Bag;
@@ -38,7 +39,6 @@ import org.testng.annotations.Test;
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.model.api.context.DirectlyEvaluatedClockworkPolicyRule;
 import com.evolveum.midpoint.model.api.context.EvaluationOrder;
-import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionEvaluationContext;
 import com.evolveum.midpoint.model.impl.lens.assignments.*;
 import com.evolveum.midpoint.model.impl.lens.construction.AbstractConstruction;
 import com.evolveum.midpoint.model.impl.lens.construction.EvaluatedAssignedResourceObjectConstructionImpl;
@@ -1359,7 +1359,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
     }
 
     private static boolean recording() {
-        return recording && ScriptExpressionEvaluationContext.getThreadLocalRequired().isEvaluateNew();
+        return recording && ScriptExecutionContext.getThreadLocalRequired().isEvaluateNew();
     }
 
     @SuppressWarnings("UnusedReturnValue")

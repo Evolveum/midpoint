@@ -6,15 +6,6 @@
   -->
 
 
-<!--
-     Configuration to be used for tests derived from AbstractEmptyModelIntegrationTest.
-
-     If we'll find something that must be in really _all_ the tests, we will put it here.
-     But currently it seems we can go with really empty configuration. (No configuration would
-     be OK as well but in any running midPoint there is a system configuration object, so let's
-     keep the situation close to the reality.)
--->
-
 <systemConfiguration oid="00000000-0000-0000-0000-000000000001"
                      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
                      xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3"
@@ -185,7 +176,9 @@
                         <script>
                             <code>
 
-                                import com.evolveum.midpoint.schema.util.expression.ExpressionTypeUtil
+
+                                import com.evolveum.midpoint.schema.expression.MidPointTrustDescriptor
+                                import com.evolveum.midpoint.schema.util.SimpleExpressionUtil
                                 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType
                                 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ScriptingVariableDefinitionType
                                 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ScriptingVariablesDefinitionType
@@ -194,7 +187,8 @@
                                 req.setVariables(new ScriptingVariablesDefinitionType()
                                         .variable(new ScriptingVariableDefinitionType()
                                                 .name('orgBeingDeleted')
-                                                .expression(ExpressionTypeUtil.forValue(midpoint.focusContextRequired.oid))))
+                                                .expression(SimpleExpressionUtil.literalExpression(
+                                                        midpoint.focusContextRequired.oid, MidPointTrustDescriptor.trusted()))))
                                 preparedTask
                             </code>
                         </script>

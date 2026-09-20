@@ -89,7 +89,6 @@ public abstract class AbstractMappingBuilder<
     /** See {@link AbstractMappingImpl#defaultTargetDefinition}. */
     private D defaultTargetDefinition;
     @VisibleForTesting // NEVER use for production code
-    private ExpressionProfile explicitExpressionProfile;
     private ItemPath defaultTargetPath;
 
     /** See {@link AbstractMappingImpl#originalTargetValues}. */
@@ -172,12 +171,6 @@ public abstract class AbstractMappingBuilder<
 
     public RT defaultTargetDefinition(D val) {
         defaultTargetDefinition = val;
-        return typedThis();
-    }
-
-    @VisibleForTesting // NEVER use for production code
-    RT explicitExpressionProfile(ExpressionProfile val) {
-        explicitExpressionProfile = val;
         return typedThis();
     }
 
@@ -439,10 +432,6 @@ public abstract class AbstractMappingBuilder<
 
     public D getDefaultTargetDefinition() {
         return defaultTargetDefinition;
-    }
-
-    public ExpressionProfile getExplicitExpressionProfile() {
-        return explicitExpressionProfile;
     }
 
     ItemPath getDefaultTargetPath() {

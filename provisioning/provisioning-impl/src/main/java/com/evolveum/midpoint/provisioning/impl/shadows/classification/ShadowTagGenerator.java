@@ -95,7 +95,6 @@ public class ShadowTagGenerator {
                             variables,
                             outputDefinition,
                             expressionBean,
-                            MiscSchemaUtil.getExpressionProfile(),
                             beans.expressionFactory,
                             shortDesc,
                             task,

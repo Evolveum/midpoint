@@ -397,8 +397,8 @@ It is quite verbose.
 | High
 
 
-| com.evolveum.midpoint.model.common.expression.script.ScriptExpression
-| *Script Expression Trace*
+| com.evolveum.midpoint.model.common.expression.script.Script
+| *Script Execution Trace*
 | TRACE
 | Logs a lot of details about script expression evaluation (Groovy, JavaScript, ...) +
 Provides a lot of details

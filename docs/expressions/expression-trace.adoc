@@ -29,8 +29,8 @@ It provides details about expression inputs (variables) and outputs.
 This is still quite general and it still works with relative information (xref:/midpoint/devel/prism/concepts/triple/[triples] and xref:/midpoint/devel/prism/concepts/deltas/[deltas]). This provides a lot of output.
 
 
-| Scrip trace
-| `com.evolveum.midpoint.model.common.expression.script.ScriptExpression`
+| Script trace
+| `com.evolveum.midpoint.model.common.expression.script.Script`
 | Gives information about every script expression that is evaluated.
 It provides very detailed information about each script run (script expressions are often evaluated twice in relativistic situations: with old values and with new values).
 This provides a lot of very detailed information.

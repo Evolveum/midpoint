@@ -114,8 +114,6 @@ public interface ModelContext<F extends ObjectType> extends Serializable, DebugD
 
     String getTaskTreeOid(Task task, OperationResult result);
 
-    ExpressionProfile getPrivilegedExpressionProfile();
-
     @NotNull TaskExecutionMode getTaskExecutionMode();
 
     int getProjectionWave();

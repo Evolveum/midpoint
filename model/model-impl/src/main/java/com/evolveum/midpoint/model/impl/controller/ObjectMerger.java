@@ -538,7 +538,7 @@ public class ObjectMerger {
             ExpressionType expressionType = itemMergeConfig.getValueExpression();
             //noinspection unchecked
             valueExpression = expressionFactory.makeExpression(
-                    expressionType, itemDefinition, MiscSchemaUtil.getExpressionProfile(),
+                    expressionType, itemDefinition,
                     "value expression for item " + itemPath + " in merge configuration " + mergeConfigurationName,
                     task, result);
         } else {

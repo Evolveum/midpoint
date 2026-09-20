@@ -6,6 +6,7 @@
 
 package com.evolveum.midpoint.model.impl.util;
 
+import com.evolveum.midpoint.model.common.expression.script.ScriptExecutionContext;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import static com.evolveum.midpoint.schema.GetOperationOptions.readOnly;
 
@@ -21,8 +22,7 @@ import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.context.AssignmentPath;
 import com.evolveum.midpoint.model.common.expression.ModelExpressionEnvironment.ExpressionEnvironmentBuilder;
-import com.evolveum.midpoint.model.common.expression.script.ScriptExpression;
-import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionEvaluationContext;
+import com.evolveum.midpoint.model.common.expression.script.Script;
 import com.evolveum.midpoint.model.impl.importer.ObjectImporter;
 import com.evolveum.midpoint.model.impl.lens.*;
 import com.evolveum.midpoint.prism.*;
@@ -759,8 +759,8 @@ public class ModelImplUtils {
         return targetRef;
     }
 
-    public static <V extends PrismValue, F extends ObjectType> @NotNull List<V> evaluateScript(
-            ScriptExpression scriptExpression,
+    public static <V extends PrismValue, F extends ObjectType> @NotNull List<V> executeScript(
+            Script script,
             LensContext<F> lensContext,
             VariablesMap variables,
             boolean useNew,
@@ -778,15 +778,14 @@ public class ModelImplUtils {
                         .build());
 
         try {
-            ScriptExpressionEvaluationContext context = new ScriptExpressionEvaluationContext();
+            ScriptExecutionContext context = new ScriptExecutionContext(script);
             context.setVariables(variables);
             context.setSuggestedReturnType(ScriptExpressionReturnTypeType.SCALAR);
             context.setEvaluateNew(useNew);
-            context.setScriptExpression(scriptExpression);
             context.setContextDescription(shortDesc);
             context.setTask(task);
             context.setResult(parentResult);
-            return scriptExpression.evaluate(context);
+            return context.execute();
         } finally {
             ExpressionEnvironmentThreadLocalHolder.popExpressionEnvironment();
         }

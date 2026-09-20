@@ -245,9 +245,9 @@ class ResourceSchemaHelper {
         try {
             //noinspection unchecked
             configurationContainer.accept(visitable -> {
-                if ((visitable instanceof PrismProperty<?>)) {
+                if ((visitable instanceof PrismProperty<?> prismProperty)) {
                     try {
-                        evaluateExpression((PrismProperty<?>)visitable, resource.asPrismObject(), task, result);
+                        evaluateExpression(prismProperty, resource.asPrismObject(), task, result);
                     } catch (SchemaException | ObjectNotFoundException | ExpressionEvaluationException | CommunicationException |
                              ConfigurationException | SecurityViolationException | SubscriptionComplianceException e) {
                         throw new TunnelException(e);
@@ -299,8 +299,7 @@ class ResourceSchemaHelper {
             ExpressionType expressionType = (ExpressionType) expressionWrapper.getExpression();
 
             Expression<PrismPropertyValue<T>, PrismPropertyDefinition<T>> expression =
-                    expressionFactory.makeExpression(
-                            expressionType, propDef, MiscSchemaUtil.getExpressionProfile(), shortDesc, task, result);
+                    expressionFactory.makeExpression(expressionType, propDef, shortDesc, task, result);
             VariablesMap variables = new VariablesMap();
 
             PrismObject<?> configuration = asPrismObject(resourceManager.getSystemConfiguration());

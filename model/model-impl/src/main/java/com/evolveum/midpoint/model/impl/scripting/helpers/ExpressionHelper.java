@@ -76,7 +76,7 @@ public class ExpressionHelper {
         if (parameterValue != null) {
             if (parameterValue.getScriptingExpression() != null) {
                 PipelineData data =
-                        bulkActionsExecutor.execute(
+                        bulkActionsExecutor.executeInternal(
                                 parameterValue.getScriptingExpression(), input, context, parentResult);
                 if (data != null) {
                     return data.getSingleValue(String.class);
@@ -113,7 +113,7 @@ public class ExpressionHelper {
                 getArgument(arguments, dynamicName, false, false, contextName);
         if (dynamicValue != null) {
             if (dynamicValue.getScriptingExpression() != null) {
-                PipelineData data = bulkActionsExecutor.execute(
+                PipelineData data = bulkActionsExecutor.executeInternal(
                         dynamicValue.getScriptingExpression(), input, context, parentResult);
                 if (data != null) {
                     return data.getSingleValue(clazz);
@@ -165,7 +165,7 @@ public class ExpressionHelper {
             SubscriptionComplianceException {
         Validate.notNull(parameter, "parameter");
         if (parameter.getScriptingExpression() != null) {
-            return bulkActionsExecutor.execute(
+            return bulkActionsExecutor.executeInternal(
                     parameter.getScriptingExpression(), input, context, result);
         } else if (parameter.getValue() != null) {
             return bulkActionsExecutor.evaluateConstantExpression(

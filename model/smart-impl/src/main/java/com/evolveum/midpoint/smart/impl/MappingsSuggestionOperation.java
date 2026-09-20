@@ -20,7 +20,10 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import com.evolveum.midpoint.prism.path.PathSet;
 
+import com.evolveum.midpoint.schema.expression.ExpressionProfile;
+import com.evolveum.midpoint.schema.expression.MidPointTrustDescriptor;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.schema.util.SimpleExpressionUtil;
 import com.evolveum.midpoint.util.exception.*;
 
 import org.jetbrains.annotations.Nullable;
@@ -490,13 +493,9 @@ class MappingsSuggestionOperation {
         if (script == null || script.isEmpty() || "input".equals(script) || "null".equals(script)) {
             return null;
         }
-        return new ExpressionType()
-                .description(scriptDescription)
-                .expressionEvaluator(
-                        new ObjectFactory().createScript(
-                                new ScriptExpressionEvaluatorType()
-                                        .language("mel")
-                                        .code(script)));
+        var safeScriptingTrustDescriptor = MidPointTrustDescriptor.explicit(ExpressionProfile.mappingsQualityAssessment());
+        return SimpleExpressionUtil.melExpression(script, safeScriptingTrustDescriptor)
+                .description(scriptDescription);
     }
 
     private SiSuggestMappingResponseType askMicroserviceAsync(

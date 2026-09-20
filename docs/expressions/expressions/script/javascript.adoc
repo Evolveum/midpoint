@@ -44,12 +44,12 @@ If the download for a newer midPoint version is missing just try the last availa
 
 To be sure that ECMAScript support is enabled you can check the `midpoint.log` during the startup for a line like this:
 ----
-2021-10-15 23:10:16,136 [] [main] INFO (com.evolveum.midpoint.model.common.expression.script.jsr223.Jsr223ScriptEvaluator): Script engine for 'JavaScript' initialized in 393 ms.
+2021-10-15 23:10:16,136 [] [main] INFO (com.evolveum.midpoint.model.common.expression.script.jsr223.Jsr223ScriptExecutor): Script engine for 'JavaScript' initialized in 393 ms.
 ----
 
 If the engine is not initialized, following warning is emitted - this does not prevent midPoint from starting:
 ----
-2021-10-15 23:12:00,042 [] [main] WARN (com.evolveum.midpoint.model.common.expression.script.jsr223.Jsr223ScriptEvaluator): The JSR-223 scripting engine for 'JavaScript' was not found
+2021-10-15 23:12:00,042 [] [main] WARN (com.evolveum.midpoint.model.common.expression.script.jsr223.Jsr223ScriptExecutor): The JSR-223 scripting engine for 'JavaScript' was not found
 ----
 
 3rd party library licensing:

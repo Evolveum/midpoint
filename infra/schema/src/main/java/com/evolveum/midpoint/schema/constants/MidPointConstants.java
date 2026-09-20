@@ -20,6 +20,17 @@ public class MidPointConstants {
     public static final String NS_MIDPOINT_TEST_PREFIX = "http://midpoint.evolveum.com/xml/ns/test";
     public static final String EXPRESSION_LANGUAGE_URL_BASE = NS_MIDPOINT_PUBLIC_PREFIX + "/expression/language#";
 
+    public static final String EXPRESSION_LANGUAGE_GROOVY_NAME = "Groovy";
+    public static final String EXPRESSION_LANGUAGE_GROOVY_URL = EXPRESSION_LANGUAGE_URL_BASE + EXPRESSION_LANGUAGE_GROOVY_NAME;
+    public static final String EXPRESSION_LANGUAGE_VELOCITY_NAME = "velocity";
+    public static final String EXPRESSION_LANGUAGE_VELOCITY_URL = EXPRESSION_LANGUAGE_URL_BASE + EXPRESSION_LANGUAGE_VELOCITY_NAME;
+    public static final String EXPRESSION_LANGUAGE_MEL_NAME = "mel";
+    public static final String EXPRESSION_LANGUAGE_MEL_URL = EXPRESSION_LANGUAGE_URL_BASE + EXPRESSION_LANGUAGE_MEL_NAME;
+
+    // These two are here because they are referenced from ExpressionProfile code
+    public static final String MEL_EXTENSION_MIDPOINT_NAME = "midpoint";
+    public static final String MEL_EXTENSION_SECRET_NAME = "secret";
+
     public static final String NS_RA = NS_MIDPOINT_PUBLIC_PREFIX+"/resource/annotation-3";
     public static final String PREFIX_NS_RA = "ra";
     public static final QName RA_RESOURCE_OBJECT = new QName(NS_RA, "resourceObject");

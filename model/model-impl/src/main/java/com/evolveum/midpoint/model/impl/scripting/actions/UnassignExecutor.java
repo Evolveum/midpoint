@@ -131,7 +131,6 @@ public class UnassignExecutor extends AssignmentOperationsExecutor<UnassignParam
             return ExpressionUtil.evaluateFilterExpressions(
                     parameters.staticFilter,
                     createVariables(object, item),
-                    context.getExpressionProfile(),
                     expressionFactory,
                     "expression evaluation in unassign filter for " + object,
                     context.getTask(),

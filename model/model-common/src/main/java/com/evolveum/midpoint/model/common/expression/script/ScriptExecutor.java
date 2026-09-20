@@ -15,29 +15,31 @@ import com.evolveum.midpoint.repo.common.expression.ExpressionSyntaxException;
 import com.evolveum.midpoint.util.exception.*;
 
 /**
+ * Executes scripts for specific scripting language, e.g. Groovy, JavaScript, Python, etc ({@link #getLanguageName()}).
+ *
  * @author Radovan Semancik
  */
-public interface ScriptEvaluator {
+public interface ScriptExecutor {
 
     /**
-     * Evaluates given script in given context. Everything is wrapped into {@link ScriptExpressionEvaluationContext} object.
+     * Executes given script in given context. Everything is wrapped into {@link ScriptExecutionContext} object.
      */
-    @NotNull <V extends PrismValue> List<V> evaluate(@NotNull ScriptExpressionEvaluationContext context)
+    @NotNull <V extends PrismValue> List<V> execute(@NotNull ScriptExecutionContext context)
             throws ExpressionEvaluationException, ObjectNotFoundException, ExpressionSyntaxException, CommunicationException,
             ConfigurationException, SecurityViolationException;
 
     /**
-     * Returns human readable name of the language that this evaluator supports
+     * Returns human readable name of the language that this executor supports
      */
     String getLanguageName();
 
     /**
-     * Returns (canonical) URL of the language that this evaluator can handle
+     * Returns (canonical) URL of the language that this executor supports
      */
     @NotNull String getLanguageUrl();
 
     /**
-     * Can indicate that script evaluator is not initialized, e.g. optional script evaluators
+     * Can indicate that script executor is not initialized, e.g. for optional script executors
      * (Python) or depending on the JDK platform (JavaScript/ECMAScript).
      */
     default boolean isInitialized() {

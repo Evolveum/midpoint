@@ -186,7 +186,6 @@ abstract class NormalizationStep<B extends AbstractNormalizationStepType> {
                     variablesMap,
                     outputDefinition,
                     bean.getExpression(),
-                    MiscSchemaUtil.getExpressionProfile(),
                     expressionFactory,
                     "normalization expression",
                     task,

@@ -18,10 +18,11 @@ import java.util.*;
 import javax.xml.namespace.QName;
 
 import com.evolveum.axiom.lang.antlr.AxiomQueryError;
-import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.impl.query.lang.AxiomQueryContentAssistImpl;
 import com.evolveum.midpoint.prism.query.*;
 
+import com.evolveum.midpoint.schema.expression.MidPointTrustDescriptor;
 import com.evolveum.midpoint.util.SingleLocalizableMessage;
 
 import com.evolveum.midpoint.web.session.BrowserTabSessionStorage;
@@ -50,9 +51,6 @@ import com.evolveum.midpoint.gui.impl.component.input.expression.ScriptExpressio
 import com.evolveum.midpoint.gui.impl.component.search.Search;
 import com.evolveum.midpoint.gui.impl.component.search.SearchBuilder;
 import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.RepositoryQueryDiagRequest;
@@ -62,7 +60,6 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.query.TypedQuery;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
@@ -628,8 +625,9 @@ public class QueryPlaygroundPanel extends BasePanel<RepoQueryDto> {
                 prismContext.getSchemaRegistry().determineClassForTypeRequired(objectType);
         ObjectQuery queryWithExprEvaluated = null;
         if (midPointQueryScript != null) {
+            midPointQueryScript.setTrustDescriptor(getTrustDescriptor());
             PrismPropertyValue<?> filterValue = ExpressionUtil.evaluateExpression(
-                    new VariablesMap(), null, midPointQueryScript, MiscSchemaUtil.getExpressionProfile(),
+                    new VariablesMap(), null, midPointQueryScript,
                     getPageBase().getExpressionFactory(), "", task, task.getResult());
             if (filterValue != null) {
                 var realValue = filterValue.getRealValue();
@@ -646,10 +644,12 @@ public class QueryPlaygroundPanel extends BasePanel<RepoQueryDto> {
         }
         if (queryWithExprEvaluated == null && StringUtils.isNotBlank(queryText)) {
             ObjectFilter filter = prismContext.createQueryParser().parseFilter(clazz, queryText);
+            if (filter != null) {
+                filter.setTrustDescriptor(getTrustDescriptor());
+            }
             ObjectQuery objectQuery = prismContext.queryFactory().createQuery(filter);
             queryWithExprEvaluated = ExpressionUtil.evaluateQueryExpressions(
                     objectQuery, new VariablesMap(),
-                    MiscSchemaUtil.getExpressionProfile(),
                     getPageBase().getExpressionFactory(),
                     "evaluate query expressions", task, result);
         }
@@ -666,6 +666,16 @@ public class QueryPlaygroundPanel extends BasePanel<RepoQueryDto> {
 
         Collection<SelectorOptions<GetOperationOptions>> options = distinct ? createCollection(createDistinct()) : null;
         request.setOptions(options);
+    }
+
+    private TrustDescriptor getTrustDescriptor() {
+        if (isAdmin) {
+            // Temporary workaround until "forCurrentPrincial" works with expressions (not only with bulk actions)
+            return MidPointTrustDescriptor.trusted();
+        } else {
+            // Note: This will currently block the evaluation of the expressions.
+            return MidPointTrustDescriptor.forCurrentPrincipal();
+        }
     }
 
     private String formatQueryResult(List<?> objects) {

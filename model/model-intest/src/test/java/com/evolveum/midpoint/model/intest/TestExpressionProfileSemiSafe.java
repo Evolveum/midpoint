@@ -10,7 +10,6 @@ import static com.evolveum.midpoint.test.util.MidPointTestConstants.TEST_RESOURC
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.io.InputStream;
 import java.net.ConnectException;
 
@@ -104,6 +103,9 @@ public class TestExpressionProfileSemiSafe extends AbstractEmptyModelIntegration
 
     private static final RunFlag BOOMED_FLAG = new RunFlag();
 
+    private static final String MSG_GROOVY_NOT_ALLOWED = "Script interpreter for language 'Groovy' is not allowed";
+    private static final String MSG_ACCESS_TO_EVALUATOR_LITERAL = "Access to evaluator literal";
+
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
@@ -173,14 +175,14 @@ public class TestExpressionProfileSemiSafe extends AbstractEmptyModelIntegration
      * This should end with an error. */
     @Test
     public void test200AssignAliceRoleMaliciousCondition() throws Exception {
-        runNegativeAssignAliceTest(ROLE_MALICIOUS_CONDITION, "Access to script expression evaluator not allowed");
+        runNegativeAssignAliceTest(ROLE_MALICIOUS_CONDITION, MSG_GROOVY_NOT_ALLOWED);
     }
 
     /** Try to assign Alice a role that tries to execute Groovy code in role condition, inside a filter.
      * This should end with an error. */
     @Test
     public void test210AssignAliceRoleMaliciousConditionFilter() throws Exception {
-        runNegativeAssignAliceTest(ROLE_MALICIOUS_CONDITION_FILTER, "Access to script expression evaluator not allowed");
+        runNegativeAssignAliceTest(ROLE_MALICIOUS_CONDITION_FILTER, MSG_GROOVY_NOT_ALLOWED);
     }
 
     /** Try to assign Alice an application role that tries to execute Groovy code in construction/outbound.
@@ -188,7 +190,7 @@ public class TestExpressionProfileSemiSafe extends AbstractEmptyModelIntegration
      * Application role archetype is applied to the role, to make sure the archetype does not ruin expression profile. */
     @Test
     public void test220AssignAliceRoleMaliciousApplicationOutbound() throws Exception {
-        runNegativeAssignAliceTest(ROLE_MALICIOUS_APPLICATION_OUTBOUND, "Access to script expression evaluator not allowed");
+        runNegativeAssignAliceTest(ROLE_MALICIOUS_APPLICATION_OUTBOUND, MSG_GROOVY_NOT_ALLOWED);
     }
 
     /** Try to assign Alice a business role that tries to execute Groovy code in inducement condition.
@@ -196,7 +198,7 @@ public class TestExpressionProfileSemiSafe extends AbstractEmptyModelIntegration
      * Business role archetype is applied to the role, to make sure the archetype does not ruin expression profile.*/
     @Test
     public void test230AssignAliceRoleMaliciousBusinessInducementCondition() throws Exception {
-        runNegativeAssignAliceTest(ROLE_MALICIOUS_BUSINESS_INDUCEMENT_CONDITION, "Access to script expression evaluator not allowed");
+        runNegativeAssignAliceTest(ROLE_MALICIOUS_BUSINESS_INDUCEMENT_CONDITION, MSG_GROOVY_NOT_ALLOWED);
     }
 
     private void runNegativeAssignAliceTest(TestObject<RoleType> role, String expectedMessage)
@@ -229,7 +231,7 @@ public class TestExpressionProfileSemiSafe extends AbstractEmptyModelIntegration
      * This should end with an error. */
     @Test
     public void test300AddMallory() throws Exception {
-        runNegativeAddObjectTest(USER_MALLORY, "Access to script expression evaluator not allowed");
+        runNegativeAddObjectTest(USER_MALLORY, MSG_GROOVY_NOT_ALLOWED);
     }
 
     /** Dave dares to execute expression inside an assignment.
@@ -238,7 +240,7 @@ public class TestExpressionProfileSemiSafe extends AbstractEmptyModelIntegration
      * This should end with an error. */
     @Test
     public void test310AddDave() throws Exception {
-        runNegativeAddObjectTest(USER_DAVE, "Access to expression evaluator literal");
+        runNegativeAddObjectTest(USER_DAVE, MSG_ACCESS_TO_EVALUATOR_LITERAL);
     }
 
     private <O extends ObjectType> void runNegativeAddObjectTest(TestObject<O> testObject, String expectedMessage)
@@ -287,7 +289,7 @@ public class TestExpressionProfileSemiSafe extends AbstractEmptyModelIntegration
             then();
             assertFailure(result);
             assertExpectedException(e)
-                    .hasMessageContaining("Access to script expression evaluator not allowed");
+                    .hasMessageContaining(MSG_GROOVY_NOT_ALLOWED);
         } finally {
             deleteObject(RoleType.class, ROLE_AUTO_MALICIOUS.oid);
         }
@@ -393,7 +395,7 @@ public class TestExpressionProfileSemiSafe extends AbstractEmptyModelIntegration
             then();
             assertFailure(result);
             assertExpectedException(e)
-                    .hasMessageContaining("Access to script expression evaluator not allowed");
+                    .hasMessageContaining(MSG_GROOVY_NOT_ALLOWED);
         }
 
         assertUserAfter(USER_BOB.oid)
@@ -537,7 +539,7 @@ public class TestExpressionProfileSemiSafe extends AbstractEmptyModelIntegration
             then();
             assertFailure(result);
             assertExpectedException(e)
-                    .hasMessageContaining("Access to script expression evaluator not allowed");
+                    .hasMessageContaining(MSG_GROOVY_NOT_ALLOWED);
         }
 
         then();

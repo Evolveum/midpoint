@@ -25,8 +25,6 @@ public class ProvisioningOperationContext {
 
     private ExpressionEnvironmentSupplier expressionEnvironmentSupplier;
 
-    private ExpressionProfile expressionProfile;
-
     /**
      * This reference can be used if shadow is not available when trying to record audit event.
      * Reference is used mainly when modification of shadow object also invokes modification of different object on target system.
@@ -52,15 +50,6 @@ public class ProvisioningOperationContext {
         return this;
     }
 
-    public ExpressionProfile expressionProfile() {
-        return expressionProfile;
-    }
-
-    public ProvisioningOperationContext expressionProfile(ExpressionProfile expressionProfile) {
-        this.expressionProfile = expressionProfile;
-        return this;
-    }
-
     public ExpressionEnvironmentSupplier expressionEnvironmentSupplier() {
         return expressionEnvironmentSupplier;
     }
@@ -74,7 +63,6 @@ public class ProvisioningOperationContext {
     public String toString() {
         return "ProvisioningOperationContext{" +
                 "requestIdentifier='" + requestIdentifier + '\'' +
-                ", expressionProfile=" + expressionProfile +
                 ", shadowRef=" + shadowRef +
                 '}';
     }

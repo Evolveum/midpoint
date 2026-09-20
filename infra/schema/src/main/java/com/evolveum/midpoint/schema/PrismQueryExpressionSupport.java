@@ -33,8 +33,6 @@ public class PrismQueryExpressionSupport implements PrismQueryExpressionFactory 
 
     private static final String YAML_PREAMBLE = "---\n";
 
-
-
     @Override
     public ExpressionWrapper parseScript(Map<String, String> namespaceContext, String language, String script) {
         ExpressionType expressionT = new ExpressionType();

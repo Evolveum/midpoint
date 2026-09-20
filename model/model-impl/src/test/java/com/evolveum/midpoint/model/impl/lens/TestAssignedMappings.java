@@ -7,6 +7,9 @@
 package com.evolveum.midpoint.model.impl.lens;
 
 import java.io.File;
+
+import com.evolveum.midpoint.schema.util.SimpleExpressionUtil;
+
 import jakarta.xml.bind.JAXBElement;
 
 import org.testng.annotations.Test;
@@ -615,14 +618,10 @@ public class TestAssignedMappings extends AbstractLensTest {
 
     @SuppressWarnings("SameParameterValue")
     private AssignmentType createRoleAssignmentWithCondition(TestObject<?> role) {
-        ScriptExpressionEvaluatorType scriptExpressionEvaluator = new ScriptExpressionEvaluatorType();
-        scriptExpressionEvaluator.setCode("basic.stringify(title) == 'enabled'");
-        ExpressionType expression = new ExpressionType();
-        expression.getExpressionEvaluator().add(new JAXBElement<>(SchemaConstantsGenerated.C_SCRIPT,
-                ScriptExpressionEvaluatorType.class, scriptExpressionEvaluator));
         MappingType condition = new MappingType()
                 .source(new VariableBindingDefinitionType().path(new ItemPathType(UserType.F_TITLE)))
-                .expression(expression);
+                .expression(
+                        SimpleExpressionUtil.groovyExpression("basic.stringify(title) == 'enabled'", null));
 
         return new AssignmentType()
                 .targetRef(role.oid, RoleType.COMPLEX_TYPE)

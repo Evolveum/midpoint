@@ -31,6 +31,7 @@ import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.util.ScriptingBeansUtil;
 import com.evolveum.midpoint.schema.util.task.ActivityDefinitionBuilder;
 
+import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.TestObject;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -259,7 +260,9 @@ public abstract class AbstractBasicScriptingTest extends AbstractInitializedMode
 
     ExecutionContext evaluateExpression(ScriptingExpressionType expression, Task task, OperationResult result)
             throws CommonException {
-        return evaluateExpression(ScriptingBeansUtil.asExecuteScriptCommand(expression), task, result);
+        ExecuteScriptType command = ScriptingBeansUtil.asExecuteScriptCommand(expression);
+        markAsTrusted(command);
+        return evaluateExpression(command, task, result);
     }
 
     ExecutionContext evaluateExpression(ExecuteScriptType executeScript, Task task, OperationResult result)
@@ -329,6 +332,7 @@ public abstract class AbstractBasicScriptingTest extends AbstractInitializedMode
 
         // no legacy/new versions here
         ExecuteScriptType executeScript = prismContext.parserFor(SEARCH_FOR_USERS_WITH_EXPRESSIONS_FILE).parseRealValue();
+        markAsTrusted(executeScript);
         VariablesMap variables = new VariablesMap();
         variables.put("value1", "administrator", String.class);
         variables.put("value2", "jack", String.class);
@@ -345,6 +349,10 @@ public abstract class AbstractBasicScriptingTest extends AbstractInitializedMode
                 output.getFinalOutput().getData().stream()
                         .map(i -> ((PrismObjectValue<?>) i.getValue()).getName().getOrig())
                         .collect(Collectors.toSet()));
+    }
+
+    private static void markAsTrusted(ExecuteScriptType executeScript) {
+        executeScript.setTrustDescriptor(IntegrationTestTools.trustedForTests());
     }
 
     @Test
@@ -1686,7 +1694,9 @@ public abstract class AbstractBasicScriptingTest extends AbstractInitializedMode
     }
 
     ExecuteScriptType parseExecuteScript(File file) throws IOException, SchemaException {
-        return prismContext.parserFor(file).parseRealValue(ExecuteScriptType.class);
+        var commandBean = prismContext.parserFor(file).parseRealValue(ExecuteScriptType.class);
+        markAsTrusted(commandBean);
+        return commandBean;
     }
 
     private ExecuteScriptType parseExecuteScript(String name) throws IOException, SchemaException {

@@ -227,7 +227,6 @@ class CombinatorialEvaluation<V extends PrismValue, D extends ItemDefinition<?>,
         if (evaluatorBean.getCondition() != null) {
             return ExpressionUtil.createCondition(
                     evaluatorBean.getCondition(),
-                    context.getExpressionProfile(),
                     context.getExpressionFactory(),
                     "condition in " + context.getContextDescription(),
                     context.getTask(),

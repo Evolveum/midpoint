@@ -21,6 +21,9 @@ import java.util.HashSet;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.util.ItemDeltaItem;
+import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
+import com.evolveum.midpoint.schema.config.ExpressionConfigItem;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -238,8 +241,12 @@ public class TestExpressionSpec extends AbstractModelImplementationIntegrationTe
     private <V extends PrismValue, D extends ItemDefinition<?>> PrismValueDeltaSetTriple<V> evaluateExpression(
             ExpressionType expressionType, D outputDefinition, ExpressionEvaluationContext expressionContext,
             OperationResult result) throws CommonException {
-        Expression<V, D> expression = expressionFactory.makeExpression(expressionType, outputDefinition, null,
-                expressionContext.getContextDescription(), expressionContext.getTask(), result);
+        Expression<V, D> expression = expressionFactory.makeExpression(
+                ExpressionConfigItem.of(expressionType, ConfigurationItemOrigin.undeterminedSafe()),
+                outputDefinition,
+                expressionContext.getContextDescription(),
+                expressionContext.getTask(),
+                result);
         LOGGER.debug("Starting evaluation of expression: {}", expression);
         return expression.evaluate(expressionContext, result);
     }

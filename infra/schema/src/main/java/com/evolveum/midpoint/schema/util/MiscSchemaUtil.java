@@ -24,7 +24,6 @@ import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -412,14 +411,6 @@ public class MiscSchemaUtil {
         Class<? extends ObjectType> requiredTypeClass =
                 ObjectTypes.getObjectTypeFromTypeQName(requiredTypeQName).getClassDefinition();
         return requiredTypeClass.isAssignableFrom(providedTypeClass);
-    }
-
-    /**
-     * This is NOT A REAL METHOD. It just returns null. It is here to mark all the places
-     * where proper handling of expression profiles should be later added.
-     */
-    public static ExpressionProfile getExpressionProfile() {
-        return null;
     }
 
     public static void mergeDisplay(DisplayType viewDisplay, DisplayType archetypeDisplay) {

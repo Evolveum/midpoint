@@ -71,7 +71,7 @@ public abstract class AbstractValueTransformationExpressionEvaluator
     }
 
     @Override
-    public PrismValueDeltaSetTriple<V> evaluate(ExpressionEvaluationContext context, OperationResult parentResult)
+    public PrismValueDeltaSetTriple<V> evaluateInternal(ExpressionEvaluationContext context, OperationResult parentResult)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
             ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         OperationResult result = parentResult.subresult(OP_EVALUATE)
@@ -81,8 +81,6 @@ public abstract class AbstractValueTransformationExpressionEvaluator
         // trace is provided by the evaluators
 
         try {
-            checkEvaluatorProfile(context);
-
             PrismValueDeltaSetTriple<V> outputTriple;
 
             String contextDescription = context.getContextDescription();

@@ -5,7 +5,6 @@
   -->
 
 <role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
         oid="19dd7966-b013-11f0-8b8b-470dc5f10d86">
     <name>safe-auto-bad-groovy</name>
     <documentation>

@@ -15,6 +15,8 @@ import java.util.Arrays;
 import java.util.List;
 
 import com.evolveum.midpoint.authentication.api.util.AuthConstants;
+import com.evolveum.midpoint.schema.expression.MidPointTrustDescriptor;
+import com.evolveum.midpoint.schema.expression.TrustDescriptorSetter;
 import com.evolveum.midpoint.util.annotation.Experimental;
 
 import com.evolveum.midpoint.authentication.api.authorization.Url;
@@ -183,6 +185,7 @@ public class PageEvaluateMapping extends PageAdminConfiguration {
                 request.setMapping(getPrismContext().parserFor(dto.getMapping()).xml().parseRealValue(MappingType.class));
             }
 
+            TrustDescriptorSetter.setDescriptors(request, getTrustDescriptor());
             MappingEvaluationResponseType response = getModelDiagnosticService().evaluateMapping(request, task, result);
             dto.setResultText(response.getResponse());
 
@@ -200,5 +203,23 @@ public class PageEvaluateMapping extends PageAdminConfiguration {
 
         showResult(result);
         target.add(this);
+    }
+
+    private MidPointTrustDescriptor getTrustDescriptor() {
+        boolean isAdmin;
+        try {
+            isAdmin = isAuthorized(AuthorizationConstants.AUTZ_ALL_URL, null, null, null, null);
+        } catch (CommonException e) {
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't determine admin authorization -- continuing as non-admin", e);
+            isAdmin = false;
+        }
+        if (isAdmin) {
+            // Temporary workaround until "forCurrentPrincial" works with expressions (not only with bulk actions)
+            return MidPointTrustDescriptor.trusted();
+        } else {
+            // NOTE: Evaluating mappings in this playground is currently allowed only for root, so this is only
+            // a future-proof safety measure.
+            return MidPointTrustDescriptor.forCurrentPrincipal();
+        }
     }
 }

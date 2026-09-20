@@ -23,7 +23,6 @@ import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.*;
@@ -50,17 +49,17 @@ public class UcfExpressionEvaluatorImpl implements UcfExpressionEvaluator {
                 .build();
         try {
             Expression<PrismPropertyValue<O>, PrismPropertyDefinition<O>> expression =
-                    expressionFactory
-                            .makePropertyExpression(expressionBean, outputPropertyName, MiscSchemaUtil.getExpressionProfile(),
-                                    ctxDesc, task, result);
+                    expressionFactory.makePropertyExpression(expressionBean, outputPropertyName, ctxDesc, task, result);
             VariablesMap exprVariables = new VariablesMap();
             exprVariables.putAll(variables);
             ExpressionEvaluationContext context = new ExpressionEvaluationContext(null, exprVariables, ctxDesc, task);
             context.setExpressionFactory(expressionFactory);
             PrismValueDeltaSetTriple<PrismPropertyValue<O>> exprResultTriple = expression.evaluate(context, result);
             List<O> list = new ArrayList<>();
-            for (PrismPropertyValue<O> pv : exprResultTriple.getZeroSet()) {
-                list.add(pv.getRealValue());
+            if (exprResultTriple != null) {
+                for (PrismPropertyValue<O> pv : exprResultTriple.getZeroSet()) {
+                    list.add(pv.getRealValue());
+                }
             }
             return list;
         } catch (Throwable t) {

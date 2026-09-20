@@ -10,6 +10,8 @@ import java.io.StringWriter;
 import java.util.Map;
 import java.util.Properties;
 
+import com.evolveum.midpoint.common.configuration.api.ExpressionsConfigurationSection;
+import com.evolveum.midpoint.model.common.expression.script.ScriptExecutionContext;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
 
@@ -20,8 +22,7 @@ import org.apache.velocity.app.event.ReferenceInsertionEventHandler;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.common.LocalizationService;
-import com.evolveum.midpoint.model.common.expression.script.AbstractScriptEvaluator;
-import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionEvaluationContext;
+import com.evolveum.midpoint.model.common.expression.script.AbstractScriptExecutor;
 import com.evolveum.midpoint.prism.binding.TypeSafeEnum;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.crypto.Protector;
@@ -31,20 +32,21 @@ import com.evolveum.midpoint.util.exception.*;
 /**
  * Expression evaluator that is using Apache Velocity engine.
  */
-public class VelocityScriptEvaluator extends AbstractScriptEvaluator {
+public class VelocityScriptExecutor extends AbstractScriptExecutor {
 
-    private static final String LANGUAGE_NAME = "velocity";
-    private static final String LANGUAGE_URL = MidPointConstants.EXPRESSION_LANGUAGE_URL_BASE + LANGUAGE_NAME;
-
-    public VelocityScriptEvaluator(PrismContext prismContext, Protector protector, LocalizationService localizationService) {
-        super(prismContext, protector, localizationService);
+    public VelocityScriptExecutor(
+            PrismContext prismContext,
+            Protector protector,
+            LocalizationService localizationService,
+            ExpressionsConfigurationSection configuration) {
+        super(prismContext, protector, localizationService, configuration);
         Velocity.init(new Properties());
     }
 
     @Override
-    public @NotNull Object evaluateInternal(
+    public @NotNull Object executeInternal(
             @NotNull String codeString,
-            @NotNull ScriptExpressionEvaluationContext context)
+            @NotNull ScriptExecutionContext context)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,
             ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
 
@@ -58,7 +60,7 @@ public class VelocityScriptEvaluator extends AbstractScriptEvaluator {
         return resultWriter.toString();
     }
 
-    private VelocityContext createVelocityContext(ScriptExpressionEvaluationContext context)
+    private VelocityContext createVelocityContext(ScriptExecutionContext context)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
         VelocityContext velocityCtx = new VelocityContext();
@@ -79,11 +81,11 @@ public class VelocityScriptEvaluator extends AbstractScriptEvaluator {
 
     @Override
     public String getLanguageName() {
-        return LANGUAGE_NAME;
+        return MidPointConstants.EXPRESSION_LANGUAGE_VELOCITY_NAME;
     }
 
     @Override
     public @NotNull String getLanguageUrl() {
-        return LANGUAGE_URL;
+        return MidPointConstants.EXPRESSION_LANGUAGE_VELOCITY_URL;
     }
 }

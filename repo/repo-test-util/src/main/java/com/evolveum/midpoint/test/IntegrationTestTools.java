@@ -20,6 +20,10 @@ import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 
 import com.evolveum.midpoint.schema.constants.TestResourceOpNames;
+import com.evolveum.midpoint.schema.expression.ExpressionProfile;
+import com.evolveum.midpoint.schema.expression.MidPointTrustDescriptor;
+import com.evolveum.midpoint.schema.expression.ScriptLanguageExpressionProfile;
+import com.evolveum.midpoint.task.api.ExpressionProfileSupplier;
 import com.evolveum.midpoint.util.exception.*;
 
 import com.google.common.base.Preconditions;
@@ -1139,5 +1143,21 @@ public class IntegrationTestTools {
         var matchingRule = SchemaService.get().matchingRuleRegistry().getMatchingRuleSafe(matchingRuleName, null);
         String norm = matchingRule.getNormalizer().normalizeString(orig);
         return NormalizationAwareResourceAttributeDefinition.wrap(orig, norm);
+    }
+
+    public static ExpressionProfileSupplier testingFullExpressionProfileSupplier() {
+        return (descriptor, task, result) -> fullExpressionProfileForTests();
+    }
+
+    public static MidPointTrustDescriptor trustedForTests() {
+        return MidPointTrustDescriptor.trusted();
+    }
+
+    public static ExpressionProfile fullExpressionProfileForTests() {
+        return ExpressionProfile.full();
+    }
+
+    public static ScriptLanguageExpressionProfile fullLanguageProfileForTests() {
+        return ScriptLanguageExpressionProfile.full();
     }
 }

@@ -65,6 +65,10 @@ public interface CommonInitialObjects {
             ARCHETYPES, "503-archetype-task-import.xml",
             SystemObjectsType.ARCHETYPE_IMPORT_TASK.value());
 
+    TestObject<ArchetypeType> ARCHETYPE_SINGLE_BULK_ACTION_TASK = TestObject.classPath(
+            ARCHETYPES, "508-archetype-task-single-bulk-action.xml",
+            SystemObjectsType.ARCHETYPE_SINGLE_BULK_ACTION_TASK.value());
+
     TestObject<ArchetypeType> ARCHETYPE_ITERATIVE_BULK_ACTION_TASK = TestObject.classPath(
             ARCHETYPES, "509-archetype-task-iterative-bulk-action.xml",
             SystemObjectsType.ARCHETYPE_ITERATIVE_BULK_ACTION_TASK.value());
@@ -88,6 +92,14 @@ public interface CommonInitialObjects {
     TestObject<ArchetypeType> ARCHETYPE_MANUAL_CASE = TestObject.classPath(
             ARCHETYPES, "023-archetype-manual-provisioning-case.xml",
             SystemObjectsType.ARCHETYPE_MANUAL_CASE.value());
+
+    TestObject<ArchetypeType> ARCHETYPE_OPERATION_REQUEST = TestObject.classPath(
+            ARCHETYPES, "024-archetype-operation-request.xml",
+            SystemObjectsType.ARCHETYPE_OPERATION_REQUEST.value());
+
+    TestObject<ArchetypeType> ARCHETYPE_APPROVAL_CASE = TestObject.classPath(
+            ARCHETYPES, "025-archetype-approval-case.xml",
+            SystemObjectsType.ARCHETYPE_APPROVAL_CASE.value());
 
     //Certification tasks
     TestObject<ArchetypeType> ARCHETYPE_CERTIFICATION_TASK_PARENT = TestObject.classPath(

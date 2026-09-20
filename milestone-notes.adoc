@@ -11,6 +11,101 @@ The upgrade instructions between releases are in the https://docs.evolveum.com/m
 == 4.11-RC2
 == 4.11-RC1
 
+=== 2026-09-20 Expression profiles are now fully enforced
+
+Task: https://support.evolveum.com/wp/10948[10948]
+Description:
+
+Expression profiles are now enforced throughout the system.
+
+The idea is that the expression profile for any expression present an object in midPoint repository is derived from the object type (with archetype and/or subtype, if present).
+These profiles were partially enforced in the previous versions, but now their enforcement is to the full extent.
+
+Although the default setting is still "allow all" - in order to provide smooth migration - there may be situations where expressions were set up but not enforced.
+In such situations they may now start to fail. Hence, it is necessary to review and optionally adapt your existing expression profile setting to make sure the expressions are compliant with the declared expression profiles.
+
+In rare cases when midPoint cannot determine the expression profile because of missing information about the origin of an expression, it will report them as "TrustDescriptor is required but not set in ..." exceptions.
+This may indicate a bug in midPoint code. Please report it using the support portal.
+
+Required Upgrade Steps:
+
+- Check and test your expressions according to declared expression profiles.
+- Watch the migration guide (to be published before 4.11 release) and set up your profiles and manage your expressions accordingly.
+
+=== 2026-09-20 Default expression profiles for midPoint [bulk] actions were changed
+
+Task: https://support.evolveum.com/wp/10948[10948]
+Description:
+
+As part of hardening the enforcement of expression profiles, the defaults for midPoint actions were changed.
+Please see the documentation.
+
+Required Upgrade Steps:
+
+- Set explicit expression profiles (via archetypes) on all objects that contain midPoint actions - strongly recommended.
+- Migrate now-deprecated default settings to newly introduced ones.
+- Test your deployment thoroughly.
+
+Notes & References:
+
+* Related commits: https://github.com/Evolveum/midpoint/commit/cdb65600deae108be505d7b97e9f8e10748ef1ae[cdb65600]
+* Docs: XSD (DefaultExpressionProfilesConfigurationType); regular documentation and migration guide will be provided soon
+
+=== 2026-09-14 Classes related to script execution were renamed
+
+Task: https://support.evolveum.com/wp/10948[10948]
+Description:
+
+As part of hardening the enforcement of expression profiles, clarification of concepts and refactoring of internal classes implementing script execution were done.
+Specifically, the following classes were renamed:
+
+- ScriptExpression -> Script
+- ScriptExpressionFactory -> ScriptFactory
+- ScriptExpressionEvaluationContext -> ScriptExecutionContext
+- ScriptEvaluator -> ScriptExecutor
+
+It should be generally invisible to a midPoint engineer.
+The only exceptions are if someone used these classes in scripts, in an overlay, or reference them for detailed logging.
+
+In particular, there is a possibility that `isEvaluateNew` was checked in this (incorrect) way:
+
+[script, groovy]
+----
+boolean isNew = com.evolveum.midpoint.model.common.expression.script.ScriptExpressionEvaluationContext.getThreadLocal().isEvaluateNew()
+----
+
+The correct way is to simply use:
+
+[script, groovy]
+----
+boolean isNew = midpoint.isEvaluateNew()
+----
+
+Required Upgrade Steps:
+
+- Check if scripts or an overlay use the above classes, and adapt their use accordingly. In particular, adapt the logging configuration if needed.
+
+Notes & References:
+
+* Related commits: <this one>
+
+=== 2026-09-11 Script execution in reports may behave slightly differently
+
+Task: https://support.evolveum.com/wp/10948[10948]
+Description:
+
+As part of hardening the enforcement of expression profiles, evaluation of scripts in reports was unified with the evaluation of other scripts and expressions in midPoint.
+This may affect deployments that depend on the subtleties of previous implementation, for example, that the order of values returned by the script is preserved, which is no longer the case.
+(MidPoint generally does not guarantee ordering of values.)
+
+Required Upgrade Steps:
+
+- Check correctness of the reports, especially if they depend on the ordering of values provided by scripts.
+
+Notes & References:
+
+* Related commits: <this one>
+
 === 2026-09-03 Password hints now stored as protected string
 
 Task: https://support.evolveum.com/wp/12111[12111]

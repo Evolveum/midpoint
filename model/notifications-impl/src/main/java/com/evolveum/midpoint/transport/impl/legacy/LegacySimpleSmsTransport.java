@@ -130,7 +130,7 @@ public class LegacySimpleSmsTransport implements Transport<GeneralTransportConfi
         if (optionsForFilteringRecipient != 0) {
             TransportUtil.validateRecipient(
                     allowedRecipientTo, forbiddenRecipientTo, message.getTo(), smsConfigurationType, task, result,
-                    expressionFactory, ctx.expressionProfile(), LOGGER);
+                    expressionFactory, LOGGER);
 
             if (file != null) {
                 if (!forbiddenRecipientTo.isEmpty()) {
@@ -351,7 +351,7 @@ public class LegacySimpleSmsTransport implements Transport<GeneralTransportConfi
         var task = ctx.task();
 
         Expression<PrismPropertyValue<String>, PrismPropertyDefinition<String>> expression =
-                expressionFactory.makeExpression(expressionType, resultDef, ctx.expressionProfile(), shortDesc, task, result);
+                expressionFactory.makeExpression(expressionType, resultDef, shortDesc, task, result);
         ExpressionEvaluationContext eeContext = new ExpressionEvaluationContext(null, VariablesMap, shortDesc, task);
         eeContext.setExpressionFactory(expressionFactory);
         PrismValueDeltaSetTriple<PrismPropertyValue<String>> exprResult =

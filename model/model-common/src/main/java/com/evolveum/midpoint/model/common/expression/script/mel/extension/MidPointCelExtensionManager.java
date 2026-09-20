@@ -8,13 +8,9 @@ package com.evolveum.midpoint.model.common.expression.script.mel.extension;
 import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
 import com.evolveum.midpoint.model.common.expression.functions.BasicExpressionFunctions;
 
-import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionEvaluatorFactory;
-import com.evolveum.midpoint.model.common.expression.script.mel.MelScriptEvaluator;
 import com.evolveum.midpoint.prism.crypto.Protector;
 
 import com.evolveum.midpoint.schema.AccessDecision;
-import com.evolveum.midpoint.schema.expression.ExpressionEvaluatorProfile;
-import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.expression.ScriptLanguageExpressionProfile;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -91,16 +87,18 @@ public class MidPointCelExtensionManager {
         registerLibrary(library.name(), library.latest());
     }
 
-    public Iterable<? extends CelCompilerLibrary> getCompilerLibraries(ExpressionProfile expressionProfile) {
-        ScriptLanguageExpressionProfile profile = determineProfile(expressionProfile);
+    public Iterable<? extends CelCompilerLibrary> getCompilerLibraries(
+            ScriptLanguageExpressionProfile scriptLanguageExpressionProfile) {
         return libraryMap.entrySet().stream()
-                .map(e -> toCompilerLibrary(profile, e))
+                .map(e -> toCompilerLibrary(scriptLanguageExpressionProfile, e))
                 .filter(Objects::nonNull)
                 .toList();
     }
 
-    private CelCompilerLibrary toCompilerLibrary(ScriptLanguageExpressionProfile scriptExpressionProfile, Map.Entry<String, CelExtensionLibrary.FeatureSet> entry) {
-        if (!isAllowed(scriptExpressionProfile, entry.getKey())) {
+    private CelCompilerLibrary toCompilerLibrary(
+            ScriptLanguageExpressionProfile scriptLanguageExpressionProfile,
+            Map.Entry<String, CelExtensionLibrary.FeatureSet> entry) {
+        if (!isAllowed(scriptLanguageExpressionProfile, entry.getKey())) {
             return null;
         }
         CelExtensionLibrary.FeatureSet feature = entry.getValue();
@@ -111,15 +109,16 @@ public class MidPointCelExtensionManager {
         }
     }
 
-    public Iterable<? extends CelRuntimeLibrary> getRuntimeLibraries(ExpressionProfile expressionProfile) {
-        ScriptLanguageExpressionProfile profile = determineProfile(expressionProfile);
+    public Iterable<? extends CelRuntimeLibrary> getRuntimeLibraries(
+            ScriptLanguageExpressionProfile scriptLanguageExpressionProfile) {
         return libraryMap.entrySet().stream()
-                .map(e -> toRuntimeLibrary(profile, e))
+                .map(e -> toRuntimeLibrary(scriptLanguageExpressionProfile, e))
                 .filter(Objects::nonNull)
                 .toList();
     }
 
-    private CelRuntimeLibrary toRuntimeLibrary(ScriptLanguageExpressionProfile scriptExpressionProfile, Map.Entry<String, CelExtensionLibrary.FeatureSet> entry) {
+    private CelRuntimeLibrary toRuntimeLibrary(
+            ScriptLanguageExpressionProfile scriptExpressionProfile, Map.Entry<String, CelExtensionLibrary.FeatureSet> entry) {
         if (!isAllowed(scriptExpressionProfile, entry.getKey())) {
             return null;
         }
@@ -131,25 +130,8 @@ public class MidPointCelExtensionManager {
         }
     }
 
-    private ScriptLanguageExpressionProfile determineProfile(ExpressionProfile expressionProfile) {
-        if (expressionProfile == null) {
-            return null;
-        }
-        ExpressionEvaluatorProfile evaluatorProfile = expressionProfile
-                .getEvaluatorsProfile()
-                .getEvaluatorProfile(ScriptExpressionEvaluatorFactory.ELEMENT_NAME);
-        if (evaluatorProfile == null) {
-            return null;
-        }
-        return evaluatorProfile.getScriptExpressionProfile(MelScriptEvaluator.LANGUAGE_URL);
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
+    private boolean isAllowed(ScriptLanguageExpressionProfile languageProfile, String name) {
+        return languageProfile.decidePackageAccess(name) == AccessDecision.ALLOW;
     }
-
-    private boolean isAllowed(ScriptLanguageExpressionProfile scriptExpressionProfile, String name) {
-        if (scriptExpressionProfile == null) {
-            return true;
-        }
-        return scriptExpressionProfile.decidePackageAccess(name) == AccessDecision.ALLOW;
-    }
-
-
 }

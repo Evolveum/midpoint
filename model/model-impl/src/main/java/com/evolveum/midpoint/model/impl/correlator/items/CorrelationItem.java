@@ -22,9 +22,11 @@ import com.evolveum.midpoint.prism.query.FuzzyStringMatchFilter.ThresholdMatchin
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.repo.common.expression.Source;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
+import com.evolveum.midpoint.schema.expression.MidPointTrustDescriptor;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
+import com.evolveum.midpoint.schema.util.SimpleExpressionUtil;
 import com.evolveum.midpoint.task.api.Task;
 
 import com.evolveum.midpoint.util.DOMUtil;
@@ -324,12 +326,8 @@ public class CorrelationItem implements DebugDumpable {
     }
 
     private ExpressionType createConfidenceExpression(String code) {
-        return
-                new ExpressionType()
-                        .expressionEvaluator(
-                                new ObjectFactory().createScript(
-                                        new ScriptExpressionEvaluatorType()
-                                                .code(code)));
+        // TODO migrate to MEL #12267
+        return SimpleExpressionUtil.groovyExpression(code, MidPointTrustDescriptor.trusted());
     }
 
     /** Returns the values of given metric (e.g. Levenshtein distance) for given candidate for this item. No nulls on return. */
@@ -394,7 +392,6 @@ public class CorrelationItem implements DebugDumpable {
                 new VariablesMap(),
                 outputPropertyDef,
                 expression,
-                MiscSchemaUtil.getExpressionProfile(),
                 ModelBeans.get().expressionFactory,
                 "confidence expression for " + this,
                 task,

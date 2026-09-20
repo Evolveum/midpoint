@@ -237,10 +237,10 @@ public abstract class AbstractSearchExpressionEvaluator<
                 LOGGER.trace("XML query converted to: {}", rawQuery.debugDumpLazily());
 
                 var eeCtx = vtCtx.getExpressionEvaluationContext();
+                // TODO we could reuse the (already determined) expression profile here
                 ObjectQuery evaluatedQuery = ExpressionUtil.evaluateQueryExpressions(
                         rawQuery,
                         vtCtx.getVariablesMap(),
-                        eeCtx.getExpressionProfile(),
                         eeCtx.getExpressionFactory(),
                         vtCtx.getContextDescription(),
                         getTask(),
@@ -488,7 +488,7 @@ public abstract class AbstractSearchExpressionEvaluator<
                 var eeCtx = vtCtx.getExpressionEvaluationContext();
                 // Variables are non-relativistic here, so the following call is adequate for both evaluateOld/evaluateNew cases.
                 PrismValue value = ExpressionUtil.evaluateExpression(
-                        vtCtx.getVariablesMap(), relationDef, relationExpression, eeCtx.getExpressionProfile(),
+                        vtCtx.getVariablesMap(), relationDef, relationExpression,
                         eeCtx.getExpressionFactory(), vtCtx.getContextDescription(), getTask(), result);
                 return value != null ? (QName) value.getRealValue() : null;
             } else {

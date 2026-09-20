@@ -12,7 +12,6 @@ import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.notifications.api.events.Event;
 import com.evolveum.midpoint.schema.config.BaseEventHandlerConfigItem;
-import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 
@@ -22,14 +21,12 @@ import com.evolveum.midpoint.task.api.Task;
 public interface NotificationManager {
 
     default void processEvent(@NotNull Event event, Task task, OperationResult result) {
-        processEvent(event, null, null, task, result);
+        processEvent(event, null, task, result);
     }
 
-    @Contract("_, !null, null, _, _ -> fail")
     void processEvent(
             @NotNull Event event,
             @Nullable BaseEventHandlerConfigItem customHandler,
-            @Nullable ExpressionProfile customHandlerExpressionProfile,
             @NotNull Task task,
             @NotNull OperationResult result);
 

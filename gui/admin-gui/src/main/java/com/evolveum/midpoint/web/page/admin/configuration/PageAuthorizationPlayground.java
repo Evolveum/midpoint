@@ -11,6 +11,10 @@ import java.io.StringWriter;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.expression.MidPointTrustDescriptor;
+
+import com.evolveum.midpoint.schema.expression.TrustDescriptorSetter;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.form.CheckBox;
@@ -127,8 +131,6 @@ public class PageAuthorizationPlayground extends PageAdminConfiguration {
         additionalAuthorizationsEditor.setResizeToMaxHeight(false);
         mainForm.add(additionalAuthorizationsEditor);
 
-
-
         mainForm.add(new DropDownChoicePanel<>(
                 ID_TYPE,
                 typeModel,
@@ -204,6 +206,7 @@ public class PageAuthorizationPlayground extends PageAdminConfiguration {
             addExplicitAuthorizations(request);
             setTracing(request);
 
+            TrustDescriptorSetter.setDescriptors(request, getTrustDescriptor());
             var response = getModelDiagnosticService().evaluateAuthorizations(request, task, result);
 
             resultModel.setObject(response.getResult());
@@ -272,5 +275,23 @@ public class PageAuthorizationPlayground extends PageAdminConfiguration {
     private void setTracing(AuthorizationEvaluationRequestType request) {
         request.tracing(new AuthorizationEvaluationTracingOptionsType()
                 .selectorTracingEnabled(selectorTracingModel.getObject()));
+    }
+
+    private MidPointTrustDescriptor getTrustDescriptor() {
+        boolean isAdmin;
+        try {
+            isAdmin = isAuthorized(AuthorizationConstants.AUTZ_ALL_URL, null, null, null, null);
+        } catch (CommonException e) {
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't determine admin authorization -- continuing as non-admin", e);
+            isAdmin = false;
+        }
+        if (isAdmin) {
+            // Temporary workaround until "forCurrentPrincial" works with expressions (not only with bulk actions)
+            return MidPointTrustDescriptor.trusted();
+        } else {
+            // NOTE: Evaluating authorizations in this playground is currently allowed only for root, so this is only
+            // a future-proof safety measure.
+            return MidPointTrustDescriptor.forCurrentPrincipal();
+        }
     }
 }

@@ -40,10 +40,10 @@ public class RepoCommonAddGetTest extends AbstractRepoCommonTest {
         var messageTemplate = new MessageTemplateType()
                 .name(objectName)
                 .defaultContent(new MessageTemplateContentType()
-                        .subjectExpression(velocityExpression("subject-prefix")))
+                        .subjectExpression(velocityExpression("subject-prefix", null)))
                 .localizedContent(new LocalizedMessageTemplateContentType()
                         .language("sk_SK")
-                        .subjectExpression(velocityExpression("Oné")));
+                        .subjectExpression(velocityExpression("Oné", null)));
 
         when("adding it to the repository");
         String oid = repositoryService.addObject(messageTemplate.asPrismObject(), null, result);

@@ -10,6 +10,7 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.expression.ExpressionProfile;
+import com.evolveum.midpoint.schema.expression.MidPointTrustDescriptor;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -24,15 +25,8 @@ import java.util.Objects;
 
 /**
  * Description of an origin of a configuration item (expression, mapping, and so on).
- * Necessary e.g. for the derivation of an {@link ExpressionProfile}.
  *
- * == Open questions
- *
- * We implicitly assume that the prism objects (of which configuration items are parts) come from the repository, where they
- * were stored according to the respective authorizations. (It is, after all, a necessary condition to use the origin as a basis
- * for expression profile determination!)
- *
- * But, then, what about (full) objects coming not from the repository but from external sources?
+ * Before 4.11, it was used to derive {@link ExpressionProfile}. But now this is done by {@link MidPointTrustDescriptor}.
  *
  * TODO make this class a kind-of immutable (currently, we do have full objects here)
  */
@@ -41,9 +35,9 @@ public abstract class ConfigurationItemOrigin implements Serializable {
 
     @Serial private static final long serialVersionUID = 0L;
 
-    /** Undetermined but safe, because it is never used to determine the expression profile. */
-    public static ConfigurationItemOrigin undeterminedSafe() {
-        return new ConfigurationItemOrigin.Undetermined(true);
+    /** Undetermined origin. Use e.g. in tests. */
+    public static ConfigurationItemOrigin undeterminedSafe() { // TODO rename to "undetermined"
+        return new ConfigurationItemOrigin.Undetermined();
     }
 
     /** Use with care! Careless use of this origin may render expression profiles ineffective. */
@@ -64,13 +58,18 @@ public abstract class ConfigurationItemOrigin implements Serializable {
         return new ConfigurationItemOrigin.Generated();
     }
 
-    /** Intentionally fails for detached objects. */
+    /** Intentionally fails for detached objects. Used at places where we expect the value to be part of an object. */
     public static ConfigurationItemOrigin embedded(@NotNull Object value) {
         return embedded(value, item -> {
             throw new IllegalArgumentException(
                     "Value is not a part of an object: %s".formatted(
                             MiscUtil.getValueWithClass(value)));
         });
+    }
+
+    /** We try to provide diagnostics context if available, but we are OK if we don't know the origin. */
+    public static ConfigurationItemOrigin embeddedOrUndetermined(@NotNull Object value) {
+        return embedded(value, item -> ConfigurationItemOrigin.undeterminedSafe());
     }
 
     public static ConfigurationItemOrigin embedded(
@@ -149,22 +148,9 @@ public abstract class ConfigurationItemOrigin implements Serializable {
     /** Represents an origin we are not currently able to determine exactly. */
     public static class Undetermined extends ConfigurationItemOrigin {
 
-        /**
-         * Safe means that it is safe to use this origin, as is is NEVER used to determine the expression profile.
-         * So, the possible damage is limited to imprecise information in error or diagnostic messages.
-         *
-         * OTOH, _unsafe_ means that this is a temporary situation during the migration to full implementation of expression
-         * profiles. Such cases should be found and fixed.
-         */
-        private final boolean safe;
-
-        Undetermined(boolean safe) {
-            this.safe = safe;
-        }
-
         @Override
         public String toString() {
-            return safe ? "undetermined" : "undetermined (unsafe)";
+            return "undetermined";
         }
 
         @Override
@@ -174,11 +160,7 @@ public abstract class ConfigurationItemOrigin implements Serializable {
 
         @Override
         public @NotNull String fullDescription() {
-            return safe ? "(undetermined origin)" : "(undetermined origin; unsafe)";
-        }
-
-        public boolean isSafe() {
-            return safe;
+            return "(undetermined origin)";
         }
     }
 

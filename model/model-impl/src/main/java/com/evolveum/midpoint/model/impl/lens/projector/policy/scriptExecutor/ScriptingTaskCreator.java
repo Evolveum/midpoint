@@ -101,10 +101,8 @@ abstract class ScriptingTaskCreator {
                     new ModelExpressionEnvironment<>(actx.context, null, actx.task, result1));
             try {
                 VariablesMap variables = createVariables();
-                ExpressionProfile expressionProfile = MiscSchemaUtil.getExpressionProfile();
                 return ExpressionUtil.evaluateFilterExpressions(
-                        rawFilter, variables, expressionProfile,
-                        beans.expressionFactory,
+                        rawFilter, variables, beans.expressionFactory,
                         "evaluating task template filter expression ", actx.task, result1);
             } finally {
                 ExpressionEnvironmentThreadLocalHolder.popExpressionEnvironment();
@@ -132,10 +130,9 @@ abstract class ScriptingTaskCreator {
 
                 VariablesMap variables = createVariables();
                 variables.addVariableDefinition(VAR_PREPARED_TASK, preparedTask, taskDefinition);
-                ExpressionProfile expressionProfile = MiscSchemaUtil.getExpressionProfile();
-                PrismValue customizedTaskValue = ExpressionUtil.evaluateExpression(variables, taskDefinition,
-                        customizer, expressionProfile, beans.expressionFactory, "task customizer",
-                        actx.task, result);
+                PrismValue customizedTaskValue = ExpressionUtil.evaluateExpression(
+                        variables, taskDefinition, customizer, beans.expressionFactory,
+                        "task customizer", actx.task, result);
                 if (customizedTaskValue == null) {
                     throw new IllegalStateException("Task customizer returned no value");
                 }

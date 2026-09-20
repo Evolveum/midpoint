@@ -9,10 +9,12 @@ package com.evolveum.midpoint.notifications.impl;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import static com.evolveum.midpoint.schema.util.SimpleExpressionUtil.*;
-
 import java.util.Collection;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import com.evolveum.midpoint.schema.util.SimpleExpressionUtil;
+
+import com.evolveum.midpoint.test.IntegrationTestTools;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -832,5 +834,18 @@ public class NotificationsTest extends AbstractIntegrationTest {
         } catch (SchemaException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private static ExpressionType groovyExpression(String groovyCode) {
+        return SimpleExpressionUtil.groovyExpression(groovyCode, IntegrationTestTools.trustedForTests());
+    }
+
+    private static ExpressionType velocityExpression(String velocityTemplate) {
+        return SimpleExpressionUtil.velocityExpression(velocityTemplate, IntegrationTestTools.trustedForTests());
+    }
+
+    @SuppressWarnings("SameParameterValue")
+    private static ExpressionType literalExpression(Object literalValue) {
+        return SimpleExpressionUtil.literalExpression(literalValue, IntegrationTestTools.trustedForTests());
     }
 }

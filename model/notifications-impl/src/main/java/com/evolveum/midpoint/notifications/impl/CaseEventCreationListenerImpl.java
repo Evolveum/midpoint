@@ -126,23 +126,16 @@ public class CaseEventCreationListenerImpl implements CaseEventCreationListener 
         initializeWorkflowEvent(event, aCase);
 
         BaseEventHandlerConfigItem customHandlerCI;
-        ExpressionProfile customHandlerProfile;
         EventHandlerType customHandler = notificationAction.getHandler();
         if (customHandler != null) {
             customHandlerCI =
                     BaseEventHandlerConfigItem.of(
                             customHandler,
                             ConfigurationItemOrigin.undeterminedSafe());
-            try {
-                customHandlerProfile = expressionProfileManager.getProfileForCustomWorkflowNotifications(result);
-            } catch (SchemaException | ConfigurationException e) {
-                throw SystemException.unexpected(e); // FIXME later
-            }
         } else {
             customHandlerCI = null;
-            customHandlerProfile = null;
         }
-        eventHelper.processEvent(event, customHandlerCI, customHandlerProfile, task, result);
+        eventHelper.processEvent(event, customHandlerCI, task, result);
     }
 
     @Override

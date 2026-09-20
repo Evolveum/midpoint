@@ -10,12 +10,13 @@ import static org.testng.AssertJUnit.assertTrue;
 
 import java.util.List;
 
+import com.evolveum.midpoint.schema.expression.ScriptLanguageExpressionProfileImpl;
+
 import org.jetbrains.annotations.NotNull;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.schema.AccessDecision;
 import com.evolveum.midpoint.schema.expression.ExpressionPermissionProfile;
-import com.evolveum.midpoint.schema.expression.ScriptLanguageExpressionProfile;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 
 /**
@@ -24,7 +25,7 @@ import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 public class TestGroovyExpressionsSandbox extends TestGroovyExpressions {
 
     @Override
-    protected ScriptLanguageExpressionProfile createScriptExpressionProfile(@NotNull String language) {
+    protected @NotNull ScriptLanguageExpressionProfileImpl createScriptLanguageExpressionProfile(@NotNull String language) {
 
         ExpressionPermissionProfile permissionProfile =
                 ExpressionPermissionProfile.open(
@@ -40,7 +41,7 @@ public class TestGroovyExpressionsSandbox extends TestGroovyExpressions {
         permissionProfile.addClassAccessRule(List.class, AccessDecision.ALLOW);
         permissionProfile.addClassAccessRule(List.class, "execute", AccessDecision.DENY);
 
-        return new ScriptLanguageExpressionProfile(language, AccessDecision.DEFAULT, true, permissionProfile);
+        return new ScriptLanguageExpressionProfileImpl(language, AccessDecision.DEFAULT, true, permissionProfile);
     }
 
     /**
@@ -110,7 +111,7 @@ public class TestGroovyExpressionsSandbox extends TestGroovyExpressions {
 
         // WHEN
         try {
-            evaluateAndAssertStringScalarExpression(
+            executeAndAssertStringScalarExpression(
                     "expression-poison-smell-very-dynamic.xml",
                     createPoisonVariables(poison),
                     RESULT_POISON_OK);
@@ -168,7 +169,7 @@ public class TestGroovyExpressionsSandbox extends TestGroovyExpressions {
         evaluateAndAssertStringScalarExpressionRestricted(
                 "expression-string-exec.xml",
                 "testStringExec",
-                null);
+                createVariables());
 
         // THEN
 
@@ -185,7 +186,7 @@ public class TestGroovyExpressionsSandbox extends TestGroovyExpressions {
         evaluateAndAssertStringScalarExpressionRestricted(
                 "expression-list-exec.xml",
                 "testListExec",
-                null);
+                createVariables());
 
         // THEN
 

@@ -22,9 +22,12 @@ import com.evolveum.midpoint.model.api.context.ProjectionContextKey;
 import com.evolveum.midpoint.schema.TaskExecutionMode;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.expression.TrustDescriptorSetter;
 import com.evolveum.midpoint.schema.processor.ShadowSimpleAttributeDefinition;
 
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
+
+import com.evolveum.midpoint.test.IntegrationTestTools;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -177,6 +180,7 @@ public class AbstractModelImplementationIntegrationTest extends AbstractModelInt
         ObjectModificationType modElement = PrismTestUtil.parseAtomicValue(
                 file, ObjectModificationType.COMPLEX_TYPE);
         ObjectDelta<O> focusDelta = DeltaConvertor.createObjectDelta(modElement, context.getFocusClass());
+        TrustDescriptorSetter.setDescriptors(focusDelta, IntegrationTestTools.trustedForTests());
         return addFocusDeltaToContext(context, focusDelta);
     }
 

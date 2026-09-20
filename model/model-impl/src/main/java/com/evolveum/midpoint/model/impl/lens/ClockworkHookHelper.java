@@ -8,6 +8,9 @@ package com.evolveum.midpoint.model.impl.lens;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionEvaluatorFactory;
+import com.evolveum.midpoint.schema.expression.ExpressionProfile;
+
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -17,12 +20,11 @@ import com.evolveum.midpoint.model.api.hooks.ChangeHook;
 import com.evolveum.midpoint.model.api.hooks.HookOperationMode;
 import com.evolveum.midpoint.model.api.hooks.HookRegistry;
 import com.evolveum.midpoint.repo.common.SystemObjectCache;
-import com.evolveum.midpoint.model.common.expression.script.ScriptExpression;
-import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionFactory;
+import com.evolveum.midpoint.model.common.expression.script.Script;
+import com.evolveum.midpoint.model.common.expression.script.ScriptFactory;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
@@ -43,8 +45,7 @@ public class ClockworkHookHelper {
 
     @Autowired(required = false) private HookRegistry hookRegistry;
     @Autowired private PrismContext prismContext;
-    @Autowired private ExpressionFactory expressionFactory;
-    @Autowired private ScriptExpressionFactory scriptExpressionFactory;
+    @Autowired private ScriptFactory scriptFactory;
     @Autowired private SystemObjectCache systemObjectCache;
 
     /**
@@ -104,25 +105,25 @@ public class ClockworkHookHelper {
                             continue;
                         }
                         try {
-                            evaluateScriptingHook(context, scriptExpressionEvaluatorType, shortDesc, task, result);
+                            executeScriptingHook(context, scriptExpressionEvaluatorType, shortDesc, task, result);
                         } catch (ExpressionEvaluationException e) {
-                            LOGGER.error("Evaluation of {} failed: {}", shortDesc, e.getMessage(), e);
-                            throw new ExpressionEvaluationException("Evaluation of " + shortDesc + " failed: " + e.getMessage(), e);
+                            LOGGER.error("Execution of {} failed: {}", shortDesc, e.getMessage(), e);
+                            throw new ExpressionEvaluationException("Execution of " + shortDesc + " failed: " + e.getMessage(), e);
                         } catch (ObjectNotFoundException e) {
-                            LOGGER.error("Evaluation of {} failed: {}", shortDesc, e.getMessage(), e);
-                            throw e.wrap("Evaluation of " + shortDesc + " failed");
+                            LOGGER.error("Execution of {} failed: {}", shortDesc, e.getMessage(), e);
+                            throw e.wrap("Execution of " + shortDesc + " failed");
                         } catch (SchemaException e) {
-                            LOGGER.error("Evaluation of {} failed: {}", shortDesc, e.getMessage(), e);
-                            throw new SchemaException("Evaluation of " + shortDesc + " failed: " + e.getMessage(), e);
+                            LOGGER.error("Execution of {} failed: {}", shortDesc, e.getMessage(), e);
+                            throw new SchemaException("Execution of " + shortDesc + " failed: " + e.getMessage(), e);
                         } catch (CommunicationException e) {
-                            LOGGER.error("Evaluation of {} failed: {}", shortDesc, e.getMessage(), e);
-                            throw new CommunicationException("Evaluation of " + shortDesc + " failed: " + e.getMessage(), e);
+                            LOGGER.error("Execution of {} failed: {}", shortDesc, e.getMessage(), e);
+                            throw new CommunicationException("Execution of " + shortDesc + " failed: " + e.getMessage(), e);
                         } catch (ConfigurationException e) {
-                            LOGGER.error("Evaluation of {} failed: {}", shortDesc, e.getMessage(), e);
-                            throw new ConfigurationException("Evaluation of " + shortDesc + " failed: " + e.getMessage(), e);
+                            LOGGER.error("Execution of {} failed: {}", shortDesc, e.getMessage(), e);
+                            throw new ConfigurationException("Execution of " + shortDesc + " failed: " + e.getMessage(), e);
                         } catch (SecurityViolationException e) {
-                            LOGGER.error("Evaluation of {} failed: {}", shortDesc, e.getMessage(), e);
-                            throw new SecurityViolationException("Evaluation of " + shortDesc + " failed: " + e.getMessage(), e);
+                            LOGGER.error("Execution of {} failed: {}", shortDesc, e.getMessage(), e);
+                            throw new SecurityViolationException("Execution of " + shortDesc + " failed: " + e.getMessage(), e);
                         }
                     }
                 }
@@ -146,16 +147,17 @@ public class ClockworkHookHelper {
         return resultMode;
     }
 
-    private void evaluateScriptingHook(LensContext<?> context,
-            ScriptExpressionEvaluatorType scriptExpressionEvaluatorType, String shortDesc, Task task, OperationResult result)
+    private void executeScriptingHook(LensContext<?> context,
+            ScriptExpressionEvaluatorType scriptBean, String shortDesc, Task task, OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
 
-        LOGGER.trace("Evaluating {}", shortDesc);
+        LOGGER.trace("Executing {}", shortDesc);
         // TODO: it would be nice to cache this
         // null output definition: this script has no output
-        ScriptExpression scriptExpression = scriptExpressionFactory.createScriptExpression(
-                scriptExpressionEvaluatorType, null,
-                context.getPrivilegedExpressionProfile(), shortDesc, result);
+        var expressionProfile = ExpressionProfile.full(); // TODO: use standard trust-based mechanism here
+        var scriptExpressionEvaluatorProfile = ScriptExpressionEvaluatorFactory.getEvaluatorProfile(expressionProfile);
+        Script script = scriptFactory.createScript(
+                scriptBean, null, expressionProfile, scriptExpressionEvaluatorProfile, shortDesc, result);
 
         VariablesMap variables = new VariablesMap();
         variables.put(ExpressionConstants.VAR_PRISM_CONTEXT, prismContext, PrismContext.class);
@@ -167,8 +169,8 @@ public class ClockworkHookHelper {
             variables.put(ExpressionConstants.VAR_FOCUS, null, FocusType.class);
         }
 
-        ModelImplUtils.evaluateScript(scriptExpression, context, variables, false, shortDesc, task, result);
-        LOGGER.trace("Finished evaluation of {}", shortDesc);
+        ModelImplUtils.executeScript(script, context, variables, false, shortDesc, task, result);
+        LOGGER.trace("Finished execution of {}", shortDesc);
     }
 
     public <F extends ObjectType> void invokePreview(LensContext<F> context, Task task, OperationResult result) {

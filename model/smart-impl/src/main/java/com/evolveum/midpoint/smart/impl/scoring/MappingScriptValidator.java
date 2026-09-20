@@ -96,12 +96,10 @@ public class MappingScriptValidator {
         variables.put(ExpressionConstants.VAR_ATTEMPT, 0, Integer.class);
         variables.registerAlias(ExpressionConstants.VAR_ATTEMPT, ExpressionConstants.VAR_ITERATION);
         variables.put(ExpressionConstants.VAR_ITERATION_TOKEN, "", String.class);
-        final ExpressionProfile profile = ExpressionProfile.safeScriptingOnly();
 
         return ExpressionUtil.evaluateStringExpression(
                 variables,
                 expressionType,
-                profile,
                 this.expressionFactory,
                 description,
                 task,

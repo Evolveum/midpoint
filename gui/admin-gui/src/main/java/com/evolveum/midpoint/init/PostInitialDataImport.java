@@ -12,6 +12,7 @@ import java.util.Arrays;
 import com.evolveum.midpoint.model.api.BulkActionExecutionOptions;
 import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
 import com.evolveum.midpoint.schema.config.ExecuteScriptConfigItem;
+import com.evolveum.midpoint.schema.expression.MidPointTrustDescriptor;
 import com.evolveum.midpoint.schema.util.ScriptingBeansUtil;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AllowedConnectorsListType;
@@ -161,11 +162,13 @@ public class PostInitialDataImport extends DataImport {
                     ScriptingBeansUtil.asExecuteScriptCommand(
                             expression.getAnyValue().getValue());
 
+            // We fully trust the scripts in post-initial-objects
+            parsed.setTrustDescriptor(MidPointTrustDescriptor.trusted());
+
             BulkActionExecutionResult executionResult =
                     scripting.executeBulkAction(
                             ExecuteScriptConfigItem.of(
                                     parsed,
-                                    // TODO or should we create some "fully trusted origin"?
                                     ConfigurationItemOrigin.external(SchemaConstants.CHANNEL_INIT_URI)),
                             VariablesMap.emptyMap(),
                             BulkActionExecutionOptions.create()

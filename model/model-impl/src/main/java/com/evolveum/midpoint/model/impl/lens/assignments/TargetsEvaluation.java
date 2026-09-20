@@ -256,11 +256,9 @@ class TargetsEvaluation<AH extends AssignmentHolderType> extends AbstractEvaluat
                 ExpressionEnvironmentThreadLocalHolder.pushExpressionEnvironment(
                         new ModelExpressionEnvironment<>(ctx.ae.lensContext, null, ctx.task, lResult));
                 try {
-                    var expressionProfile =
-                            ModelBeans.get().expressionProfileManager.determineExpressionProfileUnsafe(filterOrigin, lResult);
                     VariablesMap variables = createVariables(segment, ctx, lResult);
                     return ExpressionUtil.evaluateFilterExpressions(
-                            rawFilter, variables, expressionProfile,
+                            rawFilter, variables,
                             ctx.ae.mappingFactory.getExpressionFactory(),
                             "evaluating resource filter expression in " + filterOrigin.fullDescription(),
                             ctx.task, lResult);

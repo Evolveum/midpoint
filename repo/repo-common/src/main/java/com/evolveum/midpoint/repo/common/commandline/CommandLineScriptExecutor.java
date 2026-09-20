@@ -13,24 +13,21 @@ import java.util.Collection;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.repo.common.expression.*;
 import com.evolveum.midpoint.util.exception.*;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.SystemUtils;
+import org.jspecify.annotations.NullMarked;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
-import com.evolveum.midpoint.repo.common.expression.Expression;
-import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
-import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
-import com.evolveum.midpoint.repo.common.expression.Source;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.expression.TypedValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -42,6 +39,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ProvisioningScriptAr
  * @author matus
  * @author semancik
  */
+@NullMarked
 @Component
 public class CommandLineScriptExecutor {
 
@@ -52,33 +50,39 @@ public class CommandLineScriptExecutor {
     @Autowired private PrismContext prismContext;
     @Autowired private ExpressionFactory expressionFactory;
 
-    public void executeScript(CommandLineScriptType scriptType, VariablesMap variables, String shortDesc, Task task, OperationResult parentResult)
+    public void executeScript(
+            CommandLineScriptType scriptBean,
+            VariablesMap variables,
+            String shortDesc,
+            Task task,
+            OperationResult parentResult)
             throws IOException, InterruptedException, SchemaException, ExpressionEvaluationException, ObjectNotFoundException,
             CommunicationException, ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
 
         OperationResult result = parentResult.createSubresult(CommandLineScriptExecutor.class.getSimpleName() + ".run");
+        try {
 
-        if (variables == null) {
-            variables = new VariablesMap();
+            String expandedCode = expandMacros(scriptBean, variables, shortDesc, task, result);
+
+            // TODO: later: prepare agruments and environment
+
+            String preparedCode = expandedCode.trim();
+            LOGGER.debug("Prepared shell code: {}", preparedCode);
+
+            CommandLineRunner runner = new CommandLineRunner(preparedCode, result);
+            runner.setExecutionMethod(scriptBean.getExecutionMethod());
+
+            runner.execute();
+        } catch (Throwable e) {
+            result.recordException(e);
+            throw e;
+        } finally {
+            result.close();
         }
-
-        String expandedCode = expandMacros(scriptType, variables, shortDesc, task, result);
-
-        // TODO: later: prepare agruments and environment
-
-        String preparedCode = expandedCode.trim();
-        LOGGER.debug("Prepared shell code: {}", preparedCode);
-
-        CommandLineRunner runner = new CommandLineRunner(preparedCode, result);
-        runner.setExecutionMethod(scriptType.getExecutionMethod());
-
-        runner.execute();
-
-        result.computeStatus();
     }
 
-
-    private String expandMacros(CommandLineScriptType scriptType, VariablesMap variables, String shortDesc, Task task, OperationResult result)
+    private String expandMacros(
+            CommandLineScriptType scriptType, VariablesMap variables, String shortDesc, Task task, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException,
             SecurityViolationException, SubscriptionComplianceException {
         String code = scriptType.getCode();
@@ -92,8 +96,8 @@ public class CommandLineScriptExecutor {
             PrismPropertyDefinition<String> outputDefinition =
                     prismContext.definitionFactory().newPropertyDefinition(
                             ExpressionConstants.OUTPUT_ELEMENT_NAME, DOMUtil.XSD_STRING, 0, 1);
-            Expression<PrismPropertyValue<String>, PrismPropertyDefinition<String>> expression = expressionFactory
-                    .makeExpression(macroDef, outputDefinition, MiscSchemaUtil.getExpressionProfile(), shortDesc, task, result);
+            Expression<PrismPropertyValue<String>, PrismPropertyDefinition<String>> expression =
+                    expressionFactory.makeExpression(macroDef, outputDefinition, shortDesc, task, result);
 
             Collection<Source<?, ?>> sources = new ArrayList<>(1);
             ExpressionEvaluationContext context = new ExpressionEvaluationContext(sources, variables, shortDesc, task);

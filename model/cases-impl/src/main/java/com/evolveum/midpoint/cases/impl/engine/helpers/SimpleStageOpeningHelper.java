@@ -80,7 +80,7 @@ public class SimpleStageOpeningHelper {
         }
 
         return allAssignees.stream()
-                .map(assignee -> new CaseWorkItemType(prismContext)
+                .map(assignee -> new CaseWorkItemType()
                         .originalAssigneeRef(assignee.clone())
                         .assigneeRef(assignee.clone())
                         .name(aCase.getName().getOrig())

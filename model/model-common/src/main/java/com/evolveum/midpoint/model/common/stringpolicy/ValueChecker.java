@@ -58,7 +58,6 @@ class ValueChecker {
     @NotNull private final StringPolicy stringPolicy;
 
     @Nullable private final ProhibitedValuesType prohibitedValues;
-    private final ExpressionProfile expressionProfile; // TODO make not null
     @Nullable private final ObjectBasedValuePolicyOriginResolver<?> originResolver;
     @NotNull private final String shortDesc;
     @NotNull private final Protector protector;
@@ -68,7 +67,6 @@ class ValueChecker {
     ValueChecker(
             @NotNull StringPolicy stringPolicy,
             @Nullable ProhibitedValuesType prohibitedValues,
-            ExpressionProfile expressionProfile,
             @Nullable ObjectBasedValuePolicyOriginResolver<?> originResolver,
             @NotNull String shortDesc,
             @NotNull Protector protector,
@@ -76,7 +74,6 @@ class ValueChecker {
             @NotNull Task task) {
         this.stringPolicy = stringPolicy;
         this.prohibitedValues = prohibitedValues;
-        this.expressionProfile = expressionProfile;
         this.originResolver = originResolver;
         this.shortDesc = shortDesc;
         this.protector = protector;
@@ -379,9 +376,7 @@ class ValueChecker {
             variables.addVariableDefinition(ExpressionConstants.VAR_OBJECT, object, objectDef);
 
             return ExpressionUtil.evaluateConditionDefaultFalse(
-                    variables, expression,
-                    expressionProfile, expressionFactory,
-                    shortDesc, task, result);
+                    variables, expression, expressionFactory, shortDesc, task, result);
         }
 
         private void testCharacterClasses() {

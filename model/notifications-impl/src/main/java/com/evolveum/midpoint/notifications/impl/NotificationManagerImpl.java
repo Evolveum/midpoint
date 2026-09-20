@@ -33,8 +33,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.EventHandlerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NotificationConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 
-import static com.evolveum.midpoint.util.MiscUtil.argCheck;
-
 @Component
 public class NotificationManagerImpl implements NotificationManager {
 
@@ -53,7 +51,6 @@ public class NotificationManagerImpl implements NotificationManager {
     public void processEvent(
             @NotNull Event event,
             @Nullable BaseEventHandlerConfigItem customHandler,
-            @Nullable ExpressionProfile customHandlerExpressionProfile,
             @NotNull Task task,
             @NotNull OperationResult parentResult) {
         OperationResult result = parentResult.subresult(OP_PROCESS_EVENT)
@@ -63,8 +60,7 @@ public class NotificationManagerImpl implements NotificationManager {
             LOGGER.trace("NotificationManager processing event:\n{}", event.debugDumpLazily(1));
 
             if (customHandler != null) {
-                argCheck(customHandlerExpressionProfile != null, "customHandlerExpressionProfile is null");
-                var ctx = new EventProcessingContext<>(event, customHandlerExpressionProfile, task);
+                var ctx = new EventProcessingContext<>(event, task);
                 processEvent(customHandler, ctx, result);
             }
 
@@ -76,11 +72,7 @@ public class NotificationManagerImpl implements NotificationManager {
             } else {
                 NotificationConfigurationType notificationConfiguration = systemConfiguration.getNotificationConfiguration();
                 for (EventHandlerType eventHandlerBean : notificationConfiguration.getHandler()) {
-                    // Default expression profile for embedded handlers is always "full".
-                    // We don't use archetype manager to avoid wasting cpu cycles
-                    // TODO review in the future
-                    ExpressionProfile profile = ExpressionProfile.full();
-                    var ctx = new EventProcessingContext<>(event, profile, task);
+                    var ctx = new EventProcessingContext<>(event, task);
                     processEvent(
                             BaseEventHandlerConfigItem.of(
                                     eventHandlerBean,
@@ -110,6 +102,7 @@ public class NotificationManagerImpl implements NotificationManager {
         try {
             eventHandlerRegistry.forwardToHandler(eventHandlerConfig, ctx, result);
         } catch (Throwable t) {
+            result.recordException(t);
             LoggingUtils.logUnexpectedException(LOGGER, "Event couldn't be processed: {}", t, ctx);
         }
     }

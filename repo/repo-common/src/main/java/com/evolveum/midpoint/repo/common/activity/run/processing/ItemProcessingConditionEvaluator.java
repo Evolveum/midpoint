@@ -84,7 +84,7 @@ class ItemProcessingConditionEvaluator {
         }
 
         try {
-            return ExpressionUtil.evaluateConditionDefaultTrue(variables, expression, null,
+            return ExpressionUtil.evaluateConditionDefaultTrue(variables, expression,
                     activityRun.getBeans().expressionFactory, "item condition expression",
                     activityRun.getRunningTask(), result);
         } catch (CommonException e) {

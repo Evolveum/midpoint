@@ -12,7 +12,12 @@ import static com.evolveum.midpoint.model.impl.lens.LensUtil.getExportType;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.expression.MidPointTrustDescriptor;
+import com.evolveum.midpoint.schema.expression.TrustDescriptorSetter;
+
 import org.jetbrains.annotations.NotNull;
+import org.jspecify.annotations.NonNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -165,6 +170,7 @@ public class Projector {
                 // after the loading. But we still evaluate it under "full information may not be available" mode,
                 // as parentOrgRef, tenantRef, and roleMembershipRef values may be missing here.
                 ClockworkRequestAuthorizer.authorizeContextRequest(context, false, task, result);
+                setTrustDescriptors(context);
             }
 
             LOGGER.trace("WAVE {} (executionWave={})", context.getProjectionWave(), context.getExecutionWave());
@@ -237,6 +243,25 @@ public class Projector {
             }
             context.inspectProjectorFinish();
             context.reportProgress(new ProgressInformation(PROJECTOR, result));
+        }
+    }
+
+    private static <F extends ObjectType> void setTrustDescriptors(@NonNull LensContext<F> context) {
+        var focusContext = context.getFocusContext();
+        if (focusContext != null) {
+            var primaryDelta = focusContext.getPrimaryDelta();
+            if (primaryDelta != null) {
+                // TODO what if delta is immutable?
+                //  all of this is a temporary solution!
+                PrismObject<F> object = focusContext.getObjectNewOrCurrentOrOld();
+                if (object != null) {
+                    // should be the case; checking just to be sure
+                    TrustDescriptorSetter.setDescriptors(
+                            primaryDelta,
+                            MidPointTrustDescriptor.forAuthorizedObject(object.asObjectable()));
+                    focusContext.setPrimaryDeltaAfterStart(primaryDelta);
+                }
+            }
         }
     }
 

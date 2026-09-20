@@ -670,11 +670,16 @@ public class TestMisc extends AbstractMiscTest {
         var repoHandleObjectFoundOpName = isNativeRepository() ?
                 "SqaleRepositoryService.handleObjectFound" : RepositoryService.HANDLE_OBJECT_FOUND;
 
-        long expectedTotalLow = numGeneratedRoles * OBJECT_PROCESSING_DELAY * 1000L;
-        long expectedTotalHigh = (long) (expectedTotalLow * SAFETY_MARGIN) * 1000L;
-        long expectedNoOpOwnHigh = 100 * 1000L;
-        long expectedOwnLow = numGeneratedRoles * OBJECT_PROCESSING_DELAY * 1000L;
-        long expectedOwnHigh = (long) (expectedOwnLow * SAFETY_MARGIN) * 1000L;
+        // Expected total time [microseconds] = time spent in searchObjectsIterative and other methods throughout the chain
+        long expectedTotalLow = numGeneratedRoles * OBJECT_PROCESSING_DELAY * 1000L; // minimum is the explicit delay
+        long expectedTotalHigh = (long) (expectedTotalLow * SAFETY_MARGIN); // maximum can be a bit higher
+
+        // Expected "own" time for operations without delay [microseconds] = in all operations except "handleObjectFound"
+        long expectedNoOpOwnHigh = 200 * 1000L; // this should be enough for 30 objects, but we can increase it if needed
+
+        // Expected "own" time for operations with delay [microseconds] = in "handleObjectFound" operations where the delay is spent
+        long expectedOwnLow = numGeneratedRoles * OBJECT_PROCESSING_DELAY * 1000L; // minimum is the explicit delay
+        long expectedOwnHigh = (long) (expectedOwnLow * SAFETY_MARGIN); // maximum can be a bit higher
 
         // Needed for returning objects from the local cache (roles are not cached globally by default)
         RepositoryCache.enterLocalCaches(cacheConfigurationManager);

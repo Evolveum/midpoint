@@ -134,7 +134,6 @@ class ObjectMetricsComputation<O extends ObjectType> {
                     variables,
                     outputDefinition,
                     expression,
-                    MiscSchemaUtil.getExpressionProfile(),
                     beans.expressionFactory,
                     "metric expression evaluation",
                     task,

@@ -150,24 +150,27 @@ class SingleShotEvaluation<V extends PrismValue, D extends ItemDefinition<?>, E 
         return item.find(residualPath);
     }
 
+    // Similar to PrismValueDeltaSetTripleUtil.removeEmptyOutputValues, with some differences
     private Collection<V> removeEmptyOutputValues(List<V> evalResults) {
         if (evalResults == null || evalResults.isEmpty()) {
             return null;
         }
         Collection<V> outputSet = new ArrayList<>(evalResults.size());
         for (V pval: evalResults) {
-            if (pval instanceof PrismPropertyValue<?>) {
-                if (((PrismPropertyValue<?>) pval).getValue() == null) {
+            if (pval instanceof PrismPropertyValue<?> prismPropertyValue) {
+                Object realValue = prismPropertyValue.getValue();
+                if (realValue == null) {
                     continue;
                 }
-                Object realValue = ((PrismPropertyValue<?>)pval).getValue();
-                if (realValue instanceof String) {
-                    if (((String)realValue).isEmpty()) {
+                // TODO we disregard ExpressionType.allowEmptyValues; this may be a problem after scripts in reports were
+                //  migrated to use standard expression evaluation code
+                if (realValue instanceof String string) {
+                    if (string.isEmpty()) {
                         continue;
                     }
                 }
-                if (realValue instanceof PolyString) {
-                    if (((PolyString)realValue).isEmpty()) {
+                if (realValue instanceof PolyString polyString) {
+                    if (polyString.isEmpty()) {
                         continue;
                     }
                 }

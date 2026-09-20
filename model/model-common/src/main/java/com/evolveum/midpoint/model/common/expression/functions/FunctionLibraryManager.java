@@ -175,15 +175,12 @@ public class FunctionLibraryManager implements CacheInvalidationListener, CacheD
     public <V extends PrismValue, D extends ItemDefinition<?>> Expression<V, D> createFunctionExpression(
             FunctionConfigItem function,
             D outputDefinition,
-            @NotNull ExpressionProfile functionExpressionProfile,
             Task task,
             OperationResult result)
             throws SecurityViolationException, SchemaException, ObjectNotFoundException, ConfigurationException {
 
         return expressionFactory
-                .makeExpression(
-                        function, outputDefinition, functionExpressionProfile,
-                        "function execution", task, result);
+                .makeExpression(function, outputDefinition, "function execution", task, result);
     }
 
     @Override
@@ -225,13 +222,6 @@ public class FunctionLibraryManager implements CacheInvalidationListener, CacheD
             emptyIfNull(this.cachedLibraryBindings)
                     .forEach(v -> LOGGER_CACHE_CONTENT.info("Cached function library binding: {}", v));
         }
-    }
-
-    /** TODO cache */
-    public @NotNull ExpressionProfile determineFunctionExpressionProfile(
-            @NotNull FunctionLibrary library, @NotNull OperationResult result) throws SchemaException, ConfigurationException {
-        return expressionProfileManager.determineExpressionProfile(
-                library.getLibraryObject(), result);
     }
 
     public void checkCallAllowed(

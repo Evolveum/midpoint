@@ -398,9 +398,9 @@ class SaveReportFileSupport {
         }
     }
 
-    private void processPostReportScript(ReportType parentReport, String reportOutputFilePath, Task task, OperationResult parentResult) {
-        CommandLineScriptType scriptType = parentReport.getPostReportScript();
-        if (scriptType == null) {
+    private void processPostReportScript(ReportType parentReport, String reportOutputFilePath, Task task, OperationResult result) {
+        CommandLineScriptType scriptBean = parentReport.getPostReportScript();
+        if (scriptBean == null) {
             LOGGER.debug("No post report script found in {}, skipping", parentReport);
             return;
         }
@@ -412,7 +412,8 @@ class SaveReportFileSupport {
         variables.put(ExpressionConstants.VAR_FILE, reportService.getCommandLineScriptExecutor().getOsSpecificFilePath(reportOutputFilePath), String.class);
 
         try {
-            reportService.getCommandLineScriptExecutor().executeScript(scriptType, variables, "post-report script in " + parentReport, task, parentResult);
+            reportService.getCommandLineScriptExecutor().executeScript(
+                    scriptBean, variables, "post-report script in " + parentReport, task, result);
         } catch (Exception e) {
             LOGGER.error("An exception has occurred during post report script execution {}", e.getLocalizedMessage(), e);
         }

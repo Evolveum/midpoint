@@ -78,7 +78,7 @@ public abstract class AbstractExpressionEvaluator<V extends PrismValue, D extend
 
     /**
      * Check expression profile. Throws security exception if the execution is not allowed by the profile.
-     * <p>
+     *
      * This implementation works only for simple evaluators that do not have any profile settings.
      * Complex evaluators should override this method.
      *
@@ -87,6 +87,21 @@ public abstract class AbstractExpressionEvaluator<V extends PrismValue, D extend
     protected void checkEvaluatorProfile(ExpressionEvaluationContext context) throws SecurityViolationException {
         ExpressionUtil.checkEvaluatorProfileSimple(this, context);
     }
+
+    @Override
+    public PrismValueDeltaSetTriple<V> evaluate(ExpressionEvaluationContext context, OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
+
+        checkEvaluatorProfile(context);
+
+        return evaluateInternal(context, result);
+    }
+
+    /** This method exists so that common processing (e.g. profile checking) is ensured for all members of the class hierarchy. */
+    protected abstract PrismValueDeltaSetTriple<V> evaluateInternal(ExpressionEvaluationContext context, OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException;
 
     public @NotNull PrismContext getPrismContext() {
         return prismContext;

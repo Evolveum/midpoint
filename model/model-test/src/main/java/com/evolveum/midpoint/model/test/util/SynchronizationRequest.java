@@ -24,7 +24,10 @@ import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 
+import com.evolveum.midpoint.schema.expression.MidPointTrustDescriptor;
 import com.evolveum.midpoint.schema.util.GetOperationOptionsUtil;
+
+import com.evolveum.midpoint.schema.util.SimpleExpressionUtil;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -41,7 +44,6 @@ import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.Resource;
-import com.evolveum.midpoint.schema.util.expression.ExpressionTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.TestSpringBeans;
 import com.evolveum.midpoint.test.util.TestUtil;
@@ -146,13 +148,14 @@ public class SynchronizationRequest {
             ActivityTracingDefinitionType tracing = new ActivityTracingDefinitionType()
                     .tracingProfile(tracingProfile);
             if (tracingAccounts != null) {
+                // FIXME migrate to MEL! #12267
                 String script = String.format(
                         "[%s].contains(item?.name?.orig)",
                         tracingAccounts.stream()
                                 .map(s -> "'" + s + "'")
                                 .collect(Collectors.joining(",")));
                 tracing.getBeforeItemCondition().add(new BeforeItemConditionType()
-                        .expression(ExpressionTypeUtil.forGroovyCode(script)));
+                        .expression(SimpleExpressionUtil.groovyExpression(script, MidPointTrustDescriptor.trusted())));
             }
             reporting.tracing(tracing);
         }

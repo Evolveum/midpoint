@@ -553,7 +553,7 @@ public class CorrelationServiceImpl implements CorrelationService {
         } else if (preFocus != null) {
             policy = beans.archetypeManager.determineArchetypePolicy(preFocus, result);
         } else if (objectType != null) {
-            policy =beans.archetypeManager.determineObjectPolicyConfiguration(objectType, result);
+            policy = beans.archetypeManager.determineObjectPolicyConfiguration(objectType, result);
         }
         LOGGER.trace("Determined archetype policy: {} (explicit archetype OID is: {})", policy, explicitArchetypeOid);
         String oid = policy != null ? getOid(policy.getObjectTemplateRef()) : null;

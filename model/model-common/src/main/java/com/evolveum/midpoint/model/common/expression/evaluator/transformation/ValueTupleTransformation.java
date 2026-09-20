@@ -235,7 +235,7 @@ class ValueTupleTransformation<V extends PrismValue> implements AutoCloseable {
             }
         } catch (ExpressionEvaluationException e) {
             ExpressionEvaluationException exEx = new ExpressionEvaluationException(
-                    e.getMessage() + "(" + staticVariables.dumpSingleLine() + ") in " + context.getContextDescription(),
+                    e.getMessage() + " (variables: " + staticVariables.dumpSingleLine() + ") in " + context.getContextDescription(),
                     e,
                     ExceptionUtil.getUserFriendlyMessage(e));
             if (combinatorialEvaluation.evaluator.localizationService != null) {
@@ -243,7 +243,7 @@ class ValueTupleTransformation<V extends PrismValue> implements AutoCloseable {
             }
             throw new TunnelException(exEx);
         } catch (Throwable e) {
-            String msg = e.getMessage() + "(" + staticVariables.dumpSingleLine() + ") in " + context.getContextDescription();
+            String msg = e.getMessage() + " (variables: " + staticVariables.dumpSingleLine() + ") in " + context.getContextDescription();
             throw new TunnelException(MiscUtil.createSame(e, msg));
         }
     }

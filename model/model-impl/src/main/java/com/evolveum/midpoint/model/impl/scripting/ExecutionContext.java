@@ -12,6 +12,8 @@ import java.util.Map;
 
 import com.evolveum.midpoint.model.api.BulkActionExecutionOptions;
 
+import com.evolveum.midpoint.model.impl.scripting.actions.ExecuteScriptExecutor;
+import com.evolveum.midpoint.prism.TrustDescriptor;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseType;
 
 import org.jetbrains.annotations.NotNull;
@@ -49,8 +51,13 @@ public class ExecutionContext {
     @NotNull private final BulkActionExecutionOptions executionOptions;
 
     /**
-     * Used for all evaluations in this context. The whole bulk action shares the same origin (it is a property, not a container),
-     * so everything has the same profile.
+     * Used for some evaluations in this context: decision about individual actions (search, add, modify, notify, ...),
+     * and decision about the scripts ({@link ExecuteScriptExecutor}). The whole bulk action shares the same trust descriptor
+     * (it is a property, not a container), so everything has the same profile.
+     *
+     * But regarding embedded expressions (including those in filters), these are currently evaluated individually
+     * for implementation reason. But they use specially crafted {@link TrustDescriptor} that's pushed onto them at
+     * script evaluation start.
      */
     @NotNull private final ExpressionProfile expressionProfile;
 

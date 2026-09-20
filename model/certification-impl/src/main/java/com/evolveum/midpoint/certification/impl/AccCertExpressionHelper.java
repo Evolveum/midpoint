@@ -53,8 +53,7 @@ public class AccCertExpressionHelper {
         PrismPropertyDefinition<T> resultDef = prismContext.definitionFactory().newPropertyDefinition(resultName, xsdType);
 
         Expression<PrismPropertyValue<T>,PrismPropertyDefinition<T>> expression =
-                expressionFactory.makeExpression(
-                        expressionType, resultDef, MiscSchemaUtil.getExpressionProfile(), shortDesc, task, result);
+                expressionFactory.makeExpression(expressionType, resultDef, shortDesc, task, result);
         ExpressionEvaluationContext eeContext = new ExpressionEvaluationContext(null, VariablesMap, shortDesc, task);
         eeContext.setExpressionFactory(expressionFactory);
 
@@ -89,8 +88,7 @@ public class AccCertExpressionHelper {
                 prismContext.definitionFactory().newReferenceDefinition(resultName, ObjectReferenceType.COMPLEX_TYPE);
 
         Expression<PrismReferenceValue,PrismReferenceDefinition> expression =
-                expressionFactory.makeExpression(
-                        expressionType, resultDef, MiscSchemaUtil.getExpressionProfile(), shortDesc, task, result);
+                expressionFactory.makeExpression(expressionType, resultDef, shortDesc, task, result);
         ExpressionEvaluationContext context = new ExpressionEvaluationContext(null, VariablesMap, shortDesc, task);
         context.setExpressionFactory(expressionFactory);
         context.setAdditionalConvertor(ExpressionUtil.createRefConvertor(UserType.COMPLEX_TYPE));

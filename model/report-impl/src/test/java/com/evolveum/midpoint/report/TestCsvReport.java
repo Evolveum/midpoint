@@ -7,9 +7,10 @@
 package com.evolveum.midpoint.report;
 
 import java.io.IOException;
+import java.util.Collection;
 import java.util.List;
 
-import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 
@@ -34,7 +35,8 @@ public class TestCsvReport extends EmptyReportIntegrationTest {
         addObject(USER_JACK, initTask, initResult);
     }
 
-    List<String> basicCheckOutputFile(PrismObject<TaskType> task, int expectedRows, int expectedColumns, String lastLine)
+    List<String> basicCheckOutputFile(
+            PrismObject<TaskType> task, int expectedRows, int expectedColumns, @Nullable Collection<String> lastLineOptions)
             throws IOException, SchemaException, ObjectNotFoundException {
 
         if (expectedRows != DONT_COUNT_ROWS) {
@@ -59,8 +61,8 @@ public class TestCsvReport extends EmptyReportIntegrationTest {
 
         // Last content line before the subscription appeal, hence -2, not -1.
         String lastRealLine = lines.get(lines.size() - 2);
-        if (StringUtils.isNoneEmpty(lastLine) && !lastRealLine.equals(lastLine)) {
-            fail("Unexpected last line of csv report. Expected: '" + lastLine + "', Actual: '" + lastRealLine + "'");
+        if (lastLineOptions != null && !lastLineOptions.isEmpty() && !lastLineOptions.contains(lastRealLine)) {
+            fail("Unexpected last line of csv report. Expected one of: " + lastLineOptions + ", Actual: '" + lastRealLine + "'");
         }
         return lines;
     }
@@ -83,20 +85,21 @@ public class TestCsvReport extends EmptyReportIntegrationTest {
     }
 
     protected void testClassicExport(TestObject<ReportType> testReport,
-            int expectedRows, int expectedColumns, String lastLine)
+            int expectedRows, int expectedColumns, @Nullable String lastLine)
             throws Exception {
-        testClassicExport(testReport, expectedRows, expectedColumns, lastLine, null);
+        testClassicExport(
+                testReport, expectedRows, expectedColumns, lastLine != null ? List.of(lastLine) : List.of(), null);
     }
 
     protected void testClassicExport(
             TestObject<ReportType> testReport, int expectedRows, int expectedColumns,
-            String lastLine, ReportParameterType parameters) throws Exception {
-        testExport(TASK_EXPORT_CLASSIC, testReport, expectedRows, expectedColumns, lastLine, parameters);
+            @Nullable Collection<String> lastLineOptions, ReportParameterType parameters) throws Exception {
+        testExport(TASK_EXPORT_CLASSIC, testReport, expectedRows, expectedColumns, lastLineOptions, parameters);
     }
 
     protected void testExport(
             TestTask testReportTask, TestObject<ReportType> testReport, int expectedRows,
-            int expectedColumns, String lastLine, ReportParameterType parameters) throws Exception {
+            int expectedColumns, @Nullable Collection<String> lastLineOptions, ReportParameterType parameters) throws Exception {
         given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -126,7 +129,7 @@ public class TestCsvReport extends EmptyReportIntegrationTest {
                 .assertHasArchetype(SystemObjectsType.ARCHETYPE_REPORT_EXPORT_CLASSIC_TASK.value());
 
         PrismObject<TaskType> reportTask = getObject(TaskType.class, testReportTask.oid);
-        basicCheckOutputFile(reportTask, expectedRows, expectedColumns, lastLine);
+        basicCheckOutputFile(reportTask, expectedRows, expectedColumns, lastLineOptions);
 
         assertNotificationMessage(testReport);
     }

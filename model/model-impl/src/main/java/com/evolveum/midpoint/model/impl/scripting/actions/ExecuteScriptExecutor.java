@@ -11,13 +11,16 @@ import static com.evolveum.midpoint.util.MiscUtil.configCheck;
 
 import java.util.List;
 
+import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionEvaluatorFactory;
+import com.evolveum.midpoint.schema.expression.ExpressionProfile;
+
 import jakarta.annotation.PostConstruct;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.api.BulkAction;
-import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionFactory;
+import com.evolveum.midpoint.model.common.expression.script.ScriptFactory;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.scripting.ExecutionContext;
 import com.evolveum.midpoint.model.impl.scripting.PipelineData;
@@ -39,7 +42,7 @@ public class ExecuteScriptExecutor extends AbstractExecuteExecutor<ScriptExecuti
 
     private static final String PARAM_SCRIPT = "script";
 
-    @Autowired private ScriptExpressionFactory scriptExpressionFactory;
+    @Autowired private ScriptFactory scriptFactory;
 
     @PostConstruct
     public void init() {
@@ -77,10 +80,13 @@ public class ExecuteScriptExecutor extends AbstractExecuteExecutor<ScriptExecuti
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,
             ConfigurationException, SecurityViolationException {
 
-        var scriptExpression = scriptExpressionFactory.createScriptExpression(
+        var expressionProfile = context.getExpressionProfile();
+        var scriptExpressionEvaluatorProfile = ScriptExpressionEvaluatorFactory.getEvaluatorProfile(expressionProfile);
+        var script = scriptFactory.createScript(
                 parameters.script,
                 parameters.outputDefinition,
-                context.getExpressionProfile(),
+                expressionProfile,
+                scriptExpressionEvaluatorProfile,
                 "script", result);
 
         VariablesMap variables = createVariables(externalVariables);
@@ -88,8 +94,8 @@ public class ExecuteScriptExecutor extends AbstractExecuteExecutor<ScriptExecuti
         variables.put(ExpressionConstants.VAR_INPUT, inputTypedValue);
 
         LensContext<?> lensContext = getLensContext(externalVariables);
-        List<?> rv = ModelImplUtils.evaluateScript(
-                scriptExpression, lensContext, variables, true,
+        List<?> rv = ModelImplUtils.executeScript(
+                script, lensContext, variables, true,
                 "in '" + getName() + "' action", context.getTask(), result);
 
         if (rv.isEmpty()) {

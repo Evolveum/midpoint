@@ -125,8 +125,7 @@ public class ShadowAuditHelper {
         PrismObject<ShadowType> object = shadow != null ? shadow.asPrismObject() : null;
 
         for (SystemConfigurationAuditEventRecordingPropertyType property : auditConfiguration.getPropertiesToRecord()) {
-            auditHelper.evaluateAuditRecordProperty(
-                    property, auditRecord, object, operationContext.expressionProfile(), task, result);
+            auditHelper.evaluateAuditRecordProperty(property, auditRecord, object, task, result);
         }
 
         if (auditConfiguration.getEventRecordingExpression() != null) {
@@ -135,7 +134,6 @@ public class ShadowAuditHelper {
                     auditConfiguration.getEventRecordingExpression(),
                     auditRecord,
                     object,
-                    operationContext.expressionProfile(),
                     operationContext.expressionEnvironmentSupplier(),
                     ctx.getTask(),
                     result);

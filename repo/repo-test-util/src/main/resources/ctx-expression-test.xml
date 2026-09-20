@@ -28,6 +28,11 @@
         <constructor-arg ref="localizationService"/>
         <property name="defaultEvaluatorFactory" ref="asIsExpressionEvaluatorFactory"/>
         <property name="objectResolver" ref="repoObjectResolver"/>
+        <property name="expressionProfileSupplier" ref="testExpressionProfileSupplier"/>
     </bean>
+
+    <bean id="testExpressionProfileSupplier"
+            class="com.evolveum.midpoint.test.IntegrationTestTools"
+            factory-method="testingFullExpressionProfileSupplier"/>
 
 </beans>

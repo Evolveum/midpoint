@@ -145,7 +145,6 @@ public class StateConstraintEvaluator implements PolicyConstraintEvaluator<State
                                     ExecuteScriptConfigItem.class), // TODO provide parent here
                             variables,
                             BulkActionExecutionOptions.create()
-                                    .withPrivileged()
                                     .withExecutionPhase(),
                             ctx.task,
                             result);

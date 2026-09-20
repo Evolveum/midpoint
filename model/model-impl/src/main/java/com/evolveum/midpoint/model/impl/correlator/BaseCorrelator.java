@@ -294,7 +294,6 @@ public abstract class BaseCorrelator<CCB extends AbstractCorrelatorType> impleme
                 variablesMap,
                 outputDefinition,
                 expressionBean,
-                MiscSchemaUtil.getExpressionProfile(),
                 beans.expressionFactory,
                 "confidence expression for " + candidate,
                 task,

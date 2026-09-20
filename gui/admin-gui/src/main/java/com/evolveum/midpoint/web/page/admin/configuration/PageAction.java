@@ -12,6 +12,7 @@ import com.evolveum.midpoint.authentication.api.authorization.Url;
 import com.evolveum.midpoint.model.api.BulkActionExecutionOptions;
 import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
 import com.evolveum.midpoint.schema.config.ExecuteScriptConfigItem;
+import com.evolveum.midpoint.schema.expression.MidPointTrustDescriptor;
 import com.evolveum.midpoint.schema.util.ScriptingBeansUtil;
 
 import org.apache.commons.lang3.StringUtils;
@@ -134,6 +135,7 @@ public class PageAction extends PageAdminConfiguration {
         if (typed != null) {
             if (bulkActionDto.isAsync()) {
                 try {
+                    // FIXME what about the expression profile?
                     getModelInteractionService().submitScriptingExpression(typed, task, result);
                     result.recordStatus(
                             OperationResultStatus.IN_PROGRESS,
@@ -148,6 +150,7 @@ public class PageAction extends PageAdminConfiguration {
                 }
             } else {
                 try {
+                    typed.setTrustDescriptor(MidPointTrustDescriptor.forCurrentPrincipal());
                     //noinspection ConstantConditions
                     BulkActionExecutionResult executionResult =
                             getBulkActionsService().executeBulkAction(

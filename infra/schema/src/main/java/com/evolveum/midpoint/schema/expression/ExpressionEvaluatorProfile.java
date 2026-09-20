@@ -1,68 +1,75 @@
 /*
- * Copyright (c) 2019 Evolveum and contributors
+ * Copyright (C) 2010-2026 Evolveum and contributors
  *
  * Licensed under the EUPL-1.2 or later.
  */
 
 package com.evolveum.midpoint.schema.expression;
 
-import java.io.Serializable;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
-import javax.xml.namespace.QName;
-
 import com.evolveum.midpoint.schema.AccessDecision;
 
-import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
-
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+
+import java.io.Serializable;
 
 /**
- * Specifies limitations on the use of a particular expression evaluator (e.g. script, path, value, etc).
+ * Specifies limitations on the use of a particular expression evaluator (e.g. `script`, `path`, `value`, etc).
  *
- * @author Radovan Semancik
+ * There are two cases:
+ *
+ * . `script` evaluator - here we obey {@link #getScriptLanguageExpressionProfile(String)} to determine whether a particular
+ * scripting language is allowed or not.
+ * . all other evaluators - here we just use {@link #getDefaultDecision()} to determine whether the evaluator is allowed or not.
  */
-public class ExpressionEvaluatorProfile implements Serializable {
+public interface ExpressionEvaluatorProfile extends Serializable {
 
-    private static final ExpressionEvaluatorProfile FORBIDDEN = new ExpressionEvaluatorProfile(
-            new QName("dummy"), AccessDecision.DENY, List.of());
+    /**
+     * Returns a decision whether the evaluator is allowed or not.
+     *
+     * NOTE: Use only for non-script evaluators. For script evaluator, use {@link #getScriptLanguageExpressionProfile(String)}.
+     */
+    @NotNull AccessDecision getDefaultDecision();
 
-    /** Type of the expression evaluator, e.g. {@link SchemaConstantsGenerated#C_SCRIPT}. Beware, it may be unqualified. */
-    @NotNull private final QName type;
+    /** Returns the profile for a particular scripting language. */
+    @NotNull ScriptLanguageExpressionProfile getScriptLanguageExpressionProfile(@NotNull String qualifiedLanguageUri);
 
-    @NotNull private final AccessDecision decision;
+    /** Nothing is allowed. */
+    ExpressionEvaluatorProfile NONE = new EmptyImpl(AccessDecision.DENY);
 
-    /** Scripting language profiles, keyed by [full] language URI. Currently applicable only for `script` evaluator. */
-    @NotNull private final Map<String, ScriptLanguageExpressionProfile> scriptLanguageProfiles;
+    /** Everything is allowed. */
+    ExpressionEvaluatorProfile FULL = new EmptyImpl(AccessDecision.ALLOW);
 
-    public ExpressionEvaluatorProfile(
-            @NotNull QName type,
-            @NotNull AccessDecision decision,
-            @NotNull List<ScriptLanguageExpressionProfile> scriptLanguageProfiles) {
-        this.type = type;
-        this.decision = decision;
-        this.scriptLanguageProfiles =
-                scriptLanguageProfiles.stream()
-                        .collect(Collectors.toUnmodifiableMap(p -> p.getLanguage(), p -> p));
+    static ExpressionEvaluatorProfile none() {
+        return NONE;
     }
 
-    /** Just to denote something that must be set before real use. */
-    public static @NotNull ExpressionEvaluatorProfile forbidden() {
-        return FORBIDDEN;
+    static ExpressionEvaluatorProfile full() {
+        return FULL;
     }
 
-    public @NotNull QName getType() {
-        return type;
+    /** Default object to use when no real profile is available. */
+    class EmptyImpl implements ExpressionEvaluatorProfile {
+        private final AccessDecision decision;
+
+        EmptyImpl(AccessDecision decision) {
+            this.decision = decision;
+        }
+
+        @Override
+        public @NotNull AccessDecision getDefaultDecision() {
+            return decision;
+        }
+
+        @Override
+        public @NotNull ScriptLanguageExpressionProfile getScriptLanguageExpressionProfile(@NotNull String qualifiedLanguageUri) {
+            return ScriptLanguageExpressionProfile.forDecision(decision);
+        }
     }
 
-    public @NotNull AccessDecision getDecision() {
-        return decision;
-    }
-
-    public @Nullable ScriptLanguageExpressionProfile getScriptExpressionProfile(@NotNull String language) {
-        return scriptLanguageProfiles.get(language);
+    static @NotNull ExpressionEvaluatorProfile forDecision(@NotNull AccessDecision decision) {
+        return switch (decision) {
+            case ALLOW -> full();
+            case DEFAULT, DENY -> none();
+        };
     }
 }

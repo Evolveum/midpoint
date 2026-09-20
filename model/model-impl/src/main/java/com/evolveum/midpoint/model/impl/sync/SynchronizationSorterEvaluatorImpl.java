@@ -97,7 +97,6 @@ public class SynchronizationSorterEvaluatorImpl implements SynchronizationSorter
                                     systemObjectCache.getSystemConfigurationBean(result)),
                             discriminatorDef,
                             expression,
-                            MiscSchemaUtil.getExpressionProfile(),
                             expressionFactory,
                             "synchronization sorter",
                             task,
