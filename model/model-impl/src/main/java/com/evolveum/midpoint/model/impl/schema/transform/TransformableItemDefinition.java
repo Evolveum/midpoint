@@ -54,6 +54,7 @@ public abstract class TransformableItemDefinition<I extends Item<?,?>,D extends 
     private ItemProcessing processing;
     private PrismReferenceValue valueEnumerationRef;
     private String merger;
+    private String externalGroup;
 
     private List<QName> naturalKeyConstituents;
 
@@ -82,6 +83,7 @@ public abstract class TransformableItemDefinition<I extends Item<?,?>,D extends 
             this.alwaysUseForEquals = copyOf.alwaysUseForEquals;
             this.merger = copyOf.merger;
             this.naturalKeyConstituents = copyOf.naturalKeyConstituents;
+            this.externalGroup = copyOf.externalGroup;
         } else {
             this.delegate = new DelegatedItem.FullySerializable<>(delegate);
         }
@@ -295,6 +297,11 @@ public abstract class TransformableItemDefinition<I extends Item<?,?>,D extends 
     }
 
     @Override
+    public String getExternalGroup() {
+        return preferLocal(this.externalGroup, delegate().getExternalGroup());
+    }
+
+    @Override
     public boolean isEmphasized() {
         return preferLocal(this.emphasized, delegate().isEmphasized()) || getDisplayHint() == DisplayHint.EMPHASIZED;
     }
@@ -367,6 +374,10 @@ public abstract class TransformableItemDefinition<I extends Item<?,?>,D extends 
         this.experimental = experimental;
     }
 
+    @Override
+    public void setExternalGroup(String group) {
+        this.externalGroup = group;
+    }
 
     @Override
     public PrismReferenceValue getValueEnumerationRef() {
@@ -409,6 +420,7 @@ public abstract class TransformableItemDefinition<I extends Item<?,?>,D extends 
         ((Item<?,ItemDefinition<?>>)deleg).setDefinition(this);
         return deleg;
     }
+
 
 
     ItemDefinition<?> attachTo(TransformableComplexTypeDefinition complexType) {

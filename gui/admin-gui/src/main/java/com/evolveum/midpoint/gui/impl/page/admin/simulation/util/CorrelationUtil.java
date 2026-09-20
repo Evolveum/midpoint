@@ -229,55 +229,6 @@ public class CorrelationUtil {
         return attributes;
     }
 
-    /**
-     * Creates a virtual container wrapper for candidate mappings returned by {@link #findCandidateMappings(PageBase, SimulationResultType)}.
-     *
-     * <p>This is used by UI components that expect {@link PrismContainerWrapper} instead of plain beans.
-     * The wrapper is created as "simulation-only": it represents a preview/merged view (including suggested
-     * additional mappings) and is not meant to be persisted. Therefore, it should not produce deltas.
-     *
-     * @return container wrapper for displaying candidate mappings in UI, or {@code null} if there are no candidates
-     */
-    public static @Nullable PrismContainerWrapper<ResourceAttributeDefinitionType> findCandidateMappingsAsWrapper(
-            PageBase page, SimulationResultType simulationResult) {
-        List<ResourceAttributeDefinitionType> candidateMappings =
-                findCandidateMappings(page, simulationResult);
-
-        if (candidateMappings == null || candidateMappings.isEmpty()) {
-            return null;
-        }
-
-        try {
-            PrismContainerDefinition<ResourceAttributeDefinitionType> def =
-                    PrismContext.get().getSchemaRegistry()
-                            .findContainerDefinitionByCompileTimeClass(ResourceAttributeDefinitionType.class);
-
-            if (def == null) {
-                return null;
-            }
-
-            PrismContainer<ResourceAttributeDefinitionType> container = def.instantiate();
-
-            PrismContainerWrapper<ResourceAttributeDefinitionType> wrapper =
-                    new PrismContainerWrapperImpl<>(null, container, ItemStatus.NOT_CHANGED);
-
-            for (ResourceAttributeDefinitionType attr : candidateMappings) {
-                PrismContainerValueWrapper<ResourceAttributeDefinitionType> newValueWrapper = WebPrismUtil
-                        .createNewValueWrapper(
-                                wrapper,
-                                attr.asPrismContainerValue(),
-                                page);
-                wrapper.getValues().add(newValueWrapper);
-            }
-
-            wrapper.setExpanded(true);
-            return wrapper;
-
-        } catch (SchemaException e) {
-            throw new RuntimeException("Cannot build mappings container wrapper", e);
-        }
-    }
-
     //TODO how to properly identify ref?
 
     /**

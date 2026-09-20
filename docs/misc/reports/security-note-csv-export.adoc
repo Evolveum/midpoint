@@ -16,6 +16,10 @@ MidPoint enables users to export data in the CSV format in various places in GUI
 
 By default, data exported to CSV files are raw and not escaped or sanitized in any way.
 
+Reports and data tables can also be exported to XLSX.
+In XLSX output all values are written as text cells, which spreadsheet applications do not interpret as formulas.
+Where the spreadsheet is the intended consumer, prefer XLSX over CSV.
+
 Some spreadsheet applications (such as Microsoft Excel or LibreOffice Calc) may interpret certain cell values as formulas, which can lead to potentially hazardous situations.
 
 If a CSV export contains cells with values starting with special characters (like '=', '+', '-', or '@'), opening the file in a spreadsheet application that does not handle these characters safely may trigger unintended behavior.

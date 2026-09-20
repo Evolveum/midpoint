@@ -698,6 +698,14 @@ public abstract class ActivityState implements DebugDumpable {
     void setAbortingInformation(@NotNull ActivityAbortingInformationType info) throws ActivityRunException {
         setItemRealValues(ActivityStateType.F_ABORTING_INFORMATION, info.clone()); // because of parents
     }
+
+    public ActivityHaltingInformationType getHaltingInformation() {
+        return getItemRealValueClone(ActivityStateType.F_HALTING_INFORMATION, ActivityHaltingInformationType.class);
+    }
+
+    public void setHaltingInformation(@NotNull ActivityHaltingInformationType info) throws ActivityRunException {
+        setItemRealValues(ActivityStateType.F_HALTING_INFORMATION, info.clone()); // because of parents
+    }
     //endregion
 
     //region Policies (thresholds)

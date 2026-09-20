@@ -20131,6 +20131,17 @@
                         </xsd:appinfo>
                     </xsd:annotation>
                 </xsd:element>
+                <xsd:element name="xlsx" type="tns:XlsxFileFormatType" minOccurs="0">
+                    <xsd:annotation>
+                        <xsd:documentation>
+                            Configuration for XLSX type.
+                        </xsd:documentation>
+                        <xsd:appinfo>
+                            <a:displayName>ExportConfigurationType.xlsx</a:displayName>
+                            <a:since>4.11</a:since>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                </xsd:element>
             </xsd:choice>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
@@ -20140,7 +20151,7 @@
         <xsd:annotation>
             <xsd:documentation>
                 Report export type.
-                csv, html.
+                csv, html, xlsx.
             </xsd:documentation>
         </xsd:annotation>
         <xsd:restriction base="xsd:string">
@@ -20155,6 +20166,14 @@
                 <xsd:annotation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="HTML"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="xlsx">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="XLSX"/>
+                        <a:since>4.11</a:since>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
@@ -20378,6 +20397,52 @@
         </xsd:annotation>
         <xsd:complexContent>
             <xsd:extension base="c:AbstractFileFormatType"/>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="XlsxFileFormatType">
+        <xsd:annotation>
+            <xsd:documentation>
+                XLSX export type for Report. All values are written as text cells, so they are never
+                interpreted as formulas by spreadsheet applications.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.11</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="c:AbstractFileFormatType">
+                <xsd:sequence>
+                    <xsd:element name="header" type="xsd:boolean" minOccurs="0" default="true">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Whether the first row of the sheet is a header with column labels.
+                                Applies to both export (the header is written) and import (the header is skipped
+                                or, if no view columns are defined, used to name the columns).
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>XlsxExportType.header</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="multivalueDelimiter" type="xsd:string" minOccurs="0" default="&#10;">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Delimiter for multiple values in one cell, used for both export (values are joined by it)
+                                and import (the cell is split by it).
+                                To import cells as single values regardless of their content, set the delimiter to a string
+                                that does not occur in the data.
+
+                                Default value: \n
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>XlsxExportType.multivalueDelimiter</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
 

@@ -20,6 +20,7 @@ import com.evolveum.midpoint.report.impl.ReportServiceImpl;
 import com.evolveum.midpoint.report.impl.controller.ExportedReportDataRow;
 import com.evolveum.midpoint.report.impl.controller.ExportedReportHeaderRow;
 import com.evolveum.midpoint.report.impl.controller.ReportDataWriter;
+import com.evolveum.midpoint.report.impl.controller.TextReportDataWriter;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ObjectHandler;
 import com.evolveum.midpoint.schema.SearchResultList;
@@ -71,7 +72,7 @@ public class ExportActivitySupport extends ReportActivitySupport {
      */
     void saveAggregatedReportData(
             @NotNull String aggregatedData,
-            @NotNull ReportDataWriter<? extends ExportedReportDataRow, ? extends ExportedReportHeaderRow> completingDataWriter,
+            @NotNull TextReportDataWriter<? extends ExportedReportDataRow, ? extends ExportedReportHeaderRow> completingDataWriter,
             @NotNull ObjectReferenceType aggregatedDataRef,
             @NotNull OperationResult result) throws CommonException {
         saveSupport.saveAggregatedReportData(aggregatedData, completingDataWriter, aggregatedDataRef, result);

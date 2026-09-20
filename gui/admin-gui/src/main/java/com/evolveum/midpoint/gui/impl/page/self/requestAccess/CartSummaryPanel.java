@@ -526,17 +526,21 @@ public class CartSummaryPanel extends BasePanel<RequestAccess> implements Access
             public void populateItem(Item<ICellPopulator<ShoppingCartItem>> item, String id, IModel<ShoppingCartItem> model) {
                 Fragment fragment = new Fragment(id, ID_TABLE_BUTTON_COLUMN, CartSummaryPanel.this);
 
+                String stableEditButtonId = "cartItemEdit-" + getTargetOid(model.getObject());
+
                 AjaxLink<?> editLink = new AjaxLink<>(ID_EDIT) {
                     @Serial private static final long serialVersionUID = 1L;
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
+                        target.appendJavaScript(String.format("MidPointTheme.saveFocus('%s');", stableEditButtonId));
                         editItemPerformed(target, model);
                     }
                 };
                 editLink.setOutputMarkupId(true);
                 editLink.add(AttributeAppender.append("aria-label",
                         createStringResource("CartSummaryPanel.editButton", getShoppingCartItemName(model.getObject()))));
+                editLink.add(AttributeAppender.append("data-component-id", stableEditButtonId));
                 fragment.add(editLink);
 
                 AjaxLink<?> removeLink = new AjaxLink<>(ID_REMOVE) {
@@ -560,6 +564,11 @@ public class CartSummaryPanel extends BasePanel<RequestAccess> implements Access
         return columns;
     }
 
+    private String getTargetOid(ShoppingCartItem item) {
+        AssignmentType assignment = item.getAssignment();
+        return assignment != null && assignment.getTargetRef() != null ? assignment.getTargetRef().getOid() : "";
+    }
+
     private void editItemPerformed(AjaxRequestTarget target, IModel<ShoppingCartItem> model) {
         PageBase page = getPageBase();
 
@@ -569,13 +578,14 @@ public class CartSummaryPanel extends BasePanel<RequestAccess> implements Access
             @Override
             protected void savePerformed(AjaxRequestTarget target, IModel<ShoppingCartItem> model) {
                 super.savePerformed(target, model);
-
                 getPageBase().hideMainPopup(target);
+                target.appendJavaScript("MidPointTheme.restoreFocus();");
             }
 
             @Override
             protected void closePerformed(AjaxRequestTarget target, IModel<ShoppingCartItem> model) {
                 getPageBase().hideMainPopup(target);
+                target.appendJavaScript("MidPointTheme.restoreFocus();");
             }
 
             @Override

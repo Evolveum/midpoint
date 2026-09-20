@@ -220,10 +220,9 @@ public class GuiProfileCompiler {
         OtherPrivilegesLimitations collectedOtherPrivilegesLimitations = new OtherPrivilegesLimitations();
 
         if (!options.isRunAsRunner() && channel != null) {
-            @Nullable Authorization additionalAuth = channel.getAdditionalAuthority();
-            if (additionalAuth != null) {
-                collectedAuthorizationList.add(additionalAuth);
-            }
+            // Authorizations the channel grants on its own (e.g. the page of a password reset or account activation
+            // flow). They do not go through resolveAuthorization below, which applies to assigned ones only.
+            collectedAuthorizationList.addAll(channel.getAdditionalAuthorities());
         }
 
         for (EvaluatedAssignment assignment : evaluatedAssignments) {

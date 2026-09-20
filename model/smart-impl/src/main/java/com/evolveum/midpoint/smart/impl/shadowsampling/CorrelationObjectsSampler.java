@@ -8,16 +8,17 @@
 package com.evolveum.midpoint.smart.impl.shadowsampling;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Predicate;
 
-
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.Resource;
@@ -35,94 +36,77 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
- * Sampler for mapping suggestions when shadow cache is enabled.
+ * Sampler for correlation operations.
  *
- * Iterates through cached shadows and tests predicate directly on them.
+ * Iterates through shadows using the provided fetch options (noFetch for cached shadows,
+ * full fetch when shadow caching is disabled) and tests the predicate directly on them.
  */
-public class MappingObjectsSamplerWhenShadowCacheEnabled implements ObjectsSampler<MappingSampleResult> {
+public class CorrelationObjectsSampler implements ObjectsSampler<List<PrismObject<ShadowType>>> {
 
-    private static final Trace LOGGER = TraceManager.getTrace(MappingObjectsSamplerWhenShadowCacheEnabled.class);
+    private static final Trace LOGGER = TraceManager.getTrace(CorrelationObjectsSampler.class);
 
-    public static final int DEFAULT_LLM_SAMPLE_SIZE = 50;
-    public static final int DEFAULT_VALIDATION_SAMPLE_SIZE = 1000;
+    public static final int DEFAULT_SAMPLE_SIZE_CACHED = 5000;
+    public static final int DEFAULT_SAMPLE_SIZE_UNCACHED = 2000;
 
     private final ModelService modelService;
     private final ResourceType resource;
     private final ResourceObjectDefinition typeDefinition;
-    private final int llmSampleSize;
-    private final int validationSampleSize;
+    private final int sampleSize;
+    private final Collection<SelectorOptions<GetOperationOptions>> fetchOptions;
 
-    public MappingObjectsSamplerWhenShadowCacheEnabled(
+    public CorrelationObjectsSampler(
             ModelService modelService, ResourceType resource, ResourceObjectDefinition typeDefinition,
-            int llmSampleSize, int validationSampleSize) {
+            int sampleSize, Collection<SelectorOptions<GetOperationOptions>> fetchOptions) {
         this.modelService = modelService;
         this.resource = resource;
         this.typeDefinition = typeDefinition;
-        this.llmSampleSize = llmSampleSize;
-        this.validationSampleSize = validationSampleSize;
+        this.sampleSize = sampleSize;
+        this.fetchOptions = fetchOptions;
     }
 
     @Override
-    public MappingSampleResult sample(
+    public List<PrismObject<ShadowType>> sample(
             Predicate<PrismObject<ShadowType>> acceptancePredicate,
             Task task,
             OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException,
             SecurityViolationException, ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
 
-        int totalSize = llmSampleSize + validationSampleSize;
+        LOGGER.debug("Sampling shadows for correlation: {}/{}, sampleSize={}",
+                resource.getOid(), typeDefinition.getTypeIdentification(), sampleSize);
 
-        LOGGER.debug("Sampling cached shadows for mappings (cached): {}/{}, llmSize={}, validationSize={}",
-                resource.getOid(), typeDefinition.getTypeIdentification(), llmSampleSize, validationSampleSize);
-
-        List<PrismObject<ShadowType>> reservoir = new ArrayList<>(totalSize);
+        List<PrismObject<ShadowType>> reservoir = new ArrayList<>(sampleSize);
         AtomicInteger totalCount = new AtomicInteger(0);
-        Random random = new Random(1);
 
         ObjectQuery query = Resource.of(resource)
                 .queryFor(typeDefinition.getTypeIdentification())
                 .build();
 
-        modelService.searchObjectsIterative(
-                ShadowType.class,
-                query,
-                (shadow, lResult) -> {
-                    try {
-                        int i = totalCount.getAndIncrement();
-                        Integer reservoirPosition = getReservoirPosition(reservoir.size(), i, random, totalSize);
+        collectIntoReservoir(query, reservoir, totalCount, sampleSize, acceptancePredicate, fetchOptions, task, result);
 
-                        if (reservoirPosition != null && acceptancePredicate.test(shadow)) {
-                            addToReservoir(reservoir, reservoirPosition, shadow);
-                        }
-                        return true;
-                    } finally {
-                        lResult.computeStatusIfUnknown();
-                        lResult.setSummarizeSuccesses(true);
-                        lResult.summarize();
-                    }
-                },
-                GetOperationOptions.createNoFetchReadOnlyCollection(),
-                task,
-                result);
-
-        if (totalCount.get() == 0) {
-            sampleDirectlyFromResource(query, reservoir, totalCount, totalSize, acceptancePredicate, task, result);
+        if (totalCount.get() == 0 && GetOperationOptions.isNoFetch(fetchOptions)) {
+            // No shadows in repository - sample directly from the resource with full fetch.
+            // Skipped when the main search already fetched full shadows (shadow cache disabled).
+            collectIntoReservoir(query, reservoir, totalCount, sampleSize, acceptancePredicate,
+                    GetOperationOptions.readOnly(), task, result);
         }
 
         if (reservoir.isEmpty()) {
-            LOGGER.warn("No shadows were loaded from resource {}/{}",
+            LOGGER.warn("No shadows were put into reservoir from resource {}/{}",
                     resource.getOid(), typeDefinition.getTypeIdentification());
         }
 
-        return splitReservoirIntoSamples(reservoir);
+        LOGGER.debug("Sampled {} shadows for correlation", reservoir.size());
+        return reservoir;
     }
 
-    private void sampleDirectlyFromResource(
+    private void collectIntoReservoir(
             ObjectQuery query,
             List<PrismObject<ShadowType>> reservoir,
             AtomicInteger totalCount,
-            int totalSize,
+            int sampleSize,
             Predicate<PrismObject<ShadowType>> acceptancePredicate,
+            Collection<SelectorOptions<GetOperationOptions>> options,
             Task task,
             OperationResult result)
             throws SchemaException, CommunicationException, ConfigurationException,
@@ -136,7 +120,7 @@ public class MappingObjectsSamplerWhenShadowCacheEnabled implements ObjectsSampl
                 (shadow, lResult) -> {
                     try {
                         int i = totalCount.getAndIncrement();
-                        Integer reservoirPosition = getReservoirPosition(reservoir.size(), i, random, totalSize);
+                        Integer reservoirPosition = getReservoirPosition(reservoir.size(), i, random, sampleSize);
 
                         if (reservoirPosition != null && acceptancePredicate.test(shadow)) {
                             addToReservoir(reservoir, reservoirPosition, shadow);
@@ -148,7 +132,7 @@ public class MappingObjectsSamplerWhenShadowCacheEnabled implements ObjectsSampl
                         lResult.summarize();
                     }
                 },
-                GetOperationOptions.createReadOnlyCollection(),
+                options,
                 task,
                 result);
     }
@@ -167,20 +151,5 @@ public class MappingObjectsSamplerWhenShadowCacheEnabled implements ObjectsSampl
         } else {
             reservoir.add(item);
         }
-    }
-
-    private MappingSampleResult splitReservoirIntoSamples(List<PrismObject<ShadowType>> reservoir) {
-        int actualLlmSize = Math.min(llmSampleSize, reservoir.size());
-        int actualValidationSize = Math.min(validationSampleSize, reservoir.size());
-
-        List<PrismObject<ShadowType>> llmSamples = reservoir.subList(0, actualLlmSize);
-        List<PrismObject<ShadowType>> validationSamples = reservoir.subList(
-                Math.max(0, reservoir.size() - actualValidationSize),
-                reservoir.size());
-
-        LOGGER.debug("Sampled {} shadows for mappings: {} for LLM, {} for validation",
-                reservoir.size(), actualLlmSize, actualValidationSize);
-
-        return new MappingSampleResult(llmSamples, validationSamples);
     }
 }

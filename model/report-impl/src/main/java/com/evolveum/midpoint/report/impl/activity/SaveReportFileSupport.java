@@ -7,9 +7,9 @@
 package com.evolveum.midpoint.report.impl.activity;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
@@ -17,7 +17,6 @@ import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.common.ModelCommonBeans;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 
-import org.apache.commons.io.ByteOrderMark;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -37,6 +36,7 @@ import com.evolveum.midpoint.report.impl.controller.DashboardReportDataWriter;
 import com.evolveum.midpoint.report.impl.controller.ExportedReportDataRow;
 import com.evolveum.midpoint.report.impl.controller.ExportedReportHeaderRow;
 import com.evolveum.midpoint.report.impl.controller.ReportDataWriter;
+import com.evolveum.midpoint.report.impl.controller.TextReportDataWriter;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
@@ -97,27 +97,26 @@ class SaveReportFileSupport {
     void saveSimpleReportData(
             ReportDataWriter<? extends ExportedReportDataRow, ? extends ExportedReportHeaderRow> dataWriter,
             OperationResult result) throws CommonException {
-        saveReportData(dataWriter.completeReport(), dataWriter, null, result);
+        saveReportData(dataWriter, null, result, filePath -> writeToReportFile(dataWriter, filePath));
     }
 
     /** @see #saveAggregatedReportData(String, ReportDataWriter, ObjectReferenceType, OperationResult) */
     void saveAggregatedReportData(
             @NotNull String aggregatedData,
-            @NotNull ReportDataWriter<? extends ExportedReportDataRow, ? extends ExportedReportHeaderRow> completingDataWriter,
+            @NotNull TextReportDataWriter<? extends ExportedReportDataRow, ? extends ExportedReportHeaderRow> completingDataWriter,
             @NotNull ObjectReferenceType preExistingDataRef,
             @NotNull OperationResult result) throws CommonException {
-        saveReportData(
-                completingDataWriter.completeReport(aggregatedData),
-                completingDataWriter,
-                preExistingDataRef,
-                result);
+        saveReportData(completingDataWriter, preExistingDataRef, result,
+                filePath -> writeToReportFile(
+                        completingDataWriter.completeReport(aggregatedData),
+                        filePath,
+                        completingDataWriter.getEncoding()));
     }
 
     private void saveReportData(
-            String completedReport,
             ReportDataWriter<? extends ExportedReportDataRow, ? extends ExportedReportHeaderRow> dataWriter,
-            @Nullable ObjectReferenceType emptyExportedDataObjectRef,
-            OperationResult result) throws CommonException {
+            @Nullable ObjectReferenceType emptyExportedDataObjectRef, OperationResult result,
+            ReportFileWriter reportFileWriter) throws CommonException {
 
         if (!activityRun.getRunningTask().canRun()) {
             LOGGER.warn("Not storing the resulting report, as the activity is being suspended: {}", report);
@@ -129,7 +128,7 @@ class SaveReportFileSupport {
         String aggregatedFilePath = getDestinationFileName(report, dataWriter, timestampSuffix, randomStringSuffix);
 
         if (storeType == ONLY_FILE || storeType == WIDGET_AND_FILE)  {
-            writeToReportFile(completedReport, aggregatedFilePath, dataWriter.getEncoding());
+            reportFileWriter.write(aggregatedFilePath);
             saveReportDataObject(dataWriter, aggregatedFilePath, timestampSuffix, randomStringSuffix,
                     emptyExportedDataObjectRef, result);
             if (report.getPostReportScript() != null) {
@@ -194,18 +193,18 @@ class SaveReportFileSupport {
 
         String reportName = StringUtils.replace(reportType.getName().getOrig(), File.separator, "_");
         String fileNamePrefix = reportName + "-EXPORT " + timestampSuffix + "-" + randomStringSuffix;
-        String fileName = fileNamePrefix + dataWriter.getTypeSuffix();
+        String fileName = fileNamePrefix + "." + dataWriter.getFileFormatType().value();
         return new File(exportDir, MiscUtil.fixFileName(fileName)).getPath();
     }
 
-    static String getNameOfExportedReportData(ReportType reportType, String type) {
+    static String getNameOfExportedReportData(ReportType reportType, FileFormatTypeType type) {
         return getNameOfExportedReportData(reportType, type, getDateTimeString(), getRandomString());
     }
 
-    static String getNameOfExportedReportData(ReportType reportType, String type, String timestampSuffix,
+    static String getNameOfExportedReportData(ReportType reportType, FileFormatTypeType type, String timestampSuffix,
             String randomStringSuffix) {
         String fileName = reportType.getName().getOrig() + "-EXPORT " + timestampSuffix + "-" + randomStringSuffix;
-        return fileName + " - " + type;
+        return fileName + " - " + type.name();
     }
 
     private static String getDateTimeString() {
@@ -219,23 +218,28 @@ class SaveReportFileSupport {
     }
 
     private void writeToReportFile(String contextOfFile, String aggregatedFilePath, @NotNull Charset encoding) {
-        try {
-            byte[] content = contextOfFile.getBytes(encoding);
-            byte[] bytesToWrite = content;
-
-            if (encoding.equals(StandardCharsets.UTF_8)) {
-                byte[] bom = ByteOrderMark.UTF_8.getBytes();
-                bytesToWrite = new byte[bom.length + content.length];
-                System.arraycopy(bom, 0, bytesToWrite, 0, bom.length);
-                System.arraycopy(content, 0, bytesToWrite, bom.length, content.length);
-            }
-
-            FileUtils.writeByteArrayToFile(
-                    new File(aggregatedFilePath),
-                    bytesToWrite);
+        try (var outputStream = FileUtils.openOutputStream(new File(aggregatedFilePath))) {
+            TextReportDataWriter.writeText(contextOfFile, encoding, outputStream);
         } catch (IOException e) {
             throw new SystemException("Couldn't write aggregated report to " + aggregatedFilePath, e);
         }
+    }
+
+    private void writeToReportFile(ReportDataWriter<? extends ExportedReportDataRow,
+                    ? extends ExportedReportHeaderRow> dataWriter, String filePath) {
+        try (var outputStream = new FileOutputStream(filePath)) {
+            dataWriter.writeCompletedReport(outputStream);
+        } catch (IOException e) {
+            throw new SystemException("Couldn't write report to " + filePath, e);
+        }
+    }
+
+    /**
+     * Writes the report to the specified file.
+     */
+    @FunctionalInterface
+    private interface ReportFileWriter {
+        void write(String filePath);
     }
 
     private void saveReportDataObject(
@@ -289,7 +293,7 @@ class SaveReportFileSupport {
             throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException,
             ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException {
 
-        String reportDataName = getNameOfExportedReportData(report, dataWriter.getType(), timestampSuffix, randomStringSuffix);
+        String reportDataName = getNameOfExportedReportData(report, dataWriter.getFileFormatType(), timestampSuffix, randomStringSuffix);
 
         ReportDataType reportDataObject = new ReportDataType();
 
@@ -297,11 +301,9 @@ class SaveReportFileSupport {
         reportDataObject.setReportRef(MiscSchemaUtil.createObjectReference(report.getOid(), ReportType.COMPLEX_TYPE));
         reportDataObject.setName(new PolyStringType(reportDataName));
         if (report.getDescription() != null) {
-            reportDataObject.setDescription(report.getDescription() + " - " + dataWriter.getType());
+            reportDataObject.setDescription(report.getDescription() + " - " + dataWriter.getFileFormatType().name());
         }
-        if (dataWriter.getFileFormatConfiguration() != null) {
-            reportDataObject.setFileFormat(dataWriter.getFileFormatConfiguration().getType());
-        }
+        reportDataObject.setFileFormat(dataWriter.getFileFormatType());
 
         reportDataObject.setNodeRef(
                 getCurrentNodeRef(result));

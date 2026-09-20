@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (C) 2010-2026 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<task oid="c86f607c-d459-4b97-8703-9c986304c036"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:ext="http://midpoint.evolveum.com/xml/ns/repo-common-test/extension">
+    <name>task-mock-iterative-large</name>
+    <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
+    <executionState>runnable</executionState>
+    <activity>
+        <work>
+            <extension>
+                <ext:iterativeMock>
+                    <ext:from>1</ext:from>
+                    <ext:to>50</ext:to>
+                    <ext:message>Item: </ext:message>
+                </ext:iterativeMock>
+            </extension>
+        </work>
+    </activity>
+</task>

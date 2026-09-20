@@ -136,6 +136,9 @@ public class ObjectDetailsModels<O extends ObjectType> implements Serializable, 
             AbstractPageObjectDetails page = (AbstractPageObjectDetails) getPageBase();
             ctx.setShowedByWizard(page.isShowedByWizard());
             ctx.setSuppliedObjectFromAuthorizedCase(page.isPendingObjectTransientPreview());
+            if (page.isPendingObjectTransientPreview()) {
+                ctx.setPrecomputedEditSecurityDefinition(page.getPendingObjectPrecomputedEditSecurityDefinition());
+            }
         }
         return ctx;
     }

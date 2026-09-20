@@ -6,6 +6,8 @@
 
 package com.evolveum.midpoint.repo.common.reports;
 
+import static com.evolveum.midpoint.common.MimeTypeUtil.MIME_APPLICATION_VND_MSEXCEL_2007;
+
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -63,6 +65,11 @@ public class ReportSupportUtil {
         if (StringUtils.isBlank(type)) {
             type = "plain";
         }
+
+        if (FileFormatTypeType.XLSX.value().equalsIgnoreCase(type)) {
+            return MIME_APPLICATION_VND_MSEXCEL_2007;
+        }
+
         return "text/" + type;
     }
 }

@@ -205,6 +205,11 @@ class ShadowSingleReferenceAttributeComplexTypeDefinitionImpl
     }
 
     @Override
+    public String getExternalGroup() {
+        return null;
+    }
+
+    @Override
     public String getDocumentation() {
         return null;
     }

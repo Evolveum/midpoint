@@ -238,6 +238,7 @@ public class MimeTypeUtil {
                 entry(MIME_APPLICATION_MSWORD_2007, "docx"),
                 entry(MIME_APPLICATION_VND_TEXT, "odt"),
                 entry(MIME_APPLICATION_VND_MSEXCEL, "xls"),
+                entry(MIME_APPLICATION_VND_MSEXCEL_2007, "xlsx"),
                 entry(MIME_APPLICATION_VND_SPREADSHEET, "ods"),
                 entry(MIME_APPLICATION_POSTSCRIPT, "ps"),
                 entry(MIME_APPLICATION_PDF, "pdf"),

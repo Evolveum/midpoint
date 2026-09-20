@@ -120,7 +120,7 @@ public final class ReportDataCreationActivityRun
         stateCheck(report.getObjectCollection() != null, "Only collection-based reports are supported here");
 
         SearchSpecificationHolder searchSpecificationHolder = new SearchSpecificationHolder();
-        ReportDataWriter<ExportedReportDataRow, ExportedReportHeaderRow> dataWriter = ReportUtils.createDataWriter(
+        TextReportDataWriter<ExportedReportDataRow, ExportedReportHeaderRow> dataWriter = ReportUtils.createTextDataWriter(
                 report, FileFormatTypeType.CSV, getActivityHandler().reportService, support.getCompiledCollectionView(result));
         controller = new CollectionDistributedExportController<>(
                 searchSpecificationHolder,

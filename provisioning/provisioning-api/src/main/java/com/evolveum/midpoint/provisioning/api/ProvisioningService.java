@@ -92,6 +92,8 @@ public interface ProvisioningService {
     String OP_GET_NATIVE_CAPABILITIES = ProvisioningService.class.getName() + ".getNativeCapabilities";
     String OP_INITIALIZE = ProvisioningService.class.getName() + ".initialize";
     String OP_DISCOVER_CONNECTORS = ProvisioningService.class.getName() + ".discoverConnectors";
+    String OP_REFRESH_CONNECTOR_CONFIGURATION_SCHEMA = ProvisioningService.class.getName()
+            + ".refreshConnectorConfigurationSchema";
 
     /**
      * Returns the object with specified OID. (It must fail if there is no object with that OID in the repository.)
@@ -1315,4 +1317,19 @@ public interface ProvisioningService {
             @NotNull ResourceObjectTypeIdentification typeIdentification,
             @NotNull Task task,
             @NotNull OperationResult result) throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException;
+
+    /**
+     * Refreshes the cached configuration schema of the given local connector: reloads the connector
+     * bundle in the UCF framework, regenerates the configuration schema and stores it into the
+     * connector object in the repository, and disposes the cached connector instances.
+     *
+     * <p>This is intended to be used after the connector bundle has been modified (e.g. through the
+     * connector development flow), to bring the stored schema in line with the current bundle content.
+     */
+    @NotNull OperationResult refreshConnectorConfigurationSchema(
+            @NotNull String connectorOid,
+            @NotNull Task task,
+            @NotNull OperationResult parentResult)
+            throws ObjectNotFoundException, SchemaException, ConfigurationException, SubscriptionComplianceException,
+            ObjectAlreadyExistsException;
 }

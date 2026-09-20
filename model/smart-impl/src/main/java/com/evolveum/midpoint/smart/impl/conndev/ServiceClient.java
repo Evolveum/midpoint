@@ -76,6 +76,13 @@ public class ServiceClient {
         return job;
     }
 
+    public Job postJob(String endpoint, String apiType, String intent, boolean skipCache) throws IOException {
+        var job = new Job(apiBase+endpoint, apiType, intent, skipCache);
+        var request = job.postBuilder();
+        job.startJob(request);
+        return job;
+    }
+
     public Job postJob(String endpoint, ObjectNode body, String apiType, boolean skipCache) throws IOException {
         var job = new Job(apiBase+endpoint, apiType, skipCache);
         var request = job.postBuilder();
@@ -144,6 +151,7 @@ public class ServiceClient {
 
         private final String uri;
         private final String apiType;
+        private final String intent;
         private final boolean skipCache;
         private String jobId = null;
 
@@ -155,8 +163,13 @@ public class ServiceClient {
         }
 
         public Job(String uri, String apiType, boolean skipCache) {
+            this(uri, apiType, null, skipCache);
+        }
+
+        public Job(String uri, String apiType, String intent, boolean skipCache) {
             this.uri = appendSession(uri);
             this.apiType = apiType;
+            this.intent = intent;
             this.skipCache =skipCache;
         }
 
@@ -173,6 +186,9 @@ public class ServiceClient {
                 }
                 if (apiType != null) {
                     builder.addParameter("apiType", apiType);
+                }
+                if (intent != null) {
+                    builder.addParameter("intent", intent);
                 }
                 return new HttpPost(builder.build());
             } catch (URISyntaxException e) {

@@ -19,4 +19,6 @@ public class SmartIntegrationConstants {
 
     public static final String RPC_SUGGEST_ASSOCIATION_TYPE_SUBMIT_OPERATION = "/rpc/suggestAssociationTypeSubmitOperation";
     public static final String RPC_SUGGEST_ASSOCIATION_TYPE_STATUS_INFO = "/rpc/suggestAssociationTypeStatusInfo";
+
+    public static final String RPC_GET_AI_INFO = "/rpc/getAiInfo";
 }

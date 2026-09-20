@@ -654,7 +654,7 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
             result.recordException(t);
             throw t;
         } finally {
-            result.close();
+            result.closeWithSummarizedSuccesses();
         }
     }
 
@@ -681,7 +681,7 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
             result.recordException(t);
             throw t;
         } finally {
-            result.close();
+            result.closeWithSummarizedSuccesses();
         }
     }
 
@@ -708,7 +708,7 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
             result.recordException(t);
             throw t;
         } finally {
-            result.close();
+            result.closeWithSummarizedSuccesses();
         }
     }
 
@@ -739,7 +739,7 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
             result.recordException(t);
             throw t;
         } finally {
-            result.close();
+            result.closeWithSummarizedSuccesses();
         }
     }
 
@@ -773,7 +773,7 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
             result.recordException(t);
             throw t;
         } finally {
-            result.close();
+            result.closeWithSummarizedSuccesses();
         }
     }
 

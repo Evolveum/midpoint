@@ -15,6 +15,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.QuoteModeType;
 import com.google.common.base.MoreObjects;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.QuoteMode;
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -96,7 +97,8 @@ class CommonCsvSupport {
     }
 
     String getMultivalueDelimiter() {
-        return MoreObjects.firstNonNull(configuration.getMultivalueDelimiter(), ",");
+        // an empty delimiter would join values without separator and split every character on import
+        return StringUtils.defaultIfEmpty(configuration.getMultivalueDelimiter(), ",");
     }
 
     String removeNewLines(String value) {

@@ -13,6 +13,7 @@ import java.util.Objects;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.basic.ResourceConfigurationDiscoveryUtil;
+import com.evolveum.midpoint.gui.impl.util.ConnectorConfigurationGroupingUtil;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -23,6 +24,7 @@ import org.apache.wicket.extensions.markup.html.tabs.AbstractTab;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
@@ -119,9 +121,27 @@ public class ResourceConfigurationPanel extends AbstractObjectMainPanel<Resource
 
             @Override
             public WebMarkupContainer getPanel(String panelId) {
-                return new SingleContainerPanel<>(panelId, Model.of(wrapper), wrapper.getTypeName());
+                List<ConnectorConfigurationGroupingUtil.Group> groups = getContainerGroups(wrapper);
+                if (groups == null || groups.isEmpty()) {
+                    return new SingleContainerPanel<>(panelId, Model.of(wrapper), wrapper.getTypeName());
+                }
+                ContainerPanelConfigurationType config =
+                        ConnectorConfigurationGroupingUtil.createContainerPanelConfiguration(
+                                wrapper, groups, wrapper.getPath());
+                IModel<PrismContainerWrapper<Containerable>> model =
+                        (IModel<PrismContainerWrapper<Containerable>>) (IModel<?>) Model.of(wrapper);
+                return new SingleContainerPanel<>(panelId, model, config);
             }
         };
+    }
+
+    private List<ConnectorConfigurationGroupingUtil.Group> getContainerGroups(PrismContainerWrapper<?> wrapper) {
+        try {
+            return ConnectorConfigurationGroupingUtil.getConfigurationGroups(wrapper);
+        } catch (RuntimeException e) {
+            LOGGER.error("Cannot determine configuration groups for {}", wrapper.getDisplayName(), e);
+            return null;
+        }
     }
 
     public void updateConfigurationTabs() {

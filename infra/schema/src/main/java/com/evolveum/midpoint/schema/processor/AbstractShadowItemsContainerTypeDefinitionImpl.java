@@ -149,6 +149,11 @@ abstract class AbstractShadowItemsContainerTypeDefinitionImpl
     }
 
     @Override
+    public String getExternalGroup() {
+        return objectDefinition.getExternalGroup();
+    }
+
+    @Override
     public String getDocumentation() {
         return objectDefinition.getDocumentation();
     }

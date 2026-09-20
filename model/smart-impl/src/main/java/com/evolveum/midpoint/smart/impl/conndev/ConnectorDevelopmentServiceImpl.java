@@ -22,6 +22,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 import com.evolveum.midpoint.smart.api.conndev.ConnDevArtifactValidationResult;
+import com.evolveum.midpoint.smart.api.conndev.ConnDevDocumentationTopic;
 import com.evolveum.midpoint.smart.api.conndev.ConnectorDevelopmentArtifacts;
 import com.evolveum.midpoint.smart.api.conndev.ConnectorDevelopmentOperation;
 import com.evolveum.midpoint.smart.api.conndev.ConnectorDevelopmentService;
@@ -63,6 +64,7 @@ public class ConnectorDevelopmentServiceImpl implements ConnectorDevelopmentServ
     @Autowired private ModelService modelService;
     @Autowired private ClusterExecutionHelper clusterExecutionHelper;
     @Autowired private SecurityEnforcer securityEnforcer;
+    @Autowired private ConndevDocumentationService conndevDocumentationService;
 
     private static ConnectorDevelopmentServiceImpl instance;
 
@@ -399,7 +401,7 @@ public class ConnectorDevelopmentServiceImpl implements ConnectorDevelopmentServ
                 getTask(token, task, result),
                 ConnDevCreateConnectorWorkStateType.F_RESULT,
                 ConnDevDiscoverGlobalInformationResultType.class
-                );
+        );
     }
 
     @Override
@@ -533,5 +535,10 @@ public class ConnectorDevelopmentServiceImpl implements ConnectorDevelopmentServ
                 }, new ClusterExecutionOptions().tryNodesInTransition().skipDefaultAccept(), "get exported connector file", result);
 
         return inputStreamHolder.getValue();
+    }
+
+    @Override
+    public List<ConnDevDocumentationTopic> getDocumentationTopics(String key, String protocol) {
+        return conndevDocumentationService.getTopics(key, protocol);
     }
 }

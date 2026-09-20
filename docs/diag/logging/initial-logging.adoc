@@ -132,7 +132,11 @@ Hopefully this will be reflected in this place.
 
 Initial setup can log values from `config.xml` file if `com.evolveum.midpoint.init.StartupConfiguration`
 logger is set to level `DEBUG` or `TRACE` - which can be a security issue if it's a value of some password.
+The same applies to JVM arguments listed on the About page in the administration GUI.
 To avoid this, values are replaced by a placeholder string.
+A value is considered sensitive when its key contains a word like `password`, `passwd`, `pwd`, `secret`,
+`token`, `credential` or `apiKey` (case-insensitive), or when it is one of the known keys
+that may contain credentials (e.g. `midpoint.repository.jdbcUrl` or `midpoint.repository.dataSource`).
 In rare troubleshooting situations this may be a problem and actual values must be investigated.
 
 To allow this JVM argument `-Dmidpoint.printSensitiveValues` must be added to the command line,

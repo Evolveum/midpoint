@@ -209,6 +209,11 @@ public class CompositeObjectDefinitionImpl
         return structuralDefinition.getHelp();
     }
 
+    @Override
+    public String getExternalGroup() {
+        return structuralDefinition.getExternalGroup();
+    }
+
     @NotNull
     @Override
     public QName getTypeName() {

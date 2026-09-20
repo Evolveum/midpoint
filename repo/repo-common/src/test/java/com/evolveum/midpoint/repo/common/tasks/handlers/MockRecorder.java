@@ -6,6 +6,7 @@
 
 package com.evolveum.midpoint.repo.common.tasks.handlers;
 
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 
@@ -23,6 +24,8 @@ public class MockRecorder implements DebugDumpable {
     @SuppressWarnings("unchecked")
     private final List<String> executions = synchronizedList(new ArrayList<>());
 
+    private final List<OperationResultSnapshot> operationResultSnapshots = synchronizedList(new ArrayList<>());
+
     /** This is to verify that realization start timestamps in workers are the same. */
     @NotNull private final Set<XMLGregorianCalendar> realizationStartTimestamps = new HashSet<>();
 
@@ -34,6 +37,25 @@ public class MockRecorder implements DebugDumpable {
         return executions;
     }
 
+    /** Captures concrete result count and summarized hidden-record count for the given operation. */
+    public void recordOperationResultSnapshot(OperationResult parentResult, String operation) {
+        List<OperationResult> matching = parentResult.findSubresults(operation);
+        operationResultSnapshots.add(
+                new OperationResultSnapshot(
+                        (int) matching.stream()
+                                .filter(result -> result.getHiddenRecordsCount() == 0)
+                                .count(),
+                        matching.stream()
+                                .mapToInt(OperationResult::getHiddenRecordsCount)
+                                .sum()));
+    }
+
+    public List<OperationResultSnapshot> getOperationResultSnapshots() {
+        return operationResultSnapshots;
+    }
+
+    public record OperationResultSnapshot(int concreteRecords, int hiddenRecords) {}
+
     public void recordRealizationStartTimestamp(XMLGregorianCalendar value) {
         realizationStartTimestamps.add(value);
     }
@@ -44,6 +66,7 @@ public class MockRecorder implements DebugDumpable {
 
     public void reset() {
         executions.clear();
+        operationResultSnapshots.clear();
         realizationStartTimestamps.clear();
     }
 
@@ -52,6 +75,7 @@ public class MockRecorder implements DebugDumpable {
         StringBuilder sb = new StringBuilder();
         DebugUtil.debugDumpLabelLn(sb, "MockRecorder", indent);
         DebugUtil.debugDumpWithLabelLn(sb, "executions", executions, indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "operation result snapshots", operationResultSnapshots, indent + 1);
         DebugUtil.debugDumpWithLabel(sb, "realization start timestamps", realizationStartTimestamps, indent + 1);
         return sb.toString();
     }

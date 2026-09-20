@@ -1420,6 +1420,13 @@ td .prism-property-value {
   }
 }
 
+.password-parent {
+  input.form-control.is-invalid {
+    background-position: calc(100% - 34px) center;
+    padding-right: 52px !important;
+  }
+}
+
 .password-validator-popover {
   position: absolute;
   z-index: 1000;
@@ -2732,7 +2739,9 @@ footer.app-footer a {
 }
 
 .midpoint-drawer {
-  z-index: 1060;
+  // Must stay below the shared modal (.modal, z-index 1050 !important) so popups
+  // opened from inside the drawer (e.g. Filter expression config) render above it.
+  z-index: 1045;
   min-width: 30vw;
 }
 

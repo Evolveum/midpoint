@@ -132,6 +132,12 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
         IntegrationTestTools.assertConnectorSchemaSanity(connectorSchema, "generated", true);
         assertEquals("Unexpected number of definitions", 3, connectorSchema.size());
 
+        // Connector property groups (from ICF groupMessageKey) must be carried into the generated schema
+        assertConfigurationPropertyGroup(connectorSchema, "instanceId", "General");
+        assertConfigurationPropertyGroup(connectorSchema, "supportSchema", "Schema");
+        assertConfigurationPropertyGroup(connectorSchema, "forbiddenNames", "Validation");
+        assertConfigurationPropertyGroup(connectorSchema, "supportActivation", "Support");
+
         Document xsdSchemaDom = connectorSchema.serializeToXsd();
         displayValue("Serialized XSD connector schema", DOMUtil.serializeDOMToString(xsdSchemaDom));
 
@@ -139,6 +145,23 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
         var reparsedConnectorSchema = ConnectorSchemaFactory.parse(DOMUtil.getFirstChildElement(xsdSchemaDom), "");
         IntegrationTestTools.assertConnectorSchemaSanity(reparsedConnectorSchema, "re-parsed", true);
         assertEquals("Unexpected number of definitions in re-parsed schema", 3, reparsedConnectorSchema.size());
+
+        // The group annotation must survive the XSD round-trip
+        assertConfigurationPropertyGroup(reparsedConnectorSchema, "instanceId", "General");
+        assertConfigurationPropertyGroup(reparsedConnectorSchema, "supportActivation", "Support");
+    }
+
+    private void assertConfigurationPropertyGroup(ConnectorSchema schema, String propertyName, String expectedGroup) throws SchemaException {
+        PrismContainerDefinition<?> configurationProperties =
+                schema.getConnectorConfigurationContainerDefinition().findContainerDefinition(ICF_CONFIGURATION_PROPERTIES_NAME);
+        assertNotNull("No definition of configurationProperties in schema", configurationProperties);
+        PrismPropertyDefinition<?> propertyDefinition = configurationProperties.getDefinitions().stream()
+                .filter(def -> propertyName.equals(def.getItemName().getLocalPart()))
+                .map(def -> (PrismPropertyDefinition<?>) def)
+                .findFirst()
+                .orElse(null);
+        assertNotNull("No definition of property " + propertyName, propertyDefinition);
+        assertEquals("Unexpected group of property " + propertyName, expectedGroup, propertyDefinition.getExternalGroup());
     }
 
     /**

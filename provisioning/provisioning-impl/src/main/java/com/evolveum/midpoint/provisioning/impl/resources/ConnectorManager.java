@@ -26,12 +26,15 @@ import com.evolveum.midpoint.provisioning.ucf.api.connectors.AbstractManagedConn
 import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.VisibleForTesting;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
@@ -40,18 +43,23 @@ import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
+import com.evolveum.midpoint.schema.processor.ConnectorSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ConnectorTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.prism.xml.ns._public.types_3.SchemaDefinitionType;
 
 import static com.evolveum.midpoint.schema.GetOperationOptions.readOnly;
 import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
@@ -252,10 +260,11 @@ public class ConnectorManager implements CacheInvalidationListener, CacheDiagnos
     ConfiguredConnectorInstanceEntry getOrCreateConnectorInstanceCacheEntry(ConnectorSpec connectorSpec, OperationResult result)
             throws ObjectNotFoundException, SchemaException, ConfigurationException, SubscriptionComplianceException {
         ConfiguredConnectorCacheKey cacheKey = connectorSpec.getCacheKey();
+        String connectorOid = resolveConnectorOidRequired(connectorSpec, result);
         ConfiguredConnectorInstanceEntry existingCacheEntry = connectorInstanceCache.get(cacheKey);
 
         if (existingCacheEntry != null) {
-            if (existingCacheEntry.matchesConnectorOid(connectorSpec.getConnectorOidRequired())) {
+            if (existingCacheEntry.matchesConnectorOid(connectorOid)) {
                 LOGGER.trace("HIT in connector cache: returning configured connector {} from cache; it may or may not be fresh",
                         connectorSpec);
                 return existingCacheEntry;
@@ -273,7 +282,7 @@ public class ConnectorManager implements CacheInvalidationListener, CacheDiagnos
 
         // No usable connector in cache. Let's create it - unconfigured.
         return new ConfiguredConnectorInstanceEntry(
-                connectorSpec.getConnectorOidRequired(),
+                connectorOid,
                 createConnectorInstance(connectorSpec, result));
     }
 
@@ -374,10 +383,63 @@ public class ConnectorManager implements CacheInvalidationListener, CacheDiagnos
         //  Currently, we need to throw a ConfigurationException here for the test to pass.
         //  E.g., IllegalStateException won't work.
         return getConnectorWithSchema(
-                MiscUtil.configNonNull(
-                        connectorSpec.getConnectorOid(),
-                        "Connector OID missing in %s", connectorSpec),
+                resolveConnectorOidRequired(connectorSpec, result),
                 result);
+    }
+
+    /**
+     * Returns the connector OID for the given specification, resolving a filter-based {@code connectorRef} if needed.
+     *
+     * Completed resources normally have the OID already materialized in the in-memory {@code connectorRef}
+     * (see {@link ResourceSchemaHelper}), so this resolution serves as a fallback for specifications built
+     * over raw resource objects, e.g. during the test connection operation. The resolved OID is stored
+     * in the {@link ConnectorSpec} as transient state; the resource {@code connectorRef} is not modified here.
+     */
+    private @NotNull String resolveConnectorOidRequired(ConnectorSpec connectorSpec, OperationResult result)
+            throws SchemaException, ConfigurationException {
+        String oid = connectorSpec.getConnectorOid();
+        if (oid != null) {
+            return oid;
+        }
+
+        ObjectReferenceType connectorRef = connectorSpec.getConnectorRef();
+        if (connectorRef == null || connectorRef.getFilter() == null) {
+            throw new ConfigurationException("Connector OID missing in " + connectorSpec);
+        }
+
+        String resolvedOid = resolveConnectorRefFilter(connectorRef.getFilter(), connectorSpec, result);
+        connectorSpec.setResolvedConnectorOid(resolvedOid);
+        LOGGER.trace("Resolved connector reference in {} to OID {}", connectorSpec, resolvedOid);
+        return resolvedOid;
+    }
+
+    /**
+     * Resolves a filter-based connector reference to the OID of exactly one matching connector object.
+     *
+     * The filter must be evaluable by the repository, expressions are rejected.
+     */
+    @NotNull String resolveConnectorRefFilter(
+            @NotNull SearchFilterType filterBean, @NotNull Object context, @NotNull OperationResult result)
+            throws SchemaException, ConfigurationException {
+        ObjectFilter filter = prismContext.getQueryConverter().parseFilter(filterBean, ConnectorType.class);
+        MiscUtil.configNonNull(filter, "Connector reference in %s cannot be resolved: filter has no content", context);
+        MiscUtil.configCheck(!ExpressionUtil.hasExpressions(filter),
+                "Connector reference in %s cannot be resolved: filter contains an expression", context);
+
+        ObjectQuery query = prismContext.queryFactory().createQuery(filter);
+        SearchResultList<PrismObject<ConnectorType>> connectors =
+                repositoryService.searchObjects(ConnectorType.class, query, readOnly(), result);
+
+        if (connectors.isEmpty()) {
+            throw new ConfigurationException(
+                    "Connector reference in " + context + " cannot be resolved: filter matches no object");
+        }
+        if (connectors.size() > 1) {
+            throw new ConfigurationException(
+                    "Connector reference in " + context + " cannot be resolved: filter matches "
+                            + connectors.size() + " objects");
+        }
+        return connectors.get(0).getOid();
     }
 
     private @NotNull ConnectorWithSchema getConnectorWithSchema(String connOid, OperationResult result)
@@ -418,6 +480,57 @@ public class ConnectorManager implements CacheInvalidationListener, CacheDiagnos
 
         connectorBeanCache.put(connOid, connectorWithSchema);
         return connectorWithSchema;
+    }
+
+    /**
+     * Regenerates the connector configuration schema from the UCF framework and persists it
+     * into the {@code schema} item of the connector object in the repository.
+     *
+     * <p>Cached connector beans and instances for the connector are disposed so that the new
+     * schema takes effect. If the UCF framework does not provide a configuration schema for
+     * the connector, the stored schema is left unchanged (a schema must always be present for
+     * the connector to be usable).
+     *
+     * <p>This method does not reload the connector bundle in the UCF framework; the caller is
+     * expected to do that first (see {@code ConnectorInstallationService.reloadLocalConnectorBundle})
+     * so that the regenerated schema reflects any bundle modifications.
+     */
+    public void refreshConnectorSchema(@NotNull String connectorOid, @NotNull OperationResult parentResult)
+            throws ObjectNotFoundException, SchemaException, ConfigurationException, SubscriptionComplianceException,
+            ObjectAlreadyExistsException {
+        OperationResult result = parentResult.createSubresult("refreshConnectorSchema");
+        try {
+            PrismObject<ConnectorType> connector = repositoryService.getObject(ConnectorType.class, connectorOid, null, result);
+            ConnectorType connectorBean = connector.asObjectable();
+            ConnectorFactory factory = determineConnectorFactory(connectorBean);
+            if (factory == null) {
+                throw new ConfigurationException("No connector factory for connector " + connectorBean);
+            }
+
+            ConnectorSchema newSchema = factory.generateConnectorConfigurationSchema(connectorBean);
+            if (newSchema == null) {
+                LOGGER.warn("No connector configuration schema provided by UCF for {}; keeping the stored schema", connectorBean);
+                return;
+            }
+
+            Document xsdDoc = newSchema.serializeToXsd();
+            Element xsdElement = DOMUtil.getFirstChildElement(xsdDoc);
+            SchemaDefinitionType schemaDefinition = new SchemaDefinitionType();
+            schemaDefinition.setSchema(xsdElement);
+            XmlSchemaType schemaValue = new XmlSchemaType().definition(schemaDefinition);
+
+            Collection<? extends ItemDelta<?, ?>> deltas = prismContext.deltaFor(ConnectorType.class)
+                    .item(ConnectorType.F_SCHEMA)
+                    .replace(schemaValue)
+                    .asItemDeltas();
+            repositoryService.modifyObject(ConnectorType.class, connectorOid, deltas, result);
+
+            invalidateConnectorInstancesByOid(connectorOid);
+            invalidateConnectorBeansByOid(connectorOid);
+            LOGGER.debug("Refreshed connector configuration schema for {}", connectorBean);
+        } finally {
+            result.close();
+        }
     }
 
     public Set<ConnectorType> discoverLocalConnectors(OperationResult result) {

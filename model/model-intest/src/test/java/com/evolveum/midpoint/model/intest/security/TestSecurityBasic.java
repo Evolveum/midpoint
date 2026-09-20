@@ -555,6 +555,47 @@ public class TestSecurityBasic extends AbstractInitializedSecurityTest {
     }
 
     @Test
+    public void test206ApplyReadSecurityToPreauthorizedTransientUserAsReadonly() throws Exception {
+        given();
+        cleanupAutzTest(USER_JACK_OID);
+        assignRole(USER_JACK_OID, ROLE_READONLY.oid);
+
+        when();
+        login(USER_JACK_USERNAME);
+
+        then();
+        PrismObject<UserType> transientUser = createTransientUserWithNonexistentOid();
+        PrismObject<UserType> filteredUser = applyReadSecurityToPreauthorizedObject(transientUser);
+
+        display("Filtered transient user", filteredUser);
+        PrismAsserts.assertPropertyValue(filteredUser, UserType.F_NAME, PolyString.fromOrig("pending-transient-user"));
+        PrismAsserts.assertPropertyValue(filteredUser, UserType.F_GIVEN_NAME, PolyString.fromOrig("Pending"));
+        PrismAsserts.assertPropertyValue(filteredUser, UserType.F_FAMILY_NAME, PolyString.fromOrig("Transient"));
+        PrismAsserts.assertPropertyValue(filteredUser, UserType.F_DESCRIPTION, "Transient pending user");
+        assertGlobalStateUntouched();
+    }
+
+    @Test
+    public void test206aApplyReadSecurityToPreauthorizedTransientUserBasicItemsOnly() throws Exception {
+        given();
+        cleanupAutzTest(USER_JACK_OID);
+        assignRole(USER_JACK_OID, ROLE_READ_BASIC_ITEMS.oid);
+
+        when();
+        login(USER_JACK_USERNAME);
+
+        then();
+        PrismObject<UserType> filteredUser = applyReadSecurityToPreauthorizedObject(createTransientUserWithNonexistentOid());
+
+        display("Filtered transient user", filteredUser);
+        PrismAsserts.assertPropertyValue(filteredUser, UserType.F_NAME, PolyString.fromOrig("pending-transient-user"));
+        PrismAsserts.assertPropertyValue(filteredUser, UserType.F_DESCRIPTION, "Transient pending user");
+        PrismAsserts.assertNoItem(filteredUser, UserType.F_GIVEN_NAME);
+        PrismAsserts.assertNoItem(filteredUser, UserType.F_FAMILY_NAME);
+        assertGlobalStateUntouched();
+    }
+
+    @Test
     public void test207AutzJackObjectFilterCaribbeanRole() throws Exception {
         given();
         cleanupAutzTest(USER_JACK_OID);
@@ -4040,6 +4081,26 @@ public class TestSecurityBasic extends AbstractInitializedSecurityTest {
         }
         taskType.setHandlerUri(handlerUri);
         modelService.executeChanges(MiscSchemaUtil.createCollection(task.createAddDelta()), null, execTask, result);
+    }
+
+    private PrismObject<UserType> createTransientUserWithNonexistentOid() {
+        return new UserType()
+                .oid("00000000-0000-0000-0000-0123456789ab")
+                .name("pending-transient-user")
+                .givenName("Pending")
+                .familyName("Transient")
+                .description("Transient pending user")
+                .asPrismObject();
+    }
+
+    private <O extends ObjectType> PrismObject<O> applyReadSecurityToPreauthorizedObject(PrismObject<O> object)
+            throws CommonException {
+        Task task = createPlainTask("applyReadSecurityToPreauthorizedObject");
+        OperationResult result = task.getResult();
+        PrismObject<O> filteredObject = modelInteractionService.applyReadSecurityToPreauthorizedObject(object, task, result);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        return filteredObject;
     }
 
     private ItemPath ext(Object segment) {

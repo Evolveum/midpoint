@@ -519,11 +519,16 @@ export default class MidPointTheme {
         });
 
         jQuery(function ($) {
-            var sideBar = $(".sidebar-menu");
-            self.keydownForMenuItems(sideBar, self);
-
-            var detailsMenu = $(".details-panel-navigation");
-            self.keydownForMenuItems(detailsMenu, self);
+            // Left sidebar menu intentionally relies on plain Tab-based navigation only (WCAG 5.3) -
+            // no custom role="menu"/menuitem widget, no arrow-key interception. AdminLTE's own generic
+            // accessibility script still treats any ".nav"-classed list as an arrow-key-navigable menu
+            // (it keys off the CSS class, not the ARIA role), so stop the event here before it bubbles
+            // up to AdminLTE's document-level listener.
+            $(".sidebar-menu").on("keydown", function (e) {
+                if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "Home", "End"].includes(e.key)) {
+                    e.stopPropagation();
+                }
+            });
         });
 
         jQuery(function ($) {
@@ -658,157 +663,6 @@ export default class MidPointTheme {
             }
         });
     };
-
-    keydownForMenuItems(sideBar, self) {
-        if (!sideBar.length) {
-            return;
-        }
-
-        sideBar.on("keydown", "li[role='menuitem']", function (e, t) {
-            var menuItemEl = $(this).get(0);
-            var directLink = $(this).children("a").get(0);
-
-            var isRelevantFocus = menuItemEl === document.activeElement
-                || directLink === document.activeElement
-                || menuItemEl.classList.contains('active');
-
-            if (!isRelevantFocus) {
-                return;
-            }
-
-            if (e.key == " " || e.code == "Space" || e.keyCode == 32 || e.key == "Enter" || e.keyCode == 13) {
-                var link = $(this).find("a");
-                if (link.length) {
-                    self.clickOnMenuItem(link, $(this), false, e);
-                } else {
-                    $(this).click();
-                }
-                e.preventDefault();
-                e.stopPropagation();
-                return;
-            }
-
-            if (e.key == "Arrow Right" || e.code == "ArrowRight" || e.keyCode == 39) {
-                var link = $(this).find("a");
-                if (link.length > 1) {
-                    self.clickOnMenuItem(link, $(this), true, e);
-                } else {
-                    const focusableElement = self.findFirstFocusableElementOnMainPanel();
-                    if (focusableElement) {
-                        focusableElement.focus();
-                        focusableElement.scrollIntoView({block: "center"});
-                    }
-                }
-                e.preventDefault();
-                e.stopPropagation();
-                return;
-            }
-
-            if (e.key == "Arrow Left" || e.code == "ArrowLeft" || e.keyCode == 37 || e.key == "ESC" || e.keyCode == 27) {
-                var parent = $(this).parent().closest("li[role='menuitem']");
-                if (parent.length) {
-                    var link = parent.find("a");
-                    link.get(0).click();
-                    parent.get(0).focus();
-                    parent.get(0).scrollIntoView({block: "center"});
-                }
-                e.preventDefault();
-                e.stopPropagation();
-                return;
-            }
-
-            var parent = $(this).closest("ul[role='menu']");
-            var list = parent.children("li[role='menuitem']");
-            var focusIndex = null;
-            if (e.key == "Arrow Up" || e.code == "ArrowUp" || e.keyCode == 38) {
-                focusIndex = list.index($(this)) - 1;
-            }
-
-            if (e.key == "Arrow Down" || e.code == "ArrowDown" || e.keyCode == 40) {
-                focusIndex = list.index($(this)) + 1;
-            }
-
-            if (focusIndex < 0 || e.key == "End" || e.keyCode == 35) {
-                focusIndex = list.length - 1;
-            }
-
-            if (focusIndex >= list.length || e.key == "Home" || e.keyCode == 36) {
-                focusIndex = 0;
-            }
-
-            if (focusIndex == null) {
-                return;
-            }
-
-            var focusItem = list.get(focusIndex);
-            if (focusItem) {
-                focusItem.focus();
-                focusItem.scrollIntoView({block: "center"});
-                e.preventDefault();
-                e.stopPropagation();
-            }
-        });
-    }
-
-    findFirstFocusableElementOnMainPanel() {
-        const mainElement = document.querySelector('main[role="main"]');
-        if (!mainElement) {
-            return null;
-        }
-
-        const focusableSelectors = `
-            a[href],
-            button:not([disabled]),
-            input:not([disabled]),
-            select:not([disabled]),
-            textarea:not([disabled]),
-            [tabindex]:not([tabindex="-1"]),
-            details
-        `;
-
-        const focusableElements = mainElement.querySelectorAll(focusableSelectors);
-
-        for (const element of focusableElements) {
-            if (this.isElementVisible(element)) {
-                return element;
-            }
-        }
-
-        return null;
-    }
-
-    isElementVisible(element) {
-        if (!element) return false;
-
-        const style = window.getComputedStyle(element);
-
-        return (
-            style.display !== 'none' &&
-            style.visibility !== 'hidden' &&
-            style.visibility !== 'collapse' &&
-            element.offsetWidth > 0 &&
-            element.offsetHeight > 0 &&
-            element.getClientRects().length > 0
-        );
-    }
-
-    clickOnMenuItem(link, menuItem, onlySubmenu, e) {
-        if (!onlySubmenu) {
-            link.get(0).click();
-        }
-        var hasPopup = menuItem.attr("aria-haspopup");
-        if (hasPopup == "true") {
-            if (onlySubmenu) {
-                link.get(0).click();
-            }
-            var subitems = menuItem.find("li[role='menuitem']");
-            if (subitems.length) {
-                subitems.get(0).focus();
-                subitems.get(0).scrollIntoView({block: "center"});
-                e.preventDefault()
-            }
-        }
-    }
 
     focusByArrowKeys(elements, self) {
         if (!elements || elements.length === 0) {
@@ -1050,9 +904,19 @@ export default class MidPointTheme {
         }
     }
 
-    initDateTimePicker(containerId, configuration, pickerStatusId, messageOpen, messageClose, messageCurrent) {
+    initDateTimePicker(containerId, configuration, pickerStatusId, messageOpen, messageClose, messageCurrent, messageViewSelected) {
         const picker = new TempusDominus(containerId, configuration);
         const pickerStatus = document.getElementById(pickerStatusId);
+
+        let dateTimePickerOpener = null;
+        picker.subscribe('show.td', () => {
+            dateTimePickerOpener = document.activeElement;
+        });
+        picker.subscribe('hide.td', () => {
+            if (dateTimePickerOpener && document.body.contains(dateTimePickerOpener)) {
+                dateTimePickerOpener.focus();
+            }
+        });
 
         if (pickerStatus) {
             picker.subscribe('show.td', () => {
@@ -1067,37 +931,57 @@ export default class MidPointTheme {
                     pickerStatus.textContent = messageClose;
                 }, 250);
             });
+            // announce hour/minute/meridiem (and date) selection changes
+            picker.subscribe('change.td', (event) => {
+                if (!event.date) {
+                    return;
+                }
+                const formatted = messageCurrent.replace('{0}', event.date.format());
+                pickerStatus.textContent = '';
+                setTimeout(() => {
+                    pickerStatus.textContent = formatted;
+                }, 250);
+            });
+            // announce navigation between months/years/decades (previous/next buttons,
+            // or switching into a different view)
+            let updateAnnounceTimer = null;
+            picker.subscribe('update.td', () => {
+                const switchEl = picker.display && picker.display.widget
+                    && picker.display.widget.querySelector('.calendar-header .picker-switch');
+                let label = switchEl && switchEl.textContent.trim();
+                if (!label) {
+                    return;
+                }
+                const highlightedCell = picker.display.widget.querySelector('.date-container [data-action].active')
+                    || picker.display.widget.querySelector('.date-container [data-action].today');
+                if (highlightedCell) {
+                    label += ', ' + highlightedCell.textContent.trim();
+                }
+                const formatted = messageViewSelected.replace('{0}', label);
+                pickerStatus.textContent = '';
+                if (updateAnnounceTimer) {
+                    clearTimeout(updateAnnounceTimer);
+                }
+                updateAnnounceTimer = setTimeout(() => {
+                    pickerStatus.textContent = formatted;
+                }, 500);
+            });
         }
         picker.subscribe('show.td', () => {
-            var $dateContainer = $('.date-container');
+            var $dateContainer = $(picker.display.widget);
 
             var $dateContainerDecades = $('.date-container-decades');
             var $dateContainerYears = $('.date-container-years');
             var $dateContainerMonths = $('.date-container-months');
             var $dateContainerDays = $('.date-container-days');
-            if ($dateContainerDecades.length > 0) {
-                $dateContainerDecades.attr({
-                    'role': 'grid'
-                });
-            }
-            if ($dateContainerYears.length > 0) {
-                $dateContainerYears.attr({
-                    'role': 'grid'
-                });
-            }
-            if ($dateContainerMonths.length > 0) {
-                $dateContainerMonths.attr({
-                    'role': 'grid'
-                });
-            }
-            if ($dateContainerDays.length > 0) {
-                $dateContainerDays.attr({
-                    'role': 'grid'
-                });
-            }
+
+            $dateContainerDecades.attr({ 'role': 'grid' });
+            $dateContainerYears.attr({ 'role': 'grid' });
+            $dateContainerMonths.attr({ 'role': 'grid' });
+            $dateContainerDays.attr({ 'role': 'grid' });
 
             if ($dateContainer.length > 0) {
-                $dateContainer.on('keydown', function (e) {
+                $dateContainer.off('keydown.mpDateTimePicker').on('keydown.mpDateTimePicker', function (e) {
                     if (e.key === 'Escape' || e.keyCode === 27) {
                         if (picker && picker.display && picker.display.isVisible) {
                             picker.hide(); // close only this picker
@@ -1105,7 +989,30 @@ export default class MidPointTheme {
                             e.stopImmediatePropagation();
                             e.preventDefault();
                         }
+                        return;
                     }
+
+                    // fixes arrows keys navigation in year view
+                    const arrowDeltas = { ArrowUp: -3, ArrowDown: 3, ArrowLeft: -1, ArrowRight: 1 };
+                    const delta = arrowDeltas[e.key];
+                    if (delta === undefined) {
+                        return;
+                    }
+                    const $yearsContainer = $(e.target).closest('.date-container-years');
+                    if ($yearsContainer.length === 0) {
+                        return;
+                    }
+                    const currentYear = parseInt($(e.target).attr('data-value'), 10);
+                    if (isNaN(currentYear)) {
+                        return;
+                    }
+                    const $target = $yearsContainer.find('[data-value="' + (currentYear + delta) + '"]');
+                    if ($target.length === 0) {
+                        return;
+                    }
+                    $target.focus();
+                    e.stopImmediatePropagation();
+                    e.preventDefault();
                 });
             }
 
@@ -1121,40 +1028,55 @@ export default class MidPointTheme {
             });
 
             const $switchEl = $('.calendar-header .picker-switch');
-            $switchEl.attr("aria-live", "polite");
-            const switchElId = 'pickerSwitch-' + Math.random().toString(16).substr(2, 6);
-            $switchEl.attr('id', switchElId);
+            $switchEl.attr('role', 'button');
 
             // we add aria-live="polite" to every focused element so that it is announced
-            $actionElements.on('focus', function () {
+            $actionElements.off('focus.mpAriaLive').on('focus.mpAriaLive', function () {
                 $actionElements.removeAttr('aria-live');
-                if ($(this).closest('.calendar-header').length > 0) {
-                    const prevButton = $('.calendar-header .previous');
-                    const nextButton = $('.calendar-header .next');
-                    prevButton.removeAttr('aria-label');
-                    prevButton.attr('aria-describedby', switchElId);
-                    nextButton.removeAttr('aria-label');
-                    nextButton.attr('aria-describedby', switchElId);
-                } else {
+                if ($(this).closest('.calendar-header').length === 0) {
                     $(this).attr('aria-live', 'polite');
                 }
             });
 
+            if (pickerStatus) {
+                $actionElements.off('focus.mpAnnounceGridEntry').on('focus.mpAnnounceGridEntry', function (e) {
+                    const $this = $(this);
+                    if ($this.closest('.calendar-header').length > 0) {
+                        return;
+                    }
+                    const relatedTarget = e.relatedTarget;
+                    const cameFromWithinWidget = relatedTarget && $(relatedTarget).closest('.tempus-dominus-widget').length > 0;
+                    const cameFromSameGrid = relatedTarget && $(relatedTarget).closest(
+                        '.date-container-days, .date-container-months, .date-container-years, .date-container-decades').length > 0;
+                    if (!cameFromWithinWidget || cameFromSameGrid) {
+                        return;
+                    }
+                    const switchEl = document.querySelector('.calendar-header .picker-switch');
+                    let label = switchEl && switchEl.textContent.trim();
+                    if (!label) {
+                        return;
+                    }
+                    label += ', ' + $this.text().trim();
+                    pickerStatus.textContent = '';
+                    setTimeout(() => {
+                        pickerStatus.textContent = label;
+                    }, 250);
+                });
+            }
+
             const prevButton = $('.calendar-header .previous');
             const nextButton = $('.calendar-header .next');
             prevButton.attr('role', 'button');
-            prevButton.attr('aria-describedby', switchElId);
             prevButton.focus();
             nextButton.attr('role', 'button');
-            nextButton.attr('aria-describedby', switchElId);
 
-            prevButton.on('click', function () {
+            prevButton.off('click.mpDateTimePicker').on('click.mpDateTimePicker', function () {
                 event.preventDefault();
                 const button = $(this);
                 button.focus();
             });
 
-            nextButton.on('click', function () {
+            nextButton.off('click.mpDateTimePicker').on('click.mpDateTimePicker', function () {
                 event.preventDefault();
                 const button = $(this);
                 button.focus();
@@ -1627,25 +1549,44 @@ export default class MidPointTheme {
     }
 
     initPushMenuButton() {
-        $('a[data-lte-toggle="sidebar"]').on("click", function (e) {
-            setAriaExpandedForPushMenu($(this), false);
-        });
-        setAriaExpandedForPushMenu($('a[data-lte-toggle="sidebar"]'), true);
-
-        function setAriaExpandedForPushMenu(menuButton, processAfterClick) {
-            var valueExpand = "true";
-            var valueCollapse = "false";
-            if (!processAfterClick) {
-                valueExpand = "false";
-                valueCollapse = "true";
-            }
-
-            if ($('body').hasClass('sidebar-collapse')) {
-                menuButton.attr("aria-expanded", valueCollapse);
-            } else {
-                menuButton.attr("aria-expanded", valueExpand);
-            }
+        const button = document.querySelector('a[data-lte-toggle="sidebar"]');
+        const status = document.getElementById('menuToggleStatus');
+        if (!button) {
+            return;
         }
+
+        const syncTitle = () => {
+            const isCompact = document.body.classList.contains('sidebar-collapse');
+            const title = button.getAttribute(isCompact ? 'data-title-collapsed' : 'data-title-expanded');
+            if (title) {
+                button.setAttribute('title', title);
+                if (button.hasAttribute('data-original-title')) {
+                    button.setAttribute('data-original-title', title);
+                }
+            }
+        };
+
+        const announce = (isExpanded) => {
+            if (!status) {
+                return;
+            }
+            const message = button.getAttribute(isExpanded ? 'data-expanded-message' : 'data-collapsed-message');
+            status.textContent = '';
+            setTimeout(() => {
+                status.textContent = message;
+            }, 100);
+        };
+
+        syncTitle();
+
+        document.addEventListener('collapsed.lte.push-menu', () => {
+            syncTitle();
+            announce(false);
+        });
+        document.addEventListener('opened.lte.push-menu', () => {
+            syncTitle();
+            announce(true);
+        });
     }
 
     createSparkline(id, options, data) {
@@ -1935,18 +1876,21 @@ export default class MidPointTheme {
     }
 
     updatePasswordErrorState(errorId, fieldId) {
-        const INVALID_CLASS = 'is-invalid';
         const error = document.getElementById(errorId);
-        const field = document.getElementById(fieldId);
-
-        if (error && field) {
-            const hasError = error.textContent.trim() !== '';
-            if (hasError && !field.classList.contains(INVALID_CLASS)) {
-                field.classList.add(INVALID_CLASS);
-            } else if (!hasError && field.classList.contains(INVALID_CLASS)) {
-                field.classList.remove(INVALID_CLASS);
-            }
+        if (!error) {
+            return;
         }
+        this.setFieldInvalid(fieldId, error.textContent.trim() !== '');
+    }
+
+    setFieldInvalid(fieldId, invalid) {
+        const INVALID_CLASS = 'is-invalid';
+        const field = document.getElementById(fieldId);
+        if (!field) {
+            return;
+        }
+        field.classList.toggle(INVALID_CLASS, invalid);
+        field.setAttribute('aria-invalid', invalid ? 'true' : 'false');
     }
 
     saveFocus(componentId) {

@@ -13,6 +13,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import com.evolveum.midpoint.task.api.Task;
+
 import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.attributes.AjaxRequestAttributes;
@@ -50,6 +52,8 @@ import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.web.component.input.CheckPanel;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.gui.impl.component.wizard.collapse.HelpTab;
+import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.ConnectorWizardHelpTopics;
 
 /**
  * @author lskublik
@@ -71,6 +75,7 @@ public class SupportedAuthMethodConnectorStepPanel extends AbstractWizardStepPan
     private static final String ID_RECOMMENDED_BADGE = "recommendedBadge";
     private static final String ID_SHOW_ALL = "showAll";
     private static final String ID_HIDE_ALL = "hideAll";
+    private static final String OP_UPDATE_CONFIGURATION = "authenticationUpdated";
 
     private LoadableModel<List<PrismContainerValueWrapper<ConnDevAuthInfoType>>> valuesModel;
     private IModel<Boolean> showAllModel = Model.of(false);
@@ -371,7 +376,12 @@ public class SupportedAuthMethodConnectorStepPanel extends AbstractWizardStepPan
         }
 
         OperationResult result = getHelper().onSaveObjectPerformed(target);
-        getDetailsModel().getConnectorDevelopmentOperation();
+        try {
+            Task task = getPageBase().createSimpleTask(OP_UPDATE_CONFIGURATION);
+            getDetailsModel().getConnectorDevelopmentOperation().authenticationSelectionUpdated(task,task.getResult());
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
         if (result != null && !result.isError()) {
             super.onNextPerformed(target);
         } else {
@@ -390,5 +400,10 @@ public class SupportedAuthMethodConnectorStepPanel extends AbstractWizardStepPan
     @Override
     protected String getSubTextContainerCssClass() {
         return "text-secondary col-12 pb-4";
+    }
+
+    @Override
+    protected List<HelpTab> computeHelpTabs() {
+        return ConnectorDevelopmentWizardUtil.helpTabs(getDetailsModel(), ConnectorWizardHelpTopics.AUTHENTICATION, null);
     }
 }

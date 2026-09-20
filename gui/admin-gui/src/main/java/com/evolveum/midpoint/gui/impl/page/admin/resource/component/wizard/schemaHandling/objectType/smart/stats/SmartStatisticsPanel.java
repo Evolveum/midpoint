@@ -680,6 +680,16 @@ public class SmartStatisticsPanel extends BasePanel<ObjectSetStatisticsType> imp
             }
 
             @Override
+            protected String getNoValuePanelAdditionalCssClass() {
+                return "";
+            }
+
+            @Override
+            public String getTableContainerAdditionalCssClasses() {
+                return super.getTableContainerAdditionalCssClasses() + " rounded overflow-hidden";
+            }
+
+            @Override
             protected StringResourceModel getNoValuePanelCustomSubTitleModel() {
                 return createStringResource("SmartStatisticsPanel.noValuePanel.customSubTitle");
             }

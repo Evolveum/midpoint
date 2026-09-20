@@ -10,6 +10,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
 
 public interface ConnectorDevelopmentService {
 
@@ -51,5 +52,22 @@ public interface ConnectorDevelopmentService {
      */
     InputStream getExportedConnectorFileStream(String fileName, String nodeOid, Task task, OperationResult result)
             throws CommonException, IOException;
+
+    /**
+     * Resolves the conndev documentation topics packaged into the documentation JARs on the
+     * classpath (see {@code META-INF/conndev-doc/docs.yaml}) for the given stable topic {@code key}.
+     *
+     * <p>Topics are resolved strictly by protocol: the topics whose protocol equals {@code protocol}
+     * come first, then the protocol-less (generic) topics of the same key. Topics of a different
+     * protocol are never returned. When several documentation JARs declare the same key and
+     * protocol, the topics of the first JAR on the classpath win.
+     *
+     * @param key      the stable topic identifier used by the GUI screen
+     * @param protocol the integration protocol to resolve for ({@code scim}, {@code rest} or
+     *                 {@code sql}), or {@code null} for the generic topics only
+     * @return the matching topics, protocol-specific before generic; empty when no documentation
+     *         JAR declares the key
+     */
+    List<ConnDevDocumentationTopic> getDocumentationTopics(String key, String protocol);
 
 }

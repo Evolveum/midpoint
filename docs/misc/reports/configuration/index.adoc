@@ -33,8 +33,10 @@ Import behavior is experimental.
 There are two supported options, reports based on object collections and reports based on a dashboard.
 Only one can be defined at the same time.
 * `fileFormat` - represents format of the generated report file.
-Supported formats for now are CSV and HTML.
+Supported formats are CSV, HTML and XLSX.
 Default format for the dashboard-based reports is HTML and for object collection based reports is CSV.
+XLSX output writes all values as text cells, so spreadsheet applications do not interpret them as formulas.
+XLSX is currently supported for classic (single-task) report export only, not for distributed report export.
 
 The table below lists all configuration attributes of a report object:
 
@@ -130,7 +132,7 @@ There are multiple ways how tasks are build when executed from a report definiti
 
 == Import Behaviour 'Import From Report'
 
-As mentioned above, the report functionality is also capable of using exported reports or custom csv files to create or update objects.
+As mentioned above, the report functionality is also capable of using exported reports or custom CSV or XLSX files to create or update objects.
 We call this "Import" or "Reverse" reports, for more information regarding them please see the following page:
 
 xref:../configuration/report-task-definition.adoc[Import From Report]

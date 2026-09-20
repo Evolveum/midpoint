@@ -314,6 +314,11 @@ public abstract class ShadowAttributeDefinitionImpl<
     }
 
     @Override
+    public String getExternalGroup() {
+        return nativeDefinition.getExternalGroup();
+    }
+
+    @Override
     public String getDescription() {
         return MiscUtil.orElseGet(
                 customizationBean.getDescription(),

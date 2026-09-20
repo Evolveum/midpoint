@@ -5,8 +5,10 @@ import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstallationService;
 import com.evolveum.midpoint.provisioning.ucf.api.DownloadedConnector;
 import com.evolveum.midpoint.provisioning.ucf.api.EditableConnector;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 
 import com.evolveum.midpoint.util.CheckedConsumer;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.SystemException;
 
@@ -119,6 +121,18 @@ public class ConnectorInstallationServiceImpl implements ConnectorInstallationSe
             throw new IllegalStateException("Directory " + directory + " does not exist");
         }
         return new DownloadedDirectoryConnector(connDir);
+    }
+
+    @Override
+    public void reloadLocalConnectorBundle(@NotNull ConnectorType connector) throws ObjectNotFoundException {
+        var connectorKey = ConnectorFactoryConnIdImpl.getConnectorKey(connector);
+        var uri = factoryImpl.getLocalConnectorInfoManager().findConnectorUri(connectorKey);
+        if (uri == null) {
+            throw new ObjectNotFoundException(
+                    "Local connector bundle not found for " + ObjectTypeUtil.toShortString(connector),
+                    ConnectorType.class, connector.getOid());
+        }
+        factoryImpl.reloadLocalConnector(uri);
     }
 
     private File temporaryTargetFile(String targetName) {

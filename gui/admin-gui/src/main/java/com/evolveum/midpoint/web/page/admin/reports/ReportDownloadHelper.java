@@ -6,6 +6,8 @@
 
 package com.evolveum.midpoint.web.page.admin.reports;
 
+import static com.evolveum.midpoint.common.MimeTypeUtil.MIME_APPLICATION_VND_MSEXCEL_2007;
+
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.report.api.ReportManager;
@@ -39,6 +41,7 @@ public class ReportDownloadHelper implements Serializable {
     static {
         REPORT_EXPORT_TYPE_MAP.put(FileFormatTypeType.CSV, "text/csv; charset=UTF-8");
         REPORT_EXPORT_TYPE_MAP.put(FileFormatTypeType.HTML, "text/html; charset=UTF-8");
+        REPORT_EXPORT_TYPE_MAP.put(FileFormatTypeType.XLSX, MIME_APPLICATION_VND_MSEXCEL_2007);
 
     }
 

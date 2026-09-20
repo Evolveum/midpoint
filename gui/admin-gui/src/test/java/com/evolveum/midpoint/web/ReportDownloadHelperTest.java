@@ -18,6 +18,7 @@ import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.gui.test.TestMidPointSpringApplication;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportDataType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FileFormatTypeType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
@@ -51,6 +52,17 @@ public class ReportDownloadHelperTest extends AbstractGuiIntegrationTest {
         ReportDataType report = report("report-output", "C:\\midpoint\\export\\report-output.csv");
 
         assertEquals(ReportDownloadHelper.getReportFileName(report), "report-output.csv");
+    }
+
+    @Test
+    public void xlsxReportFileNameHasXlsxExtensionExactlyOnce() {
+        ReportDataType reportWithoutExtension = report("report-output", "C:\\midpoint\\export\\report-output.xlsx")
+                .fileFormat(FileFormatTypeType.XLSX);
+        ReportDataType reportWithExtension = report("report-output.xlsx", "C:\\midpoint\\export\\report-output.xlsx")
+                .fileFormat(FileFormatTypeType.XLSX);
+
+        assertEquals(ReportDownloadHelper.getReportFileName(reportWithoutExtension), "report-output.xlsx");
+        assertEquals(ReportDownloadHelper.getReportFileName(reportWithExtension), "report-output.xlsx");
     }
 
     @Test

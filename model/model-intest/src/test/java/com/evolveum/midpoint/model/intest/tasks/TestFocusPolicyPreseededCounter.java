@@ -32,24 +32,17 @@ import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
 
 /**
  * "Pre-seeded counter" scenario: verifies that threshold enforcement fires against a counter that is
- * already at the threshold when the activity starts processing - without waiting for a fresh batch of
- * matching items.
+ * already at the threshold when the activity starts - without processing any item.
  *
  * A literal pre-seed of a fresh task is not possible: the first realization purges the whole activity
  * state on root run start. So the pre-seed is produced: the first run trips
  * a {@code suspendTask} policy exactly at the threshold (single-threaded, so the counter value is
- * deterministic), and the resume continues the same realization with the persisted counter. On resume,
- * the already-imported users correlate and yield only link/modify operations (not matching the
- * {@code modification(ADD)} constraint), so the first and only matching item is the previously tripped
- * one - it must push the counter to {@code threshold + 1} and re-enforce within the same activity run.
+ * deterministic), and the resume continues the same realization. The halt recorded by the policy action stops
+ * the resumed activity before any item is processed: the counter stays at the threshold and nothing more is
+ * imported (issue 11051).
  *
- * This deterministically exercises enforcement within the counting child of a root-placed rule
- * against an accumulated counter - the leg that intermittently goes silent on CI (see
- * {@code TestFocusPolicyCombinations} combo 3). Companion to
- * {@link TestFocusPolicyActionsComposite#test600ThresholdSplitAcrossSiblings}, which covers the
- * cross-child leg.
- *
- * TODO Delete after flaky tests are fixed (probably).
+ * Companion to {@link TestFocusPolicyActionsComposite#test600ThresholdSplitAcrossSiblings}, which covers
+ * the cross-child leg.
  */
 @ContextConfiguration(locations = { "classpath:ctx-model-intest-test-main.xml" })
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
@@ -73,7 +66,6 @@ public class TestFocusPolicyPreseededCounter extends AbstractEmptyModelIntegrati
     private static final String RULE_ADD = "fpp-add";
 
     private static final long TIMEOUT = 90_000;
-    private static final long SLEEP = 500;
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -150,54 +142,7 @@ public class TestFocusPolicyPreseededCounter extends AbstractEmptyModelIntegrati
         return count;
     }
 
-    /** Reads the given counter from the 'main' child activity state; 0 if not present. */
-    private int counterValue(String counterId) throws Exception {
-        TaskType task = getTask(TASK_PRESEED.oid).asObjectable();
-        TaskActivityStateType taskState = task.getActivityState();
-        ActivityStateType root = taskState != null ? taskState.getActivity() : null;
-        if (root == null) {
-            return 0;
-        }
-        for (ActivityStateType child : root.getActivity()) {
-            if (!"main".equals(child.getIdentifier())) {
-                continue;
-            }
-            ActivityCounterGroupsType counters = child.getCounters();
-            ActivityCounterGroupType group = counters != null ? counters.getFullExecutionModePolicyRules() : null;
-            if (group == null) {
-                return 0;
-            }
-            for (ActivityCounterType counter : group.getCounter()) {
-                if (counterId.equals(counter.getIdentifier())) {
-                    return counter.getValue() != null ? counter.getValue() : 0;
-                }
-            }
-        }
-        return 0;
-    }
-
-    /**
-     * Waits until the task is suspended AND the counter reached the expected value - i.e. until the
-     * <i>second</i> suspension, not the (still lingering) first one.
-     */
-    private void waitForSuspendedWithCounter(String counterId, int expected, long timeout) throws Exception {
-        long start = System.currentTimeMillis();
-        while (System.currentTimeMillis() - start < timeout) {
-            Task t = taskManager.getTaskWithResult(TASK_PRESEED.oid, getTestOperationResult());
-            if (t.isSuspended() && counterValue(counterId) == expected) {
-                return;
-            }
-            Thread.sleep(SLEEP);
-        }
-        throw new AssertionError("Task " + TASK_PRESEED.oid + " did not reach suspended state with counter "
-                + counterId + " = " + expected + " within " + timeout + " ms (current value: "
-                + counterValue(counterId) + ")");
-    }
-
-    /**
-     * First run trips the root-placed suspend policy exactly at the threshold; the resume then enforces
-     * against the persisted ("pre-seeded") counter on the very first matching item.
-     */
+    /** First run trips the root-placed suspend policy exactly at the threshold; the resumed run is halted at its start. */
     @Test
     public void test100ResumeEnforcesOnPreseededCounter() throws Exception {
         OperationResult result = getTestOperationResult();
@@ -222,21 +167,25 @@ public class TestFocusPolicyPreseededCounter extends AbstractEmptyModelIntegrati
         // @formatter:on
         assertThat(countImported()).as("imported before the first trip").isEqualTo(THRESHOLD - 1);
 
-        when("resume: the persisted counter is the pre-seed; the first matching item must re-enforce");
+        when("resume: the halt recorded by the policy must stop the run at its start");
+        var firstRunStart = getTask(task.oid).asObjectable().getLastRunStartTimestamp();
         taskManager.resumeTaskTree(task.oid, result);
-        waitForSuspendedWithCounter(counterId, THRESHOLD + 1, TIMEOUT);
+        waitForTaskCloseOrSuspend(task.oid, TIMEOUT);
+        assertThat(getTask(task.oid).asObjectable().getLastRunStartTimestamp())
+                .as("last run start after resume").isNotEqualTo(firstRunStart);
 
-        then("re-suspended after exactly one matching item; nothing more was imported");
+        then("re-suspended before processing any item; counter unchanged, nothing more was imported");
         // @formatter:off
         assertTaskTree(task.oid, "after resume")
                 .display()
                 .assertSuspended()
+                .assertFatalError()
                 .rootActivityState()
                     .child("main")
                         .fullExecutionModePolicyRulesCounters()
-                            .assertCounter(counterId, THRESHOLD + 1);
+                            .assertCounter(counterId, THRESHOLD);
         // @formatter:on
-        assertThat(countImported()).as("imported after resume (tripping item blocked again)")
+        assertThat(countImported()).as("imported after resume (nothing processed)")
                 .isEqualTo(THRESHOLD - 1);
     }
 }

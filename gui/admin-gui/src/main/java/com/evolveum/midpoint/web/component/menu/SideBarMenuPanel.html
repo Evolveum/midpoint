@@ -30,9 +30,9 @@
     </div>
 
     <nav class="mt-2">
-        <ul class="nav nav-pills sidebar-menu flex-column" role="menu" data-lte-toggle="treeview" wicket:id="sidebar" wicket:message="aria-label:SideBarMenuPanel.label">
+        <ul class="nav nav-pills sidebar-menu flex-column" role="list" data-lte-toggle="treeview" wicket:id="sidebar" wicket:message="aria-label:SideBarMenuPanel.label">
             <wicket:container wicket:id="menuItems">
-                <li class="nav-header pe-3" wicket:id="header" role="menuitem" tabindex="0">
+                <li class="nav-header pe-3 clickable-by-enter" wicket:id="header" role="listitem" tabindex="0">
                     <div class="d-flex">
                         <span class="visually-hidden" wicket:id="headerStateDesc"/>
                         <span wicket:id="name" aria-label=""/>
@@ -42,7 +42,7 @@
                     </div>
                 </li>
                 <wicket:container wicket:id="items">
-                    <wicket:container wicket:id="item" role="menuitem"/>
+                    <wicket:container wicket:id="item"/>
                 </wicket:container>
             </wicket:container>
         </ul>

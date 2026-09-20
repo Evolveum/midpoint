@@ -45,8 +45,6 @@ For more information, please refer to xref:/midpoint/reference/admin-gui/collect
 
 * `*configurableUserDashboard*`: Defines the configurable dashboards which can be accessed from the left menu.
 
-* `*imageUploadProcessing*`: Defines options for image upload processing.
-
 * `*fileUploadConfiguration*`: Defines options for xref:/midpoint/reference/admin-gui/file-upload[file upload validation].
 
 Since midPoint 4.4, the look and feel of GUI has been significantly changed. The aim was to provide better user experience and more configuration options. The old look is still available in midPoint for preview. It can be turned on in adminGuiConfiguration setting `useNewDesign` property to _false_. However, bugs and improvements will be fixed and implemented only for the new look and the old look will be completely removed in release 4.6. Old look is no more supported Please, migrate your configuration as soon as possible.
@@ -1462,44 +1460,38 @@ Relevant values are 'visible' and 'hidden'. Default value is 'visible'.
 </adminGuiConfiguration>
 ----
 
-== Image Upload Processing
+== File Upload Configuration
 
-Image Upload Processing configures how uploaded images are processed.
-Contains elements 'processing', 'format' and 'stripExifData'.
+`fileUploadConfiguration` configures validation and optional processing of uploaded files.
+Configuration is defined for individual item paths.
 
-=== Processing and Format
+The following options are available:
 
-'processing' attribute specifies how to process uploaded images.
-Relevant values are 'preserveOriginalFormat' and 'fixedFormat'. Default value is 'preserveOriginalFormat'.
+* `path` - Identifies the item for which the upload configuration applies.
+* `checkContentType` - If set to `true`, midPoint detects the actual content type of the uploaded file and verifies that it matches the declared content type and, if configured, one of the values specified by `allowedContentType`.
+If set to `false`, content type validation is skipped.
+* `allowedContentType` - Specifies an allowed MIME content type.
+The element can be specified multiple times, and wildcard values such as `image/*` can be used.
+* `convertImageTo` - Converts an uploaded image to the specified format.
+Supported values are `jpg` and `png`.
+* `stripMetadata` - If set to `true`, metadata is removed from the uploaded image.
 
-If the 'preserveOriginalFormat' value is set, the original format of the image is preserved.
+For detailed information, default behavior, and configuration examples, see xref:/midpoint/reference/admin-gui/file-upload/[File upload configuration].
 
-If the 'fixedFormat' value is, the midpoint converts the uploaded images to the fixed format specified in the "format" attribute. This conversion removes any EXIF data from the image, if present. The removal of the EXIF data from the image is also performed in the case of conversion to the same format.
-
-"format" attribute specifies which fixed format we want to convert the uploaded images to. It is relevant and is only used if the "fixedFormat" value of the "processing" attribute is set.
-Relevant values are 'jpg' and 'png'. Default value is 'jpg'.
-
+.Example file upload configuration
 [source,xml]
 ----
 <adminGuiConfiguration>
-   <imageUploadProcessing>
-        <processing>fixedFormat</processing> 
-        <format>png</format>
-    </imageUploadProcessing>
-</adminGuiConfiguration>
-----
-
-=== Strip Exif Data
-
-'stripExifData' attribute specifies whether to strip the EXIF data of uploaded images. The attribute value is ignored if the "processing" attribute's "fixedFormat" value is set. In this case, the image format conversion will strip all EXIF data from the image, if present.
-Relevant values are 'true' and 'false'. Default value is 'false'.
-
-[source,xml]
-----
-<adminGuiConfiguration>
-   <imageUploadProcessing>
-        <stripExifData>true</stripExifData>
-    </imageUploadProcessing>
+    <fileUploadConfiguration>
+        <item>
+            <path>jpegPhoto</path>
+            <checkContentType>true</checkContentType>
+            <allowedContentType>image/jpeg</allowedContentType>
+            <allowedContentType>image/png</allowedContentType>
+            <convertImageTo>png</convertImageTo>
+            <stripMetadata>true</stripMetadata>
+        </item>
+    </fileUploadConfiguration>
 </adminGuiConfiguration>
 ----
 
