@@ -1,6 +1,6 @@
 = Predefined columns configuration
 :page-moved-from: /midpoint/reference/roles-policies/policies/certification/columns-configuration/, /midpoint/reference/roles-policies/certification/columns-configuration/
-:page-nav-title: Predefined Columns Configuration
+:page-nav-title: Columns configuration
 :page-upkeep-status: yellow
 :page-display-order: 10
 :page-description: This article shows how you can configure columns in GUI for your certification items collection view.

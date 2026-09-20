@@ -13,7 +13,7 @@ doc-type: guide
 :page-keywords: access, campaign, schedule, certification, access certification campaign, task, cron
 
 Access certification campaigns can be automatically started using tasks.
-Scheduled certification campaigns are meaningful if you, for example, want to run an access certifications quarterly.
+Scheduled certification campaigns are meaningful if you, for example, want to run access certifications quarterly.
 The task-based automation ensures that the campaign starts on time without human intervention.
 
 See xref:/midpoint/features/current/task-management/[] for more information about tasks and their configuration.
@@ -29,12 +29,12 @@ Firstly, define an access certification campaign.
 Refer to xref:/midpoint/reference/certification/certification-campaign-configuration/[] regarding the campaign configuration options.
 See xref:/midpoint/reference/certification/tutorial/[] if you need help getting started with campaign definition.
 
-For testing purposes, we suggest starting with something small affecting low number of people willing to help you debug the setup.
+For testing purposes, we suggest starting with something small; just one stage affecting low number of people willing to help you debug the setup.
 
 == Set up task launching the campaign
 
 Once your campaign is ready, define a task that will launch it at defined times.
-Set the schedule to short intervals (minutes, hours, then days) get meaningful results faster.
+Set the schedule to short intervals (minutes, hours, then days) to get meaningful results faster, or create an instance and run it manually.
 
 As an example, here is a task that runs a campaign every five minutes:
 
