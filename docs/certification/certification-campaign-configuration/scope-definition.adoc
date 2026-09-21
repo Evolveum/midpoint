@@ -25,7 +25,7 @@ itemSelectionExpression ::
     The exact use of this expression depends on the certification handler.
     The direct assignment handler calls this expression individually with each assignment to determine which assignments should be included and which should not. +
     For object selection, use xref:/midpoint/reference/concepts/query/midpoint-query-language/[MQL] which you can edit in the GUI.
-    Target selection must be defined in Groovy via xref:/midpoint/tools/studio/[MidPoint Studio].
+    If you need a more advanced target selection than what the GUI supports, you must define the filter in Groovy via xref:/midpoint/tools/studio/[MidPoint Studio].
 
 == Handler-specific properties
 
