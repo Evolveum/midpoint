@@ -12,6 +12,8 @@ import com.evolveum.midpoint.model.api.util.SmartIntegrationConstants;
 import com.evolveum.midpoint.model.api.util.SmartIntegrationOperationExecutor;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.security.api.AuthorizationConstants;
+import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 import com.evolveum.midpoint.smart.api.RegenerateMode;
 import com.evolveum.midpoint.smart.api.SmartIntegrationService;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
@@ -44,6 +46,7 @@ public class SmartIntegrationRestController extends AbstractRestController {
     private static final String OPERATION_GET_AI_INFO = CLASS_DOT + "GetAiInfo";
 
     @Autowired private SmartIntegrationService smartIntegrationService;
+    @Autowired private SecurityEnforcer securityEnforcer;
 
     /**
      * Suggests object types (and their delineations) for the given resource and object class.
@@ -229,6 +232,7 @@ public class SmartIntegrationRestController extends AbstractRestController {
         var result = createSubresult(task, OPERATION_SUGGEST_FOCUS_TYPE);
 
         try {
+            securityEnforcer.authorize(AuthorizationConstants.AUTZ_UI_SMART_INTEGRATION_URL, task, result);
             var typeIdentification = ResourceObjectTypeIdentification.of(ShadowKindType.fromValue(kind), intent);
             var focusTypeName = smartIntegrationService.suggestFocusType(
                     resourceOid, typeIdentification, List.of(DataAccessPermissionType.SCHEMA_ACCESS), task, result);
@@ -264,6 +268,7 @@ public class SmartIntegrationRestController extends AbstractRestController {
         var result = createSubresult(task, OPERATION_GET_AI_INFO);
 
         try {
+            securityEnforcer.authorize(AuthorizationConstants.AUTZ_UI_SMART_INTEGRATION_URL, task, result);
             var aiInfo = smartIntegrationService.getAiInfo();
 
             if (aiInfo.isEmpty()) {
@@ -290,6 +295,7 @@ public class SmartIntegrationRestController extends AbstractRestController {
             SmartIntegrationOperationExecutor<SmartIntegrationService, String> operationExecutor
     ) {
         try {
+            securityEnforcer.authorize(AuthorizationConstants.AUTZ_UI_SMART_INTEGRATION_URL, task, result);
             return createResponse(
                     HttpStatus.OK,
                     operationExecutor.execute(smartIntegrationService),
@@ -308,6 +314,7 @@ public class SmartIntegrationRestController extends AbstractRestController {
             SmartIntegrationOperationExecutor<SmartIntegrationService, StatusInfo<?>> serviceExecutor
     ) {
         try {
+            securityEnforcer.authorize(AuthorizationConstants.AUTZ_UI_SMART_INTEGRATION_URL, task, result);
             var statusInfo = serviceExecutor.execute(smartIntegrationService);
             var smartIntegrationOperationStatusInfoType = new SmartIntegrationOperationStatusInfoType();
             smartIntegrationOperationStatusInfoType.setStatus(statusInfo.getStatus());
