@@ -221,6 +221,7 @@ See xref:/midpoint/guides/account-activation-sequence/[Account Activation Authen
 * Fixed unbounded growth of task operation results during iterative item processing. See bug:MID-12197[]
 * Fixed persisted ItemPath values losing dynamic schema extension namespace declarations. See bug:MID-11241[]
 * Fixed additional connector failure when connectorRef is specified using a filter. See bug:MID-9537[]
+* Fixed localization of delta formatting in notifications according to the recipient locale. See bug:MID-10631[]
 
 === Releases Of Other Components
 
