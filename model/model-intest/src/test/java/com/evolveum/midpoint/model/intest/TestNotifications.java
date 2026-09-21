@@ -607,6 +607,7 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
     public void test180DeltaBodyIsLocalizedForEachRecipient() throws Exception {
         given();
         Task task = createPlainTask();
+        task.setOwner(getUser(USER_ADMINISTRATOR_OID));
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.FULL);
 
@@ -657,6 +658,11 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
 
             assertThat(englishMessage.getBody()).contains("Added properties:");
             assertThat(slovakMessage.getBody()).contains("Pridané vlastnosti:");
+            assertThat(slovakMessage.getSubject()).isEqualTo("Oznámenie o zmene objektu typu Používateľ");
+            assertThat(slovakMessage.getBody())
+                    .contains("Oznámenie o operácii súvisiacej s objektom typu Používateľ (stav: úspech)")
+                    .contains("Žiadateľ:")
+                    .contains("Kanál:");
             assertThat(slovakMessage.getBody()).isNotEqualTo(englishMessage.getBody());
         } finally {
             // Clean up the handler installed only for this test and the dedicated test user.

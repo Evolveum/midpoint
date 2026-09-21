@@ -27,6 +27,7 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDeltaCollectionsUtil;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.config.ConfigurationItem;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -111,6 +112,36 @@ public class SimpleFocalObjectNotifier extends AbstractGeneralNotifier<ModelEven
     }
 
     @Override
+    protected String getSubject(
+            ConfigurationItem<? extends SimpleFocalObjectNotifierType> configuration,
+            String transport,
+            Locale locale,
+            EventProcessingContext<? extends ModelEvent> ctx,
+            OperationResult result) {
+        var event = ctx.event();
+        String typeName = event.getFocusTypeName();
+        String operation;
+        String fallback;
+        if (event.isAdd()) {
+            operation = "ADD";
+            fallback = typeName + " creation notification";
+        } else if (event.isModify()) {
+            operation = "MODIFY";
+            fallback = typeName + " modification notification";
+        } else if (event.isDelete()) {
+            operation = "DELETE";
+            fallback = typeName + " deletion notification";
+        } else {
+            return "(unknown " + typeName.toLowerCase() + " operation)";
+        }
+        return translate(
+                "SimpleFocalObjectNotifier.subject." + operation,
+                new Object[] { localizedTypeName(
+                        typeName, event.getModelContext().getFocusContext().getObjectTypeClass(), locale) },
+                locale, fallback);
+    }
+
+    @Override
     protected String getBody(ConfigurationItem<? extends SimpleFocalObjectNotifierType> configuration,
             String transport, Locale locale,
             EventProcessingContext<? extends ModelEvent> ctx,
@@ -136,12 +167,23 @@ public class SimpleFocalObjectNotifier extends AbstractGeneralNotifier<ModelEven
 
         StringBuilder body = new StringBuilder();
 
-        String status = event.getStatusAsText();
+        String status = localizedStatus(event, locale);
         String attemptedTo = event.isSuccess() ? "" : "(attempted to be) ";
 
-        body.append("Notification about ").append(typeNameLower).append("-related operation (status: ").append(status).append(")\n\n");
-        body.append(typeName).append(": ").append(displayName).append(" (").append(focus.getName()).append(", oid ").append(oid).append(")\n");
-        body.append("Notification created on: ").append(new Date()).append("\n\n");
+        String localizedTypeName = localizedTypeName(typeName, focus.getClass(), locale);
+        body.append(translate(
+                "SimpleFocalObjectNotifier.heading",
+                new Object[] { localizedTypeName, status }, locale,
+                "Notification about " + typeNameLower + "-related operation (status: " + event.getStatusAsText() + ")"));
+        body.append("\n\n");
+        body.append(translate(
+                "SimpleFocalObjectNotifier.object",
+                new Object[] { localizedTypeName, displayName, focus.getName(), oid }, locale,
+                typeName + ": " + displayName + " (" + focus.getName() + ", oid " + oid + ")"));
+        body.append("\n");
+        body.append(translate(
+                "AbstractGeneralNotifier.notificationCreatedOn", new Object[0], locale, "Notification created on:"));
+        body.append(" ").append(new Date()).append("\n\n");
 
         boolean watchAuxiliaryAttributes = isWatchAuxiliaryAttributes(configuration.value());
         final Task task = ctx.task();
@@ -159,7 +201,7 @@ public class SimpleFocalObjectNotifier extends AbstractGeneralNotifier<ModelEven
             body.append("More information about the status of the request was displayed and/or is present in log files.\n\n");
         }
 
-        addRequesterAndChannelInformation(body, event, result);
+        addRequesterAndChannelInformation(body, event, result, locale);
 
         if (techInfo) {
             body.append("----------------------------------------\n");
@@ -168,6 +210,34 @@ public class SimpleFocalObjectNotifier extends AbstractGeneralNotifier<ModelEven
         }
 
         return body.toString();
+    }
+
+    private String localizedTypeName(String typeName, Class<?> typeClass, Locale locale) {
+        ObjectTypes objectType = ObjectTypes.getObjectTypeIfKnown(typeClass);
+        if (objectType == null) {
+            return typeName;
+        }
+        return translate(
+                "ObjectTypes." + objectType.name(),
+                new Object[0], locale, typeName);
+    }
+
+    private String localizedStatus(ModelEvent event, Locale locale) {
+        String statusKey;
+        if (event.isSuccess()) {
+            statusKey = "SUCCESS";
+        } else if (event.isOnlyFailure()) {
+            statusKey = "FAILURE";
+        } else if (event.isFailure()) {
+            statusKey = "PARTIAL_FAILURE";
+        } else if (event.isInProgress()) {
+            statusKey = "IN_PROGRESS";
+        } else {
+            statusKey = "UNKNOWN";
+        }
+        return translate(
+                "SimpleFocalObjectNotifier.status." + statusKey,
+                new Object[0], locale, event.getStatusAsText());
     }
 
     private String formatEventContent(ModelEvent event, ObjectDelta<AssignmentHolderType> delta, boolean showAuxiliaryAttributes,

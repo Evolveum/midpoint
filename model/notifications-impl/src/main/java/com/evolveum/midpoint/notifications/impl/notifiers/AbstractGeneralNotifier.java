@@ -242,7 +242,7 @@ public abstract class AbstractGeneralNotifier<E extends Event, N extends General
                     ctx, result);
         } else {
             String subjectPrefix = notifierConfig.value().getSubjectPrefix();
-            String defaultSubject = getSubject(notifierConfig, transportName, ctx, result);
+            String defaultSubject = getSubject(notifierConfig, transportName, formattingLocale, ctx, result);
             subject = Strings.isNullOrEmpty(subjectPrefix)
                     ? defaultSubject // can be null
                     : subjectPrefix + Strings.nullToEmpty(defaultSubject); // here we don't want nulls, but ""
@@ -502,6 +502,16 @@ public abstract class AbstractGeneralNotifier<E extends Event, N extends General
         return null;
     }
 
+    /** Returns default subject using the recipient locale. */
+    protected String getSubject(
+            ConfigurationItem<? extends N> notifierConfig,
+            String transport,
+            Locale locale,
+            EventProcessingContext<? extends E> ctx,
+            OperationResult result) {
+        return getSubject(notifierConfig, transport, ctx, result);
+    }
+
     /** Returns default body if no body expression is used. */
     protected String getBody(
             ConfigurationItem<? extends N> notifierConfig,
@@ -699,22 +709,38 @@ public abstract class AbstractGeneralNotifier<E extends Event, N extends General
     }
 
     void addRequesterAndChannelInformation(StringBuilder body, Event event, OperationResult result) {
+        addRequesterAndChannelInformation(body, event, result, localizationService.getDefaultLocale());
+    }
+
+    void addRequesterAndChannelInformation(StringBuilder body, Event event, OperationResult result, Locale locale) {
         if (event.getRequester() != null) {
-            body.append("Requester: ");
+            String requesterDescription;
             try {
                 ObjectType requester = event.getRequester().resolveObjectType(result, false);
                 if (requester instanceof UserType requesterUser) {
                     String displayName = PolyString.getOrig(ObjectTypeUtil.getDisplayNameOrFullName(requesterUser));
-                    body.append(displayName).append(" (").append(requester.getName()).append(")");
+                    requesterDescription = displayName + " (" + requester.getName() + ")";
                 } else {
-                    body.append(ObjectTypeUtil.toShortString(requester));
+                    requesterDescription = ObjectTypeUtil.toShortString(requester);
                 }
             } catch (RuntimeException e) {
-                body.append("couldn't be determined: ").append(e.getMessage());
+                requesterDescription = "couldn't be determined: " + e.getMessage();
                 LoggingUtils.logUnexpectedException(getLogger(), "Couldn't determine requester for a notification", e);
             }
+            body.append(translate(
+                    "AbstractGeneralNotifier.requester",
+                    new Object[] { requesterDescription }, locale,
+                    "Requester: " + requesterDescription));
             body.append("\n");
         }
-        body.append("Channel: ").append(event.getChannel()).append("\n\n");
+        body.append(translate(
+                "AbstractGeneralNotifier.channel",
+                new Object[] { event.getChannel() }, locale,
+                "Channel: " + event.getChannel()));
+        body.append("\n\n");
+    }
+
+    protected String translate(String key, Object[] args, Locale locale, String fallback) {
+        return localizationService.translate(key, args, locale, fallback);
     }
 }
