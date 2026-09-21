@@ -13,7 +13,7 @@
     <parent>
         <artifactId>model</artifactId>
         <groupId>com.evolveum.midpoint.model</groupId>
-        <version>4.11-SNAPSHOT</version>
+        <version>4.11-RC1</version>
     </parent>
 
     <artifactId>smart-impl</artifactId>
@@ -332,7 +332,7 @@
         <dependency>
             <groupId>com.evolveum.midpoint.provisioning</groupId>
             <artifactId>ucf-api</artifactId>
-            <version>4.11-SNAPSHOT</version>
+            <version>4.11-RC1</version>
             <scope>compile</scope>
         </dependency>
 
