@@ -25,8 +25,6 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.apache.wicket.RestartResponseException;
-import org.apache.wicket.authroles.authentication.AuthenticatedWebApplication;
-import org.apache.wicket.authroles.authorization.strategies.role.Roles;
 import org.apache.wicket.markup.ComponentTag;
 import org.apache.wicket.markup.MarkupStream;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -57,14 +55,14 @@ public class SecurityUtils {
 
     public static boolean isMenuAuthorized(MainMenuItem item) {
         Class<?> clazz = item.getPageClass();
-        return clazz == null || !isAuthorizationDeny(clazz);
+        return clazz == null || !WebComponentUtil.isAuthorizationDeny(clazz);
     }
 
     public static boolean isMenuAuthorized(@NotNull MenuItem item) {
         Class<? extends WebPage> clazz = item.getPageClass();
         List<String> authz = LeftMenuAuthzUtil.getAuthorizationsForPage(clazz);
         if (CollectionUtils.isNotEmpty(authz)) {
-            return !isAuthorizationDeny(authz);
+            return !WebComponentUtil.isAuthorizationDeny(authz);
         }
         return isPageAuthorized(clazz);
     }
@@ -95,36 +93,6 @@ public class SecurityUtils {
         }
 
         return WebComponentUtil.isAuthorized(list.toArray(new String[0]));
-    }
-
-    public static boolean isAuthorizationDeny(List<String> actions) {
-        if (actions == null || actions.isEmpty()) {
-            return true;
-        }
-
-        Roles roles = new Roles();
-        roles.addAll(actions);
-
-        return ((AuthenticatedWebApplication) AuthenticatedWebApplication.get()).hasAnyRole(roles);
-    }
-
-    public static boolean isAuthorizationDeny(Class<?> page) {
-        if (page == null) {
-            return true;
-        }
-
-        PageDescriptor descriptor = page.getAnnotation(PageDescriptor.class);
-        if (descriptor == null) {
-            return true;
-        }
-
-        AuthorizationAction[] actions = descriptor.action();
-        List<String> list = new ArrayList<>();
-        for (AuthorizationAction action : actions) {
-            list.add(action.actionUri());
-        }
-
-        return isAuthorizationDeny(list);
     }
 
     public static List<String> getPageAuthorizations(Class<?> page) {

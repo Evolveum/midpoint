@@ -718,6 +718,36 @@ public final class WebComponentUtil {
         return ((AuthenticatedWebApplication) AuthenticatedWebApplication.get()).hasAnyRole(roles);
     }
 
+    public static boolean isAuthorizationDeny(List<String> actions) {
+        if (actions == null || actions.isEmpty()) {
+            return true;
+        }
+
+        Roles roles = new Roles();
+        roles.addAll(actions);
+
+        return ((AuthenticatedWebApplication) AuthenticatedWebApplication.get()).hasAnyRole(roles);
+    }
+
+    public static boolean isAuthorizationDeny(Class<?> page) {
+        if (page == null) {
+            return true;
+        }
+
+        PageDescriptor descriptor = page.getAnnotation(PageDescriptor.class);
+        if (descriptor == null) {
+            return true;
+        }
+
+        AuthorizationAction[] actions = descriptor.action();
+        List<String> list = new ArrayList<>();
+        for (AuthorizationAction action : actions) {
+            list.add(action.actionUri());
+        }
+
+        return isAuthorizationDeny(list);
+    }
+
     public static boolean isAuthorized(Class<? extends ObjectType> clazz) {
         Class<? extends PageBase> detailsPage = DetailsPageUtil.getObjectDetailsPage(clazz);
         return isAuthorizedForPage(detailsPage);
