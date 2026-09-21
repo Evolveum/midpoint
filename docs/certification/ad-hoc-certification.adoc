@@ -1,8 +1,8 @@
 ---
 midpoint-feature: micro-certification
-doc-type: [ 'config' ]
+doc-type: guide
 ---
-= Ad-Hoc Certification
+= Ad-hoc certification
 :page-wiki-name: Ad-hoc certification HOWTO
 :page-wiki-id: 24085921
 :page-wiki-metadata-create-user: mederly
@@ -11,15 +11,23 @@ doc-type: [ 'config' ]
 :page-wiki-metadata-modify-date: 2017-06-16T12:23:59.558+02:00
 :page-upkeep-status: yellow
 :page-moved-from: /midpoint/reference/roles-policies/certification/ad-hoc-certifications/
-:page-description: This instructs on how to create ad-hoc certifications in midPoint.
+:page-display-order: 900
+:page-description: This guide instructs on how to create ad-hoc certifications in midPoint.
 :page-keywords: ad-hoc certification, policy rule, certification campaign
 :page-toc: top
 
+This guide shows how to create ad-hoc certification campaigns.
 
-This page shows you how to create ad-hoc certification campaigns.
-This can be useful in more specific cases, such as when a new user is added to an organization and its manager should review and certify all of the user's assignments (roles, etc.).
+Ad-hoc certification campaigns are useful for situations that need to be taken care of right away, rather than waiting for the next scheduled regular certification campaign.
+For example, when an employee changes a department, they are unassigned from one organization unit in midPoint and assigned to another.
+The organization units may contain policies giving users accesses appropriate for the particular unit.
+These accesses are granted and revoked automatically when users move across the units, no further action needed.
 
-== Define Ad-hoc Certification Campaigns
+However, any manually assigned roles the user may have requested remain untouched.
+Those may have been relevant for the employee's previous job assignment, but are they still relevant after the move?
+The ad-hoc certification campaign is triggered to have that reviewed and certified by a human reviewer.
+
+== Define ad-hoc certification campaigns
 
 To define an ad-hoc certification campaign:
 
@@ -27,9 +35,15 @@ To define an ad-hoc certification campaign:
 . Define the actual <<certification_campaign,ad-hoc certification campaign>>.
 
 [[policy_rules]]
-=== Policy Rule
+=== Policy rule
 
 Policy rules can be configured to trigger a creation of a new _ad-hoc certification campaign_ (not to be confused with the standard multi-object scheduled campaigns).
+
+.Certification template vs. instance
+[NOTE]
+====
+An ad-hoc certification campaign template may be defined for multiple objects and targets, same as the standard campaign template can, but every instance of an ad-hoc certification campaign is always single-object and single-target, unlike the standard campaigns.
+====
 
 Such a rule looks like this:
 
@@ -50,7 +64,7 @@ Such a rule looks like this:
 </policyRule>
 ----
 
-There are two interesting items here:
+There are two points of interest here:
 
 . A policy constraint (lines 3-5) applies when the rule is triggered.
 In this case, it is when a new assignment to the holder of this policy rule is created.
@@ -60,7 +74,7 @@ So, it is expected that this rule should be assigned to organizations for which 
 More specifically, `definitionRef` points to the certification definition that specifies what the certification should look like; e.g. how many stages it should have, how to select reviewers for those stages, and so on.
 
 [[certification_campaign]]
-=== Certification Campaign
+=== Certification campaign
 
 See an example of an ad-hoc certification campaign below:
 

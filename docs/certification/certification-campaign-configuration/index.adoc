@@ -1,0 +1,28 @@
+---
+midpoint-feature: access-certification
+doc-type: config
+---
+= Certification campaign configuration
+:page-nav-title: Configuration
+:page-upkeep-status: orange
+:experimental:
+:page-display-order: 200
+:page-description: This section describes access certification campaign configuration options.
+:page-keywords: certification campaign, campaign definition, campaign configuration
+
+This section describes access certification campaign configuration options.
+
+For every access certification campaign, you define its scope, stages, reviewers, a strategy for computing the campaign stage results, etc.
+Every time you create a campaign definition, you in fact configure an **access certification campaign template**.
+Any future instance of the campaign definition is based on the template.
+
+The materials in this section are organized by the individual configuration aspects they cover.
+
+== Certification campaign configuration options
+
+Beside the basic campaign configuration outlined above, the configuration options are much deeper.
+Refer to the following articles for options to configure scope, stages, GUI, or reporting.
+
+++++
+{% children style: table %}
+++++

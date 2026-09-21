@@ -1,5 +1,9 @@
-= Access Certification Authorization
-:page-nav-title: Authorization
+---
+midpoint-feature: access-certification
+doc-type: config
+---
+= Access certification authorizations
+:page-nav-title: Authorizations
 :page-wiki-name: Access Certification Security
 :page-wiki-id: 22282369
 :page-wiki-metadata-create-user: mederly
@@ -9,12 +13,13 @@
 :page-upkeep-status: orange
 :page-alias: { "parent" : "/midpoint/reference/security/authorization/", "slug" : "certification",  "title" : "Access Certification" }
 :page-moved-from: /midpoint/reference/roles-policies/certification/authorization/
-:page-description: This page explains how access to midPoint's certification features is controlled through specific authorizations.
+:page-display-order: 400
+:page-description: This page explains how access to certification features in midPoint is controlled through specific authorizations.
 :page-keywords: certification authorization, action URI, model level actions, GUI actions
 :page-toc: top
 :experimental:
 
-This page explains how access to midPoint's certification features is controlled through specific authorizations.
+This page explains how access to certification features in midPoint is controlled through specific authorizations.
 It covers both model-level actions (like launching campaigns or making decisions) and GUI-level permissions (like viewing certification pages).
 
 == Model level

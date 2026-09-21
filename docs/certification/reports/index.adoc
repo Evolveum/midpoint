@@ -1,5 +1,9 @@
-= Access Certification Reports
-:page-nav-title: Certification Reports
+---
+midpoint-feature: access-certification
+doc-type: example
+---
+= Access certification reports
+:page-nav-title: Certification reports
 :page-wiki-name: Access Certification Reports
 :page-wiki-id: 22282416
 :page-wiki-metadata-create-user: mederly
@@ -9,17 +13,17 @@
 :page-upkeep-status: green
 :page-alias: { "parent" : "/midpoint/reference/misc/reports/", "slug" : "certification",  "title" : "Access Certification" }
 :page-moved-from: /midpoint/reference/roles-policies/certification/reports/
-:page-description: This page describes the available access certification reports in midPoint and helps you understand how to use them effectively in compliance and governance workflows.
+:page-display-order: 600
+:page-description: This article shows examples of access certification reports in midPoint and helps you understand how to use them effectively in compliance and governance workflows.
 :page-keywords: access certification reports, certification definitions report, certification campaigns report, certification cases report, certification work items report
 :page-toc: top
 
-
-This page describes the available access certification reports in midPoint and helps you understand how to use them effectively in compliance and governance workflows.
+This article shows examples of the available access certification reports in midPoint and helps you understand how to use them effectively in compliance and governance workflows.
 
 Each of the provided reports provides a different level of detail, from high-level campaign overviews to individual reviewer decisions.
 You can export reports and use them for auditing and certification tracking.
 
-== Access Certification Reports
+== Access certification reports
 
 The following pre-configured certification-related reports are available in the midPoint distribution package:
 
@@ -89,7 +93,7 @@ image::cert-case-report.png[]
 [NOTE]
 ====
 * "In stage" displays the stage that the case was last considered in.
-Depending on the xref:/midpoint/reference/roles-policies/policies/certification/determining-case-outcome/[review strategy], some cases might be "stopped": they do not advance to the next stage after being e.g. revoked in a previous stage.
+Depending on the xref:/midpoint/reference/certification/determining-case-outcome/[review strategy], some cases might be "stopped": they do not advance to the next stage after being e.g. revoked in a previous stage.
 
 * "Reviewers" represent the reviewers who are currently assigned, or who were assigned for a review stage in which this case was last considered in.
 
@@ -108,7 +112,7 @@ Depending on the xref:/midpoint/reference/roles-policies/policies/certification/
 image::cert-work-item.png[]
 
 
-== See Also
+== See also
 
 - xref:/midpoint/reference/misc/reports/examples/[Report Examples]
 - xref:/midpoint/reference/misc/reports/configuration/[Report Configuration]

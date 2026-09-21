@@ -82,7 +82,7 @@ However, as account type (_intent_) is determined very early in account processi
 * There is an issues with xref:/midpoint/reference/roles-policies/roles/assignment/assigning-vs-linking/[assigning vs linking]. Service accounts are often just linked to the services and not assigned.
 The processes that handle those transitions for service accounts are missing.
 
-* Service itself can be subject to xref:/midpoint/reference/roles-policies/policies/certification/[certification] processes.
+* Service itself can be subject to xref:/midpoint/reference/certification/[certification] processes.
 But the process is not tailored specifically for service accounts and there may be missing pieces.
 
 * Account reclassification is supported only in fully automated mode, without any GUI support.

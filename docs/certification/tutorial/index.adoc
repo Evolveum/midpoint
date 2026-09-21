@@ -1,4 +1,9 @@
-= Access Certification Tutorial
+---
+midpoint-feature: access-certification
+doc-type: guide
+---
+= Access certification tutorial
+:page-nav-title: Quick tutorial
 :page-wiki-name: Access Certification - a very quick tutorial
 :page-wiki-id: 22282316
 :page-wiki-metadata-create-user: mederly
@@ -8,14 +13,15 @@
 :page-alias: { "parent" : "/midpoint/guides/" }
 :page-upkeep-status: green
 :page-moved-from: /midpoint/reference/roles-policies/certification/tutorial/
-:page-description: This pages gives you a quick overview of how you can use access certifications in midPoint, i.e. how to add a campaign definition, create and start a campaign, and how to review it.
-:page-keywords: certification campaign, create campaign, campaign definition, review campaign
+:page-description: A quick access certification tutorial: how to configure a certification campaign definition, create and start a campaign, and review its results.
+:page-keywords: certification campaign, access campaign, campaign definition, review campaign
 :experimental:
+:page-display-order: 100
 :page-toc: top
 
 This pages gives you a quick overview of how you can use access certifications in midPoint, i.e. how to add a campaign definition, create and start a campaign, and how to review it.
 
-== Add Campaign Definition
+== Add campaign definition
 
 By default, there are no campaign definitions in the repository.
 You have to add one.
@@ -31,7 +37,7 @@ Alternatively, you can create your own definition, however for the purposes of t
 .Certification definitions table
 image::left-menu-cert-items.png[width=85%]
 
-== Create and Start Campaign
+== Create and start campaign
 
 Once you have added a certification definition to the system, you can create a campaign based on it:
 
@@ -57,7 +63,7 @@ The link to the task page is also displayed at the top of the page within the fe
 At this point, the campaign has started.
 
 
-== Review Campaign
+== Review campaign
 
 To check the campaign details:
 
@@ -89,7 +95,7 @@ By default, the system has 2 available responses:
     .. *Revoke* - The state is unacceptable and it should be fixed by removing the particular assignment.
 
 +
-If needed, you can extend the responses with the following options (learn more about decision menu items configuration, as well as about other possible menu item actions in xref:/midpoint/reference/roles-policies/policies/certification/actions/[GUI Action Configuration]):
+If needed, you can extend the responses with the following options (learn more about decision menu items configuration, as well as about other possible menu item actions in xref:/midpoint/reference/certification/certification-campaign-configuration/gui-configuration/actions/[GUI Action Configuration]):
 
     .. *Reduce* - The state is unacceptable but a simple assignment removal is not sufficient.
     This is useful in scenarios when you need to discuss the case to reach a solution.

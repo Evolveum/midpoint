@@ -1,4 +1,8 @@
-= Certification Campaign Iteration
+---
+midpoint-feature: access-certification
+doc-type: intro
+---
+= Certification campaign iteration
 :page-nav-title: Iteration
 :page-wiki-name: Certification Campaign Iteration
 :page-wiki-id: 25591911
@@ -8,12 +12,13 @@
 :page-wiki-metadata-modify-date: 2018-09-17T13:32:56.839+02:00
 :page-upkeep-status: yellow
 :page-moved-from: /midpoint/reference/roles-policies/certification/iteration/
-:page-description: This page describes how certification campaigns can be reiterated (re-run) in midPoint, and how iterations can be configured.
+:page-display-order: 700
+:page-description: This article describes how certification campaigns can be reiterated (re-run) in midPoint, and how iterations can be configured.
 :page-keywords: certification campaign, reiteration, iteration, iteration limit, automatic iterations, campaign close
 :page-toc: top
 :experimental:
 
-This page describes how certification campaigns can be reiterated (re-run) in midPoint, and how iterations can be configured.
+This article describes how certification campaigns can be reiterated (re-run) in midPoint, and how iterations can be configured.
 
 A reiteration means that after a certification campaigns closes, any certification cases that remained without response can be run again.
 This gives reviewers who have not responded in the previous run another chance to respond.
@@ -35,7 +40,7 @@ If none of the reiterated cases enter a new stage, the whole stage is skipped.
 
 * The stage for that particular case *has no outcome* from earlier iterations.
 In such situations, midPoint attempts to determine the outcome by creating new work items.
-These are created only for those reviewers that have not provided a response in earlier iterations. 
+These are created only for those reviewers that have not provided a response in earlier iterations.
 (This only applies to the original reviewers, not reviewers that got work items by delegation or escalation.) +
 This effectively means that reviewers cannot change their decisions in later iterations. +
 This scenario has the following possible outcomes:

@@ -1,4 +1,4 @@
-= Configuring Certification Campaign Stages
+= Configuring certification campaign stages
 :page-nav-title: Stages
 :page-wiki-name: Configuring certification campaign stages
 :page-wiki-id: 22741204
@@ -7,14 +7,14 @@
 :page-wiki-metadata-modify-user: mederly
 :page-wiki-metadata-modify-date: 2016-04-23T01:35:31.626+02:00
 :page-upkeep-status: yellow
-:page-moved-from: /midpoint/reference/roles-policies/certification/stages/
-:page-description: This page describes how to configure individual stages within an access certification campaign. It covers the reviewer selection, deadlines, notification behavior, and timed escalation within each stage.
+:page-moved-from: /midpoint/reference/roles-policies/certification/stages/, /midpoint/reference/roles-policies/policies/certification/stages/
+:page-description: This article describes how to configure individual stages within an access certification campaign. It covers the reviewer selection, deadlines, notification behavior, and timed escalation within each stage.
 :page-keywords: certification stage, certification campaign, stage duration, deadline notification, reviewer
+:page-display-order: 30
 :page-toc: top
 :experimental:
 
-
-This page describes how to configure individual stages within an access certification campaign.
+This article describes how to configure individual stages within an access certification campaign.
 It covers the reviewer selection, deadlines, notification behavior, and timed escalation within each stage.
 
 Also, it explains how midPoint determines and assigns reviewers based on properties such as role owner, approver, or organizational manager, and shows how these are defined in XML under `<stageDefinition>` elements.
@@ -32,12 +32,12 @@ You can configure the following options for stages:
 * *Duration* - Duration of the stage which is used to determine the end of the stage.
 See <<duration,stage duration>> for details.
 * *Notify before deadline* - Defines how long before the stage end time a notification is sent. See <<deadline,deadline notifications>> for details.
-* *Notify only when no decision* - If selected, notifications are sent to reviewers only if they have cases waiting for their decision. 
+* *Notify only when no decision* - If selected, notifications are sent to reviewers only if they have cases waiting for their decision.
 See <<notify_only_no_decision,no decision notifications>>.
 * *Reviewer specification name (optional)* - Identifies the reviewer-selection rules configured for the stage.
 * *Reviewer specification description (optional)* - Describes the reviewer-selection rules configured for the stage.
 * *Reviewers based on assignment target object* - Selects reviewers based on the target owner/approver of the assignment/inducement.
-For example, you can define that a role owner certifies all assignments of their role. 
+For example, you can define that a role owner certifies all assignments of their role.
 * *Reviewers based on the object being assigned to* - Selects reviewers based on objects to which something is assigned or induced.
 For example, you can define that a role owner certifies all inducements to their role.
 * *Reviewers based on the manager of object being assigned to* - Selects reviewers based on managers of object that have something assigned or induced.
@@ -47,13 +47,13 @@ For example, if you define that a user's manager is the reviewer for that user's
 * *Additional reviewer reference* - Defines additional reviewers that are used on top of the other reviewers defined in the preceding configuration.
 For example, you can specify that the company security manager should review each certification case in the given stage.
 * *Decision aggregation strategy in case of more than one reviewer* - If there is more than one reviewer, defines the strategy used to determine the stage-level outcome.
-See xref:/midpoint/reference/roles-policies/policies/certification/determining-case-outcome.adoc#stage-level[stage level strategies] for details.
+See xref:/midpoint/reference/certification/determining-case-outcome.adoc#stage-level[stage level strategies] for details.
 * *Outcome if there are no reviewers allocated* - Defines the outcome for cases if no reviewers are assigned, for example, if the target role owner is defined as the reviewer but that particular role has no owner.
 Note that this does not apply to cases when the assigned reviewers provide no responses.
 * *Stop review on* - Defines which outcomes prevent cases to be advanced to the next stage.
 Typically, if a case is marked as Revoke or Reduce, it does not proceed to the next stage.
 This is typically not needed, and can only be configured in the XML configuration.
-For more details, see xref:/midpoint/reference/roles-policies/policies/certification/determining-case-outcome/[].
+For more details, see xref:/midpoint/reference/certification/determining-case-outcome/[].
 
 == Configuration details
 
@@ -106,7 +106,7 @@ For example, if the `notifyBeforeDeadline` property is set to 48 and 12 hours, a
 
 * The second round of notifications (to campaign owner and individual reviewers) will be sent on Monday, May 2nd, 11:59:59 (12 hours before the stage end).
 
-For more information, see xref:/midpoint/reference/roles-policies/policies/certification/notifications/[].
+For more information, see xref:/midpoint/reference/certification/notifications/[].
 
 
 [[notify_only_no_decision]]
@@ -118,7 +118,7 @@ If you set the property to `false`, reviewers always get their notifications - r
 
 NOTE: Regardless of this setting, deadline notifications are always sent to the campaign owner.
 
-For more information, see xref:/midpoint/reference/roles-policies/policies/certification/notifications/[].
+For more information, see xref:/midpoint/reference/certification/notifications/[].
 
 
 === Reviewer selection

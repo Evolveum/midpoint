@@ -1,5 +1,9 @@
-= Determining Certification Case Outcome
-:page-nav-title: Determining Case Outcome
+---
+midpoint-feature: access-certification
+doc-type: intro
+---
+= Determining certification case outcome
+:page-nav-title: Determining case outcome
 :page-wiki-name: Determining Certification Case Outcome
 :page-wiki-id: 22282427
 :page-wiki-metadata-create-user: mederly
@@ -8,11 +12,12 @@
 :page-wiki-metadata-modify-date: 2016-04-21T16:57:58.966+02:00
 :page-upkeep-status: yellow
 :page-moved-from: /midpoint/reference/roles-policies/certification/determining-case-outcome/
+:page-display-order: 500
 :page-description: This page explains how midPoint determines the outcome of certification campaigns.
 :page-keywords: certification campaign, certification outcome, determine certification, case outcome, outcome strategy, outcomeStrategy, reviewStrategy
 :page-toc: top
 
-This page explains how midPoint determines the outcome of certification campaigns. 
+This page explains how midPoint determines the outcome of certification campaigns.
 
 == Introduction
 
