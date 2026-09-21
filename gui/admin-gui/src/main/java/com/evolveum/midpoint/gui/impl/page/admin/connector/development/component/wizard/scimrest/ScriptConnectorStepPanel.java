@@ -96,6 +96,9 @@ public abstract class ScriptConnectorStepPanel extends AbstractWizardStepPanel<C
      */
     private AjaxIconButton regenerateButton;
 
+    /** Kept so a freshly-recorded validation error can refresh its visibility (see {@link #onNextPerformed}). */
+    private RepairObjectClassButton repairObjectClassButton;
+
     /**
      * Set the moment the user edits the script after a validation error was recorded - makes
      * {@link #hasPendingValidationError()} hide "Regenerate" without touching the drawer's error
@@ -126,6 +129,14 @@ public abstract class ScriptConnectorStepPanel extends AbstractWizardStepPanel<C
     @Override
     protected void onInitialize() {
         super.onInitialize();
+        // Force valueModel to resolve now, before any component's VisibleBehaviour gets a chance
+        // to evaluate hasPendingValidationError(): load()'s task-result branch clears a stale
+        // error as a side effect (see createModels()), and that decision must already be final by
+        // the time regenerateButton/RepairObjectClassButton compute their visibility later in this
+        // same render pass - relying on markup order to make that happen "naturally" would be
+        // fragile, whereas onInitialize() runs, once, before any of this instance's descendants
+        // are actually rendered.
+        valueModel.getObject();
         initLayout();
     }
 
@@ -164,19 +175,6 @@ public abstract class ScriptConnectorStepPanel extends AbstractWizardStepPanel<C
                     t -> scriptEditor.updateMode(t, currentMode),
                     () -> scriptEditor.setMode(currentMode));
             lastPushedMode = currentMode;
-        }
-        // Same reasoning as the editor mode above: the wizard-model state driving
-        // regenerateButton's VisibleBehaviour can change (e.g. valueModel.load() clearing a stale
-        // error) without anything having told the browser. Unlike there, this can't be
-        // target.add(regenerateButton) - by the time onBeforeRender() runs, the partial update's
-        // component queue is already closed ("can no longer be added" IllegalStateException) - so
-        // push the DOM state directly via JS instead, driven straight off the same check
-        // VisibleBehaviour uses (not Component.isVisible() - it can lag behind a change made this
-        // late, e.g. from valueModel.load()).
-        if (regenerateButton != null) {
-            boolean shouldBeVisible = hasPendingValidationError();
-            RequestCycle.get().find(AjaxRequestTarget.class).ifPresent(t -> t.appendJavaScript(
-                    "$('#" + regenerateButton.getMarkupId() + "')." + (shouldBeVisible ? "show" : "hide") + "();"));
         }
     }
 
@@ -224,9 +222,9 @@ public abstract class ScriptConnectorStepPanel extends AbstractWizardStepPanel<C
                 // Fresh content from a (just-)completed generation task - whether this is the very
                 // first landing here or the result of clicking "Regenerate", any validation error
                 // still on record described an earlier version of the script and no longer applies.
-                // Telling the browser about it is onBeforeRender()'s job (see there for why): load()
-                // is called from far too many contexts - some mid-render, where adding a component
-                // to the Ajax target throws - to safely do it from here too.
+                // onInitialize() forces this load() to run before regenerateButton/
+                // RepairObjectClassButton compute their visibility, so clearing it here is enough -
+                // no separate step is needed to tell the browser.
                 if (hasPendingValidationError()) {
                     ConnectorDevelopmentWizardUtil.clearScriptValidationErrors(
                             ScriptConnectorStepPanel.this, getStepId());
@@ -412,27 +410,39 @@ public abstract class ScriptConnectorStepPanel extends AbstractWizardStepPanel<C
             ConnDevArtifactType script = valueModel.getObject().clone();
             script.setFilename(languageModel.getObject().withExtension(script.getFilename()));
             WebPrismUtil.cleanupEmptyContainerValue(script.asPrismContainerValue());
-            ConnDevArtifactValidationResult validation = getDetailsModel().getConnectorDevelopmentOperation()
-                    .validateArtifact(script, task, task.getResult());
-            if (!validation.ok()) {
-                getPageBase().error(ConnectorDevelopmentWizardUtil.scriptValidationErrorMessage(
-                        validation, script.getFilename(), getPageBase()));
-                target.add(getFeedback());
-                ConnectorDevelopmentWizardUtil.reportScriptValidationErrors(
-                        this, getStepId(), validation, script.getFilename(), target);
-                scriptEditedSinceError = false;
-                target.add(regenerateButton);
-                return false;
+            if (isScriptOptional() && StringUtils.isBlank(script.getContent())) {
+                // Nothing to validate or save - an optional script left empty (e.g. an
+                // authentication script for an auth type the connector already implements
+                // natively, like OAuth2 client credentials) just means "don't customize this",
+                // not "invalid input". Unlike mandatory scripts (schema, search, ...), this is a
+                // legitimate end state, not a validation failure.
+                valueModel.detach();
+                languageModel.detach();
+                getHelper().removeVariable(VAR_LIVE_SCRIPT);
+            } else {
+                ConnDevArtifactValidationResult validation = getDetailsModel().getConnectorDevelopmentOperation()
+                        .validateArtifact(script, task, task.getResult());
+                if (!validation.ok()) {
+                    getPageBase().error(ConnectorDevelopmentWizardUtil.scriptValidationErrorMessage(
+                            validation, script.getFilename(), getPageBase()));
+                    target.add(getFeedback());
+                    ConnectorDevelopmentWizardUtil.reportScriptValidationErrors(
+                            this, getStepId(), validation, script.getFilename(), target);
+                    scriptEditedSinceError = false;
+                    target.add(regenerateButton);
+                    target.add(repairObjectClassButton);
+                    return false;
+                }
+                saveScript(script, task, task.getResult());
+                getDetailsModel().reloadPrismObjectByOid();
+                if (task.getResult() == null || task.getResult().isError()) {
+                    target.add(getFeedback());
+                    return false;
+                }
+                valueModel.detach();
+                languageModel.detach();
+                getHelper().removeVariable(VAR_LIVE_SCRIPT);
             }
-            saveScript(script, task, task.getResult());
-            getDetailsModel().reloadPrismObjectByOid();
-            if (task.getResult() == null || task.getResult().isError()) {
-                target.add(getFeedback());
-                return false;
-            }
-            valueModel.detach();
-            languageModel.detach();
-            getHelper().removeVariable(VAR_LIVE_SCRIPT);
         } catch (IOException | CommonException e) {
             throw new RuntimeException(e);
         }
@@ -451,6 +461,15 @@ public abstract class ScriptConnectorStepPanel extends AbstractWizardStepPanel<C
     }
 
     protected void onAfterSave(AjaxRequestTarget target) {
+    }
+
+    /**
+     * Whether an empty script is a legitimate end state for this step, rather than something to
+     * validate/save. False for every mandatory script (schema, search, create, ...) - true only
+     * where the connector can work without one (see {@link AuthScriptsConnectorStepPanel}).
+     */
+    protected boolean isScriptOptional() {
+        return false;
     }
 
     protected final LoadableModel<ConnDevArtifactType> getValueModel() {
@@ -486,8 +505,9 @@ public abstract class ScriptConnectorStepPanel extends AbstractWizardStepPanel<C
         regenerateButton.setOutputMarkupPlaceholderTag(true);
         customButtons.add(regenerateButton);
 
-        customButtons.add(new RepairObjectClassButton(customButtons.newChildId(), this, this::getObjectClassName,
-                () -> valueModel.getObject() != null ? List.of(valueModel.getObject()) : List.of()));
+        repairObjectClassButton = new RepairObjectClassButton(customButtons.newChildId(), this, this::getObjectClassName,
+                this::currentScriptsForRepair);
+        customButtons.add(repairObjectClassButton);
     }
 
     private boolean hasPendingValidationError() {
@@ -500,6 +520,35 @@ public abstract class ScriptConnectorStepPanel extends AbstractWizardStepPanel<C
         return !parentWizardModel.getOperationResultsForFixStep(getStepId()).isEmpty();
     }
 
+    /**
+     * The script content to send to the generation service for this step - whatever the user is
+     * actually looking at right now, not necessarily what was last saved. {@link #valueModel} only
+     * ever reflects what a *previous, separate* request last synced into it (Wicket detaches every
+     * component model at the end of each request) - by the time a later click's own request starts,
+     * that's already gone unless it was actually saved. {@link #VAR_LIVE_SCRIPT} is what the
+     * "blur"/"change" handlers durably stashed for exactly this. Shared by "Regenerate" ({@link
+     * #onRefreshPerformed}) and "Repair object class" ({@link RepairObjectClassButton}) so both act
+     * on the same content.
+     */
+    private String currentLiveScriptContent() {
+        String liveScript = getHelper().getVariable(VAR_LIVE_SCRIPT);
+        return liveScript != null
+                ? liveScript
+                : (valueModel.getObject() != null ? valueModel.getObject().getContent() : null);
+    }
+
+    private List<ConnDevArtifactType> currentScriptsForRepair() {
+        ConnDevArtifactType artifact = valueModel.getObject();
+        if (artifact == null) {
+            return List.of();
+        }
+        String currentScript = currentLiveScriptContent();
+        if (currentScript == null || currentScript.equals(artifact.getContent())) {
+            return List.of(artifact);
+        }
+        return List.of(artifact.clone().content(currentScript));
+    }
+
     private void onRefreshPerformed(AjaxRequestTarget target) {
         if (getWizard() instanceof WizardModelWithParentSteps parentWizardModel) {
             // Read pending errors *before* touching valueModel: valueModel.load()'s task-result
@@ -508,14 +557,7 @@ public abstract class ScriptConnectorStepPanel extends AbstractWizardStepPanel<C
             // error this click is trying to send along.
             var pendingResults = parentWizardModel.getOperationResultsForFixStep(getStepId());
             List<String> errorMessages = ConnectorDevelopmentWizardUtil.collectErrorMessages(pendingResults);
-            // valueModel only ever reflects what a *previous, separate* request last synced into it
-            // (Wicket detaches every component model at the end of each request) - by the time this
-            // click's own (later) request starts, that's already gone unless it was actually saved.
-            // VAR_LIVE_SCRIPT is what the "blur"/"change" handlers durably stashed for exactly this.
-            String liveScript = getHelper().getVariable(VAR_LIVE_SCRIPT);
-            String currentScript = liveScript != null
-                    ? liveScript
-                    : (valueModel.getObject() != null ? valueModel.getObject().getContent() : null);
+            String currentScript = currentLiveScriptContent();
             List<WizardStep> steps = parentWizardModel.getActiveChildrenSteps();
             int activeStepIndex = parentWizardModel.getActiveStepIndex();
             String idOfFound = null;

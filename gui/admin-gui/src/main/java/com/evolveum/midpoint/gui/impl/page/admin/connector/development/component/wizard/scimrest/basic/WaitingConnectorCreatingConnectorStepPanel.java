@@ -10,15 +10,20 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismReferenceWrapper;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.ConnectorDevelopmentWizardUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.Referencable;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
+
+import java.util.List;
 
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.ConnectorDevelopmentDetailsModel;
@@ -90,13 +95,14 @@ public class WaitingConnectorCreatingConnectorStepPanel extends WaitingConnector
 
     @Override
     public boolean onNextPerformed(AjaxRequestTarget target) {
+        PrismReferenceWrapper<Referencable> resource;
+        ResourceDetailsModel resourceDetailsModel;
         try {
-            PrismReferenceWrapper<Referencable> resource = getDetailsModel().getObjectWrapper().findReference(
+            resource = getDetailsModel().getObjectWrapper().findReference(
                     ItemPath.create(ConnectorDevelopmentType.F_TESTING, ConnDevTestingType.F_TESTING_RESOURCE));
-//            resource.getValue().setRealValue(new ObjectReferenceType().oid("48b4f6f6-289b-4cce-9f82-bc665e882521").type(ResourceType.COMPLEX_TYPE));
             ObjectDetailsModels<ResourceType> objectDetailsModel =
                     resource.getValue().getNewObjectModel(getContainerConfiguration(PANEL_TYPE), getPageBase(), new OperationResult("getResourceModel"));
-            ResourceDetailsModel resourceDetailsModel = (ResourceDetailsModel) objectDetailsModel;
+            resourceDetailsModel = (ResourceDetailsModel) objectDetailsModel;
 
             ConnDevCreateConnectorResultType connectorRefResult = (ConnDevCreateConnectorResultType) getResult();
             resourceDetailsModel.getObjectWrapper().findProperty(ResourceType.F_NAME).getValue().setRealValue(PolyString.fromOrig(
@@ -111,11 +117,43 @@ public class WaitingConnectorCreatingConnectorStepPanel extends WaitingConnector
         OperationResult result = getHelper().onSaveObjectPerformed(target);
         getDetailsModel().getConnectorDevelopmentOperation();
         if (result != null && !result.isError()) {
+            linkTestingResourceIfMissing(resource, resourceDetailsModel);
             super.onNextPerformed(target);
         } else {
             target.add(getFeedback());
         }
         return false;
+    }
+
+    /**
+     * The testing resource is created as a precondition delta of the {@code testing.testingResource}
+     * reference (see {@code PrismReferenceValueWrapperImpl.getPreconditionDeltas()}) - but that
+     * reference's own new oid is only set on the in-memory wrapper *after* the parent
+     * (connector-development) object's own save delta has already been computed, so the persisted
+     * connector-development object never actually records which resource it points at, and every
+     * later step that resolves {@code testing.testingResource} builds yet another fresh, empty,
+     * never-saved resource instead of loading the real one. Persist the real oid as an explicit
+     * follow-up delta once it's known.
+     */
+    private void linkTestingResourceIfMissing(PrismReferenceWrapper<Referencable> resource, ResourceDetailsModel resourceDetailsModel) {
+        String createdResourceOid = resourceDetailsModel.getObjectWrapper().getObject().getOid();
+        if (StringUtils.isEmpty(createdResourceOid)) {
+            return;
+        }
+        try {
+            Referencable currentValue = resource.getValue().getRealValue();
+            if (currentValue != null && createdResourceOid.equals(currentValue.getOid())) {
+                return;
+            }
+            ObjectDelta<ConnectorDevelopmentType> delta = PrismContext.get().deltaFor(ConnectorDevelopmentType.class)
+                    .item(ConnectorDevelopmentType.F_TESTING, ConnDevTestingType.F_TESTING_RESOURCE)
+                    .replace(new ObjectReferenceType().oid(createdResourceOid).type(ResourceType.COMPLEX_TYPE))
+                    .asObjectDelta(getDetailsModel().getObjectWrapper().getOid());
+            getPageBase().getModelService().executeChanges(List.of(delta), null,
+                    getPageBase().createSimpleTask("linkTestingResource"), new OperationResult("linkTestingResource"));
+        } catch (CommonException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
