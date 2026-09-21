@@ -26,6 +26,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
+import static com.evolveum.midpoint.schema.constants.MidPointConstants.*;
+import static com.evolveum.midpoint.schema.constants.MidPointConstants.MEL_EXTENSION_SETS_NAME;
+
 public class MidPointCelExtensionManager {
 
     private static final Trace LOGGER = TraceManager.getTrace(MidPointCelExtensionManager.class);
@@ -54,18 +57,20 @@ public class MidPointCelExtensionManager {
 
     private void initializeExtensions() {
 
+        // Note to developers: when adding a safe extension here, please also add it to SAFE_MEL_EXTENSIONS in MidPointConstants.
+        // Otherwise it will not be available in built-in expression profiles.
+
         // Note: We do NOT want stock CelExtensions.strings() (CelStringExtensions) here!
         // We are implementing string operations slightly differently.
         // E.g. substring() does not die when indexes point beyond end of string.
         // Our versions of string operations is implemented in CelMelExtensions.
-        registerLibrary("bindings", CelExtensions.bindings());
-        registerLibrary("math", CelExtensions.math(celOptions));
-        registerLibrary("encoders", CelExtensions.encoders(celOptions));
-        registerLibrary("sets", CelExtensions.sets(celOptions));
-        registerLibrary("lists", CelExtensions.lists());
-        registerLibrary("regex", CelExtensions.regex());
-        registerLibrary("comprehensions", CelExtensions.comprehensions());
-//        registerLibrary("optional", CelExtensions.optional());
+        registerLibrary(MEL_EXTENSION_BINDINGS_NAME, CelExtensions.bindings());
+        registerLibrary(MEL_EXTENSION_MATH_NAME, CelExtensions.math());
+        registerLibrary(MEL_EXTENSION_ENCODERS_NAME, CelExtensions.encoders(celOptions));
+        registerLibrary(MEL_EXTENSION_SETS_NAME, CelExtensions.sets(celOptions));
+        registerLibrary(MEL_EXTENSION_LISTS_NAME, CelExtensions.lists());
+        registerLibrary(MEL_EXTENSION_REGEX_NAME, CelExtensions.regex());
+        registerLibrary(MEL_EXTENSION_COMPREHENSIONS_NAME, CelExtensions.comprehensions());
 
         registerLibrary(CelMelExtensions.library(celOptions, protector, basicExpressionFunctions, runtimeEquality));
         registerLibrary(CelFormatExtensions.library(basicExpressionFunctions));

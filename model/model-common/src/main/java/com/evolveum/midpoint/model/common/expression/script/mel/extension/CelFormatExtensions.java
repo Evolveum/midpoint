@@ -9,6 +9,7 @@ import com.evolveum.midpoint.model.common.expression.functions.BasicExpressionFu
 import com.evolveum.midpoint.model.common.expression.functions.TimestampFormatUtil;
 import com.evolveum.midpoint.model.common.expression.script.mel.CelTypeMapper;
 import com.evolveum.midpoint.model.common.expression.script.mel.value.PolyStringCelValue;
+import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
@@ -39,7 +40,7 @@ public class CelFormatExtensions extends AbstractMidPointCelExtensions {
 
     private static final Trace LOGGER = TraceManager.getTrace(CelFormatExtensions.class);
 
-    private static final String FUNCTION_NAME_PREFIX = "format";
+    private static final String FUNCTION_NAME_PREFIX = MidPointConstants.MEL_EXTENSION_FORMAT_NAME;
     private static final String FUNCTION_NAME_PREFIX_DOT = FUNCTION_NAME_PREFIX+".";
 
     private final BasicExpressionFunctions basicExpressionFunctions;
