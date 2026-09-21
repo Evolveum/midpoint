@@ -15,9 +15,7 @@ import com.evolveum.midpoint.smart.api.info.StatusInfo;
 
 import com.evolveum.midpoint.task.api.Task;
 
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.web.component.util.SerializableFunction;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -141,7 +139,7 @@ public class StatusAwareDataProvider<C extends Containerable>
             @NotNull String token,
             @NotNull SmartIntegrationService smart,
             @NotNull Task task)
-            throws SchemaException, ObjectNotFoundException, ConfigurationException {
+            throws CommonException {
 
         if (MappingsSuggestionType.class.equals(resultClass)) {
             return smart.getSuggestMappingsOperationStatus(token, task, task.getResult());

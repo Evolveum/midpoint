@@ -580,6 +580,11 @@ public abstract class AssociationTablePanel
 
     protected abstract ResourceType getResourceType();
 
+    @Override
+    protected boolean isToggleSuggestionVisible() {
+        return SmartIntegrationUtils.isSmartIntegrationAuthorized(getPageBase()) && super.isToggleSuggestionVisible();
+    }
+
     protected boolean isHeaderPanelHeaderVisible() {
         return false;
     }

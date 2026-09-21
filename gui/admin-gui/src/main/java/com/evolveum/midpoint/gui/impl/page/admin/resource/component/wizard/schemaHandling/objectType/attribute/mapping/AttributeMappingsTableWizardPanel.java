@@ -437,7 +437,8 @@ public abstract class AttributeMappingsTableWizardPanel<P extends Containerable>
                 getPageBase());
 
         button.add(new VisibleBehaviour(() ->
-                table.displayNoValuePanel() && !hasSuggestion(resourceOid)));
+                SmartIntegrationUtils.isSmartIntegrationAuthorized(getPageBase())
+                        && table.displayNoValuePanel() && !hasSuggestion(resourceOid)));
 
         button.setOutputMarkupId(true);
         button.showTitleAsLabel(true);
@@ -465,7 +466,8 @@ public abstract class AttributeMappingsTableWizardPanel<P extends Containerable>
         };
 
         button.add(new VisibleBehaviour(() ->
-                table.displayNoValuePanel() && hasSuggestion(resourceOid)));
+                SmartIntegrationUtils.isSmartIntegrationAuthorized(getPageBase())
+                        && table.displayNoValuePanel() && hasSuggestion(resourceOid)));
 
         button.add(AttributeModifier.append("class", "btn btn-purple"));
         button.setOutputMarkupId(true);

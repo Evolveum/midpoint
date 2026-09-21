@@ -43,6 +43,7 @@ import com.evolveum.midpoint.schema.processor.NativeResourceSchema;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.Resource;
+import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.smart.api.RegenerateMode;
 import com.evolveum.midpoint.smart.api.SmartIntegrationService;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
@@ -73,6 +74,21 @@ public class SmartIntegrationUtils {
     private static final String OP_LOAD_TASK = "loadTask";
 
     private static final int MAX_SIZE_FOR_ESTIMATION = 100;
+
+    /**
+     * Check if the currently logged-in user is authorized to use Smart integration
+     * functionality.
+     * Used to hide smart-suggestion actions in the GUI. The same authorization is enforced
+     * on the backend service and REST API levels.
+     */
+    public static boolean isSmartIntegrationAuthorized(@NotNull PageBase pageBase) {
+        try {
+            return pageBase.isAuthorized(AuthorizationConstants.AUTZ_UI_SMART_INTEGRATION_URL);
+        } catch (CommonException e) {
+            LOGGER.warn("Couldn't determine smart integration authorization", e);
+            return false;
+        }
+    }
 
     /**
      * Estimates the size of a given object class on the resource using smart integration services.
@@ -161,6 +177,11 @@ public class SmartIntegrationUtils {
             @NotNull List<DataAccessPermissionType> permissions,
             @Nullable RegenerateMode regenerateMode,
             @Nullable List<ResourceObjectTypeDefinitionType> previousObjectTypes) {
+        if (!isSmartIntegrationAuthorized(pageBase)) {
+            LOGGER.warn("User is not authorized to run object type suggestion for resource {} and class {}",
+                    resourceOid, objectClassName);
+            return false;
+        }
         OperationResult opResult = task.getResult();
         StatusInfo<ObjectTypesSuggestionType> suggestions = loadLatestObjectClassObjectTypeSuggestion(
                 pageBase, resourceOid, objectClassName, task, opResult);
@@ -205,6 +226,10 @@ public class SmartIntegrationUtils {
             @NotNull String operationName,
             @NotNull Task task) {
 
+        if (!isSmartIntegrationAuthorized(pageBase)) {
+            LOGGER.warn("User is not authorized to run association suggestion for resource {}", resourceOid);
+            return;
+        }
         OperationResult opResult = task.getResult();
         List<StatusInfo<AssociationsSuggestionType>> statuses =
                 loadAssociationSuggestions(pageBase, resourceOid, task, opResult);

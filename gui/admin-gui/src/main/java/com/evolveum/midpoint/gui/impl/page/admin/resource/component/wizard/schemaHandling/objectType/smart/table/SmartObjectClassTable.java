@@ -9,6 +9,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.sche
 
 import static com.evolveum.midpoint.gui.api.util.LocalizationUtil.translate;
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils.computeObjectClassSizeEstimationType;
+import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils.isSmartIntegrationAuthorized;
 import static com.evolveum.midpoint.gui.impl.util.StatusInfoTableUtil.createLinkStyleActionsColumn;
 
 import java.io.Serial;
@@ -572,6 +573,7 @@ public class SmartObjectClassTable<O extends PrismContainerValueWrapper<ComplexT
                                 false);
                     }
                 })
+                .visibilityChecker((rowModel, isHeader) -> isSmartIntegrationAuthorized(getPageBase()))
                 .buildInlineMenu();
     }
 

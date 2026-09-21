@@ -16,6 +16,7 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.web.component.dialog.SuggestionOption;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
 import org.apache.wicket.AttributeModifier;
@@ -94,11 +95,13 @@ public class SmartObjectTypeSuggestionWizardPanel extends AbstractWizardPanel<Re
             @Override
             protected void addCustomButtons(RepeatingView buttons) {
                 AjaxIconButton generateButton = buildGenerateSuggestionButton(buttons);
-                generateButton.add(new VisibleBehaviour(() -> !hasValidSuggestions(selectedModel.getObject())));
+                generateButton.add(new VisibleBehaviour(() -> SmartIntegrationUtils.isSmartIntegrationAuthorized(getPageBase())
+                        && !hasValidSuggestions(selectedModel.getObject())));
                 buttons.add(generateButton);
 
                 AjaxIconButton showSuggestionButton = buildShowSuggestionButton(buttons);
-                showSuggestionButton.add(new VisibleBehaviour(() -> hasValidSuggestions(selectedModel.getObject())));
+                showSuggestionButton.add(new VisibleBehaviour(() -> SmartIntegrationUtils.isSmartIntegrationAuthorized(getPageBase())
+                        && hasValidSuggestions(selectedModel.getObject())));
                 buttons.add(showSuggestionButton);
             }
 

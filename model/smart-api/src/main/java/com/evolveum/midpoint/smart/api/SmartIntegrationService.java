@@ -161,12 +161,12 @@ public interface SmartIntegrationService {
             @Nullable ResourceObjectTypeIdentification objectTypeIdentification,
             @Nullable QName objectClass,
             Task task, OperationResult result)
-            throws SchemaException, ObjectNotFoundException, ConfigurationException;
+            throws CommonException;
 
     /** Checks the status of the "suggest object types" request. */
     StatusInfo<ObjectTypesSuggestionType> getSuggestObjectTypesOperationStatus(
             String token, Task task, OperationResult result)
-            throws SchemaException, ObjectNotFoundException, ConfigurationException;
+            throws CommonException;
 
     /**
      * Submits "suggest focus type" request. Returns a token used to query the status.
@@ -181,12 +181,12 @@ public interface SmartIntegrationService {
      */
     List<StatusInfo<FocusTypeSuggestionType>> listSuggestFocusTypeOperationStatuses(
             String resourceOid, Task task, OperationResult result)
-            throws SchemaException, ObjectNotFoundException, ConfigurationException;
+            throws CommonException;
 
     /** Checks the status of the "suggest focus type" request. */
     StatusInfo<FocusTypeSuggestionType> getSuggestFocusTypeOperationStatus(
             String token, Task task, OperationResult result)
-            throws SchemaException, ObjectNotFoundException, ConfigurationException;
+            throws CommonException;
 
     /** Invokes the service client to suggest object types for the given resource and object class. */
     ObjectTypesSuggestionType suggestObjectTypes(
@@ -255,12 +255,12 @@ public interface SmartIntegrationService {
             String resourceOid,
             @Nullable ResourceObjectTypeIdentification objectTypeIdentification,
             Task task, OperationResult result)
-            throws SchemaException, ObjectNotFoundException, ConfigurationException;
+            throws CommonException;
 
     /** Checks the status of the "suggest correlation" request. */
     StatusInfo<CorrelationSuggestionsType> getSuggestCorrelationOperationStatus(
             String token, Task task, OperationResult result)
-            throws SchemaException, ObjectNotFoundException, ConfigurationException;
+            throws CommonException;
 
     /**
      * Suggests inbound/outbound mappings for the given resource object type and focus type.
@@ -327,12 +327,12 @@ public interface SmartIntegrationService {
             Boolean isInbound,
             Task task,
             OperationResult result)
-            throws SchemaException, ObjectNotFoundException, ConfigurationException;
+            throws CommonException;
 
     /** Checks the status of the "suggest mappings" request. */
     StatusInfo<MappingsSuggestionType> getSuggestMappingsOperationStatus(
             String token, Task task, OperationResult result)
-            throws SchemaException, ObjectNotFoundException, ConfigurationException;
+            throws CommonException;
 
     /**
      * Suggests association type definitions for the given resource. (Either for all object types, or with some restrictions.)
@@ -361,12 +361,12 @@ public interface SmartIntegrationService {
      */
     List<StatusInfo<AssociationsSuggestionType>> listSuggestAssociationsOperationStatuses(
             String resourceOid, Task task, OperationResult result)
-            throws SchemaException, ObjectNotFoundException, ConfigurationException;
+            throws CommonException;
 
     /** Checks the status of the "suggest associations" request. */
     StatusInfo<AssociationsSuggestionType> getSuggestAssociationsOperationStatus(
             String token, Task task, OperationResult result)
-            throws SchemaException, ObjectNotFoundException, ConfigurationException;
+            throws CommonException;
 
     /**
      * Cancels the request with the given token.
