@@ -55,14 +55,14 @@ public class SecurityUtils {
 
     public static boolean isMenuAuthorized(MainMenuItem item) {
         Class<?> clazz = item.getPageClass();
-        return clazz == null || !WebComponentUtil.isAuthorizationDeny(clazz);
+        return clazz == null || isPageAuthorized(clazz);
     }
 
     public static boolean isMenuAuthorized(@NotNull MenuItem item) {
         Class<? extends WebPage> clazz = item.getPageClass();
         List<String> authz = LeftMenuAuthzUtil.getAuthorizationsForPage(clazz);
         if (CollectionUtils.isNotEmpty(authz)) {
-            return !WebComponentUtil.isAuthorizationDeny(authz);
+            return WebComponentUtil.isAuthorized(authz);
         }
         return isPageAuthorized(clazz);
     }
