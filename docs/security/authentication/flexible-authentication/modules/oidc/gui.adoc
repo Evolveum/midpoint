@@ -3,10 +3,11 @@
 :page-nav-title: OIDC for GUI
 :page-keywords: oidc, openid, openid connect, authentication, flexible authentication, gui, web, login, client auth
 :page-description: This page  describes how to configure midPoint to use an OIDC authentication provider for GUI authentication.
+:toclevels: 4
 
 This page  describes how to configure midPoint to use an OIDC authentication provider for GUI authentication.
 
-This configuration consists of two steps, both of which take place in Security Policy configuration:
+This configuration consists of the following parts, both of which take place in the xref:/midpoint/reference/security/security-policy/[Security Policy configuration]:
 
 * xref:#create-oidc-module[Create an OIDC module]
 * xref:#create-oidc-sequence[Add a sequence referencing the OIDC module]
@@ -14,6 +15,271 @@ This configuration consists of two steps, both of which take place in Security P
 [#create-oidc-module]
 == Create an OIDC module
 
+The OIDC module is configured as `oidc` in the `modules` section of the `authentication` configuration.
+
+The elements of the `oidc` module configuration are described in the following table.
+
+// #TODO consider single article: OIDC section#
+
+[cols="1,1,1,1", options="header"]
+|===
+|Name | Description | Required | Type
+|`identifier`
+|Unique identifier among `module` elements.
+
+This identifier will be used to reference this module.
+|true
+|String
+
+|`client`
+|Parent element for the definition of OIDC client configuration.
+
+Multiple `client` configurations can be used.
+|false
+|Complex client type +
+See more in the xref:#client[client section] below.
+
+|`focusType`
+|Type of object this authentication module applies to, such as `UserType` or `RoleType`.
+
+Default value is `UserType`.
+|false
+|QName
+
+|`name`
+|Unique name of the authentication module
+
+Deprecated, use `identifier` instead.
+|false
+|String
+
+|===
+
+Configuration details of the individual elements listed in the table above are described in the following sections.
+
+See an <<example-configuration,example module configuration>> below.
+
+NOTE: While `client` is not mandatory as per specification, in order to successfully configure OIDC GUI authentication, it is necessary to use it.
+
+
+[#client]
+=== Available fields in `client` section
+
+[cols="1,1,1,1", options="header"]
+|===
+|Name | Description | Required | Type 
+
+|`registrationId` 
+|Unique identifier of the client.
+
+`RegistrationId` is used in different URLs path in OIDC workflows, so only correct symbols should be used.
+|true
+|String
+
+|`clientId`
+|Client Identifier set in the OIDC authentication provider
+|true
+|String
+
+|`openIdProvider`
+|Parent element for the definition of OIDC provider endpoints configuration.
+|true
+|Complex xref:#openIdProvider[openIdProvider type]
+
+|`clientAuthenticationMethod`
+|Defines the method midPoint will use to perform client authentication.
+
+Based on the setting chosen here, additional fields may become mandatory. See xref:#clientAuthenticationMethodImplications[clientAuthenticationMethod implications].
+
+Possible values: `clientSecretBasic`, `clientSecretPost`, `clientSecretJwt`, `privateKeyJwt` and `none`.
+|false
+|String
+
+|`clientSecret`
+|Client secret set in the OIDC authentication provider.
+|false
+|ProtectedStringType
+
+|`simpleProofKey`
+|Parent element holding the private key and information necessary to use it.
+|false
+|Complex xref:#simpleProofKey[simpleProofKey type]
+
+|`keyStoreProofKey`
+|Parent element holding information about the private key and the keystore holding it. 
+// #TODO DEVS private, really?#
+|false
+|Complex xref:#AbstractKeyStoreKeyType[AbstractKeyStoreKeyType]
+
+|`clientSigningAlgorithm`
+|It specifies which cryptographic algorithm midPoint uses to digitally sign messages it sends to the OIDC provider.
+
+Potential values are link:https://datatracker.ietf.org/doc/html/rfc7518#section-3.1[RFC7518 §3.1] algorithms.
+|false
+|String
+
+|`idTokenSigningAlgorithm`
+|It specifies the cryptographic algorithm used by the OIDC provider to digitally sign the ID token.
+
+Default value is `RS256`.
+
+Potential values are link:https://datatracker.ietf.org/doc/html/rfc7518#section-3.1[RFC7518 §3.1] algorithms.
+|false
+|String
+
+|`scope`
+|This parameter can be used to narrow down the scope of access.
+
+This is a multi-value parameter. For multiple values, add this parameter multiple times, each time with a single value.
+
+The value `openid` is added by default.
+
+More information in link:https://datatracker.ietf.org/doc/html/rfc6749#section-3.3[RFC6749 §3.3 definition].
+|false
+|String
+
+|`clientName`
+|
+//#TODO description is copy/paste from schema. What is it used for, where etc.?#
+|false
+|String
+
+|`nameOfUsernameAttribute`
+|Name of the attribute, provided by the OIDC authentication provider, referring to the subject of authentication, such as `preferred_username`.
+
+Default value is `sub`.
+|false
+|String
+
+|`usePkce`
+|Whether to use Proof Key for Code Exchange (PKCE) for the OIDC authentication flow. +
+Default value is `false`.
+
+|false
+|Boolean
+
+|===
+
+[#openIdProvider]
+==== Available fields in `openIdProvider` section
+This configuration has one mandatory child element - `issuerUri`.
+
+Provided that your OIDC authentication provider exposes its metadata on the standard endpoint `<issuerUri>/.well-known/openid-configuration`, it is enough to only configure the `issuerUri` element.
+If that doesn't apply, all remaining fields become mandatory. 
+
+[cols="1,1,1,1", options="header"]
+|===
+|Name | Description | Required | Type
+
+|`issuerUri`
+|URI for the OIDC authentication provider. This URI is not only accessed by Midpoint, but also by the user's browser.
+|true
+|String
+
+|`authorizationUri`
+| Uri for the authorization endpoint of the OIDC authentication provider. This URI is accessed by the user's browser.
+|false
+|String
+
+|`tokenUri`
+|Uri for the token endpoint of the OIDC authentication provider. This URI is accessed by midPoint.
+|false
+|String
+
+|`userInfoUri`
+|Uri for the user info endpoint of the OIDC authentication provider. This URI is accessed by midPoint.
+|false
+|String
+
+|`endSessionUri`
+|Uri for the logout session endpoint of the OIDC authentication provider. This URI is accessed by the user's browser.
+|false
+|String
+
+|`jwkSetUri`
+|Uri for the OIDC authentication provider's endpoint providing public keys used for signing JWT tokens. This URI is accessed by midPoint.
+// #TODO To sign or to verify? Perhaps provided by OIDC server, that signs. To midPoint that verifies?#
+|false
+|String
+
+|===
+
+[#simpleProofKey]
+==== Available fields in `simpleProofKey` section
+
+[cols="1,1,1,1", options="header"]
+|===
+
+|Name | Description | Required | Type
+
+|`privateKey`
+|Private key
+|true
+|ProtectedStringType
+
+|`passphrase`
+|Key passphrase
+|true
+|ProtectedStringType
+
+|`certificate`
+|Certificate
+|true
+|ProtectedStringType
+
+|===
+
+[#AbstractKeyStoreKeyType]
+==== `AbstractKeyStoreKeyType` section
+
+[cols="1,1,1,1", options="header"]
+|===
+
+|Name | Description | Required | Type
+
+|`keyStorePath`
+|Path to the keystore file
+|true
+|String
+
+|`keyStorePassword`
+|Password for the keystore
+|true
+|ProtectedStringType
+
+|`keyAlias`
+|Alias of the private key in the keystore
+|true
+|ProtectedStringType
+
+|`keyPassword`
+|Password for the private key with the _keyAlias_ in the keystore
+|true
+|ProtectedStringType
+
+|===
+
+[#clientAuthenticationMethodImplications]
+==== Field `clientAuthenticationMethod` implications
+
+[cols="1,1", options="header"]
+|===
+
+|Value | Required fields
+
+|`clientSecretBasic` | `clientSecret`
+|`clientSecretPost` | `clientSecret`
+|`clientSecretJwt` | `clientSecret` and `clientSigningAlgorithm`
+|`privateKeyJwt` | `simpleProofKey` or `keyStoreProofKey`
+|`none` | none
+
+|===
+
+NOTE: Field `clientAuthenticationMethod` itself is not mandatory. When not present, midPoint will rely on the information available on the OIDC discovery endpoint `<openIdProvider / issuerUri>/.well-known/openid-configuration`.
+
+NOTE: `none` is not recommended to use for its security implications, more specifically, lack of them.
+
+[[example-configuration]]
 === Example
 
 This is a simple example of OIDC module configuration, using sample values.
@@ -48,292 +314,17 @@ This is a simple example of OIDC module configuration, using sample values.
 </securityPolicy>
 ----
 
-=== Available fields in `oidc` section
-
-#TODO consider single article: OIDC section#
-
-NOTE: While `client` is not mandatory as per specification, in order to successfully configure OIDC GUI authentication, it is necessary to use it.
-
-[cols="1,1,1,1", options="header"]
-|===
-|Name | Description | Required | Type
-|`identifier`
-|Unique identifier among `module` elements.
-
-This identifier will be used to reference this module.
-|true
-|String
-
-|`client`
-|Parent element for the definition of OIDC client configuration.
-
-Multiple `client` configurations can be used.
-|false
-|Complex xref:#client[client type]
-
-|`focusType`
-|Type of object this authentication module applies to, such as `UserType` or `RoleType`.
-
-Default value is `UserType`.
-|false
-|QName
-
-|`name`
-|Unique name of the authentication module
-
-Deprecated, use `identifier` instead.
-|false
-|String
-
-|===
-
-[#client]
-=== Available fields in `client` section
-
-[cols="1,1,1,1", options="header"]
-|===
-|Name | Description | Required | Type 
-
-|`registrationId` 
-|Unique identifier of the client.
-
-RegistrationId is used in different URLs path in OIDC workflows, so only correct symbols should be used.
-|true
-|String
-
-|`clientId`
-|Client Identifier set in the OIDC authentication provider
-|true
-|String
-
-|`openIdProvider`
-|Parent element for the definition of OIDC provider endpoints configuration.
-|true
-|Complex xref:#openIdProvider[openIdProvider type]
-
-|`clientAuthenticationMethod`
-|Defines the method midPoint will use to perform client authentication.
-
-Based on the setting chosen here, additional fields may become mandatory. See xref:#clientAuthenticationMethodImplications[clientAuthenticationMethod implications].
-
-Possible values: `clientSecretBasic`, `clientSecretPost`, `clientSecretJwt`, `privateKeyJwt` and `none`.
-|false
-|String
-
-|`clientSecret`
-|Client secret set in the OIDC authentication provider.
-|false
-|ProtectedStringType
-
-|`simpleProofKey`
-|Parent element holding the private key and information necessary to use it.
-|false
-|Complex xref:#simpleProofKey[simpleProofKey type]
-
-|`keyStoreProofKey`
-|Parent element holding information about the private key and the keystore holding it. #TODO DEVS private, really?#
-|false
-|Complex xref:#AbstractKeyStoreKeyType[AbstractKeyStoreKeyType]
-
-|`clientSigningAlgorithm`
-|It specifies which cryptographic algorithm midPoint uses to digitally sign messages it sends to the OIDC provider.
-
-Potential values are link:https://datatracker.ietf.org/doc/html/rfc7518#section-3.1[RFC7518 §3.1] algorithms.
-|false
-|String
-
-|`idTokenSigningAlgorithm`
-|It specifies the cryptographic algorithm used by the OIDC provider to digitally sign the ID token.
-
-Default value is `RS256`.
-
-Potential values are link:https://datatracker.ietf.org/doc/html/rfc7518#section-3.1[RFC7518 §3.1] algorithms.
-|false
-|String
-
-|`scope`
-|This parameter can be used to narrow down the scope of access.
-
-This is a multi-value parameter. For multiple values, add this parameter multiple times, each time with a single value.
-
-The value `openid` is added by default.
-
-More information in link:https://datatracker.ietf.org/doc/html/rfc6749#section-3.3[RFC6749 §3.3 definition].
-|false
-|String
-
-|`clientName`
-|Human friendly name of client. #TODO description is copy/paste from schema. What is it used for, where etc.?#
-|false
-|String
-
-|`nameOfUsernameAttribute`
-|Name of the attribute, provided by the OIDC authentication provider, refering to the subject of authentication, such as `preferred_username`.
-
-Default value is `sub`.
-|false
-|String
-
-|`usePkce`
-|Whether to use Proof Key for Code Exchange (PKCE) for the OIDC authentication flow.
-
-Default value is `false`.
-|false
-|Boolean
-|===
-
-[#openIdProvider]
-=== Available fields in `openIdProvider` section
-This configuration have one mandatory child element - `issuerUri`.
-
-Provided that your OIDC authentication provider exposes its metadata on the standard endpoint `<issuerUri>/.well-known/openid-configuration`, it is enough to only configure the `issuerUri` element. If that doesn't apply, all remaining fields become mandatory. 
-[cols="1,1,1,1", options="header"]
-|===
-|Name | Description | Required | Type
-
-|`issuerUri`
-|URI for the OIDC authentication provider. This URI is not only accessed by Midpoint, but also by the user's browser.
-|true
-|String
-
-|`authorizationUri`
-| Uri for the authorization endpoint of the OIDC authentication provider. This URI is accessed by the user's browser.
-|false
-|String
-
-|`tokenUri`
-|Uri for the token endpoint of the OIDC authentication provider. This URI is accessed by midPoint.
-|false
-|String
-
-|`userInfoUri`
-|Uri for the user info endpoint of the OIDC authentication provider. This URI is accessed by midPoint.
-|false
-|String
-
-|`endSessionUri`
-|Uri for the logout session endpoint of the OIDC authentication provider. This URI is accessed by the user's browser.
-|false
-|String
-
-|`jwkSetUri`
-|Uri for the OIDC authentication provider's endpoint providing public keys used for signing JWT tokens. This URI is accessed by midPoint. #TODO To sign or to verify? Perhaps provided by OIDC server, that signs. To midPoint that verifies?#
-|false
-|String
-
-|===
-
-[#simpleProofKey]
-=== Available fields in `simpleProofKey` section
-
-[cols="1,1,1,1", options="header"]
-|===
-
-|Name | Description | Required | Type
-
-|`privateKey`
-|Private key
-|true
-|ProtectedStringType
-
-|`passphrase`
-|Key passphrase
-|true
-|ProtectedStringType
-
-|`certificate`
-|Certificate
-|true
-|ProtectedStringType
-
-|===
-
-[#AbstractKeyStoreKeyType]
-=== `AbstractKeyStoreKeyType` section
-
-[cols="1,1,1,1", options="header"]
-|===
-
-|Name | Description | Required | Type
-
-|`keyStorePath`
-|Path to the keystore file
-|true
-|String
-
-|`keyStorePassword`
-|Password for the keystore
-|true
-|ProtectedStringType
-
-|`keyAlias`
-|Alias of the private key in the keystore
-|true
-|ProtectedStringType
-
-|`keyPassword`
-|Password for the private key with the _keyAlias_ in the keystore
-|true
-|ProtectedStringType
-
-|===
-
-[#clientAuthenticationMethodImplications]
-=== Field `clientAuthenticationMethod` implications
-
-[cols="1,1", options="header"]
-|===
-
-|Value | Required fields
-
-|`clientSecretBasic` | `clientSecret`
-|`clientSecretPost` | `clientSecret`
-|`clientSecretJwt` | `clientSecret` and `clientSigningAlgorithm`
-|`privateKeyJwt` | `simpleProofKey` or `keyStoreProofKey`
-|`none` | none
-
-|===
-
-NOTE: Field `clientAuthenticationMethod` itself is not mandatory. When not present, midPoint will rely on the information available on the OIDC discovery endpoint `<openIdProvider / issuerUri>/.well-known/openid-configuration`.
-
-NOTE: `none` is not recommended to use for its security implications, more specifically, lack of them.
 
 [#create-oidc-sequence]
 == Add a sequence referencing the OIDC module
 
-=== Example
+An authentication sequence defines the authentication flow for a particular channel.
+It specifies which authentication modules are used and how they participate in the authentication process.
+To enable OIDC authentication for the GUI, configure a sequence for the GUI channel and reference the OIDC module in it.
 
-This is a simple example of OIDC module configuration, using sample values.
+The sequence has the following fields:
 
-[source, xml]
-----
-<securityPolicy>
-    <authentication>
-        ...
-
-        <!-- Sequence referencing the OIDC GUI module demo -->
-        <sequence> 
-            <identifier>gui-oidc</identifier>
-            <channel>
-                <channelId>http://midpoint.evolveum.com/xml/ns/public/common/channels-3#user</channelId>
-                <default>true</default>
-                <urlSuffix>gui-oidc</urlSuffix>
-            </channel>
-            <module>
-                <identifier>gui-oidc</identifier>
-            </module>
-        </sequence>
-        
-        ...
-    </authentication>
-</securityPolicy>
-----
-
-
-[#sequence]
-=== Available fields in `sequence` section
-
-#TODO consider single article: Sequence section#
+// #TODO consider single article: Sequence section#
 
 [cols="1,1,1,1", options="header"]
 |===
@@ -381,7 +372,7 @@ The authenticated user must hold all of the listed assignment targets. If not, t
 
 For multiple targets, add this parameter multiple times, each time with a single value.
 
-Example usecase: emergency administrator access - can only work for administrator roles.
+Example use case: emergency administrator access - can only work for administrator roles.
 
 Example value: `<requireAssignmentTarget oid="00000000-0000-0000-0000-000000000004" relation="org:default" type="c:RoleType"/>`
 |false
@@ -394,7 +385,7 @@ The authenticated user must carry one of the listed node groups (archetypes). If
 
 For multiple targets, add this parameter multiple times, each time with a single value.
 
-Example usecase: Only manageers can log in to the GUI, but not regular users.
+Example use case: Only managers can log in to the GUI, but not regular users.
 
 Example value: `<nodeGroup oid="05b6933a-b7fc-4543-b8fa-fd8b278ff9ee" relation="org:default" type="c:ArchetypeType"/>`
 |false
@@ -416,6 +407,8 @@ Default value is `enabled`.
 |String
 
 |===
+
+See an <<example-sequence,example sequence>> below.
 
 [#channel]
 === Available fields in `channel` section
@@ -503,3 +496,32 @@ Default value is: `sufficient`.
 |String
 
 |===
+
+[[example-sequence]]
+=== Example
+
+This is a simple example of a sequence referencing an OIDC module configuration, using sample values.
+
+[source, xml]
+----
+<securityPolicy>
+    <authentication>
+        ...
+
+        <!-- Sequence referencing the OIDC GUI module demo -->
+        <sequence> 
+            <identifier>gui-oidc</identifier>
+            <channel>
+                <channelId>http://midpoint.evolveum.com/xml/ns/public/common/channels-3#user</channelId>
+                <default>true</default>
+                <urlSuffix>gui-oidc</urlSuffix>
+            </channel>
+            <module>
+                <identifier>gui-oidc</identifier>
+            </module>
+        </sequence>
+        
+        ...
+    </authentication>
+</securityPolicy>
+----
