@@ -35,6 +35,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TransformExpressionE
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TransformExpressionRelativityModeType;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Evaluates transformational expression: one that transforms input values to output values.
@@ -63,7 +64,7 @@ public abstract class AbstractValueTransformationExpressionEvaluator
     protected AbstractValueTransformationExpressionEvaluator(
             QName elementName,
             E expressionEvaluatorType,
-            D outputDefinition,
+            @Nullable D outputDefinition,
             Protector protector,
             LocalizationService localizationService) {
         super(elementName, expressionEvaluatorType, outputDefinition, protector);

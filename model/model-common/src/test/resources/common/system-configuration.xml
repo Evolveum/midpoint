@@ -29,6 +29,10 @@
                 <type>null</type>
                 <decision>allow</decision>
             </evaluator>
+            <evaluator>
+                <type>javaMethodReference</type>
+                <decision>allow</decision>
+            </evaluator>
             <!-- Const is safe. But we need something to prohibit here.
             <evaluator>
                 <type>const</type>

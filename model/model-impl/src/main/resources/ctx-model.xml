@@ -124,6 +124,20 @@
         <constructor-arg name="systemObjectCache" ref="systemObjectCache"/>
     </bean>
 
+    <bean id="javaMethodReferenceExpressionEvaluatorFactory"
+            class="com.evolveum.midpoint.model.common.expression.evaluator.JavaMethodReferenceExpressionEvaluatorFactory">
+        <constructor-arg name="configuration">
+            <bean factory-bean="midpointConfiguration" factory-method="getExpressionsSection"/>
+        </constructor-arg>
+        <constructor-arg name="builtInLibraryBindings">
+            <list>
+                <ref bean="basicFunctionLibrary"/>
+                <ref bean="logFunctionLibrary"/>
+                <ref bean="midpointFunctionLibrary"/>
+            </list>
+        </constructor-arg>
+    </bean>
+
     <bean id="functionExpressionEvaluatorFactory"
             class="com.evolveum.midpoint.model.common.expression.evaluator.FunctionExpressionEvaluatorFactory">
         <constructor-arg ref="expressionFactory"/>

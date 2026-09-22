@@ -6755,6 +6755,14 @@
 
     <xsd:element name="script" type="tns:ScriptExpressionEvaluatorType" substitutionGroup="tns:expressionEvaluator"/>
 
+    <xsd:element name="javaMethodReference" type="tns:JavaMethodReferenceExpressionEvaluatorType" substitutionGroup="tns:expressionEvaluator">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <a:since>4.11</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+    </xsd:element>
+
     <xsd:element name="path" type="t:ItemPathType" substitutionGroup="tns:expressionEvaluator"/>
 
     <xsd:complexType name="TransformExpressionEvaluatorType" abstract="true">
@@ -6905,6 +6913,49 @@
                                 <a:since>4.2</a:since>
                                 <a:experimental>true</a:experimental>
                             </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="JavaMethodReferenceExpressionEvaluatorType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Evaluates an expression by calling specified Java method.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.11</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:TransformExpressionEvaluatorType">
+                <xsd:sequence>
+                    <xsd:element name="className" type="xsd:string">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Name of the class where the method resides.
+
+                                The class must be in a package that is allowed to be called in this way by including its
+                                name in "midpoint/expressions/javaMethodEvaluatorPackageName" setting in "config.xml".
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="methodName" type="xsd:string">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Name of the method to be called.
+                                The method must be public and static.
+
+                                Its parameters must have names corresponding to names of input variables.
+
+                                Special cases for parameters:
+
+                                - If there is a parameter of type Task or OperationResult, it will be provided with the current task or operation result object.
+                                - If there is a parameter of type MidpointFunctions, LogExpressionFunctions, or BasicExpressionFunctions,
+                                it will be provided with the respective function library object.
+                            </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
                 </xsd:sequence>

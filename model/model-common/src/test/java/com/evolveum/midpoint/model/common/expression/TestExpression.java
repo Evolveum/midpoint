@@ -80,6 +80,11 @@ public class TestExpression extends AbstractModelCommonTest {
     protected static final File EXPRESSION_SCRIPT_GROOVY_SYSTEM_ALLOW_FILE = new File(TEST_DIR, "expression-script-groovy-system-allow.xml");
     protected static final File EXPRESSION_SCRIPT_GROOVY_SYSTEM_DENY_FILE = new File(TEST_DIR, "expression-script-groovy-system-deny.xml");
     protected static final File EXPRESSION_SCRIPT_JAVASCRIPT_FILE = new File(TEST_DIR, "expression-script-javascript.xml");
+    private static final File EXPRESSION_JAVA_METHOD_REFERENCE_FILE = new File(TEST_DIR, "expression-java-method-reference-hello.xml");
+    private static final File EXPRESSION_JAVA_METHOD_REFERENCE_CHECK_ENV_FILE = new File(TEST_DIR, "expression-java-method-reference-check-env.xml");
+    private static final File EXPRESSION_JAVA_METHOD_REFERENCE_NON_EXISTING_VARIABLE_FILE = new File(TEST_DIR, "expression-java-method-reference-non-existing-variable.xml");
+    private static final File EXPRESSION_JAVA_METHOD_REFERENCE_UNKNOWN_CLASS_FILE = new File(TEST_DIR, "expression-java-method-reference-unknown-class.xml");
+    private static final File EXPRESSION_JAVA_METHOD_REFERENCE_UNKNOWN_METHOD_FILE = new File(TEST_DIR, "expression-java-method-reference-unknown-method.xml");
 
     protected static final String VAR_FOO_NAME = "foo";
     protected static final String VAR_FOO_VALUE = "F00";
@@ -381,6 +386,113 @@ public class TestExpression extends AbstractModelCommonTest {
                 .assertSinglePropertyValue(VAR_FOO_VALUE + VAR_BAR_VALUE);
 
         assertScriptExecutionIncrement(1);
+    }
+
+    @Test
+    public void test170JavaMethodReference() throws Exception {
+        given();
+        OperationResult result = createOperationResult();
+
+        var expressionType = parseExpression(EXPRESSION_JAVA_METHOD_REFERENCE_FILE);
+        VariablesMap variables = prepareBasicVariables();
+        var expressionContext = new ExpressionEvaluationContext(null, variables, getTestNameShort(), createTask());
+
+        when();
+        PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple =
+                evaluatePropertyExpression(expressionType, PrimitiveType.STRING, expressionContext, result);
+
+        then();
+        assertOutputTriple(outputTriple)
+                .assertEmptyMinus()
+                .assertEmptyPlus()
+                .zeroSet()
+                .assertSinglePropertyValue(VAR_FOO_VALUE + VAR_BAR_VALUE);
+    }
+
+    @Test
+    public void test171JavaMethodReferenceCheckEnv() throws Exception {
+        given();
+        OperationResult result = createOperationResult();
+
+        var expressionType = parseExpression(EXPRESSION_JAVA_METHOD_REFERENCE_CHECK_ENV_FILE);
+        VariablesMap variables = prepareBasicVariables();
+        var expressionContext = new ExpressionEvaluationContext(null, variables, getTestNameShort(), createTask());
+
+        when();
+        PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple =
+                evaluatePropertyExpression(expressionType, PrimitiveType.STRING, expressionContext, result);
+
+        then();
+        // The method itself asserts (via MiscUtil.stateNonNull) that all the auto-injected
+        // parameters (log, basic, task, result, vtCtx) are actually provided by the evaluator.
+        assertOutputTriple(outputTriple)
+                .assertEmptyMinus()
+                .assertEmptyPlus()
+                .zeroSet()
+                .assertSinglePropertyValue("Hello, " + VAR_FOO_VALUE);
+    }
+
+    @Test
+    public void test172JavaMethodReferenceNonExistingVariable() throws Exception {
+        given();
+        OperationResult result = createOperationResult();
+
+        var expressionType = parseExpression(EXPRESSION_JAVA_METHOD_REFERENCE_NON_EXISTING_VARIABLE_FILE);
+        VariablesMap variables = prepareBasicVariables();
+        var expressionContext = new ExpressionEvaluationContext(null, variables, getTestNameShort(), createTask());
+
+        when();
+        try {
+            evaluatePropertyExpression(expressionType, PrimitiveType.STRING, expressionContext, result);
+
+            AssertJUnit.fail("Unexpected success of expression evaluation");
+        } catch (ExpressionEvaluationException e) {
+            then();
+            assertExpectedException(e)
+                    .hasMessageContaining("No variable found for parameter 'wrong'");
+        }
+    }
+
+    @Test
+    public void test173JavaMethodReferenceUnknownClass() throws Exception {
+        given();
+        OperationResult result = createOperationResult();
+
+        var expressionType = parseExpression(EXPRESSION_JAVA_METHOD_REFERENCE_UNKNOWN_CLASS_FILE);
+        VariablesMap variables = prepareBasicVariables();
+        var expressionContext = new ExpressionEvaluationContext(null, variables, getTestNameShort(), createTask());
+
+        when();
+        try {
+            evaluatePropertyExpression(expressionType, PrimitiveType.STRING, expressionContext, result);
+
+            AssertJUnit.fail("Unexpected success of expression evaluation");
+        } catch (ExpressionEvaluationException e) {
+            then();
+            assertExpectedException(e)
+                    .hasMessageContaining("Class not found");
+        }
+    }
+
+    @Test
+    public void test174JavaMethodReferenceUnknownMethod() throws Exception {
+        given();
+        OperationResult result = createOperationResult();
+
+        var expressionType = parseExpression(EXPRESSION_JAVA_METHOD_REFERENCE_UNKNOWN_METHOD_FILE);
+        VariablesMap variables = prepareBasicVariables();
+        var expressionContext = new ExpressionEvaluationContext(null, variables, getTestNameShort(), createTask());
+
+        when();
+        try {
+            evaluatePropertyExpression(expressionType, PrimitiveType.STRING, expressionContext, result);
+
+            AssertJUnit.fail("Unexpected success of expression evaluation");
+        } catch (ExpressionEvaluationException e) {
+            then();
+            assertExpectedException(e)
+                    .hasMessageContaining("Expected exactly one method named 'unknownMethod'");
+        }
     }
 
     @Test
