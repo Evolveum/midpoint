@@ -27,7 +27,7 @@ public class CelTestingExtensions extends AbstractMidPointCelExtensions {
     protected ImmutableSet<Function> initializeFunctions() {
         return ImmutableSet.of(
 
-            // debugDump(param)
+            // testing.hello(param)
             new Function(
                     CelFunctionDecl.newFunctionDeclaration(
                             "testing.hello",
