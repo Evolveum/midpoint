@@ -20885,10 +20885,12 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="data" type="xsd:string" minOccurs="0">
+                    <xsd:element name="data" type="xsd:anyType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Full data of the report.
+                                Partial data of the report produced by one bucket of a distributed report export.
+                                Text formats (CSV, HTML) store it as xsd:string, binary formats (XLSX) as xsd:base64Binary.
+                                Present only on partial report data objects, which exist until the aggregation consumes them.
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:experimental>true</a:experimental>

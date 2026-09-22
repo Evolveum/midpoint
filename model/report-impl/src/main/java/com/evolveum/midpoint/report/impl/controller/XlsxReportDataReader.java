@@ -110,7 +110,7 @@ public class XlsxReportDataReader implements ReportDataReader {
     }
 
     /** Values of all cells up to the last defined one; missing cells yield empty strings. */
-    private static List<String> readCells(Row row, DataFormatter formatter) {
+    static List<String> readCells(Row row, DataFormatter formatter) {
         List<String> values = new ArrayList<>();
         for (int i = 0; i < row.getLastCellNum(); i++) {
             Cell cell = row.getCell(i, Row.MissingCellPolicy.RETURN_BLANK_AS_NULL);

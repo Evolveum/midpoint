@@ -6,31 +6,30 @@
 
 package com.evolveum.midpoint.report.impl.activity;
 
+import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
+
+import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
+
+import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.common.activity.run.*;
 import com.evolveum.midpoint.repo.common.activity.run.processing.ItemProcessingRequest;
 import com.evolveum.midpoint.report.impl.ReportUtils;
+import com.evolveum.midpoint.report.impl.controller.DistributableReportDataWriter;
 import com.evolveum.midpoint.report.impl.controller.ExportedReportDataRow;
 import com.evolveum.midpoint.report.impl.controller.ExportedReportHeaderRow;
-import com.evolveum.midpoint.report.impl.controller.TextReportDataWriter;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.RunningTask;
+import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FileFormatTypeType;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportExportWorkStateType;
-
-import org.jetbrains.annotations.NotNull;
-
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportDataType;
-
-import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportExportWorkStateType;
 
 final class ReportDataAggregationActivityRun
         extends SearchBasedActivityRun
@@ -44,15 +43,8 @@ final class ReportDataAggregationActivityRun
     /** Helper functionality for the "distributed report exports" activity. */
     @NotNull private final DistributedReportExportActivitySupport support;
 
-    /**
-     * Data from all the partial reports.
-     *
-     * TODO eliminate gathering in memory: write to a file immediately after getting the data.
-     */
-    private final StringBuilder aggregatedData = new StringBuilder();
-
-    /** Data writer which completes the content of the report (e.g. by providing HTML code at the end) */
-    private TextReportDataWriter<ExportedReportDataRow, ExportedReportHeaderRow> completingDataWriter;
+    /** Data writer which merges the partial data and completes the content of the report (e.g. by providing HTML code at the end) */
+    private DistributableReportDataWriter<ExportedReportDataRow, ExportedReportHeaderRow> completingDataWriter;
 
     /** The number of bucket we expect (during collection of partial results). */
     private int expectedSequentialNumber = 1;
@@ -79,7 +71,7 @@ final class ReportDataAggregationActivityRun
 
         support.beforeRun(result);
 
-        completingDataWriter = ReportUtils.createTextDataWriter(
+        completingDataWriter = ReportUtils.createDistributableDataWriter(
                 support.getReport(),
                 FileFormatTypeType.CSV, // default type
                 getActivityHandler().reportService,
@@ -110,7 +102,11 @@ final class ReportDataAggregationActivityRun
             throws CommonException {
         LOGGER.info("Appending data from {} (and deleting the object)", reportData);
         checkSequentialNumber(reportData); // TODO check also the total # of buckets (after we know it at the start!)
-        aggregatedData.append(reportData.getData());
+        try {
+            completingDataWriter.appendPartialData(reportData);
+        } catch (IOException e) {
+            throw new SystemException("Couldn't process partial report data " + reportData, e);
+        }
         getActivityHandler().commonTaskBeans.repositoryService.deleteObject(ReportDataType.class, reportData.getOid(), result);
         return true;
     }
@@ -126,10 +122,6 @@ final class ReportDataAggregationActivityRun
 
     @Override
     public void afterRun(OperationResult result) throws CommonException {
-        support.saveAggregatedReportData(
-                aggregatedData.toString(),
-                completingDataWriter,
-                support.getGlobalReportDataRef(),
-                result);
+        support.saveAggregatedReportData(completingDataWriter, support.getGlobalReportDataRef(), result);
     }
 }
