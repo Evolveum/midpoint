@@ -76,7 +76,7 @@ The ticket is managed as a projection (a shadow of the `work` kind) of the midPo
 * Multiple libraries updated, including spring boot.
 * Many improvements in accessibility of the self-service, approval process and identity recovery user interface (WCAG 2.2 compliance).
 * bug:MID-10997[] Added support for additional footer.
-* bug:MID-11036[] Implemented export to XLSX.
+* bug:MID-11036[] Implemented support for exporting reports and tables to XLSX.
 * bug:MID-11229[] Implemented streaming export for XLSX format.
 * bug:MID-10918[] Improved audit record for skipped approval stage.
 * bug:MID-9476[] Improved Search Box in Object Collection View.
