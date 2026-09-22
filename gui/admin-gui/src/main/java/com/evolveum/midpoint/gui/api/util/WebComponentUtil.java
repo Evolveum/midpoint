@@ -2541,7 +2541,7 @@ public final class WebComponentUtil {
             return builder.build();
         }
 
-        if (ProvisioningObjectsUtil.activationNotSupported(resource)) {
+        if (ProvisioningObjectsUtil.activationNotSupported(resource, shadow)) {
             appendNotSupportedActivation(title, isColumn, pageBase, builder);
             return builder.build();
         }

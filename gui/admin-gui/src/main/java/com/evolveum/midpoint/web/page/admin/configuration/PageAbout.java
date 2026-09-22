@@ -685,7 +685,7 @@ public class PageAbout extends PageAdminConfiguration {
         last.add(ObjectTypes.OBJECT_COLLECTION);
         last.add(ObjectTypes.ARCHETYPE);
         last.add(ObjectTypes.SECURITY_POLICY);
-        last.add(ObjectTypes.PASSWORD_POLICY);
+        last.add(ObjectTypes.VALUE_POLICY);
         last.add(ObjectTypes.SYSTEM_CONFIGURATION);
 
         final List<ObjectTypes> types = new ArrayList<>();
