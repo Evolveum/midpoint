@@ -3,10 +3,11 @@
 :page-nav-title: OIDC for REST
 :page-keywords: oidc, openid connect, authentication, flexible authentication, rest, api, oauth2
 :page-description: This page describes how to configure midPoint to use an OIDC authentication provider for REST API authentication.
+:toclevels: 5
 
 This page describes how to configure midPoint to use an OIDC authentication provider for REST API authentication.
 
-This configuration consists of two steps, both of which take place in Security Policy configuration:
+This configuration consists of the following parts, both of which take place in the xref:/midpoint/reference/security/security-policy/[Security Policy configuration]:
 
 * xref:#create-oidc-module[Create an OIDC module]
 * xref:#create-oidc-sequence[Add a sequence referencing the OIDC module]
@@ -14,40 +15,11 @@ This configuration consists of two steps, both of which take place in Security P
 [#create-oidc-module]
 == Create an OIDC module
 
-=== Example
+The OIDC module is configured as `oidc` in the `modules` section of the `authentication` configuration.
 
-This is a simple example of OIDC module configuration, using sample values.
+The elements of the `oidc` module configuration are described in the following table.
 
-[source, xml]
-----
-<securityPolicy>
-    <authentication>
-        <modules>
-            ...
-
-            <!-- OIDC module for REST demo -->
-            <oidc>
-                <identifier>oidcResourceServer</identifier>
-                <resourceServer>
-                    <jwt> <!-- or opaqueToken -->
-                        <issuerUri>https://keycloak.lab.evolveum.com/auth/realms/test</issuerUri>
-                        <nameOfUsernameClaim>preferred_username</nameOfUsernameClaim>
-                    </jwt>
-                </resourceServer>
-            </oidc>
-
-            ...
-        </modules>
-    </authentication>
-</securityPolicy>
-----
-
-[#oidc]
-=== Available fields in `oidc` section
-
-#TODO consider single article: OIDC section#
-
-NOTE: While `resourceServer` is not mandatory as per specification, in order to successfully configure OIDC REST authentication, it is necessary to use it.
+// #TODO consider single article: OIDC section#
 
 [cols="1,1,1,1", options="header"]
 |===
@@ -79,6 +51,12 @@ Deprecated, use `identifier` instead.
 |String
 
 |===
+
+Configuration details of the individual elements listed in the table above are described in the following sections.
+
+See an <<example-configuration,example module configuration>> below.
+
+NOTE: While `resourceServer` is not mandatory as per specification, in order to successfully configure OIDC REST authentication, it is necessary to use it.
 
 [#resourceServer]
 === Available fields in `resourceServer` section
@@ -153,11 +131,12 @@ NOTE: While neither of `jwt` or `opaqueToken` is mandatory, at least one of them
 |===
 ====
 
-#TODO: Token configuration and Token configuration2 below displays the same information differently. Evaluate which one is better.#
-[[tokenConfiguration]]
-=== Token configuration 1
+//#TODO: Token configuration and Token configuration2 below displays the same information differently. Evaluate which one is better.#
 
-This table contains methods to obtain public key. They are all mutually exclusive and evaluted in the order they are listed:
+[[tokenConfiguration]]
+==== Token configuration 1
+
+This table contains methods to obtain public key. They are all mutually exclusive and evaluated in the order they are listed:
 
 . `trustingAsymmetricCertificate`
 . `keyStoreTrustingAsymmetricKey`
@@ -186,7 +165,7 @@ Relies on the `<issuerUri>/.well-known/openid-configuration` endpoint.
 |String
 
 |`nameOfUsernameClaim`
-|Name of the attribute, included in the token, refering to the subject of authentication, such as `preferred_username`.
+|Name of the attribute, included in the token, referring to the subject of authentication, such as `preferred_username`.
 
 Default value is `sub`.
 |true
@@ -200,7 +179,7 @@ Default value is `sub`.
 |String
 
 |`singleSymmetricKey`
-|OICD provider's public key
+|OIDC provider's public key
 |true
 |false
 |ProtectedStringType
@@ -238,13 +217,13 @@ When not present, midPoint will rely on the information available on the OIDC di
 |===
 
 [[tokenConfiguration2]]
-=== Token configuration 2
+==== Token configuration 2
 
-NOTE: For better clarity, we'll list token related fields in two tables. First table lists public key retrieval methods. Second table the miscelaneous fields.
+NOTE: For better clarity, we'll list token related fields in two tables. First table lists public key retrieval methods. Second table the miscellaneous fields.
 
-==== Token validation methods
+===== Token validation methods
 
-Fields in this table are all mutually exclusive and evaluted in the order they are listed:
+Fields in this table are all mutually exclusive and evaluated in the order they are listed:
 
 [cols="1,1,1,1,1", options="header"]
 |===
@@ -263,7 +242,7 @@ Fields in this table are all mutually exclusive and evaluted in the order they a
 |Complex xref:#AbstractKeyStoreKeyType[AbstractKeyStoreKeyType]
 
 |`singleSymmetricKey`
-|OICD provider's public key
+|OIDC provider's public key
 |true
 |false
 |ProtectedStringType
@@ -284,7 +263,7 @@ Relies on the `<issuerUri>/.well-known/openid-configuration` endpoint.
 
 |===
 
-==== Miscelaneous fields
+===== Miscellaneous fields
 
 [cols="1,1,1,1,1", options="header"]
 |===
@@ -297,7 +276,7 @@ Relies on the `<issuerUri>/.well-known/openid-configuration` endpoint.
 |String
 
 |`nameOfUsernameClaim`
-|Name of the attribute, included in the token, refering to the subject of authentication, such as `preferred_username`.
+|Name of the attribute, included in the token, referring to the subject of authentication, such as `preferred_username`.
 
 Default value is `sub`.
 |true
@@ -354,9 +333,7 @@ When not present, midPoint will rely on the information available on the OIDC di
 
 |===
 
-[#create-oidc-sequence]
-== Add a sequence referencing the OIDC module
-
+[[example-configuration]]
 === Example
 
 This is a simple example of OIDC module configuration, using sample values.
@@ -365,33 +342,38 @@ This is a simple example of OIDC module configuration, using sample values.
 ----
 <securityPolicy>
     <authentication>
-        ...
+        <modules>
+            ...
 
-        <!-- Sequence referencing the OIDC REST module demo -->
-        <sequence>
-            <identifier>rest</identifier>
-            <channel>
-                <channelId>http://midpoint.evolveum.com/xml/ns/public/common/channels-3#rest</channelId>
-                <default>true</default>
-                <urlSuffix>rest-default</urlSuffix>
-            </channel>
-            <module>
+            <!-- OIDC module for REST demo -->
+            <oidc>
                 <identifier>oidcResourceServer</identifier>
-                <order>10</order>
-                <necessity>sufficient</necessity>
-            </module>
-        </sequence>
-        
-        ...
+                <resourceServer>
+                    <jwt> <!-- or opaqueToken -->
+                        <issuerUri>https://keycloak.lab.evolveum.com/auth/realms/test</issuerUri>
+                        <nameOfUsernameClaim>preferred_username</nameOfUsernameClaim>
+                    </jwt>
+                </resourceServer>
+            </oidc>
+
+            ...
+        </modules>
     </authentication>
 </securityPolicy>
 ----
 
 
-[#sequence]
-=== Available fields in `sequence` section
+[#create-oidc-sequence]
+== Add a sequence referencing the OIDC module
 
-#TODO consider single article: Sequence section#
+
+An authentication sequence defines the authentication flow for a particular channel.
+It specifies which authentication modules are used and how they participate in the authentication process.
+To enable OIDC authentication for the GUI, configure a sequence for the GUI channel and reference the OIDC module in it.
+
+The sequence has the following fields:
+
+// #TODO consider single article: Sequence section#
 
 [cols="1,1,1,1", options="header"]
 |===
@@ -439,7 +421,7 @@ The authenticated user must hold all of the listed assignment targets. If not, t
 
 For multiple targets, add this parameter multiple times, each time with a single value.
 
-Example usecase: emergency administrator access - can only work for administrator roles.
+Example use case: emergency administrator access - can only work for administrator roles.
 
 Example value: `<requireAssignmentTarget oid="00000000-0000-0000-0000-000000000004" relation="org:default" type="c:RoleType"/>`
 |false
@@ -452,7 +434,7 @@ The authenticated user must carry one of the listed node groups (archetypes). If
 
 For multiple targets, add this parameter multiple times, each time with a single value.
 
-Example usecase: Only manageers can log in to the GUI, but not regular users.
+Example use case: Only managers can log in to the GUI, but not regular users.
 
 Example value: `<nodeGroup oid="05b6933a-b7fc-4543-b8fa-fd8b278ff9ee" relation="org:default" type="c:ArchetypeType"/>`
 |false
@@ -474,6 +456,8 @@ Default value is `enabled`.
 |String
 
 |===
+
+See an <<example-sequence,example sequence>> below.
 
 [#channel]
 === Available fields in `channel` section
@@ -561,3 +545,35 @@ Default value is: `sufficient`.
 |String
 
 |===
+
+
+[[example-sequence]]
+=== Example
+
+This is a simple example of OIDC module configuration, using sample values.
+
+[source, xml]
+----
+<securityPolicy>
+    <authentication>
+        ...
+
+        <!-- Sequence referencing the OIDC REST module demo -->
+        <sequence>
+            <identifier>rest</identifier>
+            <channel>
+                <channelId>http://midpoint.evolveum.com/xml/ns/public/common/channels-3#rest</channelId>
+                <default>true</default>
+                <urlSuffix>rest-default</urlSuffix>
+            </channel>
+            <module>
+                <identifier>oidcResourceServer</identifier>
+                <order>10</order>
+                <necessity>sufficient</necessity>
+            </module>
+        </sequence>
+        
+        ...
+    </authentication>
+</securityPolicy>
+----
