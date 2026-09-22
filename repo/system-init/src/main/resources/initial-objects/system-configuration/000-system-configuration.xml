@@ -1076,6 +1076,7 @@
                             <description>Allow searching for users having account on specific resource. Intent is not considered. The search item is not displayed by default
                                 (visibleByDefault=false).
                             </description>
+                            <displayOrder>30</displayOrder>
                             <visibleByDefault>true</visibleByDefault>
                             <filter>
                                 <q:text>
@@ -1103,6 +1104,7 @@
                             <description>Allow searching for users not having account on specific resource. Intent is not considered. The search item is not displayed by default
                                 (visibleByDefault=false).
                             </description>
+                            <displayOrder>40</displayOrder>
                             <visibleByDefault>true</visibleByDefault>
                             <filter>
                                 <q:text>
@@ -1125,6 +1127,16 @@
                                 <type>c:ObjectReferenceType</type>
                                 <targetType>ResourceType</targetType>
                             </parameter>
+                        </searchItem>
+                        <searchItem id="280">
+                            <displayOrder>10</displayOrder>
+                            <visibleByDefault>true</visibleByDefault>
+                            <path>fullName</path>
+                        </searchItem>
+                        <searchItem id="281">
+                            <displayOrder>20</displayOrder>
+                            <visibleByDefault>true</visibleByDefault>
+                            <path>name</path>
                         </searchItem>
                     </searchItems>
                 </searchBoxConfiguration>
