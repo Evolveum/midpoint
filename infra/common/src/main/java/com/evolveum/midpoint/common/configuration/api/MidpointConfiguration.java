@@ -86,12 +86,12 @@ public interface MidpointConfiguration {
      * @return Configuration object
      * Sample how to get config value: {@code config.getInt("port", 1234);}
      */
-    Configuration getConfiguration(String component);
+    @NotNull Configuration getConfiguration(String component);
 
     /**
      * @return Global configuration.
      */
-    Configuration getConfiguration();
+    @NotNull Configuration getConfiguration();
 
     /**
      * @return True if we are running in safe mode (the exact meaning gradually evolves; but the overall idea is to make

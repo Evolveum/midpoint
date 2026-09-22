@@ -75,7 +75,8 @@ public class TestMelExpressions extends AbstractScriptTest {
     protected ScriptExecutor createExecutor(PrismContext prismContext, Protector protector, Clock clock, boolean restrictedMode) {
         FunctionLibraryBinding basicFunctionLibraryBinding = FunctionLibraryUtil.createBasicFunctionLibraryBinding(prismContext, protector, clock);
         return new MelScriptExecutor(prismContext, protector, localizationService,
-                ExpressionTestUtil.testingExpressionsConfiguration(restrictedMode),
+                ExpressionTestUtil.testingExpressionsConfiguration(
+                        restrictedMode, List.of(CelTestingExtensions.Library.class.getName())),
                 (BasicExpressionFunctions) basicFunctionLibraryBinding.getImplementation(),
                 null, null);
     }
@@ -4024,5 +4025,13 @@ public class TestMelExpressions extends AbstractScriptTest {
         } finally {
             switchToUnrestrictedMode();
         }
+    }
+
+    @Test
+    public void testCustomExtension() throws Exception {
+        executeAndAssertStringScalarExpression(
+                "expression-hello-world.xml",
+                createVariables(),
+                "Hello, world!");
     }
 }

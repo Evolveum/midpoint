@@ -5,6 +5,7 @@
  */
 package com.evolveum.midpoint.model.common.expression.script.mel.extension;
 
+import com.evolveum.midpoint.common.configuration.api.ExpressionsConfigurationSection;
 import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
 import com.evolveum.midpoint.model.common.expression.functions.BasicExpressionFunctions;
 
@@ -38,6 +39,7 @@ public class MidPointCelExtensionManager {
     private final MidpointFunctions midpointExpressionFunctions;
     private final CelOptions celOptions;
     private final RuntimeEquality runtimeEquality;
+    private final ExpressionsConfigurationSection configuration;
 
     private final Map<String,CelExtensionLibrary.FeatureSet> libraryMap = new HashMap<>();
 
@@ -46,12 +48,14 @@ public class MidPointCelExtensionManager {
             BasicExpressionFunctions basicExpressionFunctions,
             MidpointFunctions midpointExpressionFunctions,
             CelOptions celOptions,
-            RuntimeEquality runtimeEquality) {
+            RuntimeEquality runtimeEquality,
+            ExpressionsConfigurationSection configuration) {
         this.protector = protector;
         this.basicExpressionFunctions = basicExpressionFunctions;
         this.midpointExpressionFunctions = midpointExpressionFunctions;
         this.celOptions = celOptions;
         this.runtimeEquality = runtimeEquality;
+        this.configuration = configuration;
         initializeExtensions();
     }
 
@@ -79,6 +83,25 @@ public class MidPointCelExtensionManager {
         registerLibrary(CelLogExtensions.library());
         registerLibrary(CelSecretExtensions.library(protector, basicExpressionFunctions));
         registerLibrary(CelMidPointExtensions.library(midpointExpressionFunctions));
+
+        initializeUserExtensionLibraries();
+    }
+
+    private void initializeUserExtensionLibraries() {
+        for (String className : configuration.melExtensionLibraryClassNames()) {
+            try {
+                Class<?> clazz = Class.forName(className);
+                if (!CelExtensionLibrary.class.isAssignableFrom(clazz)) {
+                    throw new IllegalStateException("Class %s does not implement %s".formatted(
+                            className, CelExtensionLibrary.class.getName()));
+                }
+                CelExtensionLibrary<?> library = (CelExtensionLibrary<?>) clazz.getDeclaredConstructor().newInstance();
+                registerLibrary(library);
+                LOGGER.info("Registered user-defined CEL extension library {} as '{}'", className, library.name());
+            } catch (Exception e) {
+                throw new IllegalStateException("Cannot initialize CEL extension library " + className, e);
+            }
+        }
     }
 
     private void registerLibrary(String name, CelExtensionLibrary.FeatureSet featureSet) {

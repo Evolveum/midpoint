@@ -40,8 +40,7 @@ public abstract class AbstractMidPointCelExtensions
 
     private static final Trace LOGGER = TraceManager.getTrace(AbstractMidPointCelExtensions.class);
 
-
-    public class Function {
+    static public class Function {
 
         private final CelFunctionDecl functionDecl;
         private final ImmutableSet<CelFunctionBinding> commonFunctionBindings;
@@ -50,7 +49,7 @@ public abstract class AbstractMidPointCelExtensions
             return functionDecl.name();
         }
 
-        Function(CelFunctionDecl functionDecl, CelFunctionBinding... commonFunctionBindings) {
+        public Function(CelFunctionDecl functionDecl, CelFunctionBinding... commonFunctionBindings) {
             this.functionDecl = functionDecl;
             this.commonFunctionBindings = ImmutableSet.copyOf(commonFunctionBindings);
         }

@@ -1,0 +1,46 @@
+---
+midpoint-feature: expression-mel
+doc-type: config
+---
+= Configuring MidPoint Expression Language
+
+TODO expand these bullets
+
+- In order to prohibit unsafe (Groovy, Velocity, JavaScript, Python) expressions, it is possible to disable their execution right in the system configuration
+(so even midPoint administrator cannot enable their execution)
+- This is done by setting `safeExpressionsOnly` to `true` like this:
++
+[source,xml]
+----
+<configuration>
+    <midpoint>
+	    <expressions>
+	        <safeExpressionsOnly>true</safeExpressionsOnly>
+    	</expressions>
+    </midpoint>
+</configuration>
+----
++
+Any attempt to execute Groovy, Velocity, JavaScript, or Python expressions will result in an error being signalled.
++
+NOTE: This does not cover executing Groovy code in connectors!
+
+- In order to provide the required flexibility even with disabled general-purpose scripting languages, midPoint allows declaring custom extension libraries to MEL.
+These can contain arbitrary Java code.
+It is assumed that they are defined by the OS administrator, and are implemented securely enough to be safely called from within MEL expressions.
++
+They are declared like this:
++
+[source,xml]
+----
+<configuration>
+    <midpoint>
+	    <expressions>
+            <melExtensionLibraryClassName>com.example.scripting.MyGreatExtensions$Library</melExtensionLibraryClassName>
+            <melExtensionLibraryClassName>...</melExtensionLibraryClassName>
+	    </expressions>
+    </midpoint>
+</configuration>
+----
+
+Please see classes in `com.evolveum.midpoint.model.common.expression.script.mel.extension` package as examples of how to write these extension libraries.

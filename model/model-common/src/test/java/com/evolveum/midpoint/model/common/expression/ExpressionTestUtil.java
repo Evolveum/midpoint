@@ -9,6 +9,7 @@ package com.evolveum.midpoint.model.common.expression;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 import com.evolveum.midpoint.common.configuration.api.ExpressionsConfigurationSection;
 import com.evolveum.midpoint.model.common.ModelCommonBeans;
@@ -162,10 +163,15 @@ public class ExpressionTestUtil {
     }
 
     public static ExpressionsConfigurationSection testingExpressionsConfiguration() {
-        return new TestingExpressionConfiguration(false);
+        return new TestingExpressionConfiguration(false, List.of());
     }
 
     public static ExpressionsConfigurationSection testingExpressionsConfiguration(boolean restrictedMode) {
-        return new TestingExpressionConfiguration(restrictedMode);
+        return new TestingExpressionConfiguration(restrictedMode, List.of());
+    }
+
+    public static ExpressionsConfigurationSection testingExpressionsConfiguration(
+            boolean restrictedMode, Collection<String> melExtensionLibraryClassNames) {
+        return new TestingExpressionConfiguration(restrictedMode, List.copyOf(melExtensionLibraryClassNames));
     }
 }

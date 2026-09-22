@@ -90,7 +90,7 @@ public class MelScriptExecutor extends AbstractCachingScriptExecutor<CelRuntime,
         super(prismContext, protector, localizationService, configuration);
         this.basicExpressionFunctions = basicExpressionFunctions;
         midPointCelExtensionManager = new MidPointCelExtensionManager(protector,
-                basicExpressionFunctions, midpointExpressionFunctions, celOptions, runtimeEquality);
+                basicExpressionFunctions, midpointExpressionFunctions, celOptions, runtimeEquality, configuration);
         functionLibraryProcessor = new FunctionLibraryProcessor();
 
         if (cacheInvalidationDispatcher != null) {
