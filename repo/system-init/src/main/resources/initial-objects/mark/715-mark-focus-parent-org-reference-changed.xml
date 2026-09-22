@@ -14,6 +14,20 @@
         <targetRef oid="00000000-0000-0000-0000-000000000700" type="ArchetypeType"/>
     </assignment>
     <displayOrder>150</displayOrder>
+    <display>
+        <label>
+            <orig>Focus parent organization reference changed</orig>
+            <translation>
+                <key>FocusParentOrganizationReferenceChangedMark.label</key>
+            </translation>
+        </label>
+        <help>
+            <orig>Number of focus objects whose parent organization references changed.</orig>
+            <translation>
+                <key>FocusParentOrganizationReferenceChangedMark.help</key>
+            </translation>
+        </help>
+    </display>
     <policyRule id="2">
         <name>focus-parent-org-ref-changed</name>
         <policyConstraints>

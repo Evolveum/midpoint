@@ -5,7 +5,7 @@
   -->
 
 <mark xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-    oid="00000000-0000-0000-0000-000000000736">
+        oid="00000000-0000-0000-0000-000000000736">
     <name>Shadow classification changed</name>
     <description>Classification of a shadow was changed</description>
     <assignment id="1">
@@ -13,5 +13,19 @@
         <targetRef oid="00000000-0000-0000-0000-000000000700" type="ArchetypeType"/>
     </assignment>
     <displayOrder>500</displayOrder>
+    <display>
+        <label>
+            <orig>Shadow classification changed</orig>
+            <translation>
+                <key>ShadowClassificationChangedMark.label</key>
+            </translation>
+        </label>
+        <help>
+            <orig>Number of shadows whose classification changed.</orig>
+            <translation>
+                <key>ShadowClassificationChangedMark.help</key>
+            </translation>
+        </help>
+    </display>
     <!-- No policy rule. This is set explicitly by the provisioning module. -->
 </mark>

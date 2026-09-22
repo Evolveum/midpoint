@@ -235,6 +235,10 @@ public interface CommonInitialObjects {
             MARKS, "738-mark-projection-resource-object-affected.xml",
             SystemObjectsType.MARK_PROJECTION_RESOURCE_OBJECT_AFFECTED.value());
 
+    TestObject<MarkType> MARK_PROJECTION_OPERATIONAL_CHANGES_ONLY = TestObject.classPath(
+            MARKS, "748-mark-projection-operational-changes-only.xml",
+            "00000000-0000-0000-0000-000000000748");
+
     TestObject<MarkType> MARK_PROTECTED = TestObject.classPath(
             MARKS, "800-mark-protected.xml", SystemObjectsType.MARK_PROTECTED.value());
 
@@ -306,7 +310,6 @@ public interface CommonInitialObjects {
 //
 //    TestObject<PolicyType> POLICY_INFORMATION_SECURITY_RESPONSIBILITY = TestObject.classPath(
 //            POLICIES, "333-classification-information-security-responsibility.xml", SystemObjectsType.CLASSIFICATION_INFORMATION_SECURITY_RESPONSIBILITY.value());
-
 
     String PARAM_SIMULATION_RESULT_REF = "simulationResultRef";
     String PARAM_PATHS_TO_INCLUDE = "pathsToInclude";
@@ -384,8 +387,7 @@ public interface CommonInitialObjects {
             "603-origin-system-intelligence.xml",
             SystemObjectsType.ORIGIN_SYSTEM_INTELLIGENCE.value());
 
-
-    static void addCertificationTasks(AbstractModelIntegrationTest test, Task task, OperationResult result) throws CommonException, IOException{
+    static void addCertificationTasks(AbstractModelIntegrationTest test, Task task, OperationResult result) throws CommonException, IOException {
         try {
             test.initTestObjects(
                     task, result,
@@ -439,6 +441,7 @@ public interface CommonInitialObjects {
                     MARK_ITEM_VALUE_CHANGE_NOT_APPLIED,
                     MARK_ITEM_VALUE_FAILED,
                     MARK_PROJECTION_RESOURCE_OBJECT_AFFECTED,
+                    MARK_PROJECTION_OPERATIONAL_CHANGES_ONLY,
                     MARK_PROTECTED,
                     MARK_DECOMMISSION_LATER,
                     MARK_CORRELATE_LATER,
@@ -462,7 +465,7 @@ public interface CommonInitialObjects {
 //                    MARK_UNDERSTAFFED_SECURITY,
 //                    MARK_ORPHANED,
 //                    MARK_NEGLECTED
-                    );
+            );
         } catch (CommonException | IOException | RuntimeException e) {
             throw e;
         } catch (Exception e) {

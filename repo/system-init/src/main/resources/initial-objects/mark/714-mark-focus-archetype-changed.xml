@@ -13,6 +13,20 @@
         <targetRef oid="00000000-0000-0000-0000-000000000700" type="ArchetypeType"/>
     </assignment>
     <displayOrder>140</displayOrder>
+    <display>
+        <label>
+            <orig>Focus archetype changed</orig>
+            <translation>
+                <key>FocusArchetypeChangedMark.label</key>
+            </translation>
+        </label>
+        <help>
+            <orig>Number of focus objects whose archetype references changed.</orig>
+            <translation>
+                <key>FocusArchetypeChangedMark.help</key>
+            </translation>
+        </help>
+    </display>
     <policyRule id="2">
         <name>focus-archetype-changed</name>
         <policyConstraints>
