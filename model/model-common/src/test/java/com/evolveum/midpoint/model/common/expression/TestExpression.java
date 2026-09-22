@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 
 import com.evolveum.midpoint.task.api.ExpressionProfileSupplier;
@@ -80,6 +81,7 @@ public class TestExpression extends AbstractModelCommonTest {
     protected static final File EXPRESSION_SCRIPT_GROOVY_SYSTEM_ALLOW_FILE = new File(TEST_DIR, "expression-script-groovy-system-allow.xml");
     protected static final File EXPRESSION_SCRIPT_GROOVY_SYSTEM_DENY_FILE = new File(TEST_DIR, "expression-script-groovy-system-deny.xml");
     protected static final File EXPRESSION_SCRIPT_JAVASCRIPT_FILE = new File(TEST_DIR, "expression-script-javascript.xml");
+
     private static final File EXPRESSION_JAVA_METHOD_REFERENCE_FILE = new File(TEST_DIR, "expression-java-method-reference-hello.xml");
     private static final File EXPRESSION_JAVA_METHOD_REFERENCE_CHECK_ENV_FILE = new File(TEST_DIR, "expression-java-method-reference-check-env.xml");
     private static final File EXPRESSION_JAVA_METHOD_REFERENCE_NON_EXISTING_VARIABLE_FILE = new File(TEST_DIR, "expression-java-method-reference-non-existing-variable.xml");
@@ -495,6 +497,30 @@ public class TestExpression extends AbstractModelCommonTest {
         }
     }
 
+    /**
+     * Java method is (String, String) -> String but we provide polystrings and expect a QName. Should be converted automatically.
+     */
+    @Test
+    public void test175JavaMethodReferenceWithConversions() throws Exception {
+        given();
+        OperationResult result = createOperationResult();
+
+        var expressionBean = parseExpression(EXPRESSION_JAVA_METHOD_REFERENCE_FILE);
+        VariablesMap variables = preparePolyStringVariables();
+        var expressionContext = new ExpressionEvaluationContext(null, variables, getTestNameShort(), createTask());
+
+        when();
+        PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple =
+                evaluatePropertyExpression(expressionBean, PrimitiveType.QNAME, expressionContext, result);
+
+        then();
+        assertOutputTriple(outputTriple)
+                .assertEmptyMinus()
+                .assertEmptyPlus()
+                .zeroSet()
+                .assertSinglePropertyValue(new QName(VAR_FOO_VALUE + VAR_BAR_VALUE));
+    }
+
     @Test
     public void test200IterationCondition() throws Exception {
         // GIVEN
@@ -567,6 +593,15 @@ public class TestExpression extends AbstractModelCommonTest {
         variables.put(ExpressionConstants.VAR_FOCUS, user, user.getDefinition());
         variables.put(VAR_FOO_NAME, VAR_FOO_VALUE, String.class);
         variables.put(VAR_BAR_NAME, VAR_BAR_VALUE, String.class);
+        return variables;
+    }
+
+    protected VariablesMap preparePolyStringVariables() throws SchemaException, IOException {
+        VariablesMap variables = new VariablesMap();
+        PrismObject<UserType> user = PrismTestUtil.parseObject(USER_JACK_FILE);
+        variables.put(ExpressionConstants.VAR_FOCUS, user, user.getDefinition());
+        variables.put(VAR_FOO_NAME, PolyString.fromOrig(VAR_FOO_VALUE), PolyString.class);
+        variables.put(VAR_BAR_NAME, PolyString.fromOrig(VAR_BAR_VALUE), PolyString.class);
         return variables;
     }
 

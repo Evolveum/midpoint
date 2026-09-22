@@ -110,7 +110,7 @@
                 <ref bean="midpointFunctionLibrary"/>
             </list>
         </constructor-arg>
-        <constructor-arg name="evaluators">
+        <constructor-arg name="executors">
             <list>
                 <ref bean="javascriptScriptExecutor"/>
                 <ref bean="groovyScriptExecutor"/>
