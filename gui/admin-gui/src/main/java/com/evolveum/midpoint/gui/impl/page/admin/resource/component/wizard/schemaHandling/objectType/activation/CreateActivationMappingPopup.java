@@ -29,6 +29,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.web.util.ExpressionUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingStrengthType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceActivationDefinitionType;
 
@@ -158,6 +159,12 @@ public class CreateActivationMappingPopup extends OnePanelPopupPanel {
                 MappingType mapping = (MappingType) newValue.asContainerable();
                 mapping.beginExpression();
                 ExpressionUtil.addAsIsExpressionValue(mapping.getExpression());
+                mapping.setStrength(MappingStrengthType.STRONG);
+                if (mapping.getName() == null) {
+                    mapping.setName(tile.getTitle() != null
+                            ? tile.getTitle()
+                            : tile.getValue().getItemName().getLocalPart());
+                }
             }
             PrismContainerValueWrapper<Containerable> valueWrapper = WebPrismUtil.createNewValueWrapper(
                     childContainer, newValue, getPageBase(), detailsModel.createWrapperContext());

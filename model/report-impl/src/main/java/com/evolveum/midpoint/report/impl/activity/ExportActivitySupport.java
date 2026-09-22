@@ -20,7 +20,7 @@ import com.evolveum.midpoint.report.impl.ReportServiceImpl;
 import com.evolveum.midpoint.report.impl.controller.ExportedReportDataRow;
 import com.evolveum.midpoint.report.impl.controller.ExportedReportHeaderRow;
 import com.evolveum.midpoint.report.impl.controller.ReportDataWriter;
-import com.evolveum.midpoint.report.impl.controller.TextReportDataWriter;
+import com.evolveum.midpoint.report.impl.controller.DistributableReportDataWriter;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ObjectHandler;
 import com.evolveum.midpoint.schema.SearchResultList;
@@ -67,15 +67,14 @@ public class ExportActivitySupport extends ReportActivitySupport {
     }
 
     /**
-     * Save exported report to a file. This is the variant for distributed reports that assumes we have the
-     * aggregated data as a String, plus pre-existing (empty) aggregated {@link ReportDataType} object.
+     * Save exported report to a file. This is the variant for distributed reports: the writer has merged
+     * all partial data, and there is a pre-existing (empty) aggregated {@link ReportDataType} object.
      */
     void saveAggregatedReportData(
-            @NotNull String aggregatedData,
-            @NotNull TextReportDataWriter<? extends ExportedReportDataRow, ? extends ExportedReportHeaderRow> completingDataWriter,
+            @NotNull DistributableReportDataWriter<? extends ExportedReportDataRow, ? extends ExportedReportHeaderRow> completingDataWriter,
             @NotNull ObjectReferenceType aggregatedDataRef,
             @NotNull OperationResult result) throws CommonException {
-        saveSupport.saveAggregatedReportData(aggregatedData, completingDataWriter, aggregatedDataRef, result);
+        saveSupport.saveAggregatedReportData(completingDataWriter, aggregatedDataRef, result);
     }
 
     /**

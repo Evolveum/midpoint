@@ -7,7 +7,6 @@
 package com.evolveum.midpoint.report.impl.activity;
 
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createObjectRef;
-import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ReportExportWorkStateType.F_REPORT_DATA_REF;
 
 import java.util.ArrayList;
@@ -106,7 +105,7 @@ public class DistributedReportExportActivityHandler
         children.add(EmbeddedActivity.create(
                 ActivityHandlerUtils.cloneWithoutIdForChildActivity(parentActivity.getDefinition()),
                 (context, result) -> new ReportDataCreationActivityRun(context),
-                this::validateAndCreateEmptyAggregatedDataObject,
+                this::createEmptyAggregatedDataObject,
                 (i) -> "data-creation",
                 ActivityStateDefinition.normal(),
                 parentActivity));
@@ -127,7 +126,7 @@ public class DistributedReportExportActivityHandler
      * sub-activity run. But its OID is used as both `parentRef` as well as a part of the name for partial report data objects,
      * binding them together.
      */
-    private void validateAndCreateEmptyAggregatedDataObject(
+    private void createEmptyAggregatedDataObject(
             EmbeddedActivity<DistributedReportExportWorkDefinition, DistributedReportExportActivityHandler> activity,
             RunningTask runningTask, OperationResult result) throws CommonException {
         ReportType report = objectResolver.resolve(
@@ -138,9 +137,6 @@ public class DistributedReportExportActivityHandler
                 runningTask,
                 result);
         FileFormatTypeType formatType = ReportUtils.getFileFormatType(report, FileFormatTypeType.CSV);
-        stateCheck(
-                ReportUtils.isTextFormat(formatType),
-                "%s output is not supported for distributed report export", formatType);
 
         ActivityState activityState =
                 DistributedReportExportActivitySupport.getWholeActivityState(
