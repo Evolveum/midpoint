@@ -43,4 +43,5 @@ They are declared like this:
 </configuration>
 ----
 
-Please see classes in `com.evolveum.midpoint.model.common.expression.script.mel.extension` package as examples of how to write these extension libraries.
+The configured class must implement `dev.cel.extensions.CelExtensionLibrary` and expose a public no-argument constructor.
+For implementation patterns, see classes in `com.evolveum.midpoint.model.common.expression.script.mel.extension`; note that built-in libraries using dependency-taking factory methods cannot be loaded directly through this setting.
