@@ -272,7 +272,7 @@ public class AddAssociationAspect extends BasePrimaryChangeAspect {
             PcpStartInstruction instruction =
                     PcpStartInstruction.createItemApprovalInstruction(
                             getChangeProcessor(),
-                            approvalRequest.schema, null);
+                            approvalRequest.schema, null, getChangeProcessor().getClock());
 
             // set some common task/process attributes
             instruction.prepareCommonAttributes(this, ctx.modelContext, requester);

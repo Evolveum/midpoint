@@ -1,0 +1,40 @@
+<?xml version="1.0"?>
+<!--
+  ~ Copyright (c) 2026 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<accessCertificationDefinition
+        xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        oid="33333333-0000-0000-0000-000000000009">
+    <name>Clock Usage Certification (ERoot only)</name>
+    <description>Certification definition for clock usage regression tests.</description>
+    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/certification/handlers-3#direct-assignment</handlerUri>
+    <scopeDefinition xsi:type="AccessCertificationAssignmentReviewScopeType">
+        <objectType>UserType</objectType>
+        <searchFilter>
+            <q:org>
+                <q:orgRef>
+                    <q:oid>00000000-8888-6666-0000-300000000000</q:oid>
+                    <q:scope>SUBTREE</q:scope>
+                </q:orgRef>
+            </q:org>
+        </searchFilter>
+        <relation>default</relation>
+    </scopeDefinition>
+    <ownerRef oid="00000000-0000-0000-0000-000000000002" type="UserType"/>
+    <remediationDefinition>
+        <style>automated</style>
+    </remediationDefinition>
+    <stageDefinition>
+        <number>1</number>
+        <duration>P14D</duration>
+        <notifyBeforeDeadline>P13D</notifyBeforeDeadline>
+        <reviewerSpecification>
+            <defaultReviewerRef oid="00000000-0000-0000-0000-000000000002" type="UserType"/>
+        </reviewerSpecification>
+    </stageDefinition>
+</accessCertificationDefinition>

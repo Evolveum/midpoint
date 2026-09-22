@@ -194,7 +194,8 @@ public class TaskExecutionProgress implements Serializable {
             case RUNNABLE:
             case RUNNING_OR_RUNNABLE:
                 List<Object> localizationObjects = new ArrayList<>();
-                String key = TaskTypeUtil.createScheduledToRunAgain(task, localizationObjects);
+                String key = TaskTypeUtil.createScheduledToRunAgain(
+                        task, page.getClock().currentTimeMillis(), localizationObjects);
                 return LocalizationUtil.translate(key, localizationObjects.toArray());
             case WAITING:
             case SUSPENDED:

@@ -12,6 +12,7 @@ import javax.xml.namespace.QName;
 
 import org.jetbrains.annotations.NotNull;
 
+import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
@@ -46,9 +47,11 @@ public class ActionsExecutedCollectorImpl implements ActionsExecutedCollector {
      * Place where the summarized information is sent at the end.
      */
     @NotNull private final ActivityActionsExecuted activityActionsExecuted;
+    @NotNull private final Clock clock;
 
-    public ActionsExecutedCollectorImpl(@NotNull ActivityActionsExecuted activityActionsExecuted) {
+    public ActionsExecutedCollectorImpl(@NotNull ActivityActionsExecuted activityActionsExecuted, @NotNull Clock clock) {
         this.activityActionsExecuted = activityActionsExecuted;
+        this.clock = clock;
     }
 
     @Override
@@ -93,7 +96,7 @@ public class ActionsExecutedCollectorImpl implements ActionsExecutedCollector {
 
     private void recordInternal(String objectName, String objectDisplayName, QName objectType,
             String objectOid, ChangeType changeType, String channel, Throwable exception) {
-        XMLGregorianCalendar now = XmlTypeConverter.createXMLGregorianCalendar(new Date());
+        XMLGregorianCalendar now = clock.currentTimeXMLGregorianCalendar();
         ActionExecuted action = new ActionExecuted(objectName, objectDisplayName, objectType, objectOid,
                 changeType, channel, exception, now);
         if (action.objectOid == null) {
