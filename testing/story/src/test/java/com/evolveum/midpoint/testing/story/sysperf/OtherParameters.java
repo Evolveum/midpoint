@@ -37,7 +37,7 @@ public class OtherParameters {
             ObjectTypes.ARCHETYPE,
             ObjectTypes.OBJECT_TEMPLATE,
             ObjectTypes.SECURITY_POLICY,
-            ObjectTypes.PASSWORD_POLICY, // ValuePolicyType
+            ObjectTypes.VALUE_POLICY,
             ObjectTypes.RESOURCE,
             ObjectTypes.ROLE,
             ObjectTypes.SHADOW,

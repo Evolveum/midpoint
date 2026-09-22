@@ -63,7 +63,7 @@ public enum ObjectTypes {
 
     ROLE(RoleType.COMPLEX_TYPE, SchemaConstantsGenerated.C_ROLE, RoleType.class, ObjectManager.MODEL, "roles"),
 
-    PASSWORD_POLICY(ValuePolicyType.COMPLEX_TYPE, SchemaConstantsGenerated.C_VALUE_POLICY, ValuePolicyType.class,
+    VALUE_POLICY(ValuePolicyType.COMPLEX_TYPE, SchemaConstantsGenerated.C_VALUE_POLICY, ValuePolicyType.class,
             ObjectManager.MODEL, "valuePolicies"),
 
     NODE(NodeType.COMPLEX_TYPE, SchemaConstantsGenerated.C_NODE, NodeType.class, ObjectManager.TASK_MANAGER, "nodes"),
@@ -154,6 +154,13 @@ public enum ObjectTypes {
 
     // this should be at end, because otherwise it presents itself as entry for all subtypes of ObjectType
     OBJECT(SchemaConstants.C_OBJECT_TYPE, SchemaConstants.C_OBJECT, ObjectType.class, ObjectManager.MODEL, "objects");
+
+    /*
+     * This is a temporary alias for VALUE_POLICY. It might be used in some places in the codebase (or scripts in deployments).
+     */
+    @SuppressWarnings("unused")
+    @Deprecated
+    private static final ObjectTypes PASSWORD_POLICY = VALUE_POLICY;
 
     /** Provides fast access to the super type of given type. */
     private static final Map<ObjectTypes, ObjectTypes> SUPER_TYPE_MAP = new HashMap<>();
