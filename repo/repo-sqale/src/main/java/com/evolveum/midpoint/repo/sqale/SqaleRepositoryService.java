@@ -447,6 +447,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
         try {
             return executeModifyObject(type, oidUuid, modifications, precondition, options, operationResult);
         } catch (RepositoryException | RuntimeException e) {
+            SqaleUtils.handlePostgresException(e);
             throw handledGeneralException(e, operationResult);
         } catch (Throwable t) {
             recordFatalError(operationResult, t);
