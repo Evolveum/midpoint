@@ -13,6 +13,7 @@ import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
+import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
@@ -45,7 +46,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
-import static java.io.File.separator;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
 
@@ -2265,7 +2265,7 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
 
         @Override
         public String name() {
-            return "mel";
+            return MidPointConstants.MEL_EXTENSION_MEL_NAME;
         }
 
         @Override

@@ -8,17 +8,10 @@ package com.evolveum.midpoint.model.common.expression.script;
 
 import com.evolveum.midpoint.common.configuration.api.ExpressionsConfigurationSection;
 
+import java.util.Collection;
+
 /** Simulates "config.xml" section for expressions. Used in tests to override the default configuration. */
-public class TestingExpressionConfiguration implements ExpressionsConfigurationSection {
-
-    private final boolean safeExpressionsOnly;
-
-    public TestingExpressionConfiguration(boolean safeExpressionsOnly) {
-        this.safeExpressionsOnly = safeExpressionsOnly;
-    }
-
-    @Override
-    public boolean isSafeExpressionsOnly() {
-        return safeExpressionsOnly;
-    }
+public record TestingExpressionConfiguration(
+        boolean isSafeExpressionsOnly, Collection<String> javaMethodEvaluatorPackageNames)
+        implements ExpressionsConfigurationSection {
 }

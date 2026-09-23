@@ -193,6 +193,24 @@ This page only provides few examples.
 
 See xref:/midpoint/reference/expressions/expressions/script/[Script Expression] page for more details.
 
+[#_java_method_reference]
+=== Java Method Reference
+
+#TODO provide reasoning here#
+
+.Expression evaluator using Java method reference
+[source,xml]
+----
+<expression>
+    <javaMethodReference>
+        <className>com.example.scripting.extensions.BasicFunctions</className>
+        <methodName>generateName</methodName>
+    </javaMethodReference>
+</expression>
+----
+
+#TODO example Java code and things from XSD#
+
 === Filter
 
 Filter expression evaluator allows use of filters expressed in xref:/midpoint/reference/concepts/query/midpoint-query-language/[midPoint query language].

@@ -2053,6 +2053,7 @@
                     <version>3.14.1</version>
                     <configuration>
                         <release>${project.source.version}</release>
+                        <parameters>true</parameters> <!-- Needed for javaMethodReference expression evaluator -->
                     </configuration>
                 </plugin>
                 <plugin>

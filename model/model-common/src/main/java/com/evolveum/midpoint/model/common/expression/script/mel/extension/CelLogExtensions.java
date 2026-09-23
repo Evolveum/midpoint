@@ -9,6 +9,7 @@ import java.util.List;
 
 import com.evolveum.midpoint.model.common.expression.functions.LogExpressionFunctions;
 
+import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.util.DebugUtil;
 
 import com.google.common.collect.ImmutableSet;
@@ -163,7 +164,7 @@ public class CelLogExtensions extends AbstractMidPointCelExtensions {
 
         @Override
         public String name() {
-            return "log";
+            return MidPointConstants.MEL_EXTENSION_LOG_NAME;
         }
 
         @Override

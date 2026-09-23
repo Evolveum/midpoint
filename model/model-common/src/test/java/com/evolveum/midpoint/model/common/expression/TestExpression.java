@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 
 import com.evolveum.midpoint.task.api.ExpressionProfileSupplier;
@@ -80,6 +81,12 @@ public class TestExpression extends AbstractModelCommonTest {
     protected static final File EXPRESSION_SCRIPT_GROOVY_SYSTEM_ALLOW_FILE = new File(TEST_DIR, "expression-script-groovy-system-allow.xml");
     protected static final File EXPRESSION_SCRIPT_GROOVY_SYSTEM_DENY_FILE = new File(TEST_DIR, "expression-script-groovy-system-deny.xml");
     protected static final File EXPRESSION_SCRIPT_JAVASCRIPT_FILE = new File(TEST_DIR, "expression-script-javascript.xml");
+
+    private static final File EXPRESSION_JAVA_METHOD_REFERENCE_FILE = new File(TEST_DIR, "expression-java-method-reference-hello.xml");
+    private static final File EXPRESSION_JAVA_METHOD_REFERENCE_CHECK_ENV_FILE = new File(TEST_DIR, "expression-java-method-reference-check-env.xml");
+    private static final File EXPRESSION_JAVA_METHOD_REFERENCE_NON_EXISTING_VARIABLE_FILE = new File(TEST_DIR, "expression-java-method-reference-non-existing-variable.xml");
+    private static final File EXPRESSION_JAVA_METHOD_REFERENCE_UNKNOWN_CLASS_FILE = new File(TEST_DIR, "expression-java-method-reference-unknown-class.xml");
+    private static final File EXPRESSION_JAVA_METHOD_REFERENCE_UNKNOWN_METHOD_FILE = new File(TEST_DIR, "expression-java-method-reference-unknown-method.xml");
 
     protected static final String VAR_FOO_NAME = "foo";
     protected static final String VAR_FOO_VALUE = "F00";
@@ -384,6 +391,137 @@ public class TestExpression extends AbstractModelCommonTest {
     }
 
     @Test
+    public void test170JavaMethodReference() throws Exception {
+        given();
+        OperationResult result = createOperationResult();
+
+        var expressionType = parseExpression(EXPRESSION_JAVA_METHOD_REFERENCE_FILE);
+        VariablesMap variables = prepareBasicVariables();
+        var expressionContext = new ExpressionEvaluationContext(null, variables, getTestNameShort(), createTask());
+
+        when();
+        PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple =
+                evaluatePropertyExpression(expressionType, PrimitiveType.STRING, expressionContext, result);
+
+        then();
+        assertOutputTriple(outputTriple)
+                .assertEmptyMinus()
+                .assertEmptyPlus()
+                .zeroSet()
+                .assertSinglePropertyValue(VAR_FOO_VALUE + VAR_BAR_VALUE);
+    }
+
+    @Test
+    public void test171JavaMethodReferenceCheckEnv() throws Exception {
+        given();
+        OperationResult result = createOperationResult();
+
+        var expressionType = parseExpression(EXPRESSION_JAVA_METHOD_REFERENCE_CHECK_ENV_FILE);
+        VariablesMap variables = prepareBasicVariables();
+        var expressionContext = new ExpressionEvaluationContext(null, variables, getTestNameShort(), createTask());
+
+        when();
+        PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple =
+                evaluatePropertyExpression(expressionType, PrimitiveType.STRING, expressionContext, result);
+
+        then();
+        // The method itself asserts (via MiscUtil.stateNonNull) that all the auto-injected
+        // parameters (log, basic, task, result, vtCtx) are actually provided by the evaluator.
+        assertOutputTriple(outputTriple)
+                .assertEmptyMinus()
+                .assertEmptyPlus()
+                .zeroSet()
+                .assertSinglePropertyValue("Hello, " + VAR_FOO_VALUE);
+    }
+
+    @Test
+    public void test172JavaMethodReferenceNonExistingVariable() throws Exception {
+        given();
+        OperationResult result = createOperationResult();
+
+        var expressionType = parseExpression(EXPRESSION_JAVA_METHOD_REFERENCE_NON_EXISTING_VARIABLE_FILE);
+        VariablesMap variables = prepareBasicVariables();
+        var expressionContext = new ExpressionEvaluationContext(null, variables, getTestNameShort(), createTask());
+
+        when();
+        try {
+            evaluatePropertyExpression(expressionType, PrimitiveType.STRING, expressionContext, result);
+
+            AssertJUnit.fail("Unexpected success of expression evaluation");
+        } catch (ExpressionEvaluationException e) {
+            then();
+            assertExpectedException(e)
+                    .hasMessageContaining("No variable found for parameter 'wrong'");
+        }
+    }
+
+    @Test
+    public void test173JavaMethodReferenceUnknownClass() throws Exception {
+        given();
+        OperationResult result = createOperationResult();
+
+        var expressionType = parseExpression(EXPRESSION_JAVA_METHOD_REFERENCE_UNKNOWN_CLASS_FILE);
+        VariablesMap variables = prepareBasicVariables();
+        var expressionContext = new ExpressionEvaluationContext(null, variables, getTestNameShort(), createTask());
+
+        when();
+        try {
+            evaluatePropertyExpression(expressionType, PrimitiveType.STRING, expressionContext, result);
+
+            AssertJUnit.fail("Unexpected success of expression evaluation");
+        } catch (ExpressionEvaluationException e) {
+            then();
+            assertExpectedException(e)
+                    .hasMessageContaining("Class not found");
+        }
+    }
+
+    @Test
+    public void test174JavaMethodReferenceUnknownMethod() throws Exception {
+        given();
+        OperationResult result = createOperationResult();
+
+        var expressionType = parseExpression(EXPRESSION_JAVA_METHOD_REFERENCE_UNKNOWN_METHOD_FILE);
+        VariablesMap variables = prepareBasicVariables();
+        var expressionContext = new ExpressionEvaluationContext(null, variables, getTestNameShort(), createTask());
+
+        when();
+        try {
+            evaluatePropertyExpression(expressionType, PrimitiveType.STRING, expressionContext, result);
+
+            AssertJUnit.fail("Unexpected success of expression evaluation");
+        } catch (ExpressionEvaluationException e) {
+            then();
+            assertExpectedException(e)
+                    .hasMessageContaining("Expected exactly one method named 'unknownMethod'");
+        }
+    }
+
+    /**
+     * Java method is (String, String) -> String but we provide polystrings and expect a QName. Should be converted automatically.
+     */
+    @Test
+    public void test175JavaMethodReferenceWithConversions() throws Exception {
+        given();
+        OperationResult result = createOperationResult();
+
+        var expressionBean = parseExpression(EXPRESSION_JAVA_METHOD_REFERENCE_FILE);
+        VariablesMap variables = preparePolyStringVariables();
+        var expressionContext = new ExpressionEvaluationContext(null, variables, getTestNameShort(), createTask());
+
+        when();
+        PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple =
+                evaluatePropertyExpression(expressionBean, PrimitiveType.QNAME, expressionContext, result);
+
+        then();
+        assertOutputTriple(outputTriple)
+                .assertEmptyMinus()
+                .assertEmptyPlus()
+                .zeroSet()
+                .assertSinglePropertyValue(new QName(VAR_FOO_VALUE + VAR_BAR_VALUE));
+    }
+
+    @Test
     public void test200IterationCondition() throws Exception {
         // GIVEN
         OperationResult result = createOperationResult();
@@ -455,6 +593,15 @@ public class TestExpression extends AbstractModelCommonTest {
         variables.put(ExpressionConstants.VAR_FOCUS, user, user.getDefinition());
         variables.put(VAR_FOO_NAME, VAR_FOO_VALUE, String.class);
         variables.put(VAR_BAR_NAME, VAR_BAR_VALUE, String.class);
+        return variables;
+    }
+
+    protected VariablesMap preparePolyStringVariables() throws SchemaException, IOException {
+        VariablesMap variables = new VariablesMap();
+        PrismObject<UserType> user = PrismTestUtil.parseObject(USER_JACK_FILE);
+        variables.put(ExpressionConstants.VAR_FOCUS, user, user.getDefinition());
+        variables.put(VAR_FOO_NAME, PolyString.fromOrig(VAR_FOO_VALUE), PolyString.class);
+        variables.put(VAR_BAR_NAME, PolyString.fromOrig(VAR_BAR_VALUE), PolyString.class);
         return variables;
     }
 
