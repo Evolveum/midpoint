@@ -7,10 +7,8 @@
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.stats.button;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils;
 
 import com.evolveum.midpoint.web.component.AjaxIconButton;
-import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -47,7 +45,6 @@ public abstract class AbstractStatisticsButton<T> extends BasePanel<T> {
         button.showTitleAsLabel(true);
         button.setOutputMarkupId(true);
         button.add(AttributeModifier.append("class", getButtonCssClass()));
-        button.add(new VisibleBehaviour(() -> SmartIntegrationUtils.isSmartIntegrationAuthorized(getPageBase())));
         return button;
     }
 

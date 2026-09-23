@@ -242,7 +242,6 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
                 .addParam("objectClassName", objectClassName)
                 .build();
         try {
-            authorizeSmartIntegration(task, result);
             var resourceObject = modelService.getObject(ResourceType.class, resourceOid, null, task, result);
             var resource = Resource.of(resourceObject);
             var query = resource.queryFor(objectClassName).build();
@@ -335,7 +334,6 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
             Task task,
             OperationResult parentResult)
             throws CommonException {
-        authorizeSmartIntegration(task, parentResult);
         return statisticsService.regenerateObjectClassStatistics(resourceOid, objectClassName, task, parentResult);
     }
 
@@ -345,7 +343,6 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
             ResourceObjectTypeIdentification resourceObjectTypeIdentification,
             Task task,
             OperationResult result) throws CommonException {
-        authorizeSmartIntegration(task, result);
         return statisticsService.regenerateObjectTypeStatistics(resourceOid, resourceObjectTypeIdentification, task, result);
     }
 
@@ -385,7 +382,6 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
             Task task,
             OperationResult result)
             throws CommonException {
-        authorizeSmartIntegration(task, result);
         return statisticsService.regenerateFocusObjectStatistics(objectTypeName, resourceOid, typeIdentification, task, result);
     }
 

@@ -57,7 +57,6 @@ import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schem
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.attribute.mapping.ChangeLifecycleSelectedMappingsPopup;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.attribute.mapping.MappingDataDto;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.attribute.mapping.preview.PreviewMappingPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.stats.action.FocusStatisticsActions;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.stats.action.ObjectTypeStatisticsActions;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.IconWithLabel;
@@ -451,8 +450,6 @@ record SmartMappingActions<P extends Containerable>(SmartMappingTable<P> table) 
                     }
                 })
                 .headerMenuItem(true)
-                .visibilityChecker((rowModel, isHeader) ->
-                        SmartIntegrationUtils.isSmartIntegrationAuthorized(table.getPageBase()))
                 .buildInlineMenu();
     }
 
@@ -518,8 +515,6 @@ record SmartMappingActions<P extends Containerable>(SmartMappingTable<P> table) 
                     }
                 })
                 .headerMenuItem(true)
-                .visibilityChecker((rowModel, isHeader) ->
-                        SmartIntegrationUtils.isSmartIntegrationAuthorized(table.getPageBase()))
                 .buildInlineMenu();
     }
 
