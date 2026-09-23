@@ -119,7 +119,12 @@ public class ConfigurableExpressionColumn<S extends SelectableRow<T>, T extends 
         } else {
             item.add(createLabel(componentId, model));
         }
-        if (customColumn.getDisplay() != null && customColumn.getDisplay().getCssStyle() != null) {
+        applyDisplayStyle(item);
+    }
+
+    protected void applyDisplayStyle(org.apache.wicket.markup.repeater.Item<ICellPopulator<S>> item) {
+        if (customColumn != null && customColumn.getDisplay() != null
+                && customColumn.getDisplay().getCssStyle() != null) {
             item.add(AttributeAppender.append("style", customColumn.getDisplay().getCssStyle()));
         }
     }
