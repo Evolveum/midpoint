@@ -93,7 +93,9 @@ public class JavaMethodReferenceExpressionEvaluator<V extends PrismValue, D exte
         var className = getClassName();
         var methodName = getMethodName();
 
-        var clazz = Class.forName(className);
+        // Deferring the static initialization of the class until we are sure that it is in an allowed package.
+        // (It will get executed automatically when we access the class below.)
+        var clazz = Class.forName(className, false, JavaMethodReferenceExpressionEvaluator.class.getClassLoader());
 
         if (!configuration.javaMethodEvaluatorPackageNames().contains(clazz.getPackageName())) {
             throw new ConfigurationException(
@@ -101,7 +103,7 @@ public class JavaMethodReferenceExpressionEvaluator<V extends PrismValue, D exte
                             .formatted(className));
         }
 
-        var matchingMethods = Arrays.stream(clazz.getDeclaredMethods())
+        var matchingMethods = Arrays.stream(clazz.getMethods())
                 .filter(m -> m.getName().equals(methodName))
                 .toList();
         return MiscUtil.extractSingletonRequired(matchingMethods,
