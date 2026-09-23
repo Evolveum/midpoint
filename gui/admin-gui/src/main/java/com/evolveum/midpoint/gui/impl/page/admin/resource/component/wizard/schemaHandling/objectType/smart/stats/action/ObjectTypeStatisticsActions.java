@@ -64,7 +64,7 @@ public final class ObjectTypeStatisticsActions {
             if (!forceRegeneration) {
                 var latestStatistics =
                         smartIntegrationService.getLatestObjectTypeStatistics(
-                                resourceOid, objectTypeIdentification, task.getResult());
+                                resourceOid, objectTypeIdentification, task, task.getResult());
 
                 if (latestStatistics != null) {
                     showStatisticsPopup(target, pageBase, latestStatistics, resourceOid,
@@ -162,7 +162,7 @@ public final class ObjectTypeStatisticsActions {
 
         try {
             var latestStatistics =
-                    smartIntegrationService.getLatestObjectTypeStatistics(resourceOid, objectTypeIdentification, task.getResult());
+                    smartIntegrationService.getLatestObjectTypeStatistics(resourceOid, objectTypeIdentification, task, task.getResult());
 
             if (latestStatistics == null) {
                 pageBase.warn("Statistics computation finished, but no statistics object was found.");

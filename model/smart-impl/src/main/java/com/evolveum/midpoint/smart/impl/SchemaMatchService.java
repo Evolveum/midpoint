@@ -12,6 +12,7 @@ import static com.evolveum.midpoint.prism.xml.XmlTypeConverter.toMillis;
 
 import java.util.Comparator;
 import java.util.Date;
+import java.util.List;
 import java.util.Optional;
 import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -21,16 +22,17 @@ import com.evolveum.midpoint.schema.util.SmartIntegrationArtifactUtil;
 import com.evolveum.midpoint.util.exception.*;
 
 import org.jetbrains.annotations.NotNull;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
+import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.delta.DeltaFactory;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.common.SystemObjectCache;
 import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
@@ -60,26 +62,26 @@ public class SchemaMatchService {
     /** Default time-to-live for schema match objects if not configured. */
     private static final Duration DEFAULT_SCHEMA_MATCH_TTL = XmlTypeConverter.createDuration("P1D");
 
-    private final RepositoryService repositoryService;
+    private final ModelService modelService;
     private final ServiceClientFactory clientFactory;
     private final WellKnownSchemaService wellKnownSchemaService;
     private final SystemObjectCache systemObjectCache;
     private final StatisticsService statisticsService;
 
     public SchemaMatchService(
-            @Qualifier("cacheRepositoryService") RepositoryService repositoryService,
+            ModelService modelService,
             ServiceClientFactory clientFactory,
             WellKnownSchemaService wellKnownSchemaService,
             SystemObjectCache systemObjectCache,
             StatisticsService statisticsService) {
-        this.repositoryService = repositoryService;
+        this.modelService = modelService;
         this.clientFactory = clientFactory;
         this.wellKnownSchemaService = wellKnownSchemaService;
         this.systemObjectCache = systemObjectCache;
         this.statisticsService = statisticsService;
     }
 
-    public SchemaMatchResultType loadSchemaMatch(ObjectReferenceType schemaMatchRef, OperationResult result) {
+    public SchemaMatchResultType loadSchemaMatch(ObjectReferenceType schemaMatchRef, Task task, OperationResult result) {
         try {
             if (schemaMatchRef == null) {
                 return null;
@@ -88,8 +90,8 @@ public class SchemaMatchService {
             if (schemaMatchOid == null) {
                 return null;
             }
-            var schemaMatchObject = repositoryService
-                    .getObject(SmartIntegrationArtifactType.class, schemaMatchOid, null, result)
+            var schemaMatchObject = modelService
+                    .getObject(SmartIntegrationArtifactType.class, schemaMatchOid, null, task, result)
                     .asObjectable();
             return SmartIntegrationArtifactUtil.getObjectTypeSchemaMatchRequired(schemaMatchObject);
         } catch (Exception e) {
@@ -254,14 +256,14 @@ public class SchemaMatchService {
     }
 
     public SmartIntegrationArtifactType getLatestObjectTypeSchemaMatch(
-            String resourceOid, ResourceObjectTypeIdentification typeIdentification, OperationResult parentResult)
-            throws SchemaException {
+            String resourceOid, ResourceObjectTypeIdentification typeIdentification, Task task, OperationResult parentResult)
+            throws CommonException {
         var result = parentResult.subresult(OP_GET_LATEST_OBJECT_TYPE_SCHEMA_MATCH)
                 .addParam("resourceOid", resourceOid)
                 .addParam("type", typeIdentification)
                 .build();
         try {
-            var objects = repositoryService.searchObjects(
+            var objects = modelService.searchObjects(
                     SmartIntegrationArtifactType.class,
                     PrismContext.get().queryFor(SmartIntegrationArtifactType.class)
                             .item(SmartIntegrationArtifactUtil.PATH_SCOPE_RESOURCE_REF).ref(resourceOid)
@@ -271,6 +273,7 @@ public class SchemaMatchService {
                             .ref(SystemObjectsType.ARCHETYPE_SMART_INTEGRATION_SCHEMA_MATCH.value())
                             .build(),
                     null,
+                    task,
                     result);
 
             var latestSchemaMatch = objects.stream()
@@ -280,7 +283,7 @@ public class SchemaMatchService {
                             o -> toMillis(SmartIntegrationArtifactUtil.getObjectTypeSchemaMatchRequired(o).getTimestamp())))
                     .orElse(null);
 
-            return deleteIfExpired(latestSchemaMatch, resourceOid, typeIdentification, result);
+            return deleteIfExpired(latestSchemaMatch, resourceOid, typeIdentification, task, result);
         } catch (Throwable t) {
             result.recordException(t);
             throw t;
@@ -300,18 +303,22 @@ public class SchemaMatchService {
             String resourceOid,
             ResourceObjectTypeIdentification typeIdentification,
             SchemaMatchResultType schemaMatch,
+            Task task,
             OperationResult parentResult)
-            throws SchemaException, ObjectAlreadyExistsException {
+            throws CommonException {
         var result = parentResult.subresult(OP_SAVE_SCHEMA_MATCH)
                 .addParam("resourceOid", resourceOid)
                 .addParam("type", typeIdentification)
                 .build();
         try {
-            deleteSchemaMatchObjects(resourceOid, typeIdentification, result);
+            deleteSchemaMatchObjects(resourceOid, typeIdentification, task, result);
             var schemaMatchObject = SmartIntegrationArtifactUtil.createSchemaMatchArtifact(
                     resourceOid, typeIdentification, schemaMatch);
             LOGGER.debug("Adding schema match object:\n{}", schemaMatchObject.debugDump(1));
-            var oid = repositoryService.addObject(schemaMatchObject.asPrismObject(), null, result);
+            var oid = modelService.executeChanges(
+                            List.of(DeltaFactory.Object.createAddDelta(schemaMatchObject.asPrismObject())),
+                            ModelExecuteOptions.create().raw(), task, result)
+                    .iterator().next().getObjectDelta().getOid();
             LOGGER.debug("Saved schema match object with OID {}", oid);
             return oid;
         } catch (Throwable t) {
@@ -322,9 +329,9 @@ public class SchemaMatchService {
         }
     }
 
-    private void deleteSchemaMatchObjects(String resourceOid, ResourceObjectTypeIdentification type, OperationResult result)
-            throws SchemaException {
-        var objects = repositoryService.searchObjects(
+    private void deleteSchemaMatchObjects(String resourceOid, ResourceObjectTypeIdentification type, Task task, OperationResult result)
+            throws CommonException {
+        var objects = modelService.searchObjects(
                 SmartIntegrationArtifactType.class,
                 PrismContext.get().queryFor(SmartIntegrationArtifactType.class)
                         .item(SmartIntegrationArtifactUtil.PATH_SCOPE_RESOURCE_REF).ref(resourceOid)
@@ -334,15 +341,18 @@ public class SchemaMatchService {
                         .ref(SystemObjectsType.ARCHETYPE_SMART_INTEGRATION_SCHEMA_MATCH.value())
                         .build(),
                 null,
+                task,
                 result);
         for (var obj : objects) {
-            deleteSchemaMatchObject(obj.getOid(), result);
+            deleteSchemaMatchObject(obj.getOid(), task, result);
         }
     }
 
-    private void deleteSchemaMatchObject(String oid, OperationResult result) {
+    private void deleteSchemaMatchObject(String oid, Task task, OperationResult result) {
         try {
-            repositoryService.deleteObject(SmartIntegrationArtifactType.class, oid, result);
+            modelService.executeChanges(
+                    List.of(PrismContext.get().deltaFactory().object().createDeleteDelta(SmartIntegrationArtifactType.class, oid)),
+                    ModelExecuteOptions.create().raw(), task, result);
             LOGGER.debug("Deleted schema match object {}", oid);
         } catch (Exception e) {
             LOGGER.warn("Failed to delete schema match object {}: {}", oid, e.getMessage(), e);
@@ -374,6 +384,7 @@ public class SchemaMatchService {
             SmartIntegrationArtifactType schemaMatchObject,
             String resourceOid,
             ResourceObjectTypeIdentification typeIdentification,
+            Task task,
             OperationResult result) {
         if (schemaMatchObject == null) {
             return null;
@@ -381,7 +392,7 @@ public class SchemaMatchService {
         var schemaMatch = SmartIntegrationArtifactUtil.getObjectTypeSchemaMatchRequired(schemaMatchObject);
         if (isSchemaMatchExpired(schemaMatch.getTimestamp(), result)) {
             LOGGER.info("Schema match for resource {}/{} expired, deleting", resourceOid, typeIdentification);
-            deleteSchemaMatchObject(schemaMatchObject.getOid(), result);
+            deleteSchemaMatchObject(schemaMatchObject.getOid(), task, result);
             return null;
         }
         return schemaMatchObject;
@@ -407,7 +418,7 @@ public class SchemaMatchService {
             Task task,
             OperationResult result) {
         try {
-            var statsObj = statisticsService.getLatestObjectTypeStatistics(resourceOid, typeIdentification, result);
+            var statsObj = statisticsService.getLatestObjectTypeStatistics(resourceOid, typeIdentification, task, result);
             if (statsObj != null) {
                 return SmartIntegrationArtifactUtil.getStatisticsRequired(statsObj);
             }

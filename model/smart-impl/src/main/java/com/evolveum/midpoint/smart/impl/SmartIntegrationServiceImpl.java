@@ -310,22 +310,22 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
 
     @Override
     public SmartIntegrationArtifactType getLatestObjectTypeStatistics(
-            String resourceOid, ResourceObjectTypeIdentification typeIdentification, OperationResult parentResult)
-            throws SchemaException {
-        return statisticsService.getLatestObjectTypeStatistics(resourceOid, typeIdentification, parentResult);
+            String resourceOid, ResourceObjectTypeIdentification typeIdentification, Task task, OperationResult parentResult)
+            throws CommonException {
+        return statisticsService.getLatestObjectTypeStatistics(resourceOid, typeIdentification, task, parentResult);
     }
 
     @Override
     public void deleteObjectTypeStatistics(
-            String resourceOid, ResourceObjectTypeIdentification typeIdentification, OperationResult result)
-            throws SchemaException {
-        statisticsService.deleteObjectTypeStatistics(resourceOid, typeIdentification, result);
+            String resourceOid, ResourceObjectTypeIdentification typeIdentification, Task task, OperationResult result)
+            throws CommonException {
+        statisticsService.deleteObjectTypeStatistics(resourceOid, typeIdentification, task, result);
     }
 
     @Override
-    public SmartIntegrationArtifactType getLatestObjectClassStatistics(String resourceOid, QName objectClassName, OperationResult parentResult)
-            throws SchemaException {
-        return statisticsService.getLatestObjectClassStatistics(resourceOid, objectClassName, parentResult);
+    public SmartIntegrationArtifactType getLatestObjectClassStatistics(String resourceOid, QName objectClassName, Task task, OperationResult parentResult)
+            throws CommonException {
+        return statisticsService.getLatestObjectClassStatistics(resourceOid, objectClassName, task, parentResult);
     }
 
     @Override
@@ -350,9 +350,9 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
     }
 
     @Override
-    public void deleteStatisticsForResource(String resourceOid, QName objectClassName, OperationResult result)
-            throws SchemaException {
-        statisticsService.deleteStatisticsForResource(resourceOid, objectClassName, result);
+    public void deleteStatisticsForResource(String resourceOid, QName objectClassName, Task task, OperationResult result)
+            throws CommonException {
+        statisticsService.deleteStatisticsForResource(resourceOid, objectClassName, task, result);
     }
 
     @Override
@@ -360,9 +360,10 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
             QName objectTypeName,
             String resourceOid,
             ResourceObjectTypeIdentification typeIdentification,
+            Task task,
             OperationResult parentResult)
-            throws SchemaException {
-        return statisticsService.getLatestFocusObjectStatistics(objectTypeName, resourceOid, typeIdentification, parentResult);
+            throws CommonException {
+        return statisticsService.getLatestFocusObjectStatistics(objectTypeName, resourceOid, typeIdentification, task, parentResult);
     }
 
     @Override
@@ -370,9 +371,10 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
             QName objectTypeName,
             String resourceOid,
             ResourceObjectTypeIdentification typeIdentification,
+            Task task,
             OperationResult result)
-            throws SchemaException {
-        statisticsService.deleteFocusObjectStatistics(objectTypeName, resourceOid, typeIdentification, result);
+            throws CommonException {
+        statisticsService.deleteFocusObjectStatistics(objectTypeName, resourceOid, typeIdentification, task, result);
     }
 
     @Override
@@ -389,9 +391,9 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
 
     @Override
     public SmartIntegrationArtifactType getLatestObjectTypeSchemaMatch(
-            String resourceOid, ResourceObjectTypeIdentification typeIdentification, OperationResult parentResult)
-            throws SchemaException {
-        return schemaMatchService.getLatestObjectTypeSchemaMatch(resourceOid, typeIdentification, parentResult);
+            String resourceOid, ResourceObjectTypeIdentification typeIdentification, Task task, OperationResult parentResult)
+            throws CommonException {
+        return schemaMatchService.getLatestObjectTypeSchemaMatch(resourceOid, typeIdentification, task, parentResult);
     }
 
     @Override

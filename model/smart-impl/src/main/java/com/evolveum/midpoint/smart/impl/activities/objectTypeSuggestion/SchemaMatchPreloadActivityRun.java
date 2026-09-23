@@ -103,7 +103,7 @@ class SchemaMatchPreloadActivityRun
 
                 for (var objectTypeBean : typesWithThisFocus) {
                     var type = ResourceObjectTypeIdentification.of(objectTypeBean.getKind(), objectTypeBean.getIntent());
-                    var schemaMatchOid = schemaMatchService.saveSchemaMatch(resourceOid, type, match, result);
+                    var schemaMatchOid = schemaMatchService.saveSchemaMatch(resourceOid, type, match, getRunningTask(), result);
                     LOGGER.debug("Schema match cached with OID {} for type {}", schemaMatchOid, type);
                 }
             } catch (Exception e) {

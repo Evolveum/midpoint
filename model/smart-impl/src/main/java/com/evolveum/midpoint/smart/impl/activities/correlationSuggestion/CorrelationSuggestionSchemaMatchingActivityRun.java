@@ -51,10 +51,10 @@ public class CorrelationSuggestionSchemaMatchingActivityRun extends LocalActivit
         parentState.flushPendingTaskModificationsChecked(result);
     }
 
-    private @Nullable String findLatestSchemaMatchObjectOid(OperationResult result) throws SchemaException {
+    private @Nullable String findLatestSchemaMatchObjectOid(OperationResult result) throws CommonException {
         var workDef = getWorkDefinition();
         var lastSchemaMatchObject = SmartIntegrationBeans.get().smartIntegrationService.getLatestObjectTypeSchemaMatch(
-                workDef.getResourceOid(), workDef.getTypeIdentification(), result);
+                workDef.getResourceOid(), workDef.getTypeIdentification(), getRunningTask(), result);
         return lastSchemaMatchObject != null ? lastSchemaMatchObject.getOid() : null;
     }
 
@@ -86,7 +86,7 @@ public class CorrelationSuggestionSchemaMatchingActivityRun extends LocalActivit
         var match = SmartIntegrationBeans.get().smartIntegrationService
                 .computeSchemaMatch(resourceOid, typeIdentification, useAi, getRunningTask(), result);
         var schemaMatchOid = SmartIntegrationBeans.get().schemaMatchService
-                .saveSchemaMatch(resourceOid, workDef.getTypeIdentification(), match, result);
+                .saveSchemaMatch(resourceOid, workDef.getTypeIdentification(), match, getRunningTask(), result);
 
         setSchemaMatchObjectOidInWorkState(schemaMatchOid, result);
 

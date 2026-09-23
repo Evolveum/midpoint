@@ -57,12 +57,12 @@ public class MappingsSuggestionRemoteServiceCallActivityRun extends LocalActivit
         var statisticsRef = parentState.getWorkStateItemRealValueClone(
                 MappingsSuggestionWorkStateType.F_STATISTICS_REF, ObjectReferenceType.class);
         var objectTypeStatistics = SmartIntegrationBeans.get().statisticsService
-                .loadObjectTypeStatistics(statisticsRef, result);
+                .loadObjectTypeStatistics(statisticsRef, getRunningTask(), result);
 
         var schemaMatchRef = parentState.getWorkStateItemRealValueClone(
                 MappingsSuggestionWorkStateType.F_SCHEMA_MATCH_REF, ObjectReferenceType.class);
         var schemaMatch = SmartIntegrationBeans.get().schemaMatchService
-                .loadSchemaMatch(schemaMatchRef, result);
+                .loadSchemaMatch(schemaMatchRef, getRunningTask(), result);
 
         var suggestedMappings = SmartIntegrationBeans.get().smartIntegrationService.suggestMappings(
                 resourceOid,

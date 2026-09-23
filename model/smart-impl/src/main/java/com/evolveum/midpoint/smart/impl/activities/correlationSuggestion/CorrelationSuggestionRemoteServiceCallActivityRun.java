@@ -48,7 +48,7 @@ public class CorrelationSuggestionRemoteServiceCallActivityRun extends LocalActi
 
         var schemaMatchRef = parentState.getWorkStateItemRealValueClone(
                 CorrelationSuggestionWorkStateType.F_SCHEMA_MATCH_REF, ObjectReferenceType.class);
-        var schemaMatch = SmartIntegrationBeans.get().schemaMatchService.loadSchemaMatch(schemaMatchRef, result);
+        var schemaMatch = SmartIntegrationBeans.get().schemaMatchService.loadSchemaMatch(schemaMatchRef, task, result);
 
         var suggestedCorrelation = SmartIntegrationBeans.get().smartIntegrationService.suggestCorrelation(
                 resourceOid, typeDef, schemaMatch, targetPathsToIgnore, null, task, result);
