@@ -30,6 +30,14 @@ JAVA_def_Xmx="2g"
 ENV_MAP_PREFIX="MP_SET_"
 ENV_UNMAP_PREFIX="MP_UNSET_"
 
+# Keys whose values must not be printed to the console.
+# Keep in sync with StartupConfiguration.isSensitiveKey (repo/system-init).
+SENSITIVE_KEY_REGEX="password|passwd|pwd|secret|token|credential|api[._-]?key|jdbcUrl|jdbcUsername|dataSource"
+
+is_sensitive_key() {
+  echo -n "$1" | grep -qiE "${SENSITIVE_KEY_REGEX}"
+}
+
 # Apply bin/setenv.sh if it exists. This setenv.sh does not depend on MIDPOINT_HOME.
 # The script can either append or overwrite JAVA_OPTS, e.g. to set -Dmidpoint.nodeId.
 if [[ -r "${SCRIPT_DIR}/setenv.sh" ]]; then
@@ -142,7 +150,7 @@ while read line; do
   [ "${_key: -5}" = ".FILE" ] && _key="${_key::$((${#_key} - 5))}_FILE"
   ###
 
-  if [ "${_key: -7}" = "assword" ]
+  if is_sensitive_key "${_key}"
   then
     echo "Processing variable (MAP) ... ${_key} .:. *****" >&2
   else
@@ -165,7 +173,7 @@ while read line; do
   [ "${_key: -5}" = ".FILE" ] && _key="${_key::$((${#_key} - 5))}_FILE"
   ###
 
-  if [ "${_key: -7}" = "assword" ]
+  if is_sensitive_key "${_key}"
   then
     echo "Processing variable (UNMAP) ... ${_key} .:. *****" >&2
   else
