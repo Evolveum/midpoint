@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2013-2019 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<expression xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <javaMethodReference>
+        <className>com.evolveum.midpoint.model.common.expression.SampleJavaLibrary</className>
+        <methodName>checkEnv</methodName>
+    </javaMethodReference>
+</expression>

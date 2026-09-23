@@ -9,6 +9,7 @@ package com.evolveum.midpoint.schema.constants;
 import com.evolveum.midpoint.util.statistics.OperationExecutionLogger;
 
 import javax.xml.namespace.QName;
+import java.util.List;
 
 /**
  * @author semancik
@@ -27,7 +28,37 @@ public class MidPointConstants {
     public static final String EXPRESSION_LANGUAGE_MEL_NAME = "mel";
     public static final String EXPRESSION_LANGUAGE_MEL_URL = EXPRESSION_LANGUAGE_URL_BASE + EXPRESSION_LANGUAGE_MEL_NAME;
 
-    // These two are here because they are referenced from ExpressionProfile code
+    // These are here because they are (or can be) referenced from ExpressionProfile code
+
+    // These are considered to be safe
+    public static final String MEL_EXTENSION_BINDINGS_NAME = "bindings";
+    public static final String MEL_EXTENSION_MATH_NAME = "math";
+    public static final String MEL_EXTENSION_SETS_NAME = "sets";
+    public static final String MEL_EXTENSION_ENCODERS_NAME = "encoders";
+    public static final String MEL_EXTENSION_LISTS_NAME = "lists";
+    public static final String MEL_EXTENSION_REGEX_NAME = "regex";
+    public static final String MEL_EXTENSION_COMPREHENSIONS_NAME = "comprehensions";
+    public static final String MEL_EXTENSION_MEL_NAME = "mel";
+    public static final String MEL_EXTENSION_FORMAT_NAME = "format";
+    public static final String MEL_EXTENSION_LDAP_NAME = "ldap";
+    public static final String MEL_EXTENSION_OBJECT_NAME = "object";
+    public static final String MEL_EXTENSION_LOG_NAME = "log";
+
+    public static final List<String> SAFE_MEL_EXTENSIONS = List.of(
+            MEL_EXTENSION_BINDINGS_NAME,
+            MEL_EXTENSION_MATH_NAME,
+            MEL_EXTENSION_SETS_NAME,
+            MEL_EXTENSION_ENCODERS_NAME,
+            MEL_EXTENSION_LISTS_NAME,
+            MEL_EXTENSION_REGEX_NAME,
+            MEL_EXTENSION_COMPREHENSIONS_NAME,
+            MEL_EXTENSION_MEL_NAME,
+            MEL_EXTENSION_FORMAT_NAME,
+            MEL_EXTENSION_LDAP_NAME,
+            MEL_EXTENSION_OBJECT_NAME,
+            MEL_EXTENSION_LOG_NAME);
+
+    // These are considered to be unsafe (at least in some contexts); but let's keep them here for consistency
     public static final String MEL_EXTENSION_MIDPOINT_NAME = "midpoint";
     public static final String MEL_EXTENSION_SECRET_NAME = "secret";
 

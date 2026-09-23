@@ -231,7 +231,7 @@ public class ObjectModificationConstraintEvaluator
             case RESOURCE_OBJECT_NAMING_ATTRIBUTE -> pathBasedSpecialItemMatches(
                     delta, specialItem, getResourceObjectNamingAttributePath(objectDefinition, specialItem));
             case RESOURCE_OBJECT_ENTITLEMENT -> isEntitlementChange(delta, objectDefinition);
-            case OPERATIONAL_ONLY_CHANGE -> ShadowUtil.hasOnlyOperationalResourceModifications(delta);
+            case OPERATIONAL_ONLY_CHANGE -> ShadowUtil.hasOnlyOperationalModifications(delta);
             case RESOURCE_OBJECT_ITEM -> ShadowUtil.hasNonOperationalResourceModifications(delta.getModifications());
         };
     }

@@ -9,9 +9,11 @@ package com.evolveum.midpoint.model.common.expression;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 import com.evolveum.midpoint.common.configuration.api.ExpressionsConfigurationSection;
 import com.evolveum.midpoint.model.common.ModelCommonBeans;
+import com.evolveum.midpoint.model.common.expression.evaluator.JavaMethodReferenceExpressionEvaluatorFactory;
 import com.evolveum.midpoint.model.common.expression.script.TestingExpressionConfiguration;
 import com.evolveum.midpoint.prism.impl.PrismContextImpl;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
@@ -72,6 +74,10 @@ public class ExpressionTestUtil {
                 new ExpressionFactory(LocalizationTestUtil.getLocalizationService(), expressionProfileSupplier);
         expressionFactory.setObjectResolver(resolver);
 
+        Collection<FunctionLibraryBinding> functions = new ArrayList<>();
+        functions.add(FunctionLibraryUtil.createBasicFunctionLibraryBinding(prismContext, protector, clock));
+        functions.add(FunctionLibraryUtil.createLogFunctionLibraryBinding(prismContext));
+
         // NOTE: we need to register the evaluator factories to expressionFactory manually here
         // this is not spring-wired test. PostConstruct methods are not invoked here
 
@@ -105,10 +111,14 @@ public class ExpressionTestUtil {
         generateFactory.setObjectResolver(resolver);
         expressionFactory.registerEvaluatorFactory(generateFactory);
 
+        // java method reference
+        var javaMethodReferenceExpressionEvaluatorFactory =
+                new JavaMethodReferenceExpressionEvaluatorFactory(
+                        testingExpressionsConfiguration(false, List.of(SampleJavaLibrary.class.getPackageName())),
+                        functions);
+        expressionFactory.registerEvaluatorFactory(javaMethodReferenceExpressionEvaluatorFactory);
+
         // script
-        Collection<FunctionLibraryBinding> functions = new ArrayList<>();
-        functions.add(FunctionLibraryUtil.createBasicFunctionLibraryBinding(prismContext, protector, clock));
-        functions.add(FunctionLibraryUtil.createLogFunctionLibraryBinding(prismContext));
         ScriptFactory scriptFactory = new ScriptFactory(functions, resolver);
 
         scriptFactory.registerExecutor(
@@ -162,10 +172,15 @@ public class ExpressionTestUtil {
     }
 
     public static ExpressionsConfigurationSection testingExpressionsConfiguration() {
-        return new TestingExpressionConfiguration(false);
+        return new TestingExpressionConfiguration(false, List.of());
     }
 
     public static ExpressionsConfigurationSection testingExpressionsConfiguration(boolean restrictedMode) {
-        return new TestingExpressionConfiguration(restrictedMode);
+        return new TestingExpressionConfiguration(restrictedMode, List.of());
+    }
+
+    public static ExpressionsConfigurationSection testingExpressionsConfiguration(
+            boolean restrictedMode, Collection<String> javaMethodEvaluatorPackageNames) {
+        return new TestingExpressionConfiguration(restrictedMode, List.copyOf(javaMethodEvaluatorPackageNames));
     }
 }

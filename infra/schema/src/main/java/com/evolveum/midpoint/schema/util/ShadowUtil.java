@@ -1097,13 +1097,7 @@ public class ShadowUtil {
     }
 
     /** Returns true if the MODIFY summary delta contains at least one modification and all of them are operational. */
-    public static boolean hasOnlyOperationalResourceModifications(@NotNull ObjectDelta<?> summaryDelta) {
-        boolean hasResourceModifications = hasResourceModifications(summaryDelta.getModifications());
-
-        if(!hasResourceModifications) {
-            return false;
-        }
-
+    public static boolean hasOnlyOperationalModifications(@NotNull ObjectDelta<?> summaryDelta) {
         return summaryDelta.isModify()
                 && !summaryDelta.getModifications().isEmpty()
                 && summaryDelta.getModifications().stream().allMatch(ItemDelta::isOperational);

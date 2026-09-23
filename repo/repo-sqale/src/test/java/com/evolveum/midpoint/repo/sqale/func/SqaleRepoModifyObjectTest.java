@@ -4695,4 +4695,57 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         // THEN
         AssertJUnit.fail("Should fail in repository service modify, since oid in targetRef is invalid");
     }
+
+    @Test
+    public void test993UserSubtypeLengthLimit() throws Exception {
+        given("delta to replace subtype with a value exceeding the limit");
+
+        String tooLongValue = "a".repeat(400000);
+
+        ObjectDelta<UserType> tooLongDelta = prismContext.deltaFor(UserType.class)
+                .item(UserType.F_SUBTYPE)
+                .replace(tooLongValue)
+                .asObjectDelta(user1Oid);
+
+        OperationResult failingResult = createOperationResult();
+
+        when("modifyObject is called with a subtype value that exceeds the limit");
+        assertThatThrownBy(() ->
+                repositoryService.modifyObject(
+                        UserType.class,
+                        user1Oid,
+                        tooLongDelta.getModifications(),
+                        failingResult))
+                .isInstanceOf(SchemaException.class);
+
+        then("SchemaException is thrown");
+
+        given("delta to replace subtype with a value within the limit");
+
+        String validValue = "a".repeat(2000);
+
+        ObjectDelta<UserType> validDelta = prismContext.deltaFor(UserType.class)
+                .item(UserType.F_SUBTYPE)
+                .replace(validValue)
+                .asObjectDelta(user1Oid);
+
+        OperationResult result = createOperationResult();
+
+        when("modifyObject is called with a subtype value that does not exceed the limit");
+        repositoryService.modifyObject(
+                UserType.class,
+                user1Oid,
+                validDelta.getModifications(),
+                result);
+
+        then("operation is successful");
+        assertThatOperationResult(result).isSuccess();
+
+        and("subtype is stored with the complete value");
+        UserType user = repositoryService
+                .getObject(UserType.class, user1Oid, null, result)
+                .asObjectable();
+
+        assertThat(user.getSubtype()).contains(validValue);
+    }
 }

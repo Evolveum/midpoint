@@ -23,6 +23,8 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.schema.util.ExceptionUtil;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.LocalizableMessageBuilder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
@@ -61,6 +63,7 @@ public class SqaleUtils {
     public static final String OWNER_OID = "ownerOid";
     public static final String FULL_ID_PATH = "containerIdPath";
     public static final String REINDEX_NEEDED = "sqale.reindexNeeded";
+    public static final String PSQL_STATE_PROGRAM_LIMIT_EXCEEDED = "54000";
 
     /**
      * Returns version from midPoint object as a number.
@@ -139,7 +142,7 @@ public class SqaleUtils {
 
     /** Throws more specific exception or returns and then original exception should be rethrown. */
     public static void handlePostgresException(Exception exception)
-            throws ObjectAlreadyExistsException {
+            throws ObjectAlreadyExistsException, SchemaException {
         PSQLException psqlException = ExceptionUtil.findCause(exception, PSQLException.class);
         if (psqlException == null) {
             // We can not specially handle this exception based on postgresql state, so it should be handled in caller.
@@ -164,6 +167,22 @@ public class SqaleUtils {
                         "Conflicting object already exists, constraint violation message: "
                                 + psqlException.getMessage(), exception);
             }
+        }
+
+        if (PSQL_STATE_PROGRAM_LIMIT_EXCEEDED.equals(state) ||
+                PSQLState.STRING_DATA_RIGHT_TRUNCATION.getState().equals(state)
+        ) {
+
+            var schemaException = new SchemaException(
+                    new LocalizableMessageBuilder()
+                        .key("limitationValueSize.exceptionMessage")
+                        .build(),
+                    exception
+            );
+
+            schemaException.setTechnicalMessage("Value too long for repository");
+
+            throw schemaException;
         }
     }
 

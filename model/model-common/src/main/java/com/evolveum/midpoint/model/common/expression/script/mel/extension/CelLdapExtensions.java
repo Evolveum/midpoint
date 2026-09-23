@@ -9,6 +9,7 @@ import java.security.NoSuchAlgorithmException;
 import java.util.List;
 
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
+import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 import com.google.common.collect.ImmutableList;
@@ -37,7 +38,7 @@ public class CelLdapExtensions extends AbstractMidPointCelExtensions {
 
     private static final Trace LOGGER = TraceManager.getTrace(CelLdapExtensions.class);
 
-    private static final String FUNCTION_NAME_PREFIX = "ldap";
+    private static final String FUNCTION_NAME_PREFIX = MidPointConstants.MEL_EXTENSION_LDAP_NAME;
     private static final String FUNCTION_NAME_PREFIX_DOT = FUNCTION_NAME_PREFIX+".";
 
     private final BasicExpressionFunctions basicExpressionFunctions;
