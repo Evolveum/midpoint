@@ -228,6 +228,7 @@ See xref:/midpoint/guides/account-activation-sequence/[Account Activation Authen
 * Fixed extremely long input to subtype throws error. See bug:MID-12169[]
 * Fixed Can't hide query playground for superuser (with #all authorization). See bug:MID-10848[]
 * Fixed visualization item descriptiveness handling for added and deleted containers. See bug:MID-10620[]
+* Fixed displaying of the error while adding a delegation. See bug:MID-12364[]
 
 === Releases Of Other Components
 
