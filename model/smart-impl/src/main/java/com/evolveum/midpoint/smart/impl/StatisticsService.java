@@ -16,6 +16,7 @@ import static com.evolveum.midpoint.schema.util.SmartIntegrationArtifactUtil.*;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
 import javax.xml.datatype.Duration;
@@ -23,13 +24,13 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.api.ActivitySubmissionOptions;
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.impl.controller.ModelInteractionServiceImpl;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.Referencable;
+import com.evolveum.midpoint.prism.delta.DeltaFactory;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
-import com.evolveum.midpoint.schema.RetrieveOption;
 import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
@@ -41,18 +42,15 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.common.SystemObjectCache;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.SmartIntegrationArtifactUtil;
 import com.evolveum.midpoint.smart.impl.activities.ObjectTypeStatisticsComputer;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
@@ -74,17 +72,14 @@ public class StatisticsService {
     /** Default time-to-live for statistics objects if not configured. */
     private static final Duration DEFAULT_STATISTICS_TTL = XmlTypeConverter.createDuration("P1D");
 
-    private final RepositoryService repositoryService;
     private final ModelService modelService;
     private final ModelInteractionServiceImpl modelInteractionService;
     private final SystemObjectCache systemObjectCache;
 
     public StatisticsService(
-            @Qualifier("cacheRepositoryService") RepositoryService repositoryService,
             ModelService modelService,
             ModelInteractionServiceImpl modelInteractionService,
             SystemObjectCache systemObjectCache) {
-        this.repositoryService = repositoryService;
         this.modelService = modelService;
         this.modelInteractionService = modelInteractionService;
         this.systemObjectCache = systemObjectCache;
@@ -95,14 +90,14 @@ public class StatisticsService {
      * Automatically deletes expired statistics based on configured TTL (default: 24 hours).
      */
     SmartIntegrationArtifactType getLatestObjectClassStatistics(
-            String resourceOid, QName objectClassName, OperationResult parentResult)
-            throws SchemaException {
+            String resourceOid, QName objectClassName, Task task, OperationResult parentResult)
+            throws CommonException {
         var result = parentResult.subresult(OP_GET_LATEST_STATISTICS)
                 .addParam("resourceOid", resourceOid)
                 .addParam("objectClassName", objectClassName)
                 .build();
         try {
-            var objects = repositoryService.searchObjects(
+            var objects = modelService.searchObjects(
                     SmartIntegrationArtifactType.class,
                     PrismContext.get().queryFor(SmartIntegrationArtifactType.class)
                             .item(PATH_SCOPE_RESOURCE_REF).ref(resourceOid)
@@ -111,6 +106,7 @@ public class StatisticsService {
                             .ref(SystemObjectsType.ARCHETYPE_SMART_INTEGRATION_RESOURCE_OBJECT_CLASS_STATISTICS.value())
                             .build(),
                     null,
+                    task,
                     result);
 
             var latestStatisticsObject = getLatestStatistics(objects);
@@ -120,7 +116,7 @@ public class StatisticsService {
                 if (isStatisticsExpired(statistics.getTimestamp(), result)) {
                     LOGGER.info("Statistics {} for resource {} and class {} expired, deleting",
                             latestStatisticsObject.getOid(), resourceOid, objectClassName);
-                    deleteStatistics(latestStatisticsObject.getOid(), result);
+                    deleteStatistics(latestStatisticsObject.getOid(), task, result);
                     return null;
                 }
             }
@@ -166,7 +162,7 @@ public class StatisticsService {
                 .build();
 
         try {
-            deleteStatisticsForResource(resourceOid, objectClassName, parentResult);
+            deleteStatisticsForResource(resourceOid, objectClassName, task, parentResult);
 
             ActivityDefinitionType activity = new ActivityDefinitionType()
                     .work(new WorkDefinitionsType()
@@ -226,7 +222,7 @@ public class StatisticsService {
                 .build();
 
         try {
-            deleteObjectTypeStatistics(resourceOid, typeIdentification, parentResult);
+            deleteObjectTypeStatistics(resourceOid, typeIdentification, task, parentResult);
 
             ActivityDefinitionType activity = new ActivityDefinitionType()
                     .work(new WorkDefinitionsType()
@@ -354,14 +350,14 @@ public class StatisticsService {
      * Returns the object holding last known statistics for the given resource, kind and intent.
      * Automatically deletes expired statistics based on configured TTL (default: 24 hours).
      */
-    public ObjectSetStatisticsType loadObjectTypeStatistics(ObjectReferenceType statisticsRef, OperationResult result) {
+    public ObjectSetStatisticsType loadObjectTypeStatistics(ObjectReferenceType statisticsRef, Task task, OperationResult result) {
         try {
             var statisticsOid = Referencable.getOid(statisticsRef);
             if (statisticsOid == null) {
                 return null;
             }
-            var statisticsObject = repositoryService
-                    .getObject(SmartIntegrationArtifactType.class, statisticsOid, null, result)
+            var statisticsObject = modelService
+                    .getObject(SmartIntegrationArtifactType.class, statisticsOid, null, task, result)
                     .asObjectable();
             return SmartIntegrationArtifactUtil.getStatisticsRequired(statisticsObject);
         } catch (Exception e) {
@@ -371,14 +367,14 @@ public class StatisticsService {
     }
 
     public SmartIntegrationArtifactType getLatestObjectTypeStatistics(
-            String resourceOid, ResourceObjectTypeIdentification typeIdentification, OperationResult parentResult)
-            throws SchemaException {
+            String resourceOid, ResourceObjectTypeIdentification typeIdentification, Task task, OperationResult parentResult)
+            throws CommonException {
         var result = parentResult.subresult(OP_GET_LATEST_OBJECT_TYPE_STATISTICS)
                 .addParam("resourceOid", resourceOid)
                 .addParam("type", typeIdentification)
                 .build();
         try {
-            var objects = repositoryService.searchObjects(
+            var objects = modelService.searchObjects(
                     SmartIntegrationArtifactType.class,
                     PrismContext.get().queryFor(SmartIntegrationArtifactType.class)
                             .item(PATH_SCOPE_RESOURCE_REF).ref(resourceOid)
@@ -388,6 +384,7 @@ public class StatisticsService {
                             .ref(SystemObjectsType.ARCHETYPE_SMART_INTEGRATION_RESOURCE_OBJECT_TYPE_STATISTICS.value())
                             .build(),
                     null,
+                    task,
                     result);
 
             var latestStatisticsObject = getLatestStatistics(objects);
@@ -397,7 +394,7 @@ public class StatisticsService {
                 if (isStatisticsExpired(statistics.getTimestamp(), result)) {
                     LOGGER.info("Object type statistics {} for resource {}/{} expired, deleting",
                             latestStatisticsObject.getOid(), resourceOid, typeIdentification);
-                    deleteStatistics(latestStatisticsObject.getOid(), result);
+                    deleteStatistics(latestStatisticsObject.getOid(), task, result);
                     return null;
                 }
             }
@@ -458,7 +455,9 @@ public class StatisticsService {
                 return statistics;
             }
             var statsObject = createObjectTypeStatisticsArtifact(resourceOid, resourceName, typeIdentification, statistics);
-            repositoryService.addObject(statsObject.asPrismObject(), null, result);
+            modelService.executeChanges(
+                    List.of(DeltaFactory.Object.createAddDelta(statsObject.asPrismObject())),
+                    ModelExecuteOptions.create().raw(), task, result);
             LOGGER.info("Synchronously computed and saved object type statistics for {}/{}/{}",
                     resourceOid, typeIdentification.getKind().value(), typeIdentification.getIntent());
             return statistics;
@@ -475,13 +474,14 @@ public class StatisticsService {
     public void deleteStatisticsForResource(
             String resourceOid,
             QName objectClassName,
-            OperationResult parentResult) throws SchemaException {
+            Task task,
+            OperationResult parentResult) throws CommonException {
         var result = parentResult.subresult("deleteStatisticsForResource")
                 .addParam("resourceOid", resourceOid)
                 .addParam("objectClassName", objectClassName)
                 .build();
         try {
-            var objects = repositoryService.searchObjects(
+            var objects = modelService.searchObjects(
                     SmartIntegrationArtifactType.class,
                     PrismContext.get().queryFor(SmartIntegrationArtifactType.class)
                             .item(PATH_SCOPE_RESOURCE_REF).ref(resourceOid)
@@ -490,10 +490,11 @@ public class StatisticsService {
                             .ref(SystemObjectsType.ARCHETYPE_SMART_INTEGRATION_RESOURCE_OBJECT_CLASS_STATISTICS.value())
                             .build(),
                     null,
+                    task,
                     result);
 
             for (var obj : objects) {
-                deleteStatistics(obj.getOid(), result);
+                deleteStatistics(obj.getOid(), task, result);
             }
 
             LOGGER.info("Manually deleted {} statistics objects for resource {} and class {}",
@@ -508,14 +509,14 @@ public class StatisticsService {
     }
 
     public void deleteObjectTypeStatistics(
-            String resourceOid, ResourceObjectTypeIdentification typeIdentification, OperationResult parentResult)
-            throws SchemaException {
+            String resourceOid, ResourceObjectTypeIdentification typeIdentification, Task task, OperationResult parentResult)
+            throws CommonException {
         var result = parentResult.subresult("deleteObjectTypeStatistics")
                 .addParam("resourceOid", resourceOid)
                 .addParam("type", typeIdentification)
                 .build();
         try {
-            var objects = repositoryService.searchObjects(
+            var objects = modelService.searchObjects(
                     SmartIntegrationArtifactType.class,
                     PrismContext.get().queryFor(SmartIntegrationArtifactType.class)
                             .item(PATH_SCOPE_RESOURCE_REF).ref(resourceOid)
@@ -525,10 +526,11 @@ public class StatisticsService {
                             .ref(SystemObjectsType.ARCHETYPE_SMART_INTEGRATION_RESOURCE_OBJECT_TYPE_STATISTICS.value())
                             .build(),
                     null,
+                    task,
                     result);
 
             for (var obj : objects) {
-                deleteStatistics(obj.getOid(), result);
+                deleteStatistics(obj.getOid(), task, result);
             }
 
             LOGGER.info("Manually deleted {} object type statistics for resource {}/{}",
@@ -550,15 +552,16 @@ public class StatisticsService {
             QName focusTypeName,
             String resourceOid,
             ResourceObjectTypeIdentification typeIdentification,
+            Task task,
             OperationResult parentResult)
-            throws SchemaException {
+            throws CommonException {
         var result = parentResult.subresult(OP_GET_LATEST_FOCUS_OBJECT_STATISTICS)
                 .addParam("objectTypeName", focusTypeName)
                 .addParam("resourceOid", resourceOid)
                 .addParam("type", typeIdentification)
                 .build();
         try {
-            var objects = repositoryService.searchObjects(
+            var objects = modelService.searchObjects(
                     SmartIntegrationArtifactType.class,
                     PrismContext.get().queryFor(SmartIntegrationArtifactType.class)
                             .item(PATH_SCOPE_RESOURCE_REF).ref(resourceOid)
@@ -569,6 +572,7 @@ public class StatisticsService {
                             .ref(SystemObjectsType.ARCHETYPE_SMART_INTEGRATION_FOCUS_OBJECT_TYPE_STATISTICS.value())
                             .build(),
                     null,
+                    task,
                     result);
 
             var latestStatisticsObject = getLatestStatistics(objects);
@@ -578,7 +582,7 @@ public class StatisticsService {
                 if (isStatisticsExpired(statistics.getTimestamp(), result)) {
                     LOGGER.info("Focus object statistics {} for type {} expired, deleting",
                             latestStatisticsObject.getOid(), focusTypeName);
-                    deleteStatistics(latestStatisticsObject.getOid(), result);
+                    deleteStatistics(latestStatisticsObject.getOid(), task, result);
                     return null;
                 }
             }
@@ -596,14 +600,15 @@ public class StatisticsService {
             QName focusTypeName,
             String resourceOid,
             ResourceObjectTypeIdentification typeIdentification,
-            OperationResult parentResult) throws SchemaException {
+            Task task,
+            OperationResult parentResult) throws CommonException {
         var result = parentResult.subresult("deleteFocusObjectStatistics")
                 .addParam("focusTypeName", focusTypeName)
                 .addParam("resourceOid", resourceOid)
                 .addParam("resourceObjectType", typeIdentification)
                 .build();
         try {
-            var objects = repositoryService.searchObjects(
+            var objects = modelService.searchObjects(
                     SmartIntegrationArtifactType.class,
                     PrismContext.get().queryFor(SmartIntegrationArtifactType.class)
                             .item(PATH_SCOPE_RESOURCE_REF).ref(resourceOid)
@@ -614,10 +619,11 @@ public class StatisticsService {
                             .ref(SystemObjectsType.ARCHETYPE_SMART_INTEGRATION_FOCUS_OBJECT_TYPE_STATISTICS.value())
                             .build(),
                     null,
+                    task,
                     result);
 
             for (var obj : objects) {
-                deleteStatistics(obj.getOid(), result);
+                deleteStatistics(obj.getOid(), task, result);
             }
 
             LOGGER.info("Manually deleted {} focus object statistics for type {}",
@@ -663,7 +669,7 @@ public class StatisticsService {
                 .build();
 
         try {
-            deleteFocusObjectStatistics(objectTypeName, resourceOid, typeIdentification, parentResult);
+            deleteFocusObjectStatistics(objectTypeName, resourceOid, typeIdentification, task, parentResult);
 
             ActivityDefinitionType activity = new ActivityDefinitionType()
                     .work(new WorkDefinitionsType()
@@ -770,12 +776,15 @@ public class StatisticsService {
     }
 
     /**
-     * Deletes a statistics object from the repository.
+     * Deletes a statistics object via the model service (authorization is enforced there).
      */
-    private void deleteStatistics(String statisticsOid, OperationResult result) {
+    private void deleteStatistics(String statisticsOid, Task task, OperationResult result) {
         try {
-            repositoryService.deleteObject(SmartIntegrationArtifactType.class, statisticsOid, result);
-            LOGGER.debug("Deleted expired statistics object {}", statisticsOid);
+            modelService.executeChanges(
+                    List.of(PrismContext.get().deltaFactory().object().createDeleteDelta(
+                            SmartIntegrationArtifactType.class, statisticsOid)),
+                    ModelExecuteOptions.create().raw(), task, result);
+            LOGGER.debug("Deleted statistics object {}", statisticsOid);
         } catch (Exception e) {
             LOGGER.warn("Failed to delete statistics object {}: {}", statisticsOid, e.getMessage(), e);
         }
