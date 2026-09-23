@@ -21,6 +21,14 @@ USE_NOHUP="true"
 ENV_MAP_PREFIX="MP_SET_"
 ENV_UNMAP_PREFIX="MP_UNSET_"
 
+# Keys whose values must not be printed to the console.
+# Keep in sync with StartupConfiguration.isSensitiveKey (repo/system-init).
+SENSITIVE_KEY_REGEX="password|passwd|pwd|secret|token|credential|api[._-]?key|jdbcUrl|jdbcUsername|dataSource"
+
+is_sensitive_key() {
+  echo -n "$1" | grep -qiE "${SENSITIVE_KEY_REGEX}"
+}
+
 ######################
 #  Handling SIGnals
 ######################
@@ -239,7 +247,7 @@ while read line; do
   ### exception for *_FILE key name ###
   [ "${_key: -5}" = ".FILE" ] && _key="${_key::$((${#_key} - 5))}_FILE"
   ###
-  if [ "${_key: -7}" = "assword" ]
+  if is_sensitive_key "${_key}"
   then
     echo "Processing variable (MAP) ... ${_key} .:. *****" >&2
   else
@@ -262,7 +270,7 @@ while read line; do
   [ "${_key: -5}" = ".FILE" ] && _key="${_key::$((${#_key} - 5))}_FILE"
   ###
 
-  if [ "${_key: -7}" = "assword" ]
+  if is_sensitive_key "${_key}"
   then
     echo "Processing variable (UNMAP) ... ${_key} .:. *****" >&2
   else
