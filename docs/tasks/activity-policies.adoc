@@ -49,10 +49,11 @@ If the activity is distributed to multiple worker tasks, midPoint measures the t
 The time measurement is not restarted when related tasks are suspended and resumed.
 Only when the activity is <<restartactivity,restarted>> via the `restartActivity` policy action, the time measurement starts from zero.
 
-When the `exceeds` element is specified, the constraint will trigger if the task execution time exceeds the specified value.
-When the `below` element is specified, the constraint will trigger if the task execution time is below the specified value.
-Both elements can be specified together to define a time range when the constraint should be triggered.
-Both bounds are exclusive: the constraint triggers only when the execution time is strictly greater than `exceeds`, or strictly less than `below`.
+* When the `exceeds` element is specified, the constraint will trigger if the task execution time exceeds the specified value.
+* When the `below` element is specified, the constraint will trigger if the task execution time is below the specified value.
+
+Both elements can be specified together to define a time range when the constraint should be triggered. +
+Both bounds are exclusive: the constraint triggers only when the execution time is strictly greater than `exceeds`, or strictly less than `below`. +
 When neither element is specified, the constraint triggers on every evaluation.
 
 The execution time for composite activities (like reconciliation) is computed as a sum of the execution times of child activities.
@@ -74,10 +75,11 @@ The _execution attempts_ constraint checks the number of execution attempts for 
 The execution attempts counter is increased by the `<<restartactivity,restartActivity>>` policy action.
 Suspending and resuming the activity (more precisely, its task) does not increase the number of execution attempts.
 
-When the `exceeds` element is specified, the constraint will trigger if the number of attempts exceeds the specified value.
-When the `below` element is specified, the constraint will trigger if the number of attempts is below the specified value.
-Both elements can be specified together to define a range when the constraint should be triggered.
-Both bounds are exclusive: the constraint triggers only when the number of attempts is strictly greater than `exceeds`, or strictly less than `below`.
+* When the `exceeds` element is specified, the constraint will trigger if the number of attempts exceeds the specified value.
+* When the `below` element is specified, the constraint will trigger if the number of attempts is below the specified value.
+
+Both elements can be specified together to define a range when the constraint should be triggered. +
+Both bounds are exclusive: the constraint triggers only when the number of attempts is strictly greater than `exceeds`, or strictly less than `below`. +
 When neither element is specified, the constraint triggers from the second execution attempt on.
 
 .Example of a policy constraint that is triggered after 3 execution attempts
@@ -127,7 +129,8 @@ By default, `and` is used to combine constraints defined directly under the `pol
 
 Activity-based constraints (such as `executionTime`) and focus-based constraints (see xref:./focus-policies-in-activities[Focus policies in activities]) cannot be combined within a single policy rule.
 Each rule must use only one of the two kinds.
-Note that mixing them is not reported as a configuration error: such a rule is evaluated as an activity policy and its focus-based constraints are silently ignored.
+
+Note that mixing rules is not reported as a configuration error: such a rule is evaluated as an activity policy and its focus-based constraints are silently ignored.
 
 == Policy thresholds
 
@@ -235,9 +238,18 @@ Task will be suspended with `FATAL_ERROR` result.
 Suspending preserves the activity state, including policy triggers and threshold counters.
 The activity state also records that the activity was halted by the policy (`haltingInformation`).
 While this record is present, resuming the task halts the activity again right at its start, before any item is processed.
-This holds even if no item that would meet the policy again is left, so e.g. a simulation halted by a threshold cannot silently complete and let the following activity of a composition start.
+This holds even if no item that would meet the policy again is left, so, e.g., a simulation halted by a threshold cannot silently complete and let the following activity of a composition start.
 To let the activity continue, clear the policy state or switch off the policy processing; see <<User interface>> and <<_disabling_policy_processing,Disabling policy processing>>.
 The record is kept regardless of where the rule came from (activity policies, virtual assignments, roles assigned to the task, global policy rules).
+
+.Example of a suspend task action
+[source,xml]
+----
+<policyActions>
+    <suspendTask/>
+</policyActions>
+----
+
 
 [[restartactivity]]
 === Restart activity
@@ -317,12 +329,12 @@ This is useful when the same set of policies should be shared across multiple ac
 
 Inducement-based policy rules used via `policyRef` must not define `order` or `condition`; otherwise a configuration exception is thrown.
 
-A `policyRef` that cannot be resolved is an error as well: the activity fails at its start and the task is suspended.
+A `policyRef` that cannot be resolved is also handled as an error, i.e., the activity fails at its start and the task is suspended.
 Note that virtual assignments behave differently in this respect - an unresolvable target is tolerated there, and the activity continues without the policies; see xref:./focus-policies-in-activities[Focus policies in activities].
 
 Policy rules are identified in the task's activity state (policy triggers and threshold counters) by a string identifier.
 Rules defined inline use the `<activity path>:<rule container id>` form, while rules coming from `policyRef` use the `<referenced object OID>:<inducement container id>` form.
-This is useful to know when inspecting the activity state of a task, e.g. when diagnosing threshold counters.
+This is useful to know when inspecting the activity state of a task, e.g., when diagnosing threshold counters.
 
 For applying focus policy rules to processed objects (including via `policyRef` and virtual assignments), see xref:./focus-policies-in-activities[Focus policies in activities].
 
@@ -330,14 +342,14 @@ For applying focus policy rules to processed objects (including via `policyRef` 
 == Disabling policy processing
 
 Policy processing is switched off using the `processing` element in the `policies` container of an activity definition.
-The switch is operational: it does not modify any rule definition, so it can be set and removed again without touching the policies themselves.
+The switch is operational: it does not modify any rule definition, so it can be set and removed again without adjusting the actual policies.
 
 The element contains two independent scopes:
 
 * `activityPolicies` - processing of activity policies declared in the `policy` and `policyRef` elements.
 * `virtualAssignmentPolicies` - application of virtual assignments, and hence the focus policies they carry.
 Note that the virtual assignments are not applied at all, so any non-policy content they might carry is suppressed as well.
-(Virtual assignment targets should contain policies only anyway.)
+(Virtual assignment targets should contain policies only.)
 
 Each scope has a value of `full` (the default) or `none`.
 
@@ -416,7 +428,7 @@ This is a real limitation, steming from the current architecture and ConnId Conn
 Such exceptions are reported from ConnId as failures of the whole search operation, and can be seen in midPoint as such.
 They usually cause halting the whole activity.
 //** When shadow object is being initialized after connector object was returned from the connector.
-* When a policy suspends the task, the threshold counters and the record of the halt (stored in the task's activity state) are preserved.
+* When a policy suspends a task, the threshold counters and the record of the halt (stored in the task's activity state) are preserved.
 Simply resuming the task will suspend it again, right at the start of the halted activity.
 To resume, first switch off <<_disabling_policy_processing,policy processing>> or clear the policy state via the <<User interface>>.
 
