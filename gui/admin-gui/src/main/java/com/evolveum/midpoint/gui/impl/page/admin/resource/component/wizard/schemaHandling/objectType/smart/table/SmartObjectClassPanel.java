@@ -27,7 +27,6 @@ import com.evolveum.midpoint.gui.api.component.button.DropdownButtonDto;
 import com.evolveum.midpoint.gui.api.component.button.DropdownButtonPanel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.impl.component.tile.TemplateTilePanel;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.stats.action.ObjectClassStatisticsActions;
 import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
@@ -150,7 +149,6 @@ public class SmartObjectClassPanel<C extends PrismContainerValueWrapper<ComplexT
                                 false);
                     }
                 })
-                .visibilityChecker((rowModel, isHeader) -> SmartIntegrationUtils.isSmartIntegrationAuthorized(getPageBase()))
                 .buildInlineMenu();
     }
 
