@@ -28,13 +28,10 @@ The {release-version} release brings security, stability, and miscellaneous bug 
 {% include release-dedication.html content=dedicationContent %}
 ++++
 
-== Changes with Respect To Version 4.8.15
-
-* Fixed extremely long input to subtype throws error. See bug:MID-12169[]
-
 == Changes with Respect To Version 4.8.14
 
-// TODO
+* Fixed extremely long input to subtype throws error. See bug:MID-12169[]
+* Fixed displaying of the error while adding a delegation. See bug:MID-12364[]
 
 == Changes with Respect To Version 4.8.13
 
