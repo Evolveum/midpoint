@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 
@@ -24,6 +25,7 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
+import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.focus.PageFocusDetails;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
@@ -38,6 +40,9 @@ import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.LocalizableMessage;
+import com.evolveum.midpoint.util.LocalizableMessageList;
+import com.evolveum.midpoint.util.LocalizableMessageListBuilder;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -201,7 +206,9 @@ public class PageUser extends PageFocusDetails<UserType, UserDetailsModel> {
     private boolean processDelegations(List<AssignmentEditorDto> delegations, boolean previewOnly, OperationResult result) {
         try {
             for (AssignmentEditorDto dto : delegations) {
-                executeDelegationChanges(dto, true, result);
+                if (!executeDelegationChanges(dto, true, result)) {
+                    return false;
+                }
             }
             if (!previewOnly) {
                 for (AssignmentEditorDto dto : delegations) {
@@ -216,7 +223,10 @@ public class PageUser extends PageFocusDetails<UserType, UserDetailsModel> {
         }
     }
 
-    private void executeDelegationChanges(AssignmentEditorDto dto, boolean previewOnly, OperationResult result)
+    /**
+     * @return false if the delegation is not allowed (the reason is recorded in the result)
+     */
+    private boolean executeDelegationChanges(AssignmentEditorDto dto, boolean previewOnly, OperationResult result)
             throws CommonException {
         PrismObject<UserType> user = dto.getDelegationOwner().asPrismObject();
         getPrismContext().adopt(user);
@@ -224,10 +234,40 @@ public class PageUser extends PageFocusDetails<UserType, UserDetailsModel> {
         ModelExecuteOptions options = getExecuteChangesOptionsDto().createOptions(PrismContext.get());
         Task task = createSimpleTask(OPERATION_SAVE);
         if (previewOnly) {
-            getModelInteractionService().previewChanges(deltas, options, task, result);
-        } else {
-            getModelService().executeChanges(deltas, options, task, result);
+            ModelContext<UserType> modelContext = getModelInteractionService().previewChanges(deltas, options, task, result);
+            return checkPolicyViolations(modelContext, result);
         }
+        getModelService().executeChanges(deltas, options, task, result);
+        return true;
+    }
+
+    /**
+     * Enforced policy rules don't throw an exception in preview, they are only a part of the preview output.
+     * So the violation is recorded to the result here, as it would be recorded when executing the changes.
+     *
+     * @return false if some policy rule is violated
+     */
+    private boolean checkPolicyViolations(ModelContext<UserType> modelContext, OperationResult result) {
+        PolicyRuleEnforcerPreviewOutputType enforcements = modelContext != null
+                ? modelContext.getPolicyRuleEnforcerPreviewOutput()
+                : null;
+        if (enforcements == null || enforcements.getRule().isEmpty()) {
+            return true;
+        }
+
+        List<LocalizableMessage> messages = enforcements.getRule().stream()
+                .flatMap(rule -> rule.getTrigger().stream())
+                .map(EvaluatedPolicyRuleTriggerType::getMessage)
+                .filter(Objects::nonNull)
+                .map(com.evolveum.midpoint.schema.util.LocalizationUtil::toLocalizableMessage)
+                .toList();
+        LocalizableMessage message = new LocalizableMessageListBuilder()
+                .messages(messages)
+                .separator(LocalizableMessageList.SEMICOLON)
+                .buildOptimized();
+        result.recordFatalError(LocalizationUtil.translateMessage(message));
+        result.setUserFriendlyMessage(message);
+        return false;
     }
 
     private Collection<ObjectDelta<? extends ObjectType>> prepareDelegationDelta(PrismObject<UserType> user, AssignmentEditorDto dto)
