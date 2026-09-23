@@ -1,7 +1,8 @@
 <!--
   ~ Copyright (C) 2010-2021 Evolveum and contributors
   ~
-  ~ Licensed under the EUPL-1.2 or later.
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
   -->
 
 <role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
@@ -17,6 +18,7 @@
                 <strength>strong</strength>
                 <expression>
                     <script>
+                        <language>$scriptingLanguage</language>
                         <code>
                             'R:' + assignmentPath[0].target.name + '-' + assignmentPath[1].target.name
                         </code>
@@ -27,8 +29,10 @@
                     <set>
                         <condition>
                             <script>
+                                <language>$scriptingLanguage</language>
                                 <code>
                                     input?.startsWith("R:")
+                                    #end
                                 </code>
                             </script>
                         </condition>
