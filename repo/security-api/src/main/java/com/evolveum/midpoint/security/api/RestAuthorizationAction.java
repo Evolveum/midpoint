@@ -59,7 +59,8 @@ public enum RestAuthorizationAction implements DisplayableValue<String> {
     DELEGATE_WORK_ITEM("delegateWorkItem", "Delegate work item", "DELEGATE_WORK_ITEM_HELP"),
     CLAIM_WORK_ITEM("claimWorkItem", "Claim work item", "CLAIM_WORK_ITEM_HELP"),
     RELEASE_WORK_ITEM("releaseWorkItem", "Release work item", "RELEASE_WORK_ITEM_HELP"),
-    CANCEL_CASE("cancelCase", "Cancel case", "CANCEL_CASE_HELP");
+    CANCEL_CASE("cancelCase", "Cancel case", "CANCEL_CASE_HELP"),
+    SMART_INTEGRATION("smartIntegration", "Smart integration", "SMART_INTEGRATION_HELP");
 
     /** The local part of the corresponding action URI (used for authorizations). */
     @NotNull private final String uriLocalPart;
