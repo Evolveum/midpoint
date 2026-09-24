@@ -701,7 +701,7 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
                     .end()
                 .end()
                 .by().changeType(ChangeType.MODIFY).objectType(ShadowType.class).index(0).find()
-                    .assertEventMarks()
+                    .assertEventMarks(MARK_PROJECTION_OPERATIONAL_CHANGES_ONLY)
                     .delta()
                     .assertModifiedExclusive(
                             ShadowType.F_ITERATION,
@@ -759,7 +759,7 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
                     .end()
                 .end()
                 .by().changeType(ChangeType.MODIFY).objectType(ShadowType.class).index(0).find()
-                    .assertEventMarks()
+                    .assertEventMarks(MARK_PROJECTION_OPERATIONAL_CHANGES_ONLY)
                     .delta()
                     .assertModifiedExclusive(
                             ShadowType.F_ITERATION,

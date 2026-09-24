@@ -168,6 +168,12 @@ public class ConnectorWizardHelpTabsTest {
         }
 
         @Override
+        public void removeDiscoveredDocumentation(String token, String name, Task task, OperationResult result)
+                throws CommonException {
+            throw unsupported();
+        }
+
+        @Override
         public StatusInfo<ConnDevProcessDocumentationResultType> getProcessDocumentationStatus(String token, Task task, OperationResult result)
                 throws CommonException {
             throw unsupported();

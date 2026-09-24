@@ -165,8 +165,8 @@ public class AssociationTypesPanel extends SchemaHandlingObjectsPanel<ShadowAsso
             protected void onSuggestNewPerformed(AjaxRequestTarget target,
                     IModel<List<ConfirmationOption<DataAccessPermission>>> confirmedOptions) {
                 onSuggestValue(target);
-                AssociationTypesPanel.this.restartTimer.accept(target);
                 refreshAndDetach(target);
+                AssociationTypesPanel.this.restartTimer.accept(target); //must be after refreshAndDetach
             }
 
             @Override
