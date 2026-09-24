@@ -57,9 +57,9 @@ record ExpressionsConfigurationSectionImpl(
                             SAFE_VELOCITY_EXPRESSIONS_ONLY, SAFE_EXPRESSIONS_ONLY_CONFIG_KEY));
         }
 
-        if (safeVelocityExpressionsOnly && !legacyVelocityEngine) {
+        if (safeVelocityExpressionsOnly && legacyVelocityEngine) {
             throw new IllegalArgumentException(
-                    ("Configuration error: '%s' is true but '%s' is true as well. Safe Velocity expressions are not compatible"
+                    ("Configuration error: '%s' is true but '%s' is true as well. Safe Velocity expressions are not compatible "
                             + "with the legacy Velocity engine.").formatted(
                             SAFE_VELOCITY_EXPRESSIONS_ONLY, LEGACY_VELOCITY_ENGINE));
         }
