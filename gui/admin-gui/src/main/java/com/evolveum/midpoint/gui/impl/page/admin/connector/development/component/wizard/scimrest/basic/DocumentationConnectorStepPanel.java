@@ -79,6 +79,7 @@ public class DocumentationConnectorStepPanel extends AbstractWizardStepPanel<Con
 
     private static final String CLASS_DOT = DocumentationConnectorStepPanel.class.getName() + ".";
     private static final String OP_LOAD_DOCS = CLASS_DOT + "loadDocumentations";
+    private static final String OP_REMOVE_DISCOVERED_DOCUMENTATION = CLASS_DOT + "removeDiscoveredDocumentation";
 
     private static final String ID_PANEL = "panel";
     private static final String ID_AI_ALERT = "aiAlert";
@@ -89,6 +90,21 @@ public class DocumentationConnectorStepPanel extends AbstractWizardStepPanel<Con
         super(helper);
     }
 
+    private void deleteDocumentationSource(PrismContainerValueWrapper<ConnDevDocumentationSourceType> value) throws CommonException {
+        if (value.getStatus() != ValueStatus.ADDED) {
+            PrismContainerWrapper<ConnDevDocumentationSourceType> container = getDetailsModel().getObjectWrapper().findContainer(ConnectorDevelopmentType.F_DOCUMENTATION_SOURCE);
+            container.remove(value, getPageBase());
+        }
+
+        Task removeTask = getPageBase().createSimpleTask(OP_REMOVE_DISCOVERED_DOCUMENTATION);
+        String token = ConnectorDevelopmentWizardUtil.getTaskToken(
+                WorkDefinitionsType.F_DISCOVER_DOCUMENTATION,
+                getDetailsModel().getObjectWrapper().getOid(),
+                getDetailsModel().getPageAssignmentHolder());
+        getDetailsModel().getServiceLocator().getConnectorService()
+                .removeDiscoveredDocumentation(token, value.getRealValue().getName(), removeTask, removeTask.getResult());
+    }
+
     @Override
     protected void onInitialize() {
         super.onInitialize();
@@ -97,18 +113,6 @@ public class DocumentationConnectorStepPanel extends AbstractWizardStepPanel<Con
     }
 
     private void createValuesModel() {
-        valuesModel = new LoadableModel<>() {
-            @Override
-            protected List<PrismContainerValueWrapper<ConnDevDocumentationSourceType>> load() {
-                try {
-                    PrismContainerWrapper<ConnDevDocumentationSourceType> container = getDetailsModel().getObjectWrapper().findContainer(ConnectorDevelopmentType.F_DOCUMENTATION_SOURCE);
-                    return container.getValues();
-                } catch (SchemaException e) {
-                    throw new RuntimeException(e);
-                }
-            }
-        };
-
         valuesModel = new LoadableModel<List<PrismContainerValueWrapper<ConnDevDocumentationSourceType>>>() {
             @Override
             protected List<PrismContainerValueWrapper<ConnDevDocumentationSourceType>> load() {
@@ -142,40 +146,28 @@ public class DocumentationConnectorStepPanel extends AbstractWizardStepPanel<Con
                             getDetailsModel().getObjectWrapper().findContainer(ConnectorDevelopmentType.F_DOCUMENTATION_SOURCE);
 
                     List<PrismContainerValueWrapper<ConnDevDocumentationSourceType>> values = new ArrayList<>();
-                    values.addAll(parentWrapper.getValues());
+                    values.addAll(parentWrapper.getValues().stream()
+                            .filter(value -> value.getStatus() != ValueStatus.DELETED)
+                            .filter(value -> value.getStatus() != ValueStatus.ADDED
+                                    || StringUtils.isNotEmpty(value.getRealValue().getName()))
+                            .toList());
 
                     if (suggestionsParent == null) {
                         return values;
                     }
 
-                    List<PrismContainerValue<ConnDevDocumentationSourceType>> suggestedValues = new ArrayList<>();
-                    suggestedValues.addAll(suggestionsParent.getValues());
-
-                    suggestedValues.removeIf(suggestedValue ->
-                            StringUtils.isNotEmpty(((ConnDevDocumentationSourceType) suggestedValue.getRealValue()).getName())
-                                    || values.stream().anyMatch(value ->
-                                    StringUtils.equals(((ConnDevDocumentationSourceType) suggestedValue.getRealValue()).getName(), value.getRealValue().getName())));
-
-                    suggestedValues.stream().map(suggestedValue -> {
-                        try {
-                            PrismContainerValue<ConnDevDocumentationSourceType> clone = suggestedValue.clone();
-                            SmartMetadataUtil.markContainerValueAsAiProvided(clone);
-                            //noinspection unchecked
-                            return (PrismContainerValueWrapper<ConnDevDocumentationSourceType>) getPageBase().createValueWrapper(
-                                    parentWrapper, clone, ValueStatus.ADDED, getDetailsModel().createWrapperContext());
-                        } catch (SchemaException e) {
-                            throw new RuntimeException(e);
-                        }
-                    });
-
                     values.addAll(suggestionsParent.getValues().stream()
-                            .filter(suggestedValue ->
-                                    StringUtils.isNotEmpty(((ConnDevDocumentationSourceType) suggestedValue.getRealValue()).getName())
-                                            && parentWrapper.getValues().stream().noneMatch(value ->
-                                            StringUtils.equals(((ConnDevDocumentationSourceType) suggestedValue.getRealValue()).getName(), value.getRealValue().getName())))
+                            .filter(suggestedValue -> {
+                                String name = ((ConnDevDocumentationSourceType) suggestedValue.getRealValue()).getName();
+                                boolean hasName = StringUtils.isNotEmpty(name);
+                                boolean alreadyPresent = parentWrapper.getValues().stream().anyMatch(value ->
+                                        StringUtils.equals(name, value.getRealValue().getName()));
+                                return hasName && !alreadyPresent;
+                            })
                             .map(suggestedValue -> {
                                 try {
                                     PrismContainerValue<ConnDevDocumentationSourceType> clone = suggestedValue.clone();
+                                    clone.setParent(null);
                                     SmartMetadataUtil.markContainerValueAsAiProvided(clone);
                                     //noinspection unchecked
                                     return (PrismContainerValueWrapper<ConnDevDocumentationSourceType>) getPageBase().createValueWrapper(
@@ -238,6 +230,23 @@ public class DocumentationConnectorStepPanel extends AbstractWizardStepPanel<Con
             }
 
             @Override
+            protected IModel<PrismContainerWrapper<ConnDevDocumentationSourceType>> getContainerModel() {
+                return PrismContainerWrapperModel.fromContainerWrapper(
+                        getDetailsModel().getObjectWrapperModel(),
+                        ConnectorDevelopmentType.F_DOCUMENTATION_SOURCE);
+            }
+
+            @Override
+            protected void resolveDeletedItem(PrismContainerValueWrapper<ConnDevDocumentationSourceType> value) {
+                try {
+                    deleteDocumentationSource(value);
+                } catch (CommonException e) {
+                    throw new RuntimeException(e);
+                }
+                value.setSelected(false);
+            }
+
+            @Override
             protected Component createTile(String id, IModel<DocumentationTile> model) {
                 return new DocumentationTilePanel(id, model) {
                     @Override
@@ -245,14 +254,10 @@ public class DocumentationConnectorStepPanel extends AbstractWizardStepPanel<Con
                         try {
                             PrismContainerValueWrapper<ConnDevDocumentationSourceType> value = modelObject.getValue();
                             valuesModel.getObject().remove(value);
-                            if (value.getStatus() != ValueStatus.ADDED) {
-                                PrismContainerWrapper<ConnDevDocumentationSourceType> container = getDetailsModel().getObjectWrapper().findContainer(ConnectorDevelopmentType.F_DOCUMENTATION_SOURCE);
-                                container.remove(modelObject.getValue(), getPageBase());
-                            }
-                        } catch (SchemaException e) {
+                            deleteDocumentationSource(value);
+                        } catch (CommonException e) {
                             throw new RuntimeException(e);
                         }
-//                        valuesModel.detach();
                         refreshAndDetach(target);
                     }
                 };
@@ -467,21 +472,12 @@ public class DocumentationConnectorStepPanel extends AbstractWizardStepPanel<Con
     @Override
     public boolean onNextPerformed(AjaxRequestTarget target) {
         try {
-            // Let's check if user explicitly selected any documentation
-            // If no documentation is selected - we will use all documentation
-            // If any documentation is selected we will use only selected ones
-            var explicitSelection = valuesModel.getObject().stream().anyMatch(PrismContainerValueWrapper::isSelected);
-
             PrismContainerWrapper<ConnDevDocumentationSourceType> parentWrapper = getDetailsModel().getObjectWrapper().findContainer(ConnectorDevelopmentType.F_DOCUMENTATION_SOURCE);
             valuesModel.getObject().stream()
                     .filter(value -> value.getStatus() == ValueStatus.ADDED)
+                    .filter(PrismContainerValueWrapper::isSelected)
                     .forEach(value -> {
                         // FIXME: Do not create duplicates via add
-                        if (explicitSelection && !value.isSelected()) {
-                            // If we are in explicit selection - skip adding items which are not selected.
-                            return;
-                        }
-
                         try {
                             //noinspection unchecked
                             parentWrapper.getItem().add(value.getRealValue().asPrismContainerValue());
@@ -493,6 +489,8 @@ public class DocumentationConnectorStepPanel extends AbstractWizardStepPanel<Con
         } catch (SchemaException e) {
             throw new RuntimeException(e);
         }
+
+        valuesModel.detach();
 
         OperationResult result = getHelper().onSaveObjectPerformed(target);
         getDetailsModel().getConnectorDevelopmentOperation();

@@ -25,6 +25,8 @@ public interface ConnectorDevelopmentService {
 
     StatusInfo<ConnDevDiscoverDocumentationResultType> getDiscoverDocumentationStatus(String token, Task task, OperationResult result) throws CommonException;
 
+    void removeDiscoveredDocumentation(String token, String name, Task task, OperationResult result) throws CommonException;
+
     StatusInfo<ConnDevProcessDocumentationResultType> getProcessDocumentationStatus(String token, Task task, OperationResult result) throws CommonException;
 
     StatusInfo<ConnDevGenerateArtifactResultType> getGenerateArtifactStatus(String token, Task task, OperationResult result) throws CommonException;
