@@ -17,6 +17,7 @@ import java.util.List;
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.model.common.expression.ExpressionTestUtil;
 import com.evolveum.midpoint.model.common.expression.script.velocity.SafeVelocityScriptExecutor;
+import com.evolveum.midpoint.model.common.expression.script.velocity.VelocityScriptExecutor;
 import com.evolveum.midpoint.prism.crypto.Protector;
 
 import org.testng.annotations.Test;
@@ -67,7 +68,7 @@ public class TestSafeVelocityExpressions extends AbstractVelocityExpressionsTest
      * must not be available in the safe Velocity context.
      */
     @Test
-    public void testUnsafePrismContextVariable() throws Exception {
+    public void testUnsafePrismContextVariable() {
         assertUnsafeScriptNeutralized("$ctx", createVariables(
                 "ctx", prismContext, PrismContext.class));
     }
@@ -94,7 +95,7 @@ public class TestSafeVelocityExpressions extends AbstractVelocityExpressionsTest
      * The "class" property is another way to get the Class of a midPoint object.
      */
     @Test
-    public void testUnsafeGetPropertyClass() throws Exception {
+    public void testUnsafeGetPropertyClass() {
         assertUnsafeScriptNeutralized("$user.class", unsafeVariables());
     }
 
@@ -102,7 +103,7 @@ public class TestSafeVelocityExpressions extends AbstractVelocityExpressionsTest
      * The class loader of a midPoint object must not be accessible from the script.
      */
     @Test
-    public void testUnsafeClassloaderOfUserObject() throws Exception {
+    public void testUnsafeClassloaderOfUserObject() {
         assertUnsafeScriptNeutralized("$user.getClass().getClassLoader()", unsafeVariables());
     }
 
@@ -110,7 +111,7 @@ public class TestSafeVelocityExpressions extends AbstractVelocityExpressionsTest
      * The class loader of a PolyString (a midPoint class) must not be accessible from the script.
      */
     @Test
-    public void testUnsafeClassloaderOfPolyString() throws Exception {
+    public void testUnsafeClassloaderOfPolyString() {
         assertUnsafeScriptNeutralized("$ps.getClass().getClassLoader()", unsafeVariables());
     }
 
@@ -118,7 +119,7 @@ public class TestSafeVelocityExpressions extends AbstractVelocityExpressionsTest
      * The class loader must not be accessible even through the (allowed) function library.
      */
     @Test
-    public void testUnsafeClassloaderOfFunctionsLibrary() throws Exception {
+    public void testUnsafeClassloaderOfFunctionsLibrary() {
         assertUnsafeScriptNeutralized("$basic.getClass().getClassLoader()", createVariables());
     }
 
@@ -126,7 +127,7 @@ public class TestSafeVelocityExpressions extends AbstractVelocityExpressionsTest
      * Loading midPoint classes through the class loader must not be possible.
      */
     @Test
-    public void testUnsafeClassloaderLoadClass() throws Exception {
+    public void testUnsafeClassloaderLoadClass() {
         assertUnsafeScriptNeutralized(
                 "$user.getClass().getClassLoader().loadClass(\"com.evolveum.midpoint.prism.PrismContext\")",
                 unsafeVariables());
@@ -136,7 +137,7 @@ public class TestSafeVelocityExpressions extends AbstractVelocityExpressionsTest
      * Loading arbitrary (JDK) classes through {@code Class.forName} must not be possible.
      */
     @Test
-    public void testUnsafeClassForName() throws Exception {
+    public void testUnsafeClassForName() {
         assertUnsafeScriptNeutralized(
                 "$user.getClass().forName(\"java.lang.Runtime\")",
                 unsafeVariables());
@@ -146,7 +147,7 @@ public class TestSafeVelocityExpressions extends AbstractVelocityExpressionsTest
      * Even a plain String variable must not provide a way to load arbitrary classes.
      */
     @Test
-    public void testUnsafeForNameFromPlainString() throws Exception {
+    public void testUnsafeForNameFromPlainString() {
         assertUnsafeScriptNeutralized("$foo.getClass().forName(\"java.lang.Runtime\")", unsafeVariables());
     }
 
@@ -154,7 +155,7 @@ public class TestSafeVelocityExpressions extends AbstractVelocityExpressionsTest
      * Getting the protection domain (and thus the code source) of a midPoint class must not leak anything.
      */
     @Test
-    public void testUnsafeGetProtectionDomain() throws Exception {
+    public void testUnsafeGetProtectionDomain() {
         assertUnsafeScriptNeutralized("$user.getClass().getProtectionDomain()", unsafeVariables());
     }
 
@@ -162,7 +163,7 @@ public class TestSafeVelocityExpressions extends AbstractVelocityExpressionsTest
      * Introspecting the public API of midPoint classes through reflection must not be possible.
      */
     @Test
-    public void testUnsafeReflectionGetMethods() throws Exception {
+    public void testUnsafeReflectionGetMethods() {
         assertUnsafeScriptNeutralized("$user.getClass().getMethods()", unsafeVariables());
     }
 
@@ -170,7 +171,7 @@ public class TestSafeVelocityExpressions extends AbstractVelocityExpressionsTest
      * Introspecting the fields of midPoint classes through reflection must not be possible.
      */
     @Test
-    public void testUnsafeReflectionGetDeclaredFields() throws Exception {
+    public void testUnsafeReflectionGetDeclaredFields() {
         assertUnsafeScriptNeutralized("$user.getClass().getDeclaredFields()", unsafeVariables());
     }
 
@@ -179,7 +180,7 @@ public class TestSafeVelocityExpressions extends AbstractVelocityExpressionsTest
      * (Once the Runtime instance is reachable, arbitrary command execution is possible as well.)
      */
     @Test
-    public void testUnsafeGetRuntimeInstance() throws Exception {
+    public void testUnsafeGetRuntimeInstance() {
         assertUnsafeScriptNeutralized(
                 "$user.getClass().forName(\"java.lang.Runtime\").getMethod(\"getRuntime\").invoke(\"\")",
                 unsafeVariables());
@@ -190,7 +191,7 @@ public class TestSafeVelocityExpressions extends AbstractVelocityExpressionsTest
      * For example, a {@code ProcessBuilder} instance would allow arbitrary command execution via {@code command("...").start()}.
      */
     @Test
-    public void testUnsafeArbitraryObjectInstantiation() throws Exception {
+    public void testUnsafeArbitraryObjectInstantiation() {
         assertUnsafeScriptNeutralized(
                 "$foo.getClass().forName(\"java.util.ArrayList\").newInstance()",
                 unsafeVariables());
@@ -218,7 +219,7 @@ public class TestSafeVelocityExpressions extends AbstractVelocityExpressionsTest
      * The #evaluate directive: the same sandbox restrictions apply to the evaluated text as to the original script.
      */
     @Test
-    public void testUnsafeEvaluateDirective() throws Exception {
+    public void testUnsafeEvaluateDirective() {
         assertUnsafeScriptBlocked(
                 "#evaluate(\"$user.getClass().getClassLoader()\")",
                 unsafeVariables(),
@@ -226,14 +227,14 @@ public class TestSafeVelocityExpressions extends AbstractVelocityExpressionsTest
     }
 
     @Test
-    public void testUnsafeGettingForbidden() throws Exception {
+    public void testUnsafeGettingForbidden() {
         assertUnsafeScriptNeutralized(
                 "$user.asPrismObject()",
                 unsafeVariables());
     }
 
     @Test
-    public void testUnsafeSettingForbidden() throws Exception {
+    public void testUnsafeSettingForbidden() {
         assertUnsafeScriptBlocked(
                 """
                         #set($user.costCenter = "123456")
@@ -311,8 +312,7 @@ public class TestSafeVelocityExpressions extends AbstractVelocityExpressionsTest
      *
      * If possible, please use the above version. This one is weaker, as the leak markers may be incomplete or outdated.
      */
-    private void assertUnsafeScriptBlocked(String code, VariablesMap variables, String... leakMarkers)
-            throws CommonException {
+    private void assertUnsafeScriptBlocked(String code, VariablesMap variables, String... leakMarkers) {
         String result;
         try {
             result = evaluateUnsafeScript(code, variables);
@@ -327,5 +327,47 @@ public class TestSafeVelocityExpressions extends AbstractVelocityExpressionsTest
                     .withFailMessage("Unsafe expression leaked '%s' in the result: %s", marker, result)
                     .doesNotContain(marker);
         }
+    }
+
+    /**
+     * Gross check that the decisions regarding methods are not cached in the Velocity executor.
+     * Executes a script with the full executor (which allows access to all methods)
+     * and then executes the same script with the safe executor (which should neutralize the unsafe expression).
+     */
+    @Test
+    public void test990SwitchingExecutors() throws CommonException {
+
+        String unsafeTemplate = "$user.getClass()";
+
+        given("executed script with the full executor");
+
+        var safeExecutor = scriptExecutor;
+        try {
+            scriptFactory.replaceExecutor(createFullVelocityExecutor());
+            var fullResult = executeScript(
+                    new ScriptExpressionEvaluatorType()
+                            .language(MidPointConstants.EXPRESSION_LANGUAGE_VELOCITY_URL)
+                            .code(unsafeTemplate),
+                    DOMUtil.XSD_STRING,
+                    true,
+                    unsafeVariables(),
+                    getTestName(),
+                    createOperationResult());
+
+            assertThat(fullResult.get(0).getRealValue()).as("returned value").isEqualTo(UserType.class.toString());
+
+            when("executed the same script with the safe executor -> will be neutralized (no caching in Velocity)");
+
+            scriptFactory.replaceExecutor(safeExecutor);
+            assertUnsafeScriptNeutralized(unsafeTemplate, unsafeVariables());
+
+        } finally {
+            scriptFactory.replaceExecutor(safeExecutor);
+        }
+    }
+
+    private ScriptExecutor createFullVelocityExecutor() {
+        return new VelocityScriptExecutor(
+                prismContext, protector, localizationService, ExpressionTestUtil.testingExpressionsConfiguration());
     }
 }
