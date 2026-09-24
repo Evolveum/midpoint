@@ -39,14 +39,27 @@ import java.util.Objects;
 import java.util.Optional;
 
 /**
- * Util methods for PrismSchemaTypeUtil for converting xsd schema to PrismSchemaType and PrismSchemaType to xsd schema
+ * Utility class for converting between {@link PrismSchemaType} (the bean/DTO representation)
+ * and XSD schema definitions wrapped in {@link SchemaDefinitionType}.
  */
 public class PrismSchemaTypeUtil {
 
     private static final Trace LOGGER = TraceManager.getTrace(PrismSchemaTypeUtil.class);
 
     /**
-     * Supported lifecycle state for PrismSchemaType and child.
+     * Ordered list of lifecycle states supported by {@link PrismSchemaType} definitions,
+     * arranged from least to most advanced (i.e. the list index encodes lifecycle progression).
+     *
+     * Only the following states are recognized; any other value is treated as
+     * {@code proposed} with a warning logged:
+     *
+     *{@link SchemaConstants#LIFECYCLE_PROPOSED} – {@link Definition#isExperimental()}
+     *{@link SchemaConstants#LIFECYCLE_ACTIVE} – the definition is fully operational.
+     *{@link SchemaConstants#LIFECYCLE_DEPRECATED} – {@link Definition#isDeprecated()}
+     *{@link SchemaConstants#LIFECYCLE_ARCHIVED} – {@link Definition#isRemoved()}
+     *
+     * When a parent definition has a more advanced lifecycle state than its child, the
+     * parent's state wins (see {@code getLifecycleStateForDefinition}).
      */
     private static final List<String> SUPPORTED_LIFECYCLE_STATE = Arrays.asList(
             SchemaConstants.LIFECYCLE_PROPOSED,
@@ -55,7 +68,8 @@ public class PrismSchemaTypeUtil {
             SchemaConstants.LIFECYCLE_ARCHIVED);
 
     /**
-     * Convert PrismSchemaType to SchemaDefinitionType that contains xsd.
+     * Converts a {@link PrismSchemaType} bean into a {@link SchemaDefinitionType}
+     * that wraps the corresponding XSD schema document.
      */
     public static SchemaDefinitionType convertToSchemaDefinitionType(PrismSchemaType prismSchemaBean, @Nullable String lifecycleState) throws SchemaException {
         PrismSchemaImpl parsedSchema = new PrismSchemaImpl(prismSchemaBean.getNamespace());
@@ -266,7 +280,8 @@ public class PrismSchemaTypeUtil {
     }
 
     /**
-     * Convert SchemaDefinitionType that contains xsd to PrismSchemaType.
+     * Parses a {@link SchemaDefinitionType} (wrapping an XSD schema document) and converts it
+     * into a {@link PrismSchemaType} bean.
      */
     public static PrismSchemaType convertToPrismSchemaType(SchemaDefinitionType schemaDefinition, @Nullable String lifecycleState) throws SchemaException {
         Element schemaElement = schemaDefinition.getSchema();
