@@ -120,7 +120,7 @@ An example of such action:
                     </c:recipientExpression>
                     <c:bodyExpression>
                         <c:script>
-                            <c:language>http://midpoint.evolveum.com/xml/ns/public/expression/language#safe-velocity</c:language>
+                            <c:language>http://midpoint.evolveum.com/xml/ns/public/expression/language#velocity</c:language>
                             <c:code>event.object is '$event.object.name' with OID of $event.object.oid</c:code>
                         </c:script>
                     </c:bodyExpression>
