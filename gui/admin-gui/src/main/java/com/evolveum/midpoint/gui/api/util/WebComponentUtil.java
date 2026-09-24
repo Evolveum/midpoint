@@ -712,6 +712,13 @@ public final class WebComponentUtil {
         if (actions == null || actions.isEmpty()) {
             return true;
         }
+
+        var security = MidPointApplication.get().getSecurityEnforcer();
+
+        if (actions.stream().anyMatch(security::isAuthorizationDenied)) {
+            return false;
+        }
+
         Roles roles = new Roles(AuthorizationConstants.AUTZ_ALL_URL);
         roles.add(AuthorizationConstants.AUTZ_GUI_ALL_URL);
         roles.addAll(actions);
@@ -2534,7 +2541,7 @@ public final class WebComponentUtil {
             return builder.build();
         }
 
-        if (ProvisioningObjectsUtil.activationNotSupported(resource)) {
+        if (ProvisioningObjectsUtil.activationNotSupported(resource, shadow)) {
             appendNotSupportedActivation(title, isColumn, pageBase, builder);
             return builder.build();
         }

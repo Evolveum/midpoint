@@ -41,6 +41,7 @@ import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -101,10 +102,17 @@ public class PageUser extends PageFocusDetails<UserType, UserDetailsModel> {
     }
 
     private boolean delegationChangesExist = false;
+
     @Override
     protected Collection<ObjectDeltaOperation<? extends ObjectType>> executeChanges(Collection<ObjectDelta<? extends ObjectType>> deltas, boolean previewOnly, ExecuteChangeOptionsDto options, Task task, OperationResult result, AjaxRequestTarget target) {
         if (ItemStatus.NOT_CHANGED == getObjectDetailsModels().getObjectStatus()) {
-            delegationChangesExist = processDeputyAssignments(previewOnly);
+            List<AssignmentEditorDto> changedDelegations = getChangedDelegations();
+            delegationChangesExist = !changedDelegations.isEmpty();
+            if (delegationChangesExist && !processDelegations(changedDelegations, previewOnly, result)) {
+                // Nothing is saved (or previewed), stay on the page and show the reason.
+                showResult(result);
+                return null;
+            }
         }
         return super.executeChanges(deltas, previewOnly, options, task, result, target);
     }
@@ -180,33 +188,48 @@ public class PageUser extends PageFocusDetails<UserType, UserDetailsModel> {
         return options;
     }
 
-    private boolean processDeputyAssignments(boolean previewOnly) {
-        boolean isAnythingChanged = false;
-        for (AssignmentEditorDto dto : getObjectDetailsModels().getDelegationsModelObject()) {
-            if (!UserDtoStatus.MODIFY.equals(dto.getStatus())) {
-                if (!previewOnly) {
-                    UserType user = dto.getDelegationOwner();
-                    saveDelegationToUser(user.asPrismObject(), dto);
-                }
-                isAnythingChanged = true;
-            }
-        }
-        return isAnythingChanged;
+    private List<AssignmentEditorDto> getChangedDelegations() {
+        return getObjectDetailsModels().getDelegationsModelObject().stream()
+                .filter(dto -> !UserDtoStatus.MODIFY.equals(dto.getStatus()))
+                .toList();
     }
 
-    private void saveDelegationToUser(PrismObject<UserType> user, AssignmentEditorDto assignmentDto) {
-        OperationResult result = new OperationResult(OPERATION_SAVE);
+    /**
+     * Delegations are stored in the other users, so they are saved separately from this user.
+     * To make the whole save (or preview) fail if any of them is not allowed (e.g. because of a policy rule),
+     * all of them are checked by preview first and saved only if there is no error.
+     *
+     * @return false if the delegations aren't allowed, so this user shouldn't be saved (or previewed) either
+     */
+    private boolean processDelegations(List<AssignmentEditorDto> delegations, boolean previewOnly, OperationResult result) {
         try {
-            getPrismContext().adopt(user);
-            Collection<ObjectDelta<? extends ObjectType>> deltas = prepareDelegationDelta(user, assignmentDto);
-            getModelService().executeChanges(deltas, getExecuteChangesOptionsDto().createOptions(PrismContext.get()), createSimpleTask(OPERATION_SAVE), result);
+            for (AssignmentEditorDto dto : delegations) {
+                executeDelegationChanges(dto, true, result);
+            }
+            if (!previewOnly) {
+                for (AssignmentEditorDto dto : delegations) {
+                    executeDelegationChanges(dto, false, result);
+                }
+            }
+            return true;
+        } catch (CommonException | RuntimeException e) {
+            LoggingUtils.logUnexpectedException(LOGGER, "Could not save delegation ", e);
+            result.recordException(e);
+            return false;
+        }
+    }
 
-            result.recordSuccess();
-        } catch (Exception e) {
-            LoggingUtils.logUnexpectedException(LOGGER, "Could not save assignments ", e);
-            error("Could not save assignments. Reason: " + e);
-        } finally {
-            result.recomputeStatus();
+    private void executeDelegationChanges(AssignmentEditorDto dto, boolean previewOnly, OperationResult result)
+            throws CommonException {
+        PrismObject<UserType> user = dto.getDelegationOwner().asPrismObject();
+        getPrismContext().adopt(user);
+        Collection<ObjectDelta<? extends ObjectType>> deltas = prepareDelegationDelta(user, dto);
+        ModelExecuteOptions options = getExecuteChangesOptionsDto().createOptions(PrismContext.get());
+        Task task = createSimpleTask(OPERATION_SAVE);
+        if (previewOnly) {
+            getModelInteractionService().previewChanges(deltas, options, task, result);
+        } else {
+            getModelService().executeChanges(deltas, options, task, result);
         }
     }
 

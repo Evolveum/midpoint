@@ -63,14 +63,12 @@ public class ExpressionProfile implements Serializable { // TODO: DebugDumpable
                                     true,
                                     ExpressionPermissionProfile.closed(
                                             SchemaConstants.MAPPINGS_QUALITY_ASSESSMENT_PROFILE_ID,
-                                            AccessDecision.ALLOW,
-                                            List.of(
-                                                    new ExpressionPermissionPackageProfileType()
-                                                            .name(MidPointConstants.MEL_EXTENSION_MIDPOINT_NAME)
-                                                            .decision(AuthorizationDecisionType.DENY),
-                                                    new ExpressionPermissionPackageProfileType()
-                                                            .name(MidPointConstants.MEL_EXTENSION_SECRET_NAME)
-                                                            .decision(AuthorizationDecisionType.DENY)),
+                                            AccessDecision.DENY,
+                                            MidPointConstants.SAFE_MEL_EXTENSIONS.stream().map(
+                                                            extensionName -> new ExpressionPermissionPackageProfileType()
+                                                                    .name(extensionName)
+                                                                    .decision(AuthorizationDecisionType.ALLOW))
+                                                    .toList(),
                                             List.of())))))),
             BulkActionsProfile.none(),
             FunctionLibrariesProfile.none(),

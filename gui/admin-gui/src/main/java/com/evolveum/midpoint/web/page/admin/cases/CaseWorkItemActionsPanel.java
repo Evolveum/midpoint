@@ -12,6 +12,8 @@ import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 
 import com.evolveum.midpoint.prism.PrismContainerValue;
 
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -91,8 +93,7 @@ public class CaseWorkItemActionsPanel extends BasePanel<CaseWorkItemType> {
             }
         };
         addAriaDescribedByForButton(workItemApproveButton);
-        workItemApproveButton.add(new VisibleBehaviour(this::isApproveRejectButtonVisible));
-        workItemApproveButton.add(new EnableBehaviour(this::isCompletionEnabled));
+        workItemApproveButton.add(new VisibleEnableBehaviour(this::isApproveRejectButtonVisible, this::isCompletionEnabled));
         workItemApproveButton.setOutputMarkupId(true);
         add(workItemApproveButton);
 
@@ -130,8 +131,7 @@ public class CaseWorkItemActionsPanel extends BasePanel<CaseWorkItemType> {
         };
         addAriaDescribedByForButton(workItemRejectButton);
         workItemRejectButton.setOutputMarkupId(true);
-        workItemRejectButton.add(new VisibleBehaviour(this::isApproveRejectButtonVisible));
-        workItemRejectButton.add(new EnableBehaviour(this::isCompletionEnabled));
+        workItemRejectButton.add(new VisibleEnableBehaviour(this::isApproveRejectButtonVisible, this::isCompletionEnabled));
         add(workItemRejectButton);
 
         AjaxButton workItemForwardButton = new AjaxButton(ID_WORK_ITEM_FORWARD_BUTTON,

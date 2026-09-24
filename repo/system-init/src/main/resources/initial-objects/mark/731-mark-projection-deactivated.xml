@@ -17,6 +17,20 @@
         <targetRef oid="00000000-0000-0000-0000-000000000700" type="ArchetypeType"/>
     </assignment>
     <displayOrder>310</displayOrder>
+    <display>
+        <label>
+            <orig>Projection deactivated</orig>
+            <translation>
+                <key>ProjectionDeactivatedMark.label</key>
+            </translation>
+        </label>
+        <help>
+            <orig>Number of previously enabled projections that were deleted or effectively disabled.</orig>
+            <translation>
+                <key>ProjectionDeactivatedMark.help</key>
+            </translation>
+        </help>
+    </display>
     <policyRule id="2">
         <name>projection-deactivated</name>
         <policyConstraints>

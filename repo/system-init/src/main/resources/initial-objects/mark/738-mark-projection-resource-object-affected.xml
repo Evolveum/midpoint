@@ -5,7 +5,7 @@
   -->
 
 <mark xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-    oid="00000000-0000-0000-0000-000000000738">
+        oid="00000000-0000-0000-0000-000000000738">
     <name>Resource object affected</name>
     <description>Operation that made any change (addition, modification, deletion) to a resource object</description>
     <assignment id="1">
@@ -13,6 +13,22 @@
         <targetRef oid="00000000-0000-0000-0000-000000000700" type="ArchetypeType"/>
     </assignment>
     <displayOrder>360</displayOrder>
+    <display>
+        <label>
+            <orig>Resource object affected</orig>
+            <translation>
+                <key>ResourceObjectAffectedMark.label</key>
+            </translation>
+        </label>
+        <help>
+            <orig>Number of resource objects added, deleted,
+                or modified in at least one non-operational item.
+            </orig>
+            <translation>
+                <key>ResourceObjectAffectedMark.help</key>
+            </translation>
+        </help>
+    </display>
     <policyRule id="2">
         <name>resource-object-affected</name>
         <policyConstraints>

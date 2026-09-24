@@ -97,17 +97,28 @@ public class BaseUrlConnectorStepPanel extends AbstractFormWizardStepPanel<Conne
     }
 
     private void enableConnectorDevelopmentMode(ObjectDetailsModels<ResourceType> objectDetailsModel) throws SchemaException {
-        objectDetailsModel.getObjectWrapper().findProperty(CONNECTOR_CONFIGURATION_PROPERTIES.append(DEVELOPMENT_MODE_ITEM_NAME)).getValue().setRealValue(true);
+        PrismPropertyWrapper<Object> property = objectDetailsModel.getObjectWrapper().findProperty(
+                CONNECTOR_CONFIGURATION_PROPERTIES.append(DEVELOPMENT_MODE_ITEM_NAME));
+        if (property == null) {
+            return;
+        }
+        property.getValue().setRealValue(true);
     }
 
     /**
-     * Disables ConnID producer proxy which breaks log capture in tracing mode.
+     * Disables ConnID producer proxy which breaks log capture in tracing mode. A no-op if the
+     * connector's configuration doesn't declare this property (e.g. connectors without a native
+     * schema/producer-buffered configuration class).
      *
      * @param objectDetailsModel model for resource
      * @throws SchemaException
      */
     private void disableConnIdProducerProxy(ObjectDetailsModels<ResourceType> objectDetailsModel) throws SchemaException {
-        objectDetailsModel.getObjectWrapper().findProperty(PRODUCER_BUFFER_SIZE).getValue().setRealValue(0);
+        PrismPropertyWrapper<Object> property = objectDetailsModel.getObjectWrapper().findProperty(PRODUCER_BUFFER_SIZE);
+        if (property == null) {
+            return;
+        }
+        property.getValue().setRealValue(0);
     }
 
     @Override

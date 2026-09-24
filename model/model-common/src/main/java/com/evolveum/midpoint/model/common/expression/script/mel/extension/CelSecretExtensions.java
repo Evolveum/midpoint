@@ -103,7 +103,7 @@ public class CelSecretExtensions extends AbstractMidPointCelExtensions {
 
         @Override
         public String name() {
-            return MidPointConstants.MEL_EXTENSION_SECRET_NAME;
+            return FUNCTION_NAME_PREFIX;
         }
 
         @Override

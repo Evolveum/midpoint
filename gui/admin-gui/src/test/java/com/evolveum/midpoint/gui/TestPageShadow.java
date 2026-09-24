@@ -6,7 +6,19 @@
 
 package com.evolveum.midpoint.gui;
 
+import static org.testng.Assert.assertFalse;
+
+import com.evolveum.midpoint.gui.impl.util.ProvisioningObjectsUtil;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.web.component.AjaxCompositedIconSubmitButton;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SchemaHandlingType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationStatusCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityCollectionType;
 
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -64,6 +76,19 @@ public class TestPageShadow extends AbstractInitializedGuiIntegrationTest {
         tester.assertComponent(FORM_SAVE, AjaxCompositedIconSubmitButton.class);
     }
 
+    @Test
+    public void test010ActivationConfiguredForObjectTypeIsSupportedByHeader() {
+        ResourceType resource = createResourceWithObjectTypeActivationCapability();
+        ShadowType shadow = new ShadowType()
+                .kind(ShadowKindType.ACCOUNT)
+                .intent(SchemaConstants.INTENT_DEFAULT);
+
+        assertFalse(ResourceTypeUtil.isActivationCapabilityEnabled(resource, null),
+                "Activation must not be available at the resource level");
+        assertFalse(ProvisioningObjectsUtil.activationNotSupported(resource, shadow),
+                "Object-type configured activation capability should be supported");
+    }
+
     private PageShadow renderPage(String userOid) {
         PageParameters params = new PageParameters();
         params.add(OnePageParameterEncoder.PARAMETER, userOid);
@@ -80,6 +105,19 @@ public class TestPageShadow extends AbstractInitializedGuiIntegrationTest {
         tester.assertRenderedPage(PageShadow.class);
 
         return pageAccount;
+    }
+
+    private ResourceType createResourceWithObjectTypeActivationCapability() {
+        return new ResourceType()
+                .schemaHandling(new SchemaHandlingType()
+                        .objectType(new ResourceObjectTypeDefinitionType()
+                                .kind(ShadowKindType.ACCOUNT)
+                                .intent(SchemaConstants.INTENT_DEFAULT)
+                                .configuredCapabilities(new CapabilityCollectionType()
+                                        .activation(new ActivationCapabilityType()
+                                                .enabled(true)
+                                                .status(new ActivationStatusCapabilityType()
+                                                        .enabled(true))))));
     }
 
 }

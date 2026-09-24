@@ -16,6 +16,20 @@
         <targetRef oid="00000000-0000-0000-0000-000000000700" type="ArchetypeType"/>
     </assignment>
     <displayOrder>340</displayOrder>
+    <display>
+        <label>
+            <orig>Projection entitlement changed</orig>
+            <translation>
+                <key>ProjectionEntitlementChangedMark.label</key>
+            </translation>
+        </label>
+        <help>
+            <orig>Number of projections whose entitlements changed.</orig>
+            <translation>
+                <key>ProjectionEntitlementChangedMark.help</key>
+            </translation>
+        </help>
+    </display>
     <policyRule id="2">
         <name>projection-entitlement-changed</name>
         <policyConstraints>

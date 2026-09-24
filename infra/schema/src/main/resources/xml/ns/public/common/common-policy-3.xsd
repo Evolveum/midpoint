@@ -1060,10 +1060,20 @@
             <xsd:enumeration value="resourceObjectItem">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Any item on a resource object.
+                        Any non-operational item on a resource object.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="RESOURCE_OBJECT_ITEM"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="operationalOnlyChange">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        A modification containing only operational items.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="OPERATIONAL_ONLY_CHANGE"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>

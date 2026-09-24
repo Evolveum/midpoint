@@ -144,14 +144,14 @@ public class StartupConfiguration implements MidpointConfiguration, EnvironmentA
     }
 
     @Override
-    public Configuration getConfiguration(@NotNull String componentName) {
+    public @NotNull Configuration getConfiguration(@NotNull String componentName) {
         Configuration sub = config.subset(componentName);
         dumpConfiguration(componentName, sub);
         return sub;
     }
 
     @Override
-    public Configuration getConfiguration() {
+    public @NotNull Configuration getConfiguration() {
         dumpConfiguration("<root>", config);
         return config;
     }

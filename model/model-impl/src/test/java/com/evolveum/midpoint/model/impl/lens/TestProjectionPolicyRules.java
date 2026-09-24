@@ -330,6 +330,36 @@ public class TestProjectionPolicyRules extends AbstractLensTest {
         // @formatter:on
     }
 
+    /** Checks that operational-only shadow changes are marked without reporting a resource object as affected. */
+    @Test
+    public void test160ChangeOnlyOperationalItems() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        given("a user with an account exists");
+        UserType user = createUserWithAccount("test160", null, task, result);
+
+        switchToSimulationMode(task);
+
+        when("only an operational shadow item is changed");
+        ObjectDelta<ShadowType> delta = Resource.of(RESOURCE_DUMMY_EVENT_MARKS.get())
+                .deltaFor(RI_ACCOUNT_OBJECT_CLASS)
+                .item(ShadowType.F_METADATA, MetadataType.F_MODIFY_CHANNEL).replace("reconciliation")
+                .asObjectDelta(user.getLinkRef().get(0).getOid());
+        LensContext<UserType> lensContext = runClockwork(List.of(delta), null, task, result);
+
+        then("only the operational-changes-only mark is set");
+        // @formatter:off
+        assertModelContext(lensContext, "context")
+                .focusContext()
+                    .assertEventMarks()
+                .end()
+                .projectionContexts()
+                    .single()
+                        .assertEventMarks(MARK_PROJECTION_OPERATIONAL_CHANGES_ONLY);
+        // @formatter:on
+    }
+
     /** Executes `deleteResourceObject` action and checks that it is correctly marked. MID-8608. */
     @Test
     public void test200DeleteAccountOnImport() throws Exception {

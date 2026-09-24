@@ -34,11 +34,11 @@ import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnDevArtifactType;
 
 /**
- * "Repair object class" button: visible whenever a matching
- * {@link WaitingFixObjectClassConnectorStepPanel} sits earlier in the current wizard branch
- * (i.e. the object class's script-review step has been reached), regardless of whether a midPoint
- * error is currently pending - a user may want to trigger a fix proactively, not only right after a
- * failure. Clicking it collects every midPoint error currently reported for
+ * "Repair object class" button: visible - same condition as "Regenerate" in
+ * {@code ScriptConnectorStepPanel} - only while a matching {@link WaitingFixObjectClassConnectorStepPanel}
+ * sits earlier in the current wizard branch AND at least one midPoint error is currently pending for
+ * {@link #OBJECT_CLASS_SCRIPT_STEP_IDS}; there is nothing to fix otherwise. Clicking it collects every
+ * midPoint error currently reported for
  * {@link #OBJECT_CLASS_SCRIPT_STEP_IDS} and, if there is at least one (the fix endpoint requires
  * one), triggers the waiting step and jumps the wizard to it; the waiting step itself submits the
  * fix, polls it, applies the result, and (by virtue of its position right before the object class's
@@ -97,12 +97,24 @@ public class RepairObjectClassButton extends AjaxIconButton {
         this.objectClassModel = objectClassModel;
         this.currentScriptsSupplier = currentScriptsSupplier;
         showTitleAsLabel(true);
-        add(new VisibleBehaviour(() -> objectClassModel.getObject() != null && findWaitingFixStep().isPresent()));
+        add(new VisibleBehaviour(this::hasPendingFixableError));
+        setOutputMarkupPlaceholderTag(true);
     }
 
     @Override
     public void onClick(AjaxRequestTarget target) {
         onRepairPerformed(target);
+    }
+
+    /**
+     * {@code ScriptConnectorStepPanel.onInitialize} forces its own {@code valueModel} to resolve
+     * eagerly - the same load() call that would otherwise clear a stale error as a side effect
+     * mid-render - before any descendant's {@link VisibleBehaviour} (this one included) can be
+     * evaluated, so a plain {@link VisibleBehaviour} here is enough; no separate step is needed to
+     * tell the browser.
+     */
+    private boolean hasPendingFixableError() {
+        return objectClassModel.getObject() != null && findWaitingFixStep().isPresent() && !collectErrorMessages().isEmpty();
     }
 
     /** Every midPoint error currently reported for any script step of this object class. */

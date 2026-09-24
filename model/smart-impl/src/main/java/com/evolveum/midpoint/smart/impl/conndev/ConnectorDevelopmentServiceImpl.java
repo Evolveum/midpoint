@@ -13,12 +13,14 @@ import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.util.ResourceUtils;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.repo.common.activity.run.state.ActivityState;
 import com.evolveum.midpoint.repo.common.reports.ReportSupportUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.processor.BareResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 import com.evolveum.midpoint.smart.api.conndev.ConnDevArtifactValidationResult;
@@ -51,6 +53,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Consumer;
 
 @Component
@@ -411,6 +414,33 @@ public class ConnectorDevelopmentServiceImpl implements ConnectorDevelopmentServ
                 ConnDevCreateConnectorWorkStateType.F_RESULT,
                 ConnDevDiscoverDocumentationResultType.class
         );
+    }
+
+    @Override
+    public void removeDiscoveredDocumentation(String token, String name, Task task, OperationResult result) throws CommonException {
+        securityEnforcer.authorize(AuthorizationConstants.AUTZ_UI_CONNECTOR_WIZARD_URL, task, result);
+        Task targetTask = taskManager.getTaskPlain(token, result);
+
+        ActivityState state = ActivityState.getActivityStateUpwards(
+                ActivityPath.empty(), targetTask, ConnDevDiscoverDocumentationWorkStateType.COMPLEX_TYPE, result);
+        ConnDevDiscoverDocumentationResultType documentationResult =
+                state.getWorkStateItemRealValueClone(ConnDevCreateConnectorWorkStateType.F_RESULT, ConnDevDiscoverDocumentationResultType.class);
+        if (documentationResult == null) {
+            return;
+        }
+        PrismContainer<ConnDevDocumentationSourceType> documentation = documentationResult.asPrismContainerValue()
+                .findContainer(ConnDevDiscoverDocumentationResultType.F_DOCUMENTATION);
+        if (documentation == null) {
+            return;
+        }
+        boolean removed = documentation.getValues()
+                .removeIf(value -> Objects.equals(name, value.asContainerable().getName()));
+        if (!removed) {
+            return;
+        }
+        documentationResult.asPrismContainerValue().setParent(null);
+        state.setWorkStateItemRealValues(ConnDevCreateConnectorWorkStateType.F_RESULT, documentationResult);
+        state.flushPendingTaskModifications(result);
     }
 
     @Override

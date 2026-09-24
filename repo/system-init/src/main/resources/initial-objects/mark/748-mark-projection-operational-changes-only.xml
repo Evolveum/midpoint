@@ -1,0 +1,46 @@
+<!--
+  ~ Copyright (C) 2010-2026 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<mark xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        oid="00000000-0000-0000-0000-000000000748">
+    <name>Operational changes only</name>
+    <description>Operation that changed only operational items of a shadow, without affecting the resource object</description>
+    <assignment id="1">
+        <identifier>archetype</identifier>
+        <targetRef oid="00000000-0000-0000-0000-000000000700" type="ArchetypeType"/>
+    </assignment>
+    <displayOrder>370</displayOrder>
+
+    <display>
+        <label>
+            <orig>Operational changes only</orig>
+            <translation>
+                <key>OperationalChangesOnlyMark.label</key>
+            </translation>
+        </label>
+        <help>
+            <orig>Number of objects with at least one resource item modified and all changes limited to operational items.</orig>
+            <translation>
+                <key>OperationalChangesOnlyMark.help</key>
+            </translation>
+        </help>
+    </display>
+
+    <policyRule id="2">
+        <name>operational-changes-only</name>
+        <policyConstraints>
+            <modification id="3">
+                <operation>modify</operation>
+                <specialItem>operationalOnlyChange</specialItem>
+            </modification>
+        </policyConstraints>
+        <evaluationTarget>projection</evaluationTarget>
+    </policyRule>
+</mark>
+
+
+
+

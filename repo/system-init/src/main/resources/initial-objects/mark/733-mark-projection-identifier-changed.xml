@@ -16,6 +16,20 @@
         <targetRef oid="00000000-0000-0000-0000-000000000700" type="ArchetypeType"/>
     </assignment>
     <displayOrder>330</displayOrder>
+    <display>
+        <label>
+            <orig>Projection identifier changed</orig>
+            <translation>
+                <key>ProjectionIdentifierChangedMark.label</key>
+            </translation>
+        </label>
+        <help>
+            <orig>Number of projections whose primary or secondary identifier changed.</orig>
+            <translation>
+                <key>ProjectionIdentifierChangedMark.help</key>
+            </translation>
+        </help>
+    </display>
     <policyRule id="2">
         <name>projection-identifier-changed</name>
         <policyConstraints>

@@ -21,6 +21,7 @@ import com.evolveum.midpoint.model.api.visualizer.Name;
 import com.evolveum.midpoint.model.api.visualizer.VisualizationDeltaItem;
 import com.evolveum.midpoint.model.api.visualizer.VisualizationItem;
 import com.evolveum.midpoint.model.api.visualizer.VisualizationItemValue;
+import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.web.util.LocalizationMessageComparator;
@@ -154,6 +155,33 @@ public class VisualizationItemDto implements Serializable {
 
     public boolean isDescriptive() {
         return visualizationItem.isDescriptive();
+    }
+
+    /**
+     * Returns whether this item belongs to an added or deleted container
+     * within a modified object visualization.
+     *
+     * Such items represent actual changes and therefore are not descriptive,
+     * but their change icons are suppressed in the GUI because the enclosing
+     * container already indicates the add/delete operation.
+     */
+    public boolean isItemForAddedOrDeletedContainer() {
+        var visualization = visualizationDto.getVisualization();
+
+        if (visualization.getChangeType() != ChangeType.ADD
+                && visualization.getChangeType() != ChangeType.DELETE) {
+            return false;
+        }
+
+        var owner = visualization.getOwner();
+        while (owner != null) {
+            if (owner.getChangeType() == ChangeType.MODIFY) {
+                return true;
+            }
+            owner = owner.getOwner();
+        }
+
+        return false;
     }
 
     /**

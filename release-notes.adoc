@@ -76,7 +76,7 @@ The ticket is managed as a projection (a shadow of the `work` kind) of the midPo
 * Multiple libraries updated, including spring boot.
 * Many improvements in accessibility of the self-service, approval process and identity recovery user interface (WCAG 2.2 compliance).
 * bug:MID-10997[] Added support for additional footer.
-* bug:MID-11036[] Implemented export to XLSX.
+* bug:MID-11036[] Implemented support for exporting reports and tables to XLSX.
 * bug:MID-11229[] Implemented streaming export for XLSX format.
 * bug:MID-10918[] Improved audit record for skipped approval stage.
 * bug:MID-9476[] Improved Search Box in Object Collection View.
@@ -221,6 +221,15 @@ See xref:/midpoint/guides/account-activation-sequence/[Account Activation Authen
 * Fixed unbounded growth of task operation results during iterative item processing. See bug:MID-12197[]
 * Fixed persisted ItemPath values losing dynamic schema extension namespace declarations. See bug:MID-11241[]
 * Fixed additional connector failure when connectorRef is specified using a filter. See bug:MID-9537[]
+* Fixed Name and Display Name columns to honor configured display styles in object tables. See bug:MID-11787[]
+* Fixed activation support detection for object-type configured capabilities in the projection details header. See bug:MID-11954[]
+* Fixed unlock user action from users list table. See bug:MID-12184[]
+* Fixed Approve/Reject action buttons visibility for correlation case. See bug:MID-12358[]
+* Fixed extremely long input to subtype throws error. See bug:MID-12169[]
+* Fixed Can't hide query playground for superuser (with #all authorization). See bug:MID-10848[]
+* Fixed visualization item descriptiveness handling for added and deleted containers. See bug:MID-10620[]
+* Fixed displaying of the error while adding a delegation. See bug:MID-12364[]
+* Fixed extra reviewer reference labels in certification campaign stage definitions. See bug:MID-6647[]
 
 === Releases Of Other Components
 

@@ -6,22 +6,22 @@
 
 package com.evolveum.midpoint.report.impl.activity;
 
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.StoreExportedWidgetDataType.*;
+
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.nio.charset.Charset;
+import java.io.OutputStream;
 import java.text.SimpleDateFormat;
 import java.util.*;
-
-import com.evolveum.midpoint.model.api.ModelService;
-import com.evolveum.midpoint.model.common.ModelCommonBeans;
-import com.evolveum.midpoint.schema.constants.ObjectTypes;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+import com.evolveum.midpoint.model.api.ModelService;
+import com.evolveum.midpoint.model.common.ModelCommonBeans;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
@@ -32,14 +32,11 @@ import com.evolveum.midpoint.repo.common.activity.run.AbstractActivityRun;
 import com.evolveum.midpoint.repo.common.reports.ReportSupportUtil;
 import com.evolveum.midpoint.report.api.ReportConstants;
 import com.evolveum.midpoint.report.impl.ReportServiceImpl;
-import com.evolveum.midpoint.report.impl.controller.DashboardReportDataWriter;
-import com.evolveum.midpoint.report.impl.controller.ExportedReportDataRow;
-import com.evolveum.midpoint.report.impl.controller.ExportedReportHeaderRow;
-import com.evolveum.midpoint.report.impl.controller.ReportDataWriter;
-import com.evolveum.midpoint.report.impl.controller.TextReportDataWriter;
+import com.evolveum.midpoint.report.impl.controller.*;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
@@ -54,10 +51,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
-
-import org.jetbrains.annotations.Nullable;
-
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.StoreExportedWidgetDataType.*;
 
 /**
  * Saves report data to the filesystem and creates {@link ReportDataType} objects in repository.
@@ -97,20 +90,16 @@ class SaveReportFileSupport {
     void saveSimpleReportData(
             ReportDataWriter<? extends ExportedReportDataRow, ? extends ExportedReportHeaderRow> dataWriter,
             OperationResult result) throws CommonException {
-        saveReportData(dataWriter, null, result, filePath -> writeToReportFile(dataWriter, filePath));
+        saveReportData(dataWriter, null, result, filePath -> writeToReportFile(filePath, dataWriter::writeCompletedReport));
     }
 
-    /** @see #saveAggregatedReportData(String, ReportDataWriter, ObjectReferenceType, OperationResult) */
+    /** @see ExportActivitySupport#saveAggregatedReportData(DistributableReportDataWriter, ObjectReferenceType, OperationResult) */
     void saveAggregatedReportData(
-            @NotNull String aggregatedData,
-            @NotNull TextReportDataWriter<? extends ExportedReportDataRow, ? extends ExportedReportHeaderRow> completingDataWriter,
+            @NotNull DistributableReportDataWriter<? extends ExportedReportDataRow, ? extends ExportedReportHeaderRow> completingDataWriter,
             @NotNull ObjectReferenceType preExistingDataRef,
             @NotNull OperationResult result) throws CommonException {
         saveReportData(completingDataWriter, preExistingDataRef, result,
-                filePath -> writeToReportFile(
-                        completingDataWriter.completeReport(aggregatedData),
-                        filePath,
-                        completingDataWriter.getEncoding()));
+                filePath -> writeToReportFile(filePath, completingDataWriter::writeAggregatedReport));
     }
 
     private void saveReportData(
@@ -127,7 +116,7 @@ class SaveReportFileSupport {
         String randomStringSuffix = getRandomString();
         String aggregatedFilePath = getDestinationFileName(report, dataWriter, timestampSuffix, randomStringSuffix);
 
-        if (storeType == ONLY_FILE || storeType == WIDGET_AND_FILE)  {
+        if (storeType == ONLY_FILE || storeType == WIDGET_AND_FILE) {
             reportFileWriter.write(aggregatedFilePath);
             saveReportDataObject(dataWriter, aggregatedFilePath, timestampSuffix, randomStringSuffix,
                     emptyExportedDataObjectRef, result);
@@ -217,21 +206,17 @@ class SaveReportFileSupport {
         return RandomStringUtils.insecure().nextAlphabetic(6).toLowerCase(Locale.ROOT);
     }
 
-    private void writeToReportFile(String contextOfFile, String aggregatedFilePath, @NotNull Charset encoding) {
-        try (var outputStream = FileUtils.openOutputStream(new File(aggregatedFilePath))) {
-            TextReportDataWriter.writeText(contextOfFile, encoding, outputStream);
-        } catch (IOException e) {
-            throw new SystemException("Couldn't write aggregated report to " + aggregatedFilePath, e);
-        }
-    }
-
-    private void writeToReportFile(ReportDataWriter<? extends ExportedReportDataRow,
-                    ? extends ExportedReportHeaderRow> dataWriter, String filePath) {
-        try (var outputStream = new FileOutputStream(filePath)) {
-            dataWriter.writeCompletedReport(outputStream);
+    private void writeToReportFile(String filePath, ReportContentWriter contentWriter) {
+        try (var outputStream = FileUtils.openOutputStream(new File(filePath))) {
+            contentWriter.write(outputStream);
         } catch (IOException e) {
             throw new SystemException("Couldn't write report to " + filePath, e);
         }
+    }
+
+    @FunctionalInterface
+    private interface ReportContentWriter {
+        void write(OutputStream outputStream) throws IOException;
     }
 
     /**
@@ -349,7 +334,7 @@ class SaveReportFileSupport {
      *
      * But even here, it could be replaced by something like:
      *
-     *      createObjectRef(taskManager.getLocalNode())
+     * createObjectRef(taskManager.getLocalNode())
      */
     private ObjectReferenceType getCurrentNodeRef(OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException,

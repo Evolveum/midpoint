@@ -110,7 +110,7 @@
                 <ref bean="midpointFunctionLibrary"/>
             </list>
         </constructor-arg>
-        <constructor-arg name="evaluators">
+        <constructor-arg name="executors">
             <list>
                 <ref bean="javascriptScriptExecutor"/>
                 <ref bean="groovyScriptExecutor"/>
@@ -122,6 +122,20 @@
         <constructor-arg name="objectResolver" ref="modelObjectResolver"/>
         <constructor-arg name="functionLibraryManager" ref="functionLibraryManager"/>
         <constructor-arg name="systemObjectCache" ref="systemObjectCache"/>
+    </bean>
+
+    <bean id="javaMethodReferenceExpressionEvaluatorFactory"
+            class="com.evolveum.midpoint.model.common.expression.evaluator.JavaMethodReferenceExpressionEvaluatorFactory">
+        <constructor-arg name="configuration">
+            <bean factory-bean="midpointConfiguration" factory-method="getExpressionsSection"/>
+        </constructor-arg>
+        <constructor-arg name="builtInLibraryBindings">
+            <list>
+                <ref bean="basicFunctionLibrary"/>
+                <ref bean="logFunctionLibrary"/>
+                <ref bean="midpointFunctionLibrary"/>
+            </list>
+        </constructor-arg>
     </bean>
 
     <bean id="functionExpressionEvaluatorFactory"
