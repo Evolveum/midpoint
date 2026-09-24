@@ -8,15 +8,20 @@ package com.evolveum.midpoint.model.common.expression.script.velocity;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Predicate;
 
 import org.apache.velocity.util.introspection.Introspector;
 import org.apache.velocity.util.introspection.SecureIntrospectorImpl;
 import org.slf4j.Logger;
 
 import com.evolveum.midpoint.prism.Safe;
+
+import org.springframework.core.annotation.AnnotationUtils;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
@@ -39,18 +44,57 @@ class SafeIntrospectorImpl extends Introspector {
 
     /**
      * Allowed classes for which all methods (except {@link #FORBIDDEN_METHODS}) are allowed.
-     * These classes are also allowed to be passed into the Velocity context.
+     * When deciding about methods, we check for class equality, as the subclasses may have additional methods
+     * that we don't want to allow.
+     *
+     * Immutability is required.
+     *
+     * These classes are also allowed to be passed into the Velocity context (along with others),
+     * see {@link #SAFE_TYPE_TO_PUT_INTO_CONTEXT}.
      */
-    static final Collection<Class<?>> ALLOWED_CLASSES = List.of(
+    private static final Collection<Class<?>> CLASSES_SAFE_TO_CALL = List.of(
             String.class,
-            Number.class,
-            Boolean.class,
+            Byte.class,
+            Character.class,
+            Short.class,
+            Integer.class,
+            Long.class,
+            Float.class,
+            Double.class,
+            BigInteger.class,
+            BigDecimal.class,
+            Boolean.class);
+
+    /** These are safe to put into context (with subclasses) but not to call methods on. */
+    private static final Collection<Class<?>> CLASSES_SAFE_TO_PUT_INTO_CONTEXT = List.of(
             Enum.class,
-            XMLGregorianCalendar.class,
             java.util.Date.class,
             java.time.LocalDateTime.class,
             java.time.LocalDate.class,
-            java.time.LocalTime.class);
+            java.time.LocalTime.class,
+            XMLGregorianCalendar.class);
+
+    private static final List<String> ALLOWED_ENUM_METHODS = List.of("name", "ordinal", "toString");
+
+    private static final List<String> ALLOWED_XML_GREGORIAN_CALENDAR_METHODS =
+            List.of("getYear", "getMonth", "getDay", "getHour", "getMinute",
+                    "getSecond", "getMillisecond", "getFractionalSecond", "getTimezone", "toXMLFormat",
+                    "toString");
+
+    static final Predicate<Class<?>> SAFE_TYPE_TO_PUT_INTO_CONTEXT =
+            c -> CLASSES_SAFE_TO_CALL.stream().anyMatch(allowedClass -> allowedClass.isAssignableFrom(c))
+                    || CLASSES_SAFE_TO_PUT_INTO_CONTEXT.stream().anyMatch(allowedClass -> allowedClass.isAssignableFrom(c))
+                    || isAnnotatedAsSafe(c);
+
+    private static boolean isAnnotatedAsSafe(Class<?> clazz) {
+        // This looks at all superclasses and intefaces of given class, so it is enough to annotate a base class or interface
+        // to mark all subclasses safe.
+        //
+        // However, beware that it also looks at _annotations_ of the class, so if any of them is marked as @Safe,
+        // the class will be considered safe as well. This is not a problem, but it is something to be aware of.
+        // Do not mark any annotation as @Safe unless you really mean it.
+        return AnnotationUtils.findAnnotation(clazz, Safe.class) != null;
+    }
 
     private static final Collection<Class<?>> COLLECTION_LIKE_CLASSES = List.of(Collection.class, Map.class);
 
@@ -79,14 +123,16 @@ class SafeIntrospectorImpl extends Introspector {
             log.error("Method {}#{} is globally forbidden -> won't execute", c.getName(), methodName);
             return null;
         }
-        if (ALLOWED_CLASSES.stream().anyMatch(allowedClass -> allowedClass.isAssignableFrom(c))) {
+        if (CLASSES_SAFE_TO_CALL.contains(c)) {
             log.trace("Method {}#{} is allowed because it belongs to an allowed class -> allowing execution",
                     c.getName(), methodName);
             return method;
         }
         boolean isCollectionLike = COLLECTION_LIKE_CLASSES.stream().anyMatch(clazz -> clazz.isAssignableFrom(c));
-        if (isCollectionLike && ALLOWED_COLLECTION_LIKE_METHODS.contains(methodName)) {
-            log.trace("Method {}#{} is allowed because it belongs to an allowed collection-like methods -> allowing execution",
+        if (Enum.class.isAssignableFrom(c) && ALLOWED_ENUM_METHODS.contains(methodName)
+                || XMLGregorianCalendar.class.isAssignableFrom(c) && ALLOWED_XML_GREGORIAN_CALENDAR_METHODS.contains(methodName)
+                || isCollectionLike && ALLOWED_COLLECTION_LIKE_METHODS.contains(methodName)) {
+            log.trace("Method {}#{} is allowed because it belongs to specifically allowed methods -> allowing execution",
                     c.getName(), methodName);
             return method;
         }
