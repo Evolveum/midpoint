@@ -15,10 +15,18 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
  *
  */
 public interface SimpleObjectRef extends DebugDumpable {
-    @Safe String getOid();
+
+    @Safe // ignored in runtime, marks intent only
+    String getOid();
+
     void setOid(String oid);
-    @Safe ObjectType getObjectType();
+
+    @Safe // ignored in runtime, marks intent only
+    ObjectType getObjectType();
+
     void setObjectType(ObjectType objectType);
+
     ObjectType resolveObjectType(OperationResult result, boolean allowNotFound);
+
     ObjectType resolveObjectType();
 }
