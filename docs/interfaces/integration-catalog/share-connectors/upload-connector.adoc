@@ -58,10 +58,80 @@ This is relevant as applications may support different integration methods in cl
 
 In this step, you need to select one or more integration method types.
 These describe how midPoint exchanges data with the target application or system.
-They include the most common protocols, such as SCIM, REST API, etc.
+They include the most common protocols, such as REST API, integration via a file, etc.
+
+The following integration methods are available:
+
+* *Native API* - Integrate the target application directly using an API the application itself exposes for managing accounts, groups, and other identity-related objects.
+It may be the standard first-party API of the application, or an older or closed-source vendor-specific protocol.
+MidPoint calls that API directly; there is no other system in between.
+
++
+Example: Keycloak admin REST API; SAP RFC/BAPI interface (illustrates the more closed vendor-specific end of this category).
+
+* *Universal API* - Integrate using a vendor-agnostic API based on an open standard that the application implements.
+This includes, e.g., managing a directory server (LDAP/AD) as the target application since LDAP is a standardized protocol.
+This is in contrast to the "directory proxy" type where the directory (e.g., LDAP) merely maintains the identity data for the target application, which does not communicate with midPoint directly.
+
++
+Example: SCIM 2.0; direct management of an LDAP/AD server as the target application.
+
+* *Directory proxy* - MidPoint manages identity data in an intermediary directory service (LDAP or Active Directory).
+The integrated target application exchanges identity data with that directory.
+The directory is a proxy, not the integrated target.
+The application integration with midPoint is indirect.
+
++
+Example: Keycloak configured with an LDAP data store backend: midPoint manages users and groups in LDAP, Keycloak reads identities from there.
+
++
+[NOTE]
+====
+This type is limited to the data model of the directory.
+Application-native objects that do not exist in the LDAP (e.g., Keycloak realm roles, client roles, OAuth clients) cannot be managed this way.
+====
+
+* *Direct data store* - Connect straight to the data store of the application (typically a relational database) and manage records there directly.
+Bypass the (business) API layer of the application entirely.
+
++
+Example: direct database access.
+
+* *File-based storage* - Exchange identity data through files (e.g., CSV) instead of a live connection to the application.
+For periodic synchronization, the identity data are exported from the target application and imported into midPoint, and vice versa. +
+Changes made by midPoint are reflected in the application when a separate process picks up the exported file.
+This process may be a scheduled job, a built-in import feature of the application, or the connector itself.
+Changes made in the application follow the same path in reverse: they are exported to a file and subsequently picked up by a midPoint synchronization task.
+
++
+Example: CSV bulk import/export as offered by many applications (e.g., Jira, ServiceNow).
+
+* *Data store proxy* - MidPoint does not communicate with the integrated target application directly, but exchanges data with it via a proxy placed between midPoint and the application.
+The proxy can be a database, object store, or message queue or broker.
+MidPoint and the target application are both connected to the proxy and never communicate with each other directly.
+This type covers both simple shared data stores and event-driven messaging systems which follow the same underlying pattern.
+
++
+Example: a shared staging database between midPoint and the application; message queue-based integration (e.g., Kafka).
+
+* *Manual (ITSM)* - Manual (offline) resources are not connected to midPoint using any integration.
+All identity management is handled via an ITSM ticketing workflow manually:
+a human operator manually caries out changes in the target application based on cases (tickets) created by midPoint.
+
++
+Example: ITSM ticketing workflow.
+
+* *Scripting* - Integrate by running scripts or CLI commands directly in the target application (e.g., over SSH), rather than controlling it via an API.
+
++
+Example: SSH.
+
+* *Other* - A catch-all integration type for approaches not covered by the more specific types.
+
 
 Typically, only one integration method type is selected, however, you can create hybrid integrations in which multiple protocols complement each other.
 
+// image needs updating
 .Select integration method type
 image::../ic-select-integration-method-type.webp["select integration method type"]
 
