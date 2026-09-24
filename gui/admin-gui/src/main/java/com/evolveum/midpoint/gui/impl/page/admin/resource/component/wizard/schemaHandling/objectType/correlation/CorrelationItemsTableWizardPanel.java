@@ -97,10 +97,10 @@ public abstract class CorrelationItemsTableWizardPanel extends AbstractResourceW
         @Override
         protected @NotNull SmartGeneratingAlertDto load() {
             if (!Boolean.TRUE.equals(getSwitchToggleModel().getObject())) {
-                return new SmartGeneratingAlertDto(null, switchToggleModel, getPageBase());
+                return new SmartGeneratingAlertDto(null, switchToggleModel, getSuggestionType(), getPageBase());
             }
 
-            return new SmartGeneratingAlertDto(loadExistingSuggestion(), switchToggleModel, getPageBase());
+            return new SmartGeneratingAlertDto(loadExistingSuggestion(), switchToggleModel, getSuggestionType(), getPageBase());
         }
     };
 
@@ -118,12 +118,16 @@ public abstract class CorrelationItemsTableWizardPanel extends AbstractResourceW
         initLayout();
     }
 
+    private SuggestionsStorage.SuggestionType getSuggestionType() {
+        return isAssociationView()
+                ? SuggestionsStorage.SuggestionType.ASSOCIATION_CORRELATION
+                : SuggestionsStorage.SuggestionType.DELINEATION_CORRELATION;
+    }
+
     private void initSwitchSuggestionModel() {
         switchToggleModel = SmartIntegrationUtils.createSuggestionSwitchModel(
                 getPageBase(),
-                isAssociationView()
-                        ? SuggestionsStorage.SuggestionType.ASSOCIATION_CORRELATION
-                        : SuggestionsStorage.SuggestionType.DELINEATION_CORRELATION);
+                getSuggestionType());
     }
 
     private void initLayout() {

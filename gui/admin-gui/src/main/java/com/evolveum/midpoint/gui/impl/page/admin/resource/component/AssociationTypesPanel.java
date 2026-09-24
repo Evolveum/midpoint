@@ -80,10 +80,10 @@ public class AssociationTypesPanel extends SchemaHandlingObjectsPanel<ShadowAsso
         @Override
         protected @NotNull SmartGeneratingAlertDto load() {
             if (!Boolean.TRUE.equals(getSwitchSuggestionModel().getObject())) {
-                return new SmartGeneratingAlertDto(null, getSwitchSuggestionModel(), getPageBase());
+                return new SmartGeneratingAlertDto(null, getSwitchSuggestionModel(), getSuggestionType(), getPageBase());
             }
 
-            return new SmartGeneratingAlertDto(loadSuggestion(getResourceOid()), getSwitchSuggestionModel(), getPageBase());
+            return new SmartGeneratingAlertDto(loadSuggestion(getResourceOid()), getSwitchSuggestionModel(), getSuggestionType(), getPageBase());
         }
     };
 
