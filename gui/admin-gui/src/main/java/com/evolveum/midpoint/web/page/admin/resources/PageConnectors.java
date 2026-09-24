@@ -27,6 +27,7 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.search.Search;
 import com.evolveum.midpoint.gui.impl.component.search.SearchBuilder;
+import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -35,6 +36,7 @@ import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -47,6 +49,7 @@ import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
 import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorDevelopmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
 
 /**
@@ -66,6 +69,7 @@ public class PageConnectors extends PageAdmin {
     private static final String DOT_CLASS = PageConnectors.class.getName() + ".";
 
     private static final String OPERATION_DELETE_CONNECTORS = DOT_CLASS + "deleteConnectors";
+    private static final String OPERATION_DEVELOP_CONNECTOR = DOT_CLASS + "developConnector";
 
     private static final String ID_MAIN_FORM = "mainForm";
     private static final String ID_TABLE = "table";
@@ -176,7 +180,59 @@ public class PageConnectors extends PageAdmin {
                 };
             }
         });
+        headerMenuItems.add(new InlineMenuItem(createStringResource("PageConnectors.button.developConnector")) {
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            public InlineMenuItemAction initAction() {
+                return new HeaderMenuAction(PageConnectors.this) {
+                    @Serial private static final long serialVersionUID = 1L;
+
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        developConnectorPerformed(target);
+                    }
+                };
+            }
+        });
         return headerMenuItems;
+    }
+
+    /**
+     * Starts (or reuses) the connector development of the selected low-code (manifest-based)
+     * connector - the connector's bundle is copied under a new minor version instead of a fresh
+     * framework template being downloaded, so the original connector stays installed.
+     */
+    private void developConnectorPerformed(AjaxRequestTarget target) {
+        List<ConnectorType> selected = getObjectListPanel().getSelectedRealObjects();
+        if (selected.isEmpty()) {
+            warn(getString("PageConnectors.message.noConnectorSelected"));
+            target.add(getFeedbackPanel());
+            return;
+        }
+        if (selected.size() > 1) {
+            warn(getString("PageConnectors.message.singleConnectorForDevelopment"));
+            target.add(getFeedbackPanel());
+            return;
+        }
+
+        var connector = selected.get(0);
+        var task = createSimpleTask(OPERATION_DEVELOP_CONNECTOR);
+        var result = task.getResult();
+        try {
+            if (!getConnectorService().isManifestBasedConnector(connector, result)) {
+                error(getString("PageConnectors.message.developConnectorNotManifestBased"));
+                target.add(getFeedbackPanel());
+                return;
+            }
+
+            var development = getConnectorService().startFromExisting(connector, task, result);
+            DetailsPageUtil.dispatchToObjectDetailsPage(ConnectorDevelopmentType.class, development.getOid(), this, true);
+        } catch (CommonException e) {
+            result.recordFatalError(getString("PageConnectors.message.developConnectorFailed"), e);
+            showResult(result);
+            target.add(getFeedbackPanel());
+        }
     }
 
     private void deleteConnectorPerformed(AjaxRequestTarget target) {

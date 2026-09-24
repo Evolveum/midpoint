@@ -27,6 +27,27 @@ public interface ConnectorInstallationService {
     EditableConnector editableConnectorFor(String directory);
 
     /**
+     * Copies the local bundle directory of the given connector to a new bundle directory with the
+     * given name (under the connector scan directory) and returns an editable handle to the copy.
+     * The staging/atomic-move semantics mirror {@link DownloadedConnector#install(OperationResult)}:
+     * the copy is written to {@code <targetName>.tmp} first and then moved to the final location,
+     * so a concurrent bundle scan never sees a half-copied directory. Any pre-existing directory
+     * (or staging file) with the target name is removed first.
+     *
+     * @throws com.evolveum.midpoint.util.exception.SystemException if the connector has no local
+     *         (file-based) bundle directory or the copy fails
+     */
+    EditableConnector copyBundle(@NotNull ConnectorType sourceConnector, @NotNull String targetDirectoryName,
+            OperationResult result);
+
+    /**
+     * The {@code ConnectorBundle-ConnectorClass} manifest attribute of the local bundle of the
+     * given connector (the fully-qualified class name of its {@code @ConnectorClass}), or {@code null}
+     * when the connector has no local bundle or the attribute is absent.
+     */
+    String getConnectorClass(@NotNull ConnectorType connector);
+
+    /**
      * Reloads the local connector bundle of the given connector in the UCF framework so that
      * subsequently generated schemas and created instances reflect the current (possibly
      * modified) bundle content.

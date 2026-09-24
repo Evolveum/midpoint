@@ -94,7 +94,7 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element minOccurs="0" name="apiVersion" type="xsd:string"/>
+            <xsd:element minOccurs="0" name="apiVersion" type="xsd:string">
             <xsd:element minOccurs="0" name="baseApiEndpoint" type="xsd:string"/>
         </xsd:sequence>
     </xsd:complexType>
@@ -158,6 +158,18 @@
             </xsd:element>
             <xsd:element name="directory" type="xsd:string"/>
             <xsd:element name="connectorRef" type="tns:ObjectReferenceType"/>
+            <xsd:element minOccurs="0" name="sourceConnectorRef" type="tns:ObjectReferenceType">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:objectReferenceTargetType>ConnectorType</a:objectReferenceTargetType>
+                    </xsd:appinfo>
+                    <xsd:documentation>
+                        An existing low-code (manifest-based) connector this development was imported
+                        from. When set, the "create connector" wizard step copies this connector's
+                        bundle (with a bumped version) instead of downloading a fresh framework template.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
 
             <xsd:element name="integrationType" type="tns:ConnDevIntegrationType">
                 <xsd:annotation>

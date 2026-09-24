@@ -18,8 +18,39 @@ public interface ConnectorDevelopmentService {
 
     ConnectorDevelopmentOperation continueFrom(ConnectorDevelopmentType type);
 
+    /**
+     * Starts (or finds) the connector development for an existing low-code (manifest-based)
+     * connector, so it can be further developed - the connector's bundle is later copied (with a
+     * minor-bumped version) instead of a fresh framework template being downloaded.
+     *
+     * <p>When a development is already linked to the connector - either through its
+     * {@code connector/connectorRef} or through its {@code connector/sourceConnectorRef} - that
+     * development is returned untouched. Otherwise a new {@link ConnectorDevelopmentType} is
+     * created, prefilled from the connector and its manifest (application name/description,
+     * connector coordinates with a bumped version, scripts and object classes), and returned.
+     *
+     * @param sourceConnector the existing low-code connector to develop from
+     * @return the existing or newly created development
+     * @throws CommonException when the connector has no local bundle or is not manifest-based
+     */
+    ConnectorDevelopmentType startFromExisting(ConnectorType sourceConnector, Task task, OperationResult result)
+            throws CommonException;
+
+    /**
+     * Whether the local bundle of the given connector is a low-code (manifest-based) connector,
+     * i.e. its bundle directory carries a {@code connector.manifest.yaml} or
+     * {@code connector.manifest.json} file. Such connectors can be imported into the connector
+     * development (see {@link #startFromExisting}); anything else returns {@code false}.
+     */
+    boolean isManifestBasedConnector(ConnectorType connector, OperationResult result);
 
     StatusInfo<ConnDevCreateConnectorResultType> getCreateConnectorStatus(String token, Task task, OperationResult result) throws CommonException;
+
+    /**
+     * Status of the copy-connector operation submitted via
+     * {@link ConnectorDevelopmentOperation#submitCopyConnector(Task, OperationResult)}.
+     */
+    StatusInfo<ConnDevCreateConnectorResultType> getCopyConnectorStatus(String token, Task task, OperationResult result) throws CommonException;
 
     StatusInfo<ConnDevDiscoverGlobalInformationResultType> getDiscoverBasicInformationStatus(String token, Task task, OperationResult result) throws CommonException;
 

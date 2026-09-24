@@ -410,6 +410,16 @@ public class ConnectorDevelopmentWizardUtil {
         }
     }
 
+    /**
+     * Whether the development was imported from an existing low-code connector (its
+     * {@code connector/sourceConnectorRef} is set) - in that case the "creating connector" step
+     * copies the source connector's bundle instead of downloading a fresh framework template.
+     */
+    public static boolean isImportedConnector(PrismObjectWrapper<ConnectorDevelopmentType> objectWrapper) {
+        return existReferenceValue(objectWrapper, ItemPath.create(
+                ConnectorDevelopmentType.F_CONNECTOR, ConnDevConnectorType.F_SOURCE_CONNECTOR_REF));
+    }
+
     public static <C extends PrismContainerWrapper<?>> boolean existTestingResourcePropertyValue(
             ConnectorDevelopmentDetailsModel detailsModel, String panelType, ItemName propertyName) {
         try {

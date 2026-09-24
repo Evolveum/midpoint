@@ -12,7 +12,9 @@ import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.util.ResourceUtils;
 import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.provisioning.ucf.api.EditableConnector;
 import com.evolveum.midpoint.repo.common.reports.ReportSupportUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
@@ -42,6 +44,8 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import org.apache.commons.io.FileUtils;
 import org.jetbrains.annotations.NotNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -49,12 +53,16 @@ import javax.xml.datatype.Duration;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.function.Consumer;
 
 @Component
 public class ConnectorDevelopmentServiceImpl implements ConnectorDevelopmentService {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(ConnectorDevelopmentServiceImpl.class);
 
     /** Auto cleanup time for background tasks created by the service. Will be shorter, probably. */
     private static final Duration AUTO_CLEANUP_TIME = XmlTypeConverter.createDuration("P1D");
@@ -78,6 +86,257 @@ public class ConnectorDevelopmentServiceImpl implements ConnectorDevelopmentServ
         return new OperationWrapper(type);
     }
 
+    @Override
+    public ConnectorDevelopmentType startFromExisting(ConnectorType sourceConnector, Task task, OperationResult result)
+            throws CommonException {
+        securityEnforcer.authorize(AuthorizationConstants.AUTZ_UI_CONNECTOR_WIZARD_URL, task, result);
+
+        // Reuse a development that is already linked to this connector - either the connector it
+        // produced (connectorRef) or the connector it was imported from (sourceConnectorRef).
+        var existing = findDevelopmentForConnector(sourceConnector, task, result);
+        if (existing != null) {
+            LOGGER.info("Reusing existing connector development {} for connector {}",
+                    existing.getOid(), sourceConnector.getOid());
+            return existing;
+        }
+
+        var beans = ConnDevBeans.get();
+        var editable = beans.connectorService.editableConnectorFor(sourceConnector);
+        if (editable == null) {
+            throw new SystemException("Connector " + sourceConnector.getOid()
+                    + " has no local bundle directory; only local (directory-based) connector bundles can be imported");
+        }
+        if (!isManifestBased(editable)) {
+            throw new ConfigurationException("Connector " + sourceConnector.getOid()
+                    + " is not a low-code (manifest-based) connector - no "
+                    + ConnectorManifestReader.MANIFEST_YAML + "/" + ConnectorManifestReader.MANIFEST_JSON
+                    + " file in its bundle directory");
+        }
+
+        ConnectorManifestReader.Manifest manifest;
+        try {
+            var manifestContent = editable.fileExists(ConnectorManifestReader.MANIFEST_YAML)
+                    ? editable.readFile(ConnectorManifestReader.MANIFEST_YAML)
+                    : editable.readFile(ConnectorManifestReader.MANIFEST_JSON);
+            manifest = ConnectorManifestReader.read(manifestContent);
+        } catch (IOException e) {
+            throw new SystemException("Couldn't read the manifest of connector " + sourceConnector.getOid(), e);
+        }
+
+        // The bundle name is {@code <groupId>.<artifactId>}; the group id itself may contain
+        // dots (e.g. {@code com.evolveum.polygon.scimrest}) while the artifact id cannot, so the
+        // coordinates are split at the *last* dot.
+        var bundle = sourceConnector.getConnectorBundle();
+        var bundleDot = bundle != null ? bundle.lastIndexOf('.') : -1;
+        if (bundleDot <= 0 || bundleDot == bundle.length() - 1) {
+            throw new SystemException("Couldn't derive the connector coordinates from the bundle name '" + bundle + "'");
+        }
+        var groupId = bundle.substring(0, bundleDot);
+        var artifactId = bundle.substring(bundleDot + 1);
+        // A new minor version, so the imported bundle can coexist with the original connector.
+        var version = ConnectorVersionUtil.bumpMinor(sourceConnector.getConnectorVersion());
+        var integrationType = integrationTypeFor(beans.connectorService.getConnectorClass(sourceConnector));
+
+        var manifestApplication = manifest.application();
+        var displayName = sourceConnector.getDisplayName() != null
+                ? sourceConnector.getDisplayName().getOrig()
+                : (manifestApplication != null ? manifestApplication.name() : null);
+        if (displayName == null || displayName.isBlank()) {
+            displayName = artifactId;
+        }
+        var application = new ConnDevApplicationInfoType()
+                .applicationName(manifestApplication != null && manifestApplication.name() != null
+                        ? manifestApplication.name() : displayName)
+                .integrationType(integrationType)
+                .detectedSchema(new ConnDevSchemaType());
+        if (manifestApplication != null && manifestApplication.description() != null) {
+            application.description(manifestApplication.description());
+        }
+
+        var connector = new ConnDevConnectorType()
+                .groupId(groupId)
+                .artifactId(artifactId)
+                .version(version)
+                .integrationType(integrationType)
+                .sourceConnectorRef(sourceConnector.getOid(), ConnectorType.COMPLEX_TYPE);
+        connector.displayName(displayName);
+        populateConnectorFromManifest(connector, manifest, editable, sourceConnector);
+
+        // The object classes (names) are also reflected in the application's detected schema - the
+        // discovery steps then enrich it (and the connector object classes) from the development-mode
+        // metadata and/or documentation.
+        if (!connector.getObjectClass().isEmpty()) {
+            var detectedSchema = new ConnDevSchemaType();
+            for (var objectClass : connector.getObjectClass()) {
+                detectedSchema.objectClass(new ConnDevObjectClassInfoType().name(objectClass.getName()).relevant(true));
+            }
+            application.detectedSchema(detectedSchema);
+        }
+
+        var development = new ConnectorDevelopmentType()
+                .name(groupId + ":" + artifactId + ":" + version)
+                .application(application)
+                .connector(connector);
+        var oid = beans.repositoryService.addObject(development.asPrismObject(), null, result);
+        LOGGER.info("Created connector development {} imported from connector {} ({}:{}:{} -> {})",
+                oid, sourceConnector.getOid(), groupId, artifactId, sourceConnector.getConnectorVersion(), version);
+        return modelService.getObject(ConnectorDevelopmentType.class, oid, null, task, result).asObjectable();
+    }
+
+    @Override
+    public boolean isManifestBasedConnector(ConnectorType connector, OperationResult result) {
+        try {
+            var editable = ConnDevBeans.get().connectorService.editableConnectorFor(connector);
+            return editable != null && isManifestBased(editable);
+        } catch (Exception e) {
+            LOGGER.warn("Couldn't determine whether connector {} is manifest-based", connector.getOid(), e);
+            return false;
+        }
+    }
+
+    private boolean isManifestBased(EditableConnector editable) {
+        return editable.fileExists(ConnectorManifestReader.MANIFEST_YAML)
+                || editable.fileExists(ConnectorManifestReader.MANIFEST_JSON);
+    }
+
+    /**
+     * Finds a development already linked to the given connector - either the connector it
+     * produced ({@code connector/connectorRef}) or the connector it was imported from
+     * ({@code connector/sourceConnectorRef}). The linkage is matched in memory (the number of
+     * connector developments is small) rather than with a repository query, because the
+     * {@code connector} item is not a searchable relation in the sqale mapping.
+     */
+    private ConnectorDevelopmentType findDevelopmentForConnector(ConnectorType sourceConnector, Task task, OperationResult result)
+            throws CommonException {
+        var query = PrismContext.get().queryFor(ConnectorDevelopmentType.class).build();
+        var developments = modelService.searchObjects(ConnectorDevelopmentType.class, query, null, task, result);
+        var sourceOid = sourceConnector.getOid();
+        return developments.stream()
+                .map(prismObject -> prismObject.asObjectable())
+                .filter(development -> isLinkedToConnector(development, sourceOid))
+                .findFirst()
+                .orElse(null);
+    }
+
+    private static boolean isLinkedToConnector(ConnectorDevelopmentType development, String sourceOid) {
+        var connector = development.getConnector();
+        if (connector == null) {
+            return false;
+        }
+        var connectorRef = connector.getConnectorRef();
+        if (connectorRef != null && sourceOid.equals(connectorRef.getOid())) {
+            return true;
+        }
+        var sourceRef = connector.getSourceConnectorRef();
+        return sourceRef != null && sourceOid.equals(sourceRef.getOid());
+    }
+
+    /**
+     * Maps the manifest script entries onto the connector item: object class script slots,
+     * relation schema scripts, the authentication script and the test-connection operation.
+     * Script contents are read from the source bundle (the files are carried over by the
+     * copy-connector step).
+     */
+    private void populateConnectorFromManifest(ConnDevConnectorType connector,
+            ConnectorManifestReader.Manifest manifest, EditableConnector bundle, ConnectorType sourceConnector) {
+        var objectClasses = new LinkedHashMap<String, ConnDevObjectClassInfoType>();
+        var relations = new ArrayList<ConnDevRelationInfoType>();
+
+        for (var script : manifest.scripts()) {
+            var filename = stripLeadingSlash(script.path());
+            String content = null;
+            try {
+                if (bundle.fileExists(filename)) {
+                    content = bundle.readFile(filename);
+                } else {
+                    LOGGER.warn("Manifest script '{}' of connector {} is missing from the bundle; the artifact will have no content",
+                            filename, sourceConnector.getOid());
+                }
+            } catch (IOException e) {
+                LOGGER.warn("Couldn't read manifest script '{}' of connector {}", filename, sourceConnector.getOid(), e);
+            }
+            var artifact = new ConnDevArtifactType()
+                    .objectClass(script.objectClass())
+                    .operation(script.operation())
+                    .intent(script.intent())
+                    .filename(filename)
+                    .content(content)
+                    .disabled(script.disabled());
+
+            if (ConnDevScriptIntentType.RELATION.equals(script.intent())) {
+                var relation = relations.stream()
+                        .filter(r -> script.objectClass() != null && script.objectClass().equals(r.getName()))
+                        .findFirst()
+                        .orElse(null);
+                if (relation == null) {
+                    relation = new ConnDevRelationInfoType().name(script.objectClass());
+                    relations.add(relation);
+                }
+                relation.schemaScript(artifact);
+            } else if (script.operation() == null) {
+                connector.authenticationScript(artifact);
+            } else if (ConnDevOperationType.TEST_CONNECTION.equals(script.operation())) {
+                connector.testOperation(artifact);
+            } else if (script.objectClass() == null) {
+                LOGGER.warn("Manifest script '{}' of connector {} has no object class; it will be ignored",
+                        filename, sourceConnector.getOid());
+            } else {
+                var objectClass = objectClasses.computeIfAbsent(script.objectClass(),
+                        name -> new ConnDevObjectClassInfoType().name(name).relevant(true));
+                setArtifactSlot(objectClass, script, artifact, sourceConnector);
+            }
+        }
+
+        if (!objectClasses.isEmpty()) {
+            connector.getObjectClass().addAll(objectClasses.values());
+        }
+        if (!relations.isEmpty()) {
+            connector.getRelation().addAll(relations);
+        }
+    }
+
+    private void setArtifactSlot(ConnDevObjectClassInfoType objectClass, ConnectorManifestReader.ManifestScript script,
+            ConnDevArtifactType artifact, ConnectorType sourceConnector) {
+        switch (script.operation()) {
+            case SCHEMA -> objectClass.nativeSchemaScript(artifact);
+            case SEARCH -> {
+                switch (script.intent()) {
+                    case ALL -> objectClass.searchAllOperation(artifact);
+                    case ID -> objectClass.searchIdOperation(artifact);
+                    case FILTER -> objectClass.searchFilterOperation(artifact);
+                    default -> LOGGER.warn("No script slot for {} search (intent {}) of object class {} in connector {}",
+                            script.operation(), script.intent(), objectClass.getName(), sourceConnector.getOid());
+                }
+            }
+            case CREATE -> objectClass.createScript(artifact);
+            case UPDATE -> objectClass.updateScript(artifact);
+            case DELETE -> objectClass.deleteScript(artifact);
+            default -> LOGGER.warn("No script slot for {} operation of object class {} in connector {}",
+                    script.operation(), objectClass.getName(), sourceConnector.getOid());
+        }
+    }
+
+    /**
+     * Infers the integration type of an imported connector from its {@code @ConnectorClass}:
+     * SQL framework packages → {@code sql}, SCIM/REST framework packages → {@code scim}
+     * (the user can switch to {@code rest} in the wizard). Defaults to {@code scim}.
+     */
+    private static ConnDevIntegrationType integrationTypeFor(String connectorClass) {
+        if (connectorClass != null) {
+            if (connectorClass.contains(".sql.")) {
+                return ConnDevIntegrationType.SQL;
+            }
+            if (connectorClass.contains(".scimrest.")) {
+                return ConnDevIntegrationType.SCIM;
+            }
+        }
+        return ConnDevIntegrationType.SCIM;
+    }
+
+    private static String stripLeadingSlash(String path) {
+        return path != null && path.startsWith("/") ? path.substring(1) : path;
+    }
+
     private class OperationWrapper implements ConnectorDevelopmentOperation {
         public OperationWrapper(ConnectorDevelopmentType type) {
             this.stateObject = type;
@@ -95,6 +354,13 @@ public class ConnectorDevelopmentServiceImpl implements ConnectorDevelopmentServ
                     new WorkDefinitionsType().createConnector(new ConnDevCreateConnectorWorkDefinitionType()
                             .connectorDevelopmentRef(stateObject.getOid(), ConnectorDevelopmentType.COMPLEX_TYPE)
                             .baseTemplateUrl(connectorTemplateFor(stateObject.getConnector().getIntegrationType()))
+                    ), task, result);
+        }
+
+        public String submitCopyConnector(Task task, OperationResult result) {
+            return submitTask("Copying connector for " + connectorNameForTasks(),
+                    new WorkDefinitionsType().copyConnector(new ConnDevCopyConnectorWorkDefinitionType()
+                            .connectorDevelopmentRef(stateObject.getOid(), ConnectorDevelopmentType.COMPLEX_TYPE)
                     ), task, result);
         }
 
@@ -392,6 +658,14 @@ public class ConnectorDevelopmentServiceImpl implements ConnectorDevelopmentServ
         return new StatusInfoImpl<>(
                 getTask(token, task, result),
                 ConnDevCreateConnectorWorkStateType.F_RESULT,
+                ConnDevCreateConnectorResultType.class);
+    }
+
+    @Override
+    public StatusInfo<ConnDevCreateConnectorResultType> getCopyConnectorStatus(String token, Task task, OperationResult result) throws CommonException {
+        return new StatusInfoImpl<>(
+                getTask(token, task, result),
+                ConnDevCopyConnectorWorkStateType.F_RESULT,
                 ConnDevCreateConnectorResultType.class);
     }
 

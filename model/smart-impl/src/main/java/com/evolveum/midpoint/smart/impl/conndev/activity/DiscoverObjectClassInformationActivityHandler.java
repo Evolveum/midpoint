@@ -17,6 +17,8 @@ import jakarta.annotation.PreDestroy;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
+
 @Component
 public class DiscoverObjectClassInformationActivityHandler
         extends AbstractConnDevActivityHandler<DiscoverObjectClassInformationActivityHandler.WorkDefinition, DiscoverObjectClassInformationActivityHandler> {
@@ -75,14 +77,26 @@ public class DiscoverObjectClassInformationActivityHandler
 
             var backend = ConnectorDevelopmentBackend.backendFor(getWorkDefinition().connectorDevelopmentOid, task, result);
 
-            backend.ensureDocumentationIsProcessed();
-            var connectorDiscovered =  backend.discoverObjectClassesUsingConnector();
-
             var skipCache = Boolean.TRUE.equals(getWorkDefinition().typedDefinition.getSkipCache());
-            var discovered = backend.discoverObjectClassesUsingDocumentation(connectorDiscovered, false, skipCache);
+            var connectorDiscovered = backend.discoverObjectClassesUsingConnector();
+
+            List<ConnDevBasicObjectClassInfoType> discovered;
+            List<ConnDevRelationInfoType> relations;
+            if (!connectorDiscovered.isEmpty()) {
+                // Development-mode metadata is the source of truth (imported low-code connectors
+                // and any connector exposing conndev_ObjectClass); no documentation processing
+                // (or generation service) is needed for the object classes themselves. Relations
+                // are not discovered here - an imported connector already carries them from its
+                // manifest.
+                discovered = connectorDiscovered;
+                relations = List.of();
+            } else {
+                backend.ensureDocumentationIsProcessed();
+                discovered = backend.discoverObjectClassesUsingDocumentation(connectorDiscovered, false, skipCache);
+                relations = backend.discoverRelationsUsingObjectClasses(discovered, skipCache);
+            }
 
             backend.updateApplicationObjectClasses(discovered);
-            var relations = backend.discoverRelationsUsingObjectClasses(discovered, skipCache);
 
             backend.updateRelations(relations);
             var state = getActivityState();

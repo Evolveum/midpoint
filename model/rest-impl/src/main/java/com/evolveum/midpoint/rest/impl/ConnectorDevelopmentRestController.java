@@ -45,8 +45,11 @@ public class ConnectorDevelopmentRestController extends AbstractRestController {
     private static final String CLASS_DOT = ConnectorDevelopmentRestController.class.getName() + ".";
 
     public static final String START_FROM_NEW = CLASS_DOT + "startFromNew";
+    public static final String START_FROM_EXISTING = CLASS_DOT + "startFromExisting";
+    public static final String IS_MANIFEST_BASED_CONNECTOR = CLASS_DOT + "isManifestBasedConnector";
     public static final String CONTINUE_FROM = CLASS_DOT + "continueFrom";
     public static final String OPERATION_CREATE_CONNECTOR = CLASS_DOT + "CreateConnector";
+    public static final String OPERATION_COPY_CONNECTOR = CLASS_DOT + "CopyConnector";
     public static final String OPERATION_DISCOVER_BASIC_INFORMATION = CLASS_DOT + "DiscoverBasicInformation";
     public static final String OPERATION_DISCOVER_DOCUMENTATION = CLASS_DOT + "DiscoverDocumentation";
     public static final String OPERATION_PROCESS_DOCUMENTATION = CLASS_DOT + "ProcessDocumentation";
@@ -82,6 +85,50 @@ public class ConnectorDevelopmentRestController extends AbstractRestController {
                             applicationInfoType,
                             new OperationResult("load_ConnectorDevelopmentOperation")
                     ),
+                    result
+            );
+        } catch (Exception e) {
+            return handleException(result, e);
+        } finally {
+            finishRequest(task, result);
+        }
+    }
+
+    @PostMapping(ConnectorGeneratorConstants.RPC_START_FROM_EXISTING)
+    public ResponseEntity<?> startFromExisting(
+            @RequestParam("oid") @NotNull String oid
+    ) {
+        var task = initRequest();
+        var result = createSubresult(task, START_FROM_EXISTING);
+
+        try {
+            var connector = modelService.getObject(ConnectorType.class, oid, null, task, result).asObjectable();
+
+            return createResponse(
+                    HttpStatus.OK,
+                    connectorDevelopmentService.startFromExisting(connector, task, result),
+                    result
+            );
+        } catch (Exception e) {
+            return handleException(result, e);
+        } finally {
+            finishRequest(task, result);
+        }
+    }
+
+    @GetMapping(ConnectorGeneratorConstants.RPC_IS_MANIFEST_BASED_CONNECTOR)
+    public ResponseEntity<?> isManifestBasedConnector(
+            @RequestParam("oid") @NotNull String oid
+    ) {
+        var task = initRequest();
+        var result = createSubresult(task, IS_MANIFEST_BASED_CONNECTOR);
+
+        try {
+            var connector = modelService.getObject(ConnectorType.class, oid, null, task, result).asObjectable();
+
+            return createResponse(
+                    HttpStatus.OK,
+                    connectorDevelopmentService.isManifestBasedConnector(connector, result),
                     result
             );
         } catch (Exception e) {
@@ -137,6 +184,35 @@ public class ConnectorDevelopmentRestController extends AbstractRestController {
                 task,
                 result,
                 (service) -> service.getCreateConnectorStatus(token, task, result)
+        );
+    }
+
+    @PostMapping(ConnectorGeneratorConstants.RPC_COPY_CONNECTOR_SUBMIT_OPERATION)
+    public ResponseEntity<?> submitOperationCopyConnector(
+            @RequestParam("oid") @NotNull String oid
+    ) {
+        var task = initRequest();
+        var result = createSubresult(task, OPERATION_COPY_CONNECTOR);
+
+        return submitOperation(
+                oid,
+                task,
+                result,
+                (operation) -> operation.submitCopyConnector(task, result)
+        );
+    }
+
+    @GetMapping(ConnectorGeneratorConstants.RPC_COPY_CONNECTOR_STATUS_INFO)
+    public ResponseEntity<?> getCopyConnectorStatus(
+            @RequestParam("token") @NotNull String token
+    ) {
+        var task = initRequest();
+        var result = createSubresult(task, OPERATION_COPY_CONNECTOR);
+
+        return handleStatusInfo(
+                task,
+                result,
+                (service) -> service.getCopyConnectorStatus(token, task, result)
         );
     }
 

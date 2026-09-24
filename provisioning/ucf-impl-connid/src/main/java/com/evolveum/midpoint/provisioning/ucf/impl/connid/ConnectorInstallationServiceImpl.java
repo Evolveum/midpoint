@@ -26,6 +26,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.channels.Channels;
 import java.nio.file.Files;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Properties;
 import java.util.jar.Attributes;
@@ -121,6 +122,91 @@ public class ConnectorInstallationServiceImpl implements ConnectorInstallationSe
             throw new IllegalStateException("Directory " + directory + " does not exist");
         }
         return new DownloadedDirectoryConnector(connDir);
+    }
+
+    @Override
+    public EditableConnector copyBundle(@NotNull ConnectorType sourceConnector, @NotNull String targetDirectoryName,
+            OperationResult result) {
+        if (targetDirectoryName.contains("/") || targetDirectoryName.contains("\\")) {
+            throw new IllegalArgumentException("Invalid target name: " + targetDirectoryName);
+        }
+        var sourceDir = localBundleDirectory(sourceConnector);
+        var targetDir = new File(downloadDirectory, targetDirectoryName);
+        var stagingDir = new File(downloadDirectory, targetDirectoryName + TMP_SUFFIX);
+
+        deleteRecursively(targetDir);
+        deleteRecursively(stagingDir);
+
+        try {
+            Files.walk(sourceDir.toPath())
+                    .sorted(Comparator.reverseOrder())
+                    .forEach(path -> {
+                        var relative = sourceDir.toPath().relativize(path);
+                        var target = stagingDir.toPath().resolve(relative);
+                        if (Files.isRegularFile(path) && path.getFileName().toString().endsWith(TMP_SUFFIX)) {
+                            return; // staging leftovers are not bundle content
+                        }
+                        try {
+                            if (Files.isDirectory(path)) {
+                                Files.createDirectories(target);
+                            } else {
+                                Files.createDirectories(target.getParent());
+                                Files.copy(path, target, REPLACE_EXISTING);
+                            }
+                        } catch (IOException e) {
+                            throw new SystemException("Couldn't copy " + path + " to " + target, e);
+                        }
+                    });
+            Files.move(stagingDir.toPath(), targetDir.toPath(), ATOMIC_MOVE, REPLACE_EXISTING);
+        } catch (IOException e) {
+            throw new SystemException("Couldn't copy connector bundle from " + sourceDir + " to " + targetDir, e);
+        }
+        return new DownloadedDirectoryConnector(targetDir);
+    }
+
+    @Override
+    public String getConnectorClass(@NotNull ConnectorType connector) {
+        var manifestFile = new File(localBundleDirectory(connector), "META-INF/MANIFEST.MF");
+        if (!manifestFile.exists()) {
+            return null;
+        }
+        try (var fs = new FileInputStream(manifestFile)) {
+            var manifest = new Manifest(fs);
+            return manifest.getMainAttributes().getValue(MANIFEST_CONNECTOR_CLASS);
+        } catch (IOException e) {
+            throw new SystemException("Couldn't read bundle manifest of " + ObjectTypeUtil.toShortString(connector), e);
+        }
+    }
+
+    private File localBundleDirectory(@NotNull ConnectorType connector) {
+        var connectorKey = ConnectorFactoryConnIdImpl.getConnectorKey(connector);
+        var uri = factoryImpl.getLocalConnectorInfoManager().findConnectorUri(connectorKey);
+        if (uri == null || !uri.getScheme().equals("file")) {
+            throw new SystemException("No local bundle directory found for " + ObjectTypeUtil.toShortString(connector));
+        }
+        var dir = new File(uri.getPath());
+        if (!dir.isDirectory()) {
+            throw new SystemException("Local connector bundle of " + ObjectTypeUtil.toShortString(connector)
+                    + " is not a directory: " + dir);
+        }
+        return dir;
+    }
+
+    private static void deleteRecursively(File file) {
+        if (!file.exists()) {
+            return;
+        }
+        try (var paths = Files.walk(file.toPath())) {
+            paths.sorted(Comparator.reverseOrder()).forEach(path -> {
+                try {
+                    Files.delete(path);
+                } catch (IOException e) {
+                    throw new SystemException("Couldn't delete " + path, e);
+                }
+            });
+        } catch (IOException e) {
+            throw new SystemException("Couldn't delete " + file, e);
+        }
     }
 
     @Override
@@ -318,6 +404,15 @@ public class ConnectorInstallationServiceImpl implements ConnectorInstallationSe
             props.setProperty(key, value);
             try (var outputStream = new FileOutputStream(file)) {
                 props.store(outputStream, null);
+            }
+        }
+
+        @Override
+        public boolean fileExists(String filename) {
+            try {
+                return newFile(connectorFile, filename).exists();
+            } catch (IOException e) {
+                return false;
             }
         }
     }

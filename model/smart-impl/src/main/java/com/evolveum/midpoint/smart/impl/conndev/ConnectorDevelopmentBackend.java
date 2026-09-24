@@ -46,6 +46,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Properties;
 import java.util.UUID;
 import java.util.function.BooleanSupplier;
@@ -85,6 +86,12 @@ public abstract class ConnectorDevelopmentBackend {
      * generation service returns (see {@link #synchronizeDocumentation}).
      */
     protected record DevShadowDocument(String uuid, String uri, String contentType, String content) {}
+
+    /**
+     * A {@code conndev_*} shadow read from the testing resource: its discovered name and the
+     * unwrapped (prism-stripped) content as JSON.
+     */
+    protected record DevShadow(String name, JsonNode content) {}
 
     /**
      * Returns a supplier that operations must poll to implement cooperative cancellation.
@@ -422,13 +429,60 @@ public abstract class ConnectorDevelopmentBackend {
     }
 
     /**
-     * Discovers object classes using connector functionality.
+     * Discovers object classes using the connector's own development-mode metadata: low-code
+     * frameworks (SCIM, REST, SQL) expose the shared {@code conndev_ObjectClass} object class when
+     * running in development mode, and its objects carry the framework's translated schema model.
      *
-     * Ideal for connector frameworks with protocols which supports dynamic discovery of schema, such as SCIM or Database.
-     * @return
+     * <p>Ideal for connector frameworks with protocols which support dynamic discovery of the
+     * schema, such as SCIM or databases. Returns an empty list when the development-mode metadata
+     * is not available (no testing resource, the connector doesn't expose {@code conndev_ObjectClass},
+     * or the resource can't be tested) - in that case the caller falls back to
+     * documentation-based discovery.
      */
     public List<ConnDevBasicObjectClassInfoType> discoverObjectClassesUsingConnector() {
-        return List.of();
+        return devModeObjectClassShadows().stream()
+                .map(shadow -> DevSchemaObjectClassParser.toBasicObjectClassInfo(shadow.name(), shadow.content()))
+                .filter(Objects::nonNull)
+                .toList();
+    }
+
+    /**
+     * Parses the attributes of the given object class from the development-mode metadata (the
+     * shared {@code conndev_ObjectClass} dev object class). Returns an empty list when the object
+     * class is not exposed by the development mode, so the caller can fall back to
+     * documentation-based attribute discovery.
+     */
+    public List<ConnDevAttributeInfoType> discoverObjectClassAttributesFromDevMode(String objectClass) {
+        return devModeObjectClassShadows().stream()
+                .filter(shadow -> objectClass.equalsIgnoreCase(shadow.name()))
+                .map(shadow -> DevSchemaObjectClassParser.toAttributes(shadow.content()))
+                .findFirst()
+                .orElse(List.of());
+    }
+
+    /**
+     * Loads the shadows of the shared {@code conndev_ObjectClass} dev object class from the testing
+     * resource, refreshing the resource first. Returns an empty list when the development-mode
+     * metadata is not available - no testing resource, the connector doesn't expose
+     * {@code conndev_ObjectClass}, or the resource can't be tested.
+     */
+    protected List<DevShadow> devModeObjectClassShadows() {
+        var testing = developmentObject().getTesting();
+        if (testing == null || testing.getTestingResource() == null || testing.getTestingResource().getOid() == null) {
+            return List.of();
+        }
+        var testingResourceOid = testing.getTestingResource().getOid();
+        try {
+            ResourceUtils.deleteSchema(testingResourceOid, beans.modelService, task, result);
+            beans.provisioningService.testResource(testingResourceOid, task, result);
+            if (!exposesConnDevObjectClass(testingResourceOid)) {
+                return List.of();
+            }
+            return loadDevShadows(testingResourceOid, CONNDEV_OBJECT_CLASS);
+        } catch (Exception e) {
+            LOGGER.warn("Couldn't read development-mode object classes from the testing resource", e);
+            return List.of();
+        }
     }
 
     public void updateApplicationObjectClasses(List<ConnDevBasicObjectClassInfoType> discovered) throws CommonException {
@@ -1171,6 +1225,31 @@ public abstract class ConnectorDevelopmentBackend {
      * {@code conndev_ObjectClass} (SCIM, SQL, ...) works unchanged, including future fields.
      */
     protected List<DevShadowDocument> loadShadowsAsDocumentation(String resourceOid, String objectClassLocalName) {
+        var writer = MAPPER.writerWithDefaultPrettyPrinter();
+        var docs = new ArrayList<DevShadowDocument>();
+        for (var shadow : loadDevShadows(resourceOid, objectClassLocalName)) {
+            var uri = objectClassLocalName + "_" + shadow.name() + ".json";
+            var uuid = UUID.nameUUIDFromBytes(uri.getBytes(StandardCharsets.UTF_8)).toString();
+            try {
+                docs.add(new DevShadowDocument(uuid, uri, CONNDEV_CONTENT_TYPE,
+                        writer.writeValueAsString(shadow.content())));
+            } catch (IOException e) {
+                throw new SystemException("Couldn't serialize shadow documentation for " + shadow.name(), e);
+            }
+        }
+        return docs;
+    }
+
+    /**
+     * Loads the shadows of a {@code conndev_*} object class from a testing resource, unwrapping
+     * each one's content: the shadow content is only structurally unwrapped from prism
+     * serialization ({@link ConnDevShadowUnwrapper}), never interpreted — the connector owns the
+     * schema-mapping content (single source), midPoint reads only the name (see
+     * {@link #resolveDocName}). The result is an in-memory carrier: it becomes a persisted
+     * {@link ProcessedDocumentation} only in {@link #refreshConnDevDocumentation}, and feeds
+     * the development-mode object class/attribute parsing otherwise.
+     */
+    protected List<DevShadow> loadDevShadows(String resourceOid, String objectClassLocalName) {
         try {
             var objectClass = new QName(SchemaConstants.NS_RI, objectClassLocalName);
             var query = PrismContext.get().queryFor(ShadowType.class)
@@ -1189,10 +1268,8 @@ public abstract class ConnectorDevelopmentBackend {
             }
 
             var serializer = PrismContext.get().jsonSerializer();
-            var mapper = new ObjectMapper();
-            var writer = mapper.writerWithDefaultPrettyPrinter();
             var unwrapper = new ConnDevShadowUnwrapper();
-            var docs = new ArrayList<DevShadowDocument>();
+            var devShadows = new ArrayList<DevShadow>();
             for (var shadow : shadows) {
                 var attrs = shadow.findContainer(ShadowType.F_ATTRIBUTES);
                 if (attrs == null || attrs.isEmpty()) {
@@ -1200,22 +1277,17 @@ public abstract class ConnectorDevelopmentBackend {
                 }
 
                 var json = serializer.serialize(attrs.getValue());
-                var attributesContainer = mapper.readTree(json).get("attributes");
+                var attributesContainer = MAPPER.readTree(json).get("attributes");
                 if (attributesContainer == null) {
                     continue;
                 }
 
                 var document = unwrapper.unwrap(attributesContainer);
-                var content = writer.writeValueAsString(document);
-
-                var name = resolveDocName(shadow, document);
-                var uri = objectClassLocalName + "_" + name + ".json";
-                var uuid = UUID.nameUUIDFromBytes(uri.getBytes(StandardCharsets.UTF_8)).toString();
-                docs.add(new DevShadowDocument(uuid, uri, CONNDEV_CONTENT_TYPE, content));
+                devShadows.add(new DevShadow(resolveDocName(shadow, document), document));
             }
-            return docs;
+            return devShadows;
         } catch (Exception e) {
-            throw new SystemException("Could not load shadow documentation for " + objectClassLocalName, e);
+            throw new SystemException("Could not load shadows for " + objectClassLocalName, e);
         }
     }
 

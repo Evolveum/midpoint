@@ -53,18 +53,30 @@ public class WaitingConnectorCreatingConnectorStepPanel extends WaitingConnector
         super(helper);
     }
 
+    private boolean isImportedConnector() {
+        return ConnectorDevelopmentWizardUtil.isImportedConnector(getDetailsModel().getObjectWrapper());
+    }
+
     @Override
     protected ItemName getActivityType() {
-        return WorkDefinitionsType.F_CREATE_CONNECTOR;
+        // An imported development copies the source connector's bundle (a different activity type),
+        // a newly created one downloads a fresh framework template.
+        return isImportedConnector() ? WorkDefinitionsType.F_COPY_CONNECTOR : WorkDefinitionsType.F_CREATE_CONNECTOR;
     }
 
     @Override
     protected StatusInfo<?> obtainResult(String token, Task task, OperationResult result) throws CommonException {
+        if (isImportedConnector()) {
+            return getDetailsModel().getServiceLocator().getConnectorService().getCopyConnectorStatus(token, task, result);
+        }
         return getDetailsModel().getServiceLocator().getConnectorService().getCreateConnectorStatus(token, task, result);
     }
 
     @Override
     protected String getNewTaskToken(Task task, OperationResult result, boolean regenerate) {
+        if (isImportedConnector()) {
+            return getDetailsModel().getConnectorDevelopmentOperation().submitCopyConnector(task, result);
+        }
         return getDetailsModel().getConnectorDevelopmentOperation().submitCreateConnector(task, result);
     }
 

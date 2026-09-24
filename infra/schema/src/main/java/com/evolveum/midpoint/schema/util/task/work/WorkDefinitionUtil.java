@@ -79,6 +79,7 @@ public class WorkDefinitionUtil {
         addTypedParameters(values, definitions.getFocusObjectStatisticsComputation());
 
         addTypedParameters(values, definitions.getCreateConnector());
+        addTypedParameters(values, definitions.getCopyConnector());
         addTypedParameters(values, definitions.getInstallConnector());
         addTypedParameters(values, definitions.getExportConnector());
         addTypedParameters(values, definitions.getUploadConnector());

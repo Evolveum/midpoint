@@ -2653,6 +2653,20 @@
                     </xsd:annotation>
                 </xsd:element>
 
+                <xsd:element name="copyConnector" type="tns:ConnDevCopyConnectorWorkDefinitionType">
+                    <xsd:annotation>
+                        <xsd:documentation>
+                            Copies the bundle of an existing low-code (manifest-based) connector,
+                            referenced by the connector development's sourceConnectorRef, to a new
+                            bundle directory with the coordinates (group, artifact, version) stored
+                            on the development, and installs the copy.
+                        </xsd:documentation>
+                        <xsd:appinfo>
+                            <a:since>4.11</a:since>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                </xsd:element>
+
                 <xsd:element name="installConnector" type="tns:ConnDevDownloadConnectorWorkDefinitionType">
                     <xsd:annotation>
                         <xsd:appinfo>
@@ -11459,6 +11473,35 @@
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
+    </xsd:complexType>
+
+    <!-- Copy Connector -->
+
+    <xsd:complexType name="ConnDevCopyConnectorWorkDefinitionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                The source connector to copy is taken from the referenced connector development's
+                connector/sourceConnectorRef; the target coordinates (groupId, artifactId, version)
+                come from the same development's connector item.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:ConnDevBaseWorkDefinitionType">
+                <xsd:sequence>
+
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="ConnDevCopyConnectorWorkStateType">
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractActivityWorkStateType">
+                <xsd:sequence>
+                    <xsd:element name="result" type="tns:ConnDevCreateConnectorResultType"/>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
     </xsd:complexType>
 
 

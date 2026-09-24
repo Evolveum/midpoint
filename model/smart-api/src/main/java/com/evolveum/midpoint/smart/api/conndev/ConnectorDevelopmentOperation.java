@@ -39,6 +39,14 @@ public interface ConnectorDevelopmentOperation {
 
     String submitCreateConnector(Task task, OperationResult result);
 
+    /**
+     * Copies the bundle of the existing low-code connector this development was imported from
+     * (see {@code connector/sourceConnectorRef}) to a new bundle directory with the development's
+     * connector coordinates (group, artifact, version) and installs the copy. Counterpart of
+     * {@link #submitCreateConnector} for the import flow - no framework template download.
+     */
+    String submitCopyConnector(Task task, OperationResult result);
+
     String submitExportConnector(Task task, OperationResult result);
 
     /**
