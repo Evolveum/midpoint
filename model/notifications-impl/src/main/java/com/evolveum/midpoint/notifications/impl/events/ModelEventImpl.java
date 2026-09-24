@@ -11,6 +11,7 @@ import com.evolveum.midpoint.model.api.context.ModelElementContext;
 import com.evolveum.midpoint.model.api.context.ModelProjectionContext;
 import com.evolveum.midpoint.notifications.api.events.ModelEvent;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
+import com.evolveum.midpoint.prism.Safe;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -68,11 +69,13 @@ public class ModelEventImpl extends BaseEventImpl implements ModelEvent {
     }
 
     @Override
+    @Safe
     public List<? extends ObjectDeltaOperation> getFocusExecutedDeltas() {
         return getFocusContext().getExecutedDeltas();
     }
 
     @Override
+    @Safe
     public List<ObjectDeltaOperation> getAllExecutedDeltas() {
         List<ObjectDeltaOperation> retval = new ArrayList<>(focusContext.getExecutedDeltas());
         for (Object o : modelContext.getProjectionContexts()) {
@@ -83,6 +86,7 @@ public class ModelEventImpl extends BaseEventImpl implements ModelEvent {
     }
 
     @Override
+    @Safe
     public boolean isStatusType(EventStatusType eventStatus) {
         boolean allSuccess = true, anySuccess = false, allFailure = true, anyFailure = false, anyInProgress = false;
         for (ObjectDeltaOperation objectDeltaOperation : getAllExecutedDeltas()) {
@@ -126,6 +130,7 @@ public class ModelEventImpl extends BaseEventImpl implements ModelEvent {
 
     // a bit of hack but ...
     @Override
+    @Safe
     public ChangeType getChangeType() {
         if (isOperationType(EventOperationType.ADD)) {
             return ChangeType.ADD;
@@ -137,6 +142,7 @@ public class ModelEventImpl extends BaseEventImpl implements ModelEvent {
     }
 
     @Override
+    @Safe
     public boolean isOperationType(EventOperationType eventOperation) {
 
         // we consider an operation to be 'add' when there is 'add' delta among deltas
@@ -156,26 +162,31 @@ public class ModelEventImpl extends BaseEventImpl implements ModelEvent {
     }
 
     @Override
+    @Safe
     public boolean isCategoryType(EventCategoryType eventCategory) {
         return eventCategory == EventCategoryType.MODEL_EVENT;
     }
 
     @Override
+    @Safe
     public ObjectDelta<?> getFocusPrimaryDelta() {
         return focusContext.getPrimaryDelta();
     }
 
     @Override
+    @Safe
     public ObjectDelta<?> getFocusSecondaryDelta() {
         return focusContext.getSecondaryDelta();
     }
 
     @Override
+    @Safe
     public ObjectDelta<?> getFocusSummaryDelta() {
         return focusContext.getSummaryDelta();
     }
 
     @Override
+    @Safe
     public List<ObjectDelta<AssignmentHolderType>> getFocusDeltas() {
         List<ObjectDelta<AssignmentHolderType>> retval = new ArrayList<>();
         Class c = modelContext.getFocusClass();
@@ -190,16 +201,19 @@ public class ModelEventImpl extends BaseEventImpl implements ModelEvent {
     }
 
     @Override
+    @Safe
     public ObjectDelta<? extends AssignmentHolderType> getSummarizedFocusDeltas() throws SchemaException {
         return ObjectDeltaCollectionsUtil.summarize(getFocusDeltas());
     }
 
     @Override
+    @Safe
     public boolean hasFocusOfType(Class<? extends AssignmentHolderType> clazz) {
         return focusContext.isOfType(clazz);
     }
 
     @Override
+    @Safe
     public boolean hasFocusOfType(QName focusType) {
         PrismContainerDefinition<? extends AssignmentHolderType> pcd =
                 getPrismContext().getSchemaRegistry().findContainerDefinitionByType(focusType);
@@ -218,16 +232,19 @@ public class ModelEventImpl extends BaseEventImpl implements ModelEvent {
     }
 
     @Override
+    @Safe
     public boolean isRelatedToItem(ItemPath itemPath) {
         return containsItem(getFocusDeltas(), itemPath);
     }
 
     @Override
+    @Safe
     public boolean isUserRelated() {
         return hasFocusOfType(UserType.class);
     }
 
     @Override
+    @Safe
     public String getFocusTypeName() {
         if (focusContext.getObjectTypeClass() == null) {
             return null;
@@ -238,6 +255,7 @@ public class ModelEventImpl extends BaseEventImpl implements ModelEvent {
     }
 
     @Override
+    @Safe
     public boolean hasContentToShow(boolean watchAuxiliaryAttributes) {
         ObjectDelta<? extends ObjectType> summarizedDelta;
         try {
@@ -260,6 +278,7 @@ public class ModelEventImpl extends BaseEventImpl implements ModelEvent {
     }
 
     @Override
+    @Safe
     public String getContentAsFormattedList(boolean showAuxiliaryAttributes, Task task, OperationResult result) {
         try {
             ObjectDelta<? extends ObjectType> summarizedDelta = getSummarizedFocusDeltas();
@@ -281,6 +300,7 @@ public class ModelEventImpl extends BaseEventImpl implements ModelEvent {
         }
     }
 
+    @Safe
     public String getFocusPassword() {
         List<ObjectDelta<AssignmentHolderType>> focusDeltas = getFocusDeltas();
         if (focusDeltas.isEmpty()) {
@@ -325,6 +345,7 @@ public class ModelEventImpl extends BaseEventImpl implements ModelEvent {
     }
 
     @Override
+    @Safe
     public String debugDump(int indent) {
         StringBuilder sb = DebugUtil.createTitleStringBuilderLn(this.getClass(), indent);
         debugDumpCommon(sb, indent);

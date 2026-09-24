@@ -6,6 +6,7 @@
 
 package com.evolveum.midpoint.cases.api.events;
 
+import com.evolveum.midpoint.prism.Safe;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemOperationKindType;
 
 /**
@@ -19,6 +20,7 @@ public class WorkItemOperationInfo {
         this.operationKind = operationKind;
     }
 
+    @Safe
     public WorkItemOperationKindType getOperationKind() {
         return operationKind;
     }

@@ -53,7 +53,7 @@ public abstract class AbstractScriptExecutor implements ScriptExecutor {
     private final PrismContext prismContext;
     private final Protector protector;
     private final LocalizationService localizationService;
-    private final ExpressionsConfigurationSection configuration;
+    protected final ExpressionsConfigurationSection configuration;
 
     public AbstractScriptExecutor(
             PrismContext prismContext,
@@ -125,8 +125,8 @@ public abstract class AbstractScriptExecutor implements ScriptExecutor {
             throws Exception;
 
 
-    private void checkProfileAndSafetyRestrictions(ScriptExecutionContext context) throws SecurityViolationException {
-        if (configuration.isSafeExpressionsOnly() && !isConsideredSafe()) {
+    protected void checkProfileAndSafetyRestrictions(ScriptExecutionContext context) throws SecurityViolationException {
+        if (configuration.safeExpressionsOnly() && !isConsideredSafe()) {
             throw new SecurityViolationException(
                     ("Script interpreter for language '%s' is not considered safe; script execution prohibited in %s").formatted(
                             getLanguageName(),
@@ -197,7 +197,9 @@ public abstract class AbstractScriptExecutor implements ScriptExecutor {
         for (FunctionLibraryBinding funcLib : emptyIfNull(context.getFunctionLibraryBindings())) {
             Object implementation = funcLib.getImplementation();
             TypedValue<?> typedValue = new TypedValue<>(implementation, implementation.getClass());
-            map.put(funcLib.getVariableName(), converter.apply(typedValue));
+            if (shouldProvideVariable(typedValue)) {
+                map.put(funcLib.getVariableName(), converter.apply(typedValue));
+            }
         }
     }
 
@@ -232,6 +234,10 @@ public abstract class AbstractScriptExecutor implements ScriptExecutor {
                         valueVariableMode,
                         prismContext, context.getTask(), context.getResult());
 
+                if (!shouldProvideVariable(variableTypedValue)) {
+                    continue;
+                }
+
                 map.put(variableName, converter.apply(variableTypedValue));
                 if (context.getTrace() != null && !variables.isAlias(variableName)) {
                     ScriptVariableEvaluationTraceType variableTrace = new ScriptVariableEvaluationTraceType();
@@ -248,6 +254,11 @@ public abstract class AbstractScriptExecutor implements ScriptExecutor {
             putIfMissing(map, converter, ExpressionConstants.VAR_PRISM_CONTEXT, prismContext);
             putIfMissing(map, converter, ExpressionConstants.VAR_LOCALIZATION_SERVICE, localizationService);
         }
+    }
+
+    /** E.g. restricted executor may want to avoid selected (unsafe) variables. */
+    protected boolean shouldProvideVariable(TypedValue<?> typedValue) {
+        return true;
     }
 
     protected boolean supportsDeprecatedVariables() {
@@ -282,7 +293,7 @@ public abstract class AbstractScriptExecutor implements ScriptExecutor {
     }
 
     /**
-     * Safe script evaluators are those that execute untrusted scripts. Currently, only MEL has this property.
+     * Safe script evaluators are those that execute untrusted scripts. Currently, only MEL and Safe Velocity have this property.
      *
      * @see MidpointConfiguration#isSafeExpressionsOnly()
      */

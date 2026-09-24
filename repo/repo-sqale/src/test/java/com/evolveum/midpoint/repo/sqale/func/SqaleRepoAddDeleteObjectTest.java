@@ -11,7 +11,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import static com.evolveum.midpoint.repo.api.RepoAddOptions.createOverwrite;
-import static com.evolveum.midpoint.schema.util.SimpleExpressionUtil.velocityExpression;
+import static com.evolveum.midpoint.schema.util.SimpleExpressionUtil.safeVelocityExpression;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -2795,7 +2795,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         var messageTemplate = new MessageTemplateType()
                 .name(objectName)
                 .defaultContent(new MessageTemplateContentType()
-                        .subjectExpression(velocityExpression("subject", null)));
+                        .subjectExpression(safeVelocityExpression("subject", null)));
 
         when("adding it to the repository");
         repositoryService.addObject(messageTemplate.asPrismObject(), null, result);

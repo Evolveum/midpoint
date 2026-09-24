@@ -1,0 +1,344 @@
+/*
+ * Copyright (c) 2010-2019 Evolveum and contributors
+ *
+ * Licensed under the EUPL-1.2 or later.
+ */
+
+package com.evolveum.midpoint.model.common.expression.script;
+
+import java.io.File;
+
+import org.testng.annotations.Test;
+
+import com.evolveum.midpoint.prism.PrimitiveType;
+import com.evolveum.midpoint.prism.util.PrismTestUtil;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+
+/**
+ * @author Radovan Semancik
+ */
+public abstract class AbstractVelocityExpressionsTest extends AbstractScriptTest {
+
+    @Override
+    protected File getTestDir() {
+        return new File(BASE_TEST_DIR, "velocity");
+    }
+
+    @Test
+    public void testGetOid() throws Exception {
+        executeAndAssertStringScalarExpression( // velocity has no support for output other than String
+                "expression-oid.xml",
+                createVariables(
+                        "jack",
+                        MiscSchemaUtil.createObjectReference(USER_JACK_OID, UserType.COMPLEX_TYPE),
+                        prismContext.definitionFactory()
+                            .newReferenceDefinition(UserType.F_PERSONA_REF, UserType.COMPLEX_TYPE)
+                ),
+                USER_JACK_OID);
+    }
+
+    @Test
+    public void testExpressionList() throws Exception {
+        executeAndAssertStringScalarExpression( // velocity has no support for output other than String
+                "expression-list.xml",
+                createVariables(
+                        "jack",
+                        MiscSchemaUtil.createObjectReference(USER_JACK_OID, UserType.COMPLEX_TYPE),
+                        prismContext.definitionFactory()
+                            .newReferenceDefinition(UserType.F_PERSONA_REF, UserType.COMPLEX_TYPE)
+                ),
+                "[Leaders, Followers]");
+    }
+
+    @Test
+    public void testExpressionListForEach() throws Exception {
+        executeAndAssertStringScalarExpression( // velocity has no support for output other than String
+                "expression-list-foreach.xml",
+                createVariables(
+                        "jack",
+                        MiscSchemaUtil.createObjectReference(USER_JACK_OID, UserType.COMPLEX_TYPE),
+                        prismContext.definitionFactory()
+                            .newReferenceDefinition(UserType.F_PERSONA_REF, UserType.COMPLEX_TYPE)
+                ),
+                "Leaders.Followers.");
+    }
+
+    @Test
+    public void testExpressionPolyStringEquals101() throws Exception {
+        evaluateAndAssertBooleanScalarExpression(
+                "expression-polystring-equals-1.xml",
+                createVariables(
+                        "foo", "FOO", PrimitiveType.STRING,
+                        "bar", "BAR", PrimitiveType.STRING
+                ),
+                Boolean.TRUE);
+    }
+
+    @Test
+    public void testExpressionPolyStringEquals102() throws Exception {
+        evaluateAndAssertBooleanScalarExpression(
+                "expression-polystring-equals-1.xml",
+                createVariables(
+                        "foo", "FOOBAR", PrimitiveType.STRING,
+                        "bar", "BAR", PrimitiveType.STRING
+                ),
+                Boolean.FALSE);
+    }
+
+    @Test
+    public void testExpressionPolyStringEquals111() throws Exception {
+        evaluateAndAssertBooleanScalarExpression(
+                "expression-polystring-equals-1.xml",
+                createVariables(
+                        "foo", PrismTestUtil.createPolyString("FOO"), PolyStringType.COMPLEX_TYPE,
+                        "bar", "BAR", PrimitiveType.STRING
+                ),
+                Boolean.TRUE);            // velocity calls '==' on toString value
+    }
+
+    @Test
+    public void testExpressionPolyStringEquals112() throws Exception {
+        evaluateAndAssertBooleanScalarExpression(
+                "expression-polystring-equals-1.xml",
+                createVariables(
+                        "foo", PrismTestUtil.createPolyString("FOOBAR"), PolyStringType.COMPLEX_TYPE,
+                        "bar", "BAR", PrimitiveType.STRING
+                ),
+                Boolean.FALSE);
+    }
+
+    @Test
+    public void testExpressionPolyStringEquals121() throws Exception {
+        evaluateAndAssertBooleanScalarExpression(
+                "expression-polystring-equals-1.xml",
+                createVariables(
+                        "foo", PrismTestUtil.createPolyStringType("FOO"), PolyStringType.COMPLEX_TYPE,
+                        "bar", "BAR", PrimitiveType.STRING
+                ),
+                Boolean.TRUE);            // velocity calls '==' on toString value
+    }
+
+    @Test
+    public void testExpressionPolyStringEquals122() throws Exception {
+        evaluateAndAssertBooleanScalarExpression(
+                "expression-polystring-equals-1.xml",
+                createVariables(
+                        "foo", PrismTestUtil.createPolyStringType("FOOBAR"), PolyStringType.COMPLEX_TYPE,
+                        "bar", "BAR", PrimitiveType.STRING
+                ),
+                Boolean.FALSE);
+    }
+
+    @Test
+    public void testExpressionPolyStringEquals201() throws Exception {
+        evaluateAndAssertBooleanScalarExpression(
+                "expression-polystring-equals-2.xml",
+                createVariables(
+                        "foo", "FOO", PrimitiveType.STRING,
+                        "bar", "BAR", PrimitiveType.STRING
+                ),
+                Boolean.TRUE);
+    }
+
+    @Test
+    public void testExpressionPolyStringEquals202() throws Exception {
+        evaluateAndAssertBooleanScalarExpression(
+                "expression-polystring-equals-2.xml",
+                createVariables(
+                        "foo", "FOOBAR", PrimitiveType.STRING,
+                        "bar", "BAR", PrimitiveType.STRING
+                ),
+                Boolean.FALSE);
+    }
+
+    @Test
+    public void testExpressionPolyStringEquals211() throws Exception {
+        evaluateAndAssertBooleanScalarExpression(
+                "expression-polystring-equals-2.xml",
+                createVariables(
+                        "foo", PrismTestUtil.createPolyString("FOO"), PolyStringType.COMPLEX_TYPE,
+                        "bar", "BAR", PrimitiveType.STRING
+                ),
+                Boolean.TRUE);            // velocity calls '==' on toString value
+    }
+
+    @Test
+    public void testExpressionPolyStringEquals212() throws Exception {
+        evaluateAndAssertBooleanScalarExpression(
+                "expression-polystring-equals-2.xml",
+                createVariables(
+                        "foo", PrismTestUtil.createPolyString("FOOBAR"), PolyStringType.COMPLEX_TYPE,
+                        "bar", "BAR", PrimitiveType.STRING
+                ),
+                Boolean.FALSE);
+    }
+
+    @Test
+    public void testExpressionPolyStringEquals221() throws Exception {
+        evaluateAndAssertBooleanScalarExpression(
+                "expression-polystring-equals-2.xml",
+                createVariables(
+                        "foo", PrismTestUtil.createPolyStringType("FOO"), PolyStringType.COMPLEX_TYPE,
+                        "bar", "BAR", PrimitiveType.STRING
+                ),
+                Boolean.TRUE);            // velocity calls '==' on toString value
+    }
+
+    @Test
+    public void testExpressionPolyStringEquals222() throws Exception {
+        evaluateAndAssertBooleanScalarExpression(
+                "expression-polystring-equals-2.xml",
+                createVariables(
+                        "foo", PrismTestUtil.createPolyStringType("FOOBAR"), PolyStringType.COMPLEX_TYPE,
+                        "bar", "BAR", PrimitiveType.STRING
+                ),
+                Boolean.FALSE);
+    }
+
+    @Test
+    public void testExpressionPolyStringEqualsStringify101() throws Exception {
+        evaluateAndAssertBooleanScalarExpression(
+                "expression-polystring-equals-stringify-1.xml",
+                createVariables(
+                        "foo", "FOO", PrimitiveType.STRING,
+                        "bar", "BAR", PrimitiveType.STRING
+                ),
+                Boolean.TRUE);
+    }
+
+    @Test
+    public void testExpressionPolyStringEqualsStringify102() throws Exception {
+        evaluateAndAssertBooleanScalarExpression(
+                "expression-polystring-equals-stringify-1.xml",
+                createVariables(
+                        "foo", "FOOBAR", PrimitiveType.STRING,
+                        "bar", "BAR", PrimitiveType.STRING
+                ),
+                Boolean.FALSE);
+    }
+
+    @Test
+    public void testExpressionPolyStringEqualsStringify111() throws Exception {
+        evaluateAndAssertBooleanScalarExpression(
+                "expression-polystring-equals-stringify-1.xml",
+                createVariables(
+                        "foo", PrismTestUtil.createPolyString("FOO"), PolyStringType.COMPLEX_TYPE,
+                        "bar", "BAR", PrimitiveType.STRING
+                ),
+                Boolean.TRUE);
+    }
+
+    @Test
+    public void testExpressionPolyStringEqualsStringify112() throws Exception {
+        evaluateAndAssertBooleanScalarExpression(
+                "expression-polystring-equals-stringify-1.xml",
+                createVariables(
+                        "foo", PrismTestUtil.createPolyString("FOOBAR"), PolyStringType.COMPLEX_TYPE,
+                        "bar", "BAR", PrimitiveType.STRING
+                ),
+                Boolean.FALSE);
+    }
+
+    @Test
+    public void testExpressionPolyStringEqualsStringify121() throws Exception {
+        evaluateAndAssertBooleanScalarExpression(
+                "expression-polystring-equals-stringify-1.xml",
+                createVariables(
+                        "foo", PrismTestUtil.createPolyStringType("FOO"), PolyStringType.COMPLEX_TYPE,
+                        "bar", "BAR", PrimitiveType.STRING
+                ),
+                Boolean.TRUE);
+    }
+
+    @Test
+    public void testExpressionPolyStringEqualsStringify122() throws Exception {
+        evaluateAndAssertBooleanScalarExpression(
+                "expression-polystring-equals-stringify-1.xml",
+                createVariables(
+                        "foo", PrismTestUtil.createPolyStringType("FOOBAR"), PolyStringType.COMPLEX_TYPE,
+                        "bar", "BAR", PrimitiveType.STRING
+                ),
+                Boolean.FALSE);
+    }
+
+    @Test
+    public void testExpressionPolyStringEqualsStringify201() throws Exception {
+        evaluateAndAssertBooleanScalarExpression(
+                "expression-polystring-equals-stringify-2.xml",
+                createVariables(
+                        "foo", "FOO", PrimitiveType.STRING,
+                        "bar", "BAR", PrimitiveType.STRING
+                ),
+                Boolean.TRUE);
+    }
+
+    @Test
+    public void testExpressionPolyStringEqualsStringify202() throws Exception {
+        evaluateAndAssertBooleanScalarExpression(
+                "expression-polystring-equals-stringify-2.xml",
+                createVariables(
+                        "foo", "FOOBAR", PrimitiveType.STRING,
+                        "bar", "BAR", PrimitiveType.STRING
+                ),
+                Boolean.FALSE);
+    }
+
+    @Test
+    public void testExpressionPolyStringEqualsStringify211() throws Exception {
+        evaluateAndAssertBooleanScalarExpression(
+                "expression-polystring-equals-stringify-2.xml",
+                createVariables(
+                        "foo", PrismTestUtil.createPolyString("FOO"), PolyStringType.COMPLEX_TYPE,
+                        "bar", "BAR", PrimitiveType.STRING
+                ),
+                Boolean.TRUE);
+    }
+
+    @Test
+    public void testExpressionPolyStringEqualsStringify212() throws Exception {
+        evaluateAndAssertBooleanScalarExpression(
+                "expression-polystring-equals-stringify-2.xml",
+                createVariables(
+                        "foo", PrismTestUtil.createPolyString("FOOBAR"), PolyStringType.COMPLEX_TYPE,
+                        "bar", "BAR", PrimitiveType.STRING
+                ),
+                Boolean.FALSE);
+    }
+
+    @Test
+    public void testExpressionPolyStringEqualsStringify221() throws Exception {
+        evaluateAndAssertBooleanScalarExpression(
+                "expression-polystring-equals-stringify-2.xml",
+                createVariables(
+                        "foo", PrismTestUtil.createPolyStringType("FOO"), PolyStringType.COMPLEX_TYPE,
+                        "bar", "BAR", PrimitiveType.STRING
+                ),
+                Boolean.TRUE);
+    }
+
+    @Test
+    public void testExpressionPolyStringEqualsStringify222() throws Exception {
+        evaluateAndAssertBooleanScalarExpression(
+                "expression-polystring-equals-stringify-2.xml",
+                createVariables(
+                        "foo", PrismTestUtil.createPolyStringType("FOOBAR"), PolyStringType.COMPLEX_TYPE,
+                        "bar", "BAR", PrimitiveType.STRING
+                ),
+                Boolean.FALSE);
+    }
+
+    @Test
+    public void testExpressionListLiteral() throws Exception {
+        // Nothing to do here, Velocity is not supposed to support list literals
+    }
+
+    @Test
+    public void testUserAdministrativeStatus() throws Exception {
+        executeAndAssertStringScalarExpression(
+                "expression-user-administrative-status.xml",
+                createUserScriptVariables(),
+                "enabled");
+    }
+}

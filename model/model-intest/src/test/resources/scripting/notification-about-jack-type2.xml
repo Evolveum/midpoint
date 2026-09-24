@@ -30,8 +30,8 @@
                 </subjectExpression>
                 <bodyExpression>
                     <script>
-                        <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#velocity</language>
-                        <code>$event.object.size()</code>
+                        <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#safe-velocity</language>
+                        <code>$custom.getObject($event).size()</code>
                     </script>
                 </bodyExpression>
                 <transport>dummy:Custom</transport>

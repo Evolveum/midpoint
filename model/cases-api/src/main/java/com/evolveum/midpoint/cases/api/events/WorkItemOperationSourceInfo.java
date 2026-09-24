@@ -6,6 +6,7 @@
 
 package com.evolveum.midpoint.cases.api.events;
 
+import com.evolveum.midpoint.prism.Safe;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkItemActionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemEventCauseInformationType;
@@ -28,14 +29,17 @@ public class WorkItemOperationSourceInfo {
         this.source = source;
     }
 
+    @Safe
     public ObjectReferenceType getInitiatorRef() {
         return initiatorRef;
     }
 
+    @Safe
     public WorkItemEventCauseInformationType getCause() {
         return cause;
     }
 
+    @Safe
     public AbstractWorkItemActionType getSource() {
         return source;
     }

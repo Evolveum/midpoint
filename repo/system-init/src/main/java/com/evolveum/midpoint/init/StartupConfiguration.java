@@ -98,7 +98,7 @@ public class StartupConfiguration implements MidpointConfiguration, EnvironmentA
 
     /** Expressions are evaluated frequently, so we want to cache the configuration section. */
     private final Lazy<ExpressionsConfigurationSection> expressionsConfigurationSection = Lazy.from(
-            () -> new ExpressionsConfigurationSectionImpl(getConfiguration(EXPRESSIONS_CONFIGURATION)));
+            () -> ExpressionsConfigurationSectionImpl.create(getConfiguration(EXPRESSIONS_CONFIGURATION)));
 
     /**
      * Normalized name of midPoint home directory.

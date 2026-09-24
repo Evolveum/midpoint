@@ -182,8 +182,8 @@
                 </subjectExpression>
                 <bodyExpression>
                     <script>
-                        <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#velocity</language>
-                        <code>$event.object.get(0).value</code>
+                        <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#safe-velocity</language>
+                        <code>$custom.getValueAt($event, 0)</code>
                     </script>
                 </bodyExpression>
                 <transport>dummy:CustomType2</transport>

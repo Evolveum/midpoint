@@ -6,6 +6,7 @@
 
 package com.evolveum.midpoint.notifications.impl.events;
 
+import com.evolveum.midpoint.prism.Safe;
 import com.evolveum.midpoint.repo.common.policy.EvaluatedPolicyRule;
 
 import org.jetbrains.annotations.NotNull;
@@ -36,11 +37,13 @@ public class ActivityPolicyRuleEventImpl extends ActivityEventImpl implements Ac
     }
 
     @Override
+    @Safe
     public String getRuleName() {
         return policyRule.getName();
     }
 
     @Override
+    @Safe
     public String debugDump(int indent) {
         StringBuilder sb = DebugUtil.createTitleStringBuilderLn(this.getClass(), indent);
         debugDumpCommon(sb, indent);

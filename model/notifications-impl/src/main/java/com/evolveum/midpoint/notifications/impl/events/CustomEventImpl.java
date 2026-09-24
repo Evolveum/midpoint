@@ -6,6 +6,8 @@
 
 package com.evolveum.midpoint.notifications.impl.events;
 
+import com.evolveum.midpoint.prism.Safe;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -45,44 +47,52 @@ public class CustomEventImpl extends BaseEventImpl implements CustomEvent {
 
     @Override
     @NotNull
+    @Safe
     public EventOperationType getOperationType() {
         return operationType;
     }
 
     @Override
     @NotNull
+    @Safe
     public EventStatusType getStatus() {
         return status;
     }
 
     @Override
+    @Safe
     public boolean isStatusType(EventStatusType eventStatus) {
         return status == eventStatus;
     }
 
     @Override
+    @Safe
     public boolean isOperationType(EventOperationType eventOperation) {
         return this.operationType == eventOperation;
     }
 
     @Override
+    @Safe
     public boolean isCategoryType(EventCategoryType eventCategory) {
         return eventCategory == EventCategoryType.CUSTOM_EVENT;
     }
 
     @Override
     @Nullable
+    @Safe
     public String getSubtype() {
         return subtype;
     }
 
     @Override
     @Nullable
+    // not sure if safe
     public Object getObject() {
         return object;
     }
 
     @Override
+    @Safe
     public boolean isUserRelated() {
         if (object instanceof UserType) {
             return true;
@@ -95,6 +105,7 @@ public class CustomEventImpl extends BaseEventImpl implements CustomEvent {
     }
 
     @Override
+    @Safe
     public String debugDump(int indent) {
         StringBuilder sb = DebugUtil.createTitleStringBuilderLn(this.getClass(), indent);
         debugDumpCommon(sb, indent);

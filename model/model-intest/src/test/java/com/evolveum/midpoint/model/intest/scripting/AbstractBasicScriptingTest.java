@@ -1073,7 +1073,7 @@ public abstract class AbstractBasicScriptingTest extends AbstractInitializedMode
 
         checkDummyTransportMessages("CustomType2", 1);
         m = dummyTransport.getMessages("dummy:CustomType2").get(0);
-        assertThat(m.getBody()).startsWith("POV:user:c0c010c0-d34d-b33f-f00d-111111111111(jack)"); // there can be subscription footer
+        assertThat(m.getBody()).startsWith("user:c0c010c0-d34d-b33f-f00d-111111111111(jack)"); // there can be subscription footer
         assertEquals("Wrong message subject", "Failure notification of type 2", m.getSubject());
     }
 

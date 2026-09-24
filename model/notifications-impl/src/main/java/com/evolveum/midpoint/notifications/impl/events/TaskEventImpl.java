@@ -6,6 +6,8 @@
 
 package com.evolveum.midpoint.notifications.impl.events;
 
+import com.evolveum.midpoint.prism.Safe;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -42,43 +44,51 @@ public class TaskEventImpl extends BaseEventImpl implements TaskEvent {
 
     @Override
     @Nullable
+    @Safe
     public TaskRunResult getTaskRunResult() {
         return taskRunResult;
     }
 
     @Override
     @NotNull
+    @Safe
     public EventOperationType getOperationType() {
         return operationType;
     }
 
     @Override
+    @Safe
     public boolean isTemporaryError() {
         return taskRunResult != null && taskRunResult.getRunResultStatus() == TaskRunResult.TaskRunResultStatus.TEMPORARY_ERROR;
     }
 
     @Override
+    @Safe
     public boolean isPermanentError() {
         return taskRunResult != null && taskRunResult.getRunResultStatus() == TaskRunResult.TaskRunResultStatus.PERMANENT_ERROR;
     }
 
     @Override
+    @Safe
     public boolean isHaltingError() {
         return taskRunResult != null && taskRunResult.getRunResultStatus() == TaskRunResult.TaskRunResultStatus.HALTING_ERROR;
     }
 
     @Override
+    @Safe
     public boolean isFinished() {
         return taskRunResult != null &&
                 taskRunResult.getRunResultStatus() == TaskRunResult.TaskRunResultStatus.FINISHED;
     }
 
     @Override
+    @Safe
     public boolean isInterrupted() {
         return taskRunResult != null && taskRunResult.getRunResultStatus() == TaskRunResult.TaskRunResultStatus.INTERRUPTED;
     }
 
     @Override
+    @Safe
     public boolean isStatusType(EventStatusType eventStatus) {
         if (eventStatus == null) {
             return false;
@@ -120,16 +130,19 @@ public class TaskEventImpl extends BaseEventImpl implements TaskEvent {
     }
 
     @Override
+    @Safe
     public boolean isOperationType(EventOperationType eventOperation) {
         return this.operationType == eventOperation;
     }
 
     @Override
+    @Safe
     public boolean isCategoryType(EventCategoryType eventCategory) {
         return eventCategory == EventCategoryType.TASK_EVENT;
     }
 
     @Override
+    @Safe
     public OperationResultStatus getOperationResultStatus() {
         if (taskRunResult != null && taskRunResult.getOperationResultStatus() != null) {
             return taskRunResult.getOperationResultStatus();
@@ -141,6 +154,7 @@ public class TaskEventImpl extends BaseEventImpl implements TaskEvent {
     }
 
     @Override
+    @Safe
     public String getMessage() {
         if (taskRunResult != null && taskRunResult.getMessage() != null) {
             return taskRunResult.getMessage();
@@ -152,12 +166,14 @@ public class TaskEventImpl extends BaseEventImpl implements TaskEvent {
     }
 
     @Override
+    @Safe
     public long getProgress() {
         return taskRunResult != null && taskRunResult.getProgress() != null ?
                 taskRunResult.getProgress() : task.getLegacyProgress();
     }
 
     @Override
+    @Safe
     public String debugDump(int indent) {
         StringBuilder sb = DebugUtil.createTitleStringBuilderLn(this.getClass(), indent);
         debugDumpCommon(sb, indent);

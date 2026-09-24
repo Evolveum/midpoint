@@ -9,7 +9,7 @@ package com.evolveum.midpoint.repo.common;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import static com.evolveum.midpoint.schema.util.SimpleExpressionUtil.velocityExpression;
+import static com.evolveum.midpoint.schema.util.SimpleExpressionUtil.safeVelocityExpression;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -40,10 +40,10 @@ public class RepoCommonAddGetTest extends AbstractRepoCommonTest {
         var messageTemplate = new MessageTemplateType()
                 .name(objectName)
                 .defaultContent(new MessageTemplateContentType()
-                        .subjectExpression(velocityExpression("subject-prefix", null)))
+                        .subjectExpression(safeVelocityExpression("subject-prefix", null)))
                 .localizedContent(new LocalizedMessageTemplateContentType()
                         .language("sk_SK")
-                        .subjectExpression(velocityExpression("Oné", null)));
+                        .subjectExpression(safeVelocityExpression("Oné", null)));
 
         when("adding it to the repository");
         String oid = repositoryService.addObject(messageTemplate.asPrismObject(), null, result);

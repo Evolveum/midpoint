@@ -12,6 +12,8 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.Safe;
+
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -46,6 +48,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
  * It is probably used in various notification-related expressions so we'll keep it for some time.
  */
 @Component
+@Safe
 public class TextFormatter {
 
     private static final Trace LOGGER = TraceManager.getTrace(TextFormatter.class);
@@ -78,6 +81,7 @@ public class TextFormatter {
     @Autowired
     private MidpointFunctions midpointFunctions;
 
+    @Safe
     public String formatShadowAttributes(ShadowType shadowType, boolean showSynchronizationItems, boolean showAuxiliaryItems) {
         final Collection<ItemPath> hiddenAttributes = getHiddenPaths(showSynchronizationItems, showAuxiliaryItems);
         // FIXME change this to delta formatter, however firstly check how is the `formatAccountAttributes` special
@@ -88,6 +92,7 @@ public class TextFormatter {
     /**
      * Intended for use by scripts
      */
+    @Safe
     public String formatObject(PrismObject<?> object, boolean showSynchronizationAttributes,
             boolean showOperationalAttributes) {
         final Task currentTask = this.midpointFunctions.getCurrentTask();
@@ -95,6 +100,7 @@ public class TextFormatter {
                 currentTask.getResult());
     }
 
+    @Safe
     public String formatObject(PrismObject<?> object, boolean showSynchronizationAttributes,
             boolean showOperationalAttributes, Task task, OperationResult result) {
         final Collection<ItemPath> hiddenPaths = getHiddenPaths(showSynchronizationAttributes,
@@ -105,12 +111,14 @@ public class TextFormatter {
     /**
      * Intended for use by scripts
      */
+    @Safe
     public String formatObject(PrismObject<?> object, Collection<ItemPath> hiddenPaths,
             boolean showOperationalAttributes) {
         final Task task = this.midpointFunctions.getCurrentTask();
         return formatObject(object, hiddenPaths, showOperationalAttributes, task, task.getResult());
     }
 
+    @Safe
     public String formatObject(PrismObject<?> object, Collection<ItemPath> hiddenPaths,
             boolean showOperationalAttributes, Task task, OperationResult result) {
         final Visualization visualization = createVisualization(object, showOperationalAttributes, new ArrayList<>(),
@@ -122,6 +130,7 @@ public class TextFormatter {
      * Intended for use by scripts
      */
     @SuppressWarnings("unused")
+    @Safe
     public String formatObjectModificationDelta(ObjectDelta<? extends Objectable> objectDelta,
             List<ItemPath> hiddenPaths, boolean showOperationalAttributes) {
         final Task task = this.midpointFunctions.getCurrentTask();
@@ -131,6 +140,7 @@ public class TextFormatter {
     /**
      * Intended for use by scripts
      */
+    @Safe
     public String formatObjectModificationDelta(
             @NotNull ObjectDelta<? extends Objectable> objectDelta, boolean showSynchronizationAttributes,
             boolean showOperationalAttributes, PrismObject<?> objectOld, PrismObject<?> objectNew) {
@@ -142,6 +152,7 @@ public class TextFormatter {
     /**
      * Intended for use by scripts
      */
+    @Safe
     public String formatObjectModificationDelta(
             @NotNull ObjectDelta<? extends Objectable> objectDelta, boolean showSynchronizationAttributes,
             boolean showOperationalAttributes) {
@@ -150,6 +161,7 @@ public class TextFormatter {
                 task, task.getResult());
     }
 
+    @Safe
     public String formatObjectModificationDelta(
             @NotNull ObjectDelta<? extends Objectable> objectDelta, Collection<ItemPath> pathsToShow,
             boolean showSynchronizationAttributes, boolean showOperationalAttributes) {
@@ -158,6 +170,7 @@ public class TextFormatter {
                 task, task.getResult());
     }
 
+    @Safe
     public String formatObjectModificationDelta(
             @NotNull ObjectDelta<? extends Objectable> objectDelta, boolean showSynchronizationAttributes,
             boolean showOperationalAttributes, Task task,
@@ -167,6 +180,7 @@ public class TextFormatter {
         return formatObjectModificationDelta(objectDelta, new ArrayList<>(), hiddenPaths, showOperationalAttributes, task, result);
     }
 
+    @Safe
     public String formatObjectModificationDelta(
             @NotNull ObjectDelta<? extends Objectable> objectDelta, Collection<ItemPath> pathsToShow,
             boolean showSynchronizationAttributes, boolean showOperationalAttributes, Task task,
@@ -179,6 +193,7 @@ public class TextFormatter {
     /**
      * Intended for use by scripts
      */
+    @Safe
     public String formatObjectModificationDelta(
             @NotNull ObjectDelta<? extends Objectable> objectDelta, Collection<ItemPath> hiddenPaths,
             boolean showOperationalAttributes, PrismObject<?> objectOld, PrismObject<?> objectNew) {
@@ -187,6 +202,7 @@ public class TextFormatter {
                 task.getResult());
     }
 
+    @Safe
     public String formatObjectModificationDelta(
             @NotNull ObjectDelta<? extends Objectable> objectDelta, Collection<ItemPath> pathsToShow,
             Collection<ItemPath> hiddenPaths, boolean showOperationalAttributes, Task task,
@@ -198,6 +214,7 @@ public class TextFormatter {
     }
 
     @SuppressWarnings("BooleanMethodIsAlwaysInverted")
+    @Safe
     public boolean containsVisibleModifiedItems(
             Collection<? extends ItemDelta<?, ?>> modifications,
             boolean showSynchronizationAttributes, boolean showAuxiliaryAttributes) {

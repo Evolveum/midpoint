@@ -87,6 +87,16 @@
         </constructor-arg>
     </bean>
 
+    <bean id="safeVelocityScriptExecutor"
+            class="com.evolveum.midpoint.model.common.expression.script.velocity.SafeVelocityScriptExecutor">
+        <constructor-arg name="prismContext" ref="prismContext"/>
+        <constructor-arg name="protector" ref="protector"/>
+        <constructor-arg name="localizationService" ref="localizationService"/>
+        <constructor-arg name="configuration">
+            <bean factory-bean="midpointConfiguration" factory-method="getExpressionsSection"/>
+        </constructor-arg>
+    </bean>
+
     <bean id="melScriptExecutor"
             class="com.evolveum.midpoint.model.common.expression.script.mel.MelScriptExecutor">
         <constructor-arg name="prismContext" ref="prismContext"/>
@@ -116,6 +126,7 @@
                 <ref bean="groovyScriptExecutor"/>
                 <ref bean="pythonScriptExecutor"/>
                 <ref bean="velocityScriptExecutor"/>
+                <ref bean="safeVelocityScriptExecutor"/>
                 <ref bean="melScriptExecutor"/>
             </list>
         </constructor-arg>

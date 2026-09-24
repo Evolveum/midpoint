@@ -37,7 +37,7 @@
                 </recipientExpression>
                 <bodyExpression>
                     <script>
-                        <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#velocity</language>
+                        <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#safe-velocity</language>
                         <code>Password for account $event.shadowName on $event.resourceName is: $event.plaintextPassword</code>
                     </script>
                 </bodyExpression>
@@ -51,7 +51,7 @@
                 </recipientExpression>
                 <bodyExpression>
                     <script>
-                        <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#velocity</language>
+                        <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#safe-velocity</language>
                         <code>Password: $event.focusPassword</code>
                     </script>
                 </bodyExpression>
@@ -94,7 +94,7 @@
                 </recipientExpression>
                 <bodyExpression>
                     <script>
-                        <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#velocity</language>
+                        <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#safe-velocity</language>
                         <!-- @formatter:off -->
                         <code>Notification about account-related operation
 
@@ -120,7 +120,7 @@ Channel: $!event.channel</code>
                 </recipientExpression>
                 <bodyExpression>
                     <script>
-                        <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#velocity</language>
+                        <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#safe-velocity</language>
                         <!-- @formatter:off -->
                         <code>Notification about account-related operation
 
@@ -146,7 +146,7 @@ Channel: $!event.channel</code>
                 </recipientExpression>
                 <bodyExpression>
                     <script>
-                        <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#velocity</language>
+                        <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#safe-velocity</language>
                         <!-- @formatter:off -->
                         <code>Notification about ${event.focusTypeName.toLowerCase()}-related operation (status: $event.statusAsText)
 

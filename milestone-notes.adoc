@@ -9,6 +9,35 @@ This page contains the upgrade instructions and incompatibility changes that cou
 The upgrade instructions between releases are in the https://docs.evolveum.com/midpoint/release/[release notes].
 
 == 4.11-RC2
+
+=== 2026-09-24 Safe Velocity mode introduced
+
+Task: https://support.evolveum.com/wp/12389[12389]
+Description:
+
+As part of providing safe execution mode for midPoint, where expressions and scripts can be safely entered by untrusted users, we are introducing `#safe-velocity` scripting language.
+It is based on existing `#velocity` language, with some restrictions.
+The existing `#velocity` scripts should not be affected.
+
+However, because of limitations of the Velocity engine (in particular that it requires the configuration to be global) we had to limit the execution of regular scripts in minor ways:
+
+. `#parse` and `#include` directives are forbidden
+. inline definition of Velocity macros is disabled
+
+If you need these features, please set `legacyVelocityEngine` to `true` in the `config.xml`.
+The drawback is that you won't be able to use new `#safe-velocity` language.
+
+Required Upgrade Steps:
+
+- Check if you need above-mentioned features; if yes, set `legacyVelocityEngine` to `true` or migrate your templates.
+- It is recommended to gradually migrate all your scripts to `#safe-velocity` language, and then disable the full (unsafe) `#velocity` language completely.
+It is done by setting `safeVelocityExpressionsOnly` to `true` in `config.xml`.
+
+Notes & References:
+
+* Related commits: <this one>
+* Docs: regular documentation and migration guide will be provided soon
+
 == 4.11-RC1
 
 === 2026-09-20 Expression profiles are now fully enforced

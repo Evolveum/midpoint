@@ -8,6 +8,8 @@ package com.evolveum.midpoint.notifications.impl.events;
 
 import javax.xml.datatype.Duration;
 
+import com.evolveum.midpoint.prism.Safe;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -35,6 +37,7 @@ public class WorkItemAllocationEventImpl extends WorkItemEventImpl implements Wo
     }
 
     @Override
+    @Safe
     public boolean isCategoryType(EventCategoryType eventCategory) {
         return eventCategory == EventCategoryType.WORK_ITEM_ALLOCATION_EVENT
                 || eventCategory == EventCategoryType.WORK_ITEM_EVENT
