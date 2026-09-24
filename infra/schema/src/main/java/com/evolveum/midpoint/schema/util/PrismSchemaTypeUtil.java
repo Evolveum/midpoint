@@ -56,6 +56,15 @@ public class PrismSchemaTypeUtil {
 
     /**
      * Convert PrismSchemaType to SchemaDefinitionType that contains xsd.
+     * Use for schemas whose owner lifecycle state is not relevant for definitions (e.g. resource schema),
+     * definitions are processed as {@link SchemaConstants#LIFECYCLE_ACTIVE}.
+     */
+    public static SchemaDefinitionType convertToSchemaDefinitionType(PrismSchemaType prismSchemaBean) throws SchemaException {
+        return convertToSchemaDefinitionType(prismSchemaBean, SchemaConstants.LIFECYCLE_ACTIVE);
+    }
+
+    /**
+     * Convert PrismSchemaType to SchemaDefinitionType that contains xsd.
      */
     public static SchemaDefinitionType convertToSchemaDefinitionType(PrismSchemaType prismSchemaBean, @Nullable String lifecycleState) throws SchemaException {
         PrismSchemaImpl parsedSchema = new PrismSchemaImpl(prismSchemaBean.getNamespace());
@@ -263,6 +272,15 @@ public class PrismSchemaTypeUtil {
 
         LOGGER.warn("Unsupported lifecycleState: " + ret + "; expected " + SUPPORTED_LIFECYCLE_STATE);
         return SchemaConstants.LIFECYCLE_PROPOSED;
+    }
+
+    /**
+     * Convert SchemaDefinitionType that contains xsd to PrismSchemaType.
+     * Use for schemas whose owner lifecycle state is not relevant for definitions (e.g. resource schema),
+     * definitions are processed as {@link SchemaConstants#LIFECYCLE_ACTIVE}.
+     */
+    public static PrismSchemaType convertToPrismSchemaType(SchemaDefinitionType schemaDefinition) throws SchemaException {
+        return convertToPrismSchemaType(schemaDefinition, SchemaConstants.LIFECYCLE_ACTIVE);
     }
 
     /**
