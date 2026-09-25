@@ -95,7 +95,7 @@ public class TestAdLdapAd2025 extends AbstractAdLdapMultidomainTest {
 
     @Override
     protected int getNumberOfAllAccounts() {
-        //Namely: Administrator, Guest, AD07, krbtgt
+        //Namely: Administrator, Guest, AD09, krbtgt
         // Jack Sparrow, MidPoint, SSH Test, sub2025$
         return 8;
     }

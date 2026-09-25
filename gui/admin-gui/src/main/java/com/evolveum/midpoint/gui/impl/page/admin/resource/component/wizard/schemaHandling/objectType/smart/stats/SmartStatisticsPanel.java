@@ -686,7 +686,7 @@ public class SmartStatisticsPanel extends BasePanel<ObjectSetStatisticsType> imp
 
             @Override
             public String getTableContainerAdditionalCssClasses() {
-                return super.getTableContainerAdditionalCssClasses() + " rounded overflow-hidden";
+                return super.getTableContainerAdditionalCssClasses() + " rounded overflow-y";
             }
 
             @Override

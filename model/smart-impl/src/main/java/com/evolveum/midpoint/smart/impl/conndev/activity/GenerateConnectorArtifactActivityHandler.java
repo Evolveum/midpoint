@@ -8,6 +8,7 @@ import com.evolveum.midpoint.repo.common.activity.run.ActivityRunResult;
 import com.evolveum.midpoint.repo.common.activity.run.LocalActivityRun;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.SmartMetadataUtil;
+import com.evolveum.midpoint.smart.api.conndev.ConnDevArtifactValidationResult;
 import com.evolveum.midpoint.smart.impl.conndev.ConnectorDevelopmentBackend;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.CommonException;
@@ -61,6 +62,9 @@ public class GenerateConnectorArtifactActivityHandler
             GenerateConnectorArtifactActivityHandler,
             FocusTypeSuggestionWorkStateType> {
 
+        /** How many times a script is (re)generated before handing the last attempt to the wizard. */
+        private static final int MAX_VALIDATION_ATTEMPTS = 3;
+
         MyActivityRun(
                 ActivityRunInstantiationContext<GenerateConnectorArtifactActivityHandler.WorkDefinition, GenerateConnectorArtifactActivityHandler> context) {
             super(context);
@@ -78,7 +82,24 @@ public class GenerateConnectorArtifactActivityHandler
             backend.ensureDocumentationIsProcessed();
             var resultObj = new ConnDevGenerateArtifactResultType();
             var skipCache = Boolean.TRUE.equals(getWorkDefinition().typedDefinition.getSkipCache());
-            ConnDevArtifactType script = backend.generateArtifact(getWorkDefinition().typedDefinition, skipCache);
+            var state = getActivityState();
+
+            ConnDevGenerateArtifactDefinitionType currentDefinition = getWorkDefinition().typedDefinition;
+
+            ConnDevArtifactType script = null;
+            for (int attempt = 1; attempt <= MAX_VALIDATION_ATTEMPTS; attempt++) {
+                script = backend.generateArtifact(currentDefinition, skipCache);
+                if (script == null || script.getContent() == null) {
+                    break;
+                }
+
+                ConnDevArtifactValidationResult validation = backend.validateArtifact(script);
+                if (validation.ok() || attempt == MAX_VALIDATION_ATTEMPTS) {
+                    break;
+                }
+                currentDefinition = retryDefinition(currentDefinition, script, validation);
+            }
+
             if (script != null) {
                 if (script.getContent() != null) {
                     // Mark as AI
@@ -86,11 +107,30 @@ public class GenerateConnectorArtifactActivityHandler
                 }
                 resultObj.artifact(script);
             }
-            var state = getActivityState();
             // FIXME: Write connectorRef + connectorDirectory to ConnectorDevelopmentType
-            state.setWorkStateItemRealValues(FocusTypeSuggestionWorkStateType.F_RESULT,resultObj);
+            state.setWorkStateItemRealValues(FocusTypeSuggestionWorkStateType.F_RESULT, resultObj);
             state.flushPendingTaskModifications(result);
             return ActivityRunResult.success();
+        }
+
+        /** Same definition, with the failed script's content and validation errors attached for repair. */
+        private static ConnDevGenerateArtifactDefinitionType retryDefinition(
+                ConnDevGenerateArtifactDefinitionType previous, ConnDevArtifactType failedScript,
+                ConnDevArtifactValidationResult validation) {
+            ConnDevGenerateArtifactDefinitionType retry = previous.clone();
+            retry.getArtifact().setContent(failedScript.getContent());
+            retry.getArtifact().setFilename(failedScript.getFilename());
+            retry.getMidpointError().clear();
+            for (var error : validation.errors()) {
+                retry.getMidpointError().add(formatValidationError(error, failedScript.getFilename()));
+            }
+            return retry;
+        }
+
+        private static String formatValidationError(ConnDevArtifactValidationResult.Error error, String fallbackFileName) {
+            String source = error.source() != null ? error.source() : fallbackFileName;
+            String location = error.line() != null ? source + ":" + error.line() : source;
+            return location + " - " + error.message();
         }
     }
 }

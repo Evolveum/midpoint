@@ -229,6 +229,7 @@ See xref:/midpoint/guides/account-activation-sequence/[Account Activation Authen
 * Fixed Can't hide query playground for superuser (with #all authorization). See bug:MID-10848[]
 * Fixed visualization item descriptiveness handling for added and deleted containers. See bug:MID-10620[]
 * Fixed displaying of the error while adding a delegation. See bug:MID-12364[]
+* Fixed extra reviewer reference labels in certification campaign stage definitions. See bug:MID-6647[]
 
 === Releases Of Other Components
 
@@ -451,8 +452,8 @@ Note that:
 
 === Upgrade From Other MidPoint Versions
 
-Upgrade from midPoint versions other than 4.10.x to midPoint {release-version} is not supported directly.
-Please upgrade to 4.10.3 first.
+Upgrading from other versions than those listed above is not supported directly.
+Upgrade to the latest maintenance release of a minor version that supports upgrading to {release-version} first (listed above).
 
 === Deprecation, Feature Removal And Major Incompatible Changes Since 4.10
 
