@@ -269,8 +269,8 @@ Channel: $!event.channel</code>
                             [40: $event.contentAsFormattedList]
 
                             [60: ${event.plaintextPassword}]
-                            [61: $event.isShadowKind("ACCOUNT")]
-                            [62: #if ( ${event.isShadowKind("ACCOUNT")} ) #set ( $obj = "account" ) #else #set ( $obj = "resource object" ) #end $obj]
+                            [61: $event.isAccount()]
+                            [62: #if ( ${event.isAccount()} ) #set ( $obj = "account" ) #else #set ( $obj = "resource object" ) #end $obj]
                             [63: ${event.shadowName}]
                             [64: ${event.resourceName}]
                         </code>
