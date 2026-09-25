@@ -118,7 +118,7 @@ public class LibraryFunctionExecutor {
         /** Caller provided values only. */
         record Unnamed(@NotNull List<Object> rawParams) implements Arguments {
             public Unnamed(@NotNull List<Object> rawParams) {
-                this.rawParams = List.copyOf(rawParams);
+                this.rawParams = Collections.unmodifiableList(new ArrayList<>(rawParams));
             }
 
             @Override
