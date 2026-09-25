@@ -177,6 +177,7 @@ public abstract class AbstractInitializedSecurityTest extends AbstractInitialize
     protected static final TestObject<RoleType> ROLE_APPROVER_UNASSIGN_ROLES = TestObject.file(TEST_DIR, "role-approver-unassign-roles.xml", "5d9cead8-3a2e-11e7-8609-f762a755b58e");
     protected static final TestObject<RoleType> ROLE_USE_TASK_TEMPLATES = TestObject.file(TEST_DIR, "role-use-task-templates.xml", "ac97ca9d-7bb6-44b3-8d10-3b309c97f866");
     protected static final TestObject<RoleType> ROLE_DENY_READ_ASSIGNMENT_AND_ROLE_MEMBERSHIP_REF = TestObject.file(TEST_DIR, "role-deny-read-assignment-and-roleMembershipRef.xml", "2c328dbc-a40d-43a8-a9e1-266c96cad22d");
+    protected static final TestObject<RoleType> ROLE_SEARCH_NESTED_FILTER_ITEMS = TestObject.file(TEST_DIR, "role-search-nested-filter-items.xml", "1ae51d46-93d6-4b3f-812e-b265769a841d");
     protected static final TestObject<RoleType> ROLE_ROLE_OWNER_FULL_CONTROL = TestObject.file(TEST_DIR, "role-role-owner-full-control.xml", "9c6e597e-dbd7-11e5-a538-97834c1cd5ba");
     protected static final TestObject<RoleType> ROLE_ROLE_OWNER_ASSIGN = TestObject.file(TEST_DIR, "role-role-owner-assign.xml", "91b9e546-ded6-11e5-9e87-171d047c57d1");
     protected static final TestObject<RoleType> ROLE_LIMITED_ROLE_SEARCH = TestObject.file(TEST_DIR, "role-limited-role-search.xml", "e23d96ec-7a73-4815-9abd-f49fc4726111");
@@ -218,7 +219,7 @@ public abstract class AbstractInitializedSecurityTest extends AbstractInitialize
     protected static final XMLGregorianCalendar JACK_VALID_TO_LONG_AHEAD = XmlTypeConverter.createXMLGregorianCalendar(10000000000000L);
 
     protected static final int NUMBER_OF_ALL_USERS = 13;
-    protected static final int NUMBER_OF_IMPORTED_ROLES = 85;
+    protected static final int NUMBER_OF_IMPORTED_ROLES = 86;
     protected static final int NUMBER_OF_ALL_ORGS = 11;
 
     protected String userRumRogersOid;
@@ -328,6 +329,7 @@ public abstract class AbstractInitializedSecurityTest extends AbstractInitialize
         repoAdd(ROLE_APPROVER_UNASSIGN_ROLES, initResult);
         repoAdd(ROLE_USE_TASK_TEMPLATES, initResult);
         repoAdd(ROLE_DENY_READ_ASSIGNMENT_AND_ROLE_MEMBERSHIP_REF, initResult);
+        repoAdd(ROLE_SEARCH_NESTED_FILTER_ITEMS, initResult);
         repoAdd(ROLE_ROLE_OWNER_FULL_CONTROL, initResult);
         repoAdd(ROLE_ROLE_OWNER_ASSIGN, initResult);
         repoAdd(ROLE_LIMITED_ROLE_SEARCH, initResult);

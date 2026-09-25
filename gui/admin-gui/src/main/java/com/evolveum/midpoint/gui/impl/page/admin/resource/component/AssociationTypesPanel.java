@@ -80,10 +80,10 @@ public class AssociationTypesPanel extends SchemaHandlingObjectsPanel<ShadowAsso
         @Override
         protected @NotNull SmartGeneratingAlertDto load() {
             if (!Boolean.TRUE.equals(getSwitchSuggestionModel().getObject())) {
-                return new SmartGeneratingAlertDto(null, getSwitchSuggestionModel(), getPageBase());
+                return new SmartGeneratingAlertDto(null, getSwitchSuggestionModel(), getSuggestionType(), getPageBase());
             }
 
-            return new SmartGeneratingAlertDto(loadSuggestion(getResourceOid()), getSwitchSuggestionModel(), getPageBase());
+            return new SmartGeneratingAlertDto(loadSuggestion(getResourceOid()), getSwitchSuggestionModel(), getSuggestionType(), getPageBase());
         }
     };
 
@@ -180,18 +180,13 @@ public class AssociationTypesPanel extends SchemaHandlingObjectsPanel<ShadowAsso
             }
 
             @Override
-            public void performAcceptOperationAction(
+            public void performReviewOperationAction(
                     @NotNull AjaxRequestTarget target,
                     PrismContainerValueWrapper<ShadowAssociationTypeDefinitionType> value) {
-
                 PageBase pageBase = getPageBase();
                 onReviewValue(() -> value, target, getStatusInfoObject(value),
                         ajaxRequestTarget -> performOnDeleteSuggestion(pageBase, ajaxRequestTarget,
                                 value, getStatusInfoObject(value)));
-//                StatusInfo<?> statusInfo = getStatusInfoObject(value);
-//                onAcceptValue(() -> value, target);
-//                performOnDeleteSuggestion(getPageBase(), target, value, statusInfo);
-//                refreshAndDetach(target);
             }
 
             @Override
@@ -303,12 +298,28 @@ public class AssociationTypesPanel extends SchemaHandlingObjectsPanel<ShadowAsso
     }
 
     @Override
-    protected void onEditValue(IModel<PrismContainerValueWrapper<ShadowAssociationTypeDefinitionType>> valueModel, AjaxRequestTarget target) {
-        if (valueModel != null) {
-            getObjectDetailsModels().getPageResource().showResourceAssociationTypePreviewWizard(
-                    target,
-                    valueModel.getObject().getPath());
+    protected void onEditValue(
+            IModel<PrismContainerValueWrapper<ShadowAssociationTypeDefinitionType>> valueModel,
+            AjaxRequestTarget target) {
+        if (valueModel == null || valueModel.getObject() == null) {
+            return;
         }
+
+        var value = valueModel.getObject();
+        var page = getObjectDetailsModels().getPageResource();
+//
+//        if (value.getStatus() == ValueStatus.ADDED) {
+//            page.showAssociationTypeWizardForDuplicate(
+//                    value.getNewValue().clone(),
+//                    target,
+//                    getTypesContainerPath(),
+//                    null);
+//        } else {
+//            page.showResourceAssociationTypePreviewWizard(target, value.getPath());
+//        }
+
+        page.showResourceAssociationTypePreviewWizard(target, value.getPath());
+
     }
 
     @Override
@@ -336,40 +347,6 @@ public class AssociationTypesPanel extends SchemaHandlingObjectsPanel<ShadowAsso
                         newValue,
                         target,
                         containerModel.getObject().getPath(), postSaveHandler);
-    }
-
-    //TODO
-    protected void onAcceptValue(
-            @NotNull IModel<PrismContainerValueWrapper<ShadowAssociationTypeDefinitionType>> valueModel,
-            AjaxRequestTarget target) {
-        IModel<PrismContainerWrapper<ShadowAssociationTypeDefinitionType>> containerModel = createContainerModel();
-        PrismContainerValue<ShadowAssociationTypeDefinitionType> prismContainerValue = prepareNewPrismContainerValue(valueModel, containerModel);
-
-        prismContainerValue.setId(null);
-        prismContainerValue.setParent(containerModel.getObject().getItem());
-//        WebPrismUtil.cleanupEmptyContainerValue(prismContainerValue);
-//        if (!containerModel.getObject().getItem().contains(prismContainerValue)) {
-//            try {
-//                containerModel.getObject().getItem().add(prismContainerValue);
-//            } catch (SchemaException e) {
-//                throw new RuntimeException(e);
-//            }
-//        }
-
-        try {
-            PrismContainerWrapper<ShadowAssociationTypeDefinitionType> container =
-                    getObjectDetailsModels().getObjectWrapper().findContainer(getTypesContainerPath());
-            WebPrismUtil.addNewValueToContainer(
-                    container,
-                    prismContainerValue,
-                    getPageBase(),
-                    getObjectDetailsModels().createWrapperContext());
-        } catch (SchemaException e) {
-            throw new RuntimeException(e);
-        }
-
-//        prismContainerValue.setParent(containerModel.getObject().getItem());
-//        createNewItemContainerValueWrapper(getPageBase(), prismContainerValue, containerModel.getObject(), target);
     }
 
     protected PrismContainerValue<ShadowAssociationTypeDefinitionType> prepareNewPrismContainerValue(

@@ -147,13 +147,14 @@ public abstract class AttributeMappingsTableWizardPanel<P extends Containerable>
                 @Override
                 protected @NotNull SmartGeneratingAlertDto load() {
                     if (!Boolean.TRUE.equals(getSwitchToggleModel().getObject())) {
-                        return new SmartGeneratingAlertDto(null, getSwitchToggleModel(), getPageBase());
+                        return new SmartGeneratingAlertDto(null, getSwitchToggleModel(), getSuggestionType(), getPageBase());
                     }
 
                     ResourceType resource = getAssignmentHolderDetailsModel().getObjectType();
                     return new SmartGeneratingAlertDto(
                             loadSuggestion(resource.getOid()),
                             getSwitchToggleModel(),
+                            getSuggestionType(),
                             getPageBase());
                 }
             };
@@ -972,6 +973,12 @@ public abstract class AttributeMappingsTableWizardPanel<P extends Containerable>
         }
 
         return targetPathsToIgnore.stream().distinct().toList();
+    }
+
+    private SuggestionsStorage.SuggestionType getSuggestionType() {
+        return isInboundTabSelected
+                ? SuggestionsStorage.SuggestionType.INBOUND_MAPPING
+                : SuggestionsStorage.SuggestionType.OUTBOUND_MAPPING;
     }
 
     private IModel<Boolean> getSwitchToggleModel() {

@@ -79,6 +79,9 @@ public abstract class ScriptConnectorStepPanel extends AbstractWizardStepPanel<C
     private LoadableModel<ConnDevArtifactType> valueModel;
     private boolean isReloaded = false;
 
+    /** Guards the auto-validate-on-arrival check in {@link #createModels()} to run once per fresh script. */
+    private boolean autoValidationDone = false;
+
     /** Script format; derived from the artifact's file extension, overridable via the language selector. */
     private final LoadableModel<ConnDevScriptFormat> languageModel = new LoadableModel<>() {
         @Override
@@ -219,18 +222,41 @@ public abstract class ScriptConnectorStepPanel extends AbstractWizardStepPanel<C
                     return getScriptType().create(getObjectClassName());
                 }
 
+                ConnDevArtifactType artifact = artifactResultType.getArtifact();
+
                 // Fresh content from a (just-)completed generation task - whether this is the very
                 // first landing here or the result of clicking "Regenerate", any validation error
                 // still on record described an earlier version of the script and no longer applies.
                 // onInitialize() forces this load() to run before regenerateButton/
-                // RepairObjectClassButton compute their visibility, so clearing it here is enough -
-                // no separate step is needed to tell the browser.
-                if (hasPendingValidationError()) {
-                    ConnectorDevelopmentWizardUtil.clearScriptValidationErrors(
-                            ScriptConnectorStepPanel.this, getStepId());
+                // RepairObjectClassButton compute their visibility, so validating (or clearing a
+                // stale error) here is enough - no separate step is needed to tell the browser.
+                //
+                // Also validates immediately, so a still-invalid result (after the generation
+                // service's own retries) shows up without the user clicking "Yes" first. Guarded
+                // by autoValidationDone since load() re-runs on every later, unrelated render.
+                if (!autoValidationDone) {
+                    autoValidationDone = true;
+                    boolean skipValidation = isScriptOptional() && StringUtils.isBlank(artifact.getContent());
+                    ConnDevArtifactValidationResult validation = skipValidation
+                            ? ConnDevArtifactValidationResult.success()
+                            : getDetailsModel().getConnectorDevelopmentOperation().validateArtifact(artifact, task, result);
+
+                    if (validation.ok()) {
+                        if (hasPendingValidationError()) {
+                            ConnectorDevelopmentWizardUtil.clearScriptValidationErrors(
+                                    ScriptConnectorStepPanel.this, getStepId());
+                        }
+                    } else {
+                        getPageBase().error(ConnectorDevelopmentWizardUtil.scriptValidationErrorMessage(
+                                validation, artifact.getFilename(), getPageBase()));
+                        scriptEditedSinceError = false;
+                        // No AjaxRequestTarget here - drawer refresh happens on the next request.
+                        ConnectorDevelopmentWizardUtil.reportScriptValidationErrors(
+                                ScriptConnectorStepPanel.this, getStepId(), validation, artifact.getFilename());
+                    }
                 }
 
-                return artifactResultType.getArtifact();
+                return artifact;
             }
         };
     }
@@ -483,6 +509,7 @@ public abstract class ScriptConnectorStepPanel extends AbstractWizardStepPanel<C
      */
     public void detachLoadedScript() {
         valueModel.detach();
+        autoValidationDone = false;
     }
 
     @Override
@@ -576,11 +603,13 @@ public abstract class ScriptConnectorStepPanel extends AbstractWizardStepPanel<C
                 } else if (StringUtils.isNotEmpty(idOfFound)) {
                     setActiveStepById(target, parentWizardModel, idOfFound);
                     isReloaded = true;
+                    autoValidationDone = false;
                     valueModel.detach();
                     languageModel.detach();
                     return;
                 }
             }
+            autoValidationDone = false;
             valueModel.detach();
             languageModel.detach();
         }
