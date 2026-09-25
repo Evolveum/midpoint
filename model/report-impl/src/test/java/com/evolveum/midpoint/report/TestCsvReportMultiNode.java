@@ -6,6 +6,7 @@
 
 package com.evolveum.midpoint.report;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.Assert.assertTrue;
 
 import java.io.File;
@@ -85,8 +86,7 @@ public class TestCsvReportMultiNode extends TestCsvReport {
 
         PrismObject<TaskType> reportTask = getObject(TaskType.class, TASK_DISTRIBUTED_EXPORT_AUDIT.oid);
         List<String> rows = basicCheckOutputFile(reportTask, DONT_COUNT_ROWS, 8, null);
-        assertTrue(rows.size() > 1000 && rows.size() <= 1012,
-                "Unexpected number of rows in report. Expected:1000-1012, Actual:" + rows.size());
+        assertThat(rows).as("report rows").hasSizeBetween(1001, 1100);
     }
 
     @Test

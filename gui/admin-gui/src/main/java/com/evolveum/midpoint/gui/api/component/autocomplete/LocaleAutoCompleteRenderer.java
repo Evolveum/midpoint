@@ -38,6 +38,7 @@ public class LocaleAutoCompleteRenderer extends AbstractAutoCompleteTextRenderer
                     "A call to textValue(Object) returned an illegal value: null for object: " +
                             object.toString());
         }
+        String rawTextValue = textValue;
         textValue = Strings.escapeMarkup(textValue).toString();
 
         response.write("<li textvalue=\"" + textValue + "\"");
@@ -50,10 +51,15 @@ public class LocaleAutoCompleteRenderer extends AbstractAutoCompleteTextRenderer
             String bcp47Lang = lang.replace('_', '-');
             response.write(" lang=\"" + Strings.escapeMarkup(bcp47Lang) + "\"");
 
-            String ariaLabelValue = getDisplayNameInCurrentLocale(bcp47Lang);
-            if (StringUtils.isNotBlank(ariaLabelValue)) {
-                response.write(" aria-label=\"" + Strings.escapeMarkup(ariaLabelValue) + "\"");
+            //the accessible name must contain the visible text (SC 2.5.3 Label in Name); the current-locale
+            //display name is only appended as a pronounceable fallback for scripts the active screen
+            //reader voice can't read, not used as a replacement for the visible native name
+            String ariaLabelValue = rawTextValue;
+            String displayName = getDisplayNameInCurrentLocale(bcp47Lang);
+            if (StringUtils.isNotBlank(displayName) && !displayName.equalsIgnoreCase(rawTextValue)) {
+                ariaLabelValue = rawTextValue + ", " + displayName;
             }
+            response.write(" aria-label=\"" + Strings.escapeMarkup(ariaLabelValue) + "\"");
         }
 
         final CharSequence handler = getOnSelectJavaScriptExpression(object);

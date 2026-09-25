@@ -7,7 +7,6 @@
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component;
 
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils.removeSuggestionValue;
-import static com.evolveum.midpoint.gui.impl.util.StatusInfoTableUtil.createConfirmationTitle;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -51,7 +50,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
-import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemBuilder;
 import com.evolveum.midpoint.web.component.util.SerializableConsumer;
@@ -129,9 +127,9 @@ public abstract class AssociationTablePanel
             }
 
             @Override
-            protected void performAcceptAction(@NotNull AjaxRequestTarget target,
+            protected void performReviewAction(@NotNull AjaxRequestTarget target,
                     PrismContainerValueWrapper<ShadowAssociationTypeDefinitionType> value) {
-                performAcceptOperationAction(target, value);
+                performReviewOperationAction(target, value);
             }
 
             @Override
@@ -179,14 +177,6 @@ public abstract class AssociationTablePanel
                 return all == null ? List.of() : all.stream().filter(PrismContainerValueWrapper::isSelected).toList();
             }
         };
-    }
-
-    @Override
-    protected List<Component> createToolbarButtonsList(String idButton) {
-        List<Component> toolbarButtonsList = super.createToolbarButtonsList(idButton);
-        toolbarButtonsList.add(createAcceptAllButton(idButton));
-        toolbarButtonsList.add(createDiscardAllButton(idButton));
-        return toolbarButtonsList;
     }
 
     @Override
@@ -442,7 +432,7 @@ public abstract class AssociationTablePanel
             boolean isDuplicate,
             StatusInfo<?> statusInfo);
 
-    public abstract void performAcceptOperationAction(@NotNull AjaxRequestTarget target,
+    public abstract void performReviewOperationAction(@NotNull AjaxRequestTarget target,
             PrismContainerValueWrapper<ShadowAssociationTypeDefinitionType> value);
 
     public abstract void performEditOperationAction(@NotNull AjaxRequestTarget target,
@@ -454,7 +444,7 @@ public abstract class AssociationTablePanel
                 createStringResource("SmartAssociationTilePanel.accept")) {
             @Override
             public void onClick(@NotNull AjaxRequestTarget target) {
-                performAcceptOperationAction(target, object);
+                performReviewOperationAction(target, object);
             }
         };
 
@@ -509,65 +499,11 @@ public abstract class AssociationTablePanel
         return tag;
     }
 
-    protected AjaxIconButton createDiscardAllButton(String id) {
-        return createAcceptDiscardBulkActionButton(id, Model.of("fa fa-xmark"), "SmartMappingTable.dismiss.all",
-                "text-danger", false);
-    }
-
-    protected AjaxIconButton createAcceptAllButton(String id) {
-        return createAcceptDiscardBulkActionButton(id, Model.of("fa fa-check"), "SmartMappingTable.apply.all",
-                "btn-outline-primary", true);
-    }
-
     private List<PrismContainerValueWrapper<ShadowAssociationTypeDefinitionType>> getAllItemsWithStatus() {
         List<PrismContainerValueWrapper<ShadowAssociationTypeDefinitionType>> allItems = getAllItems();
         return allItems == null ? List.of() : allItems.stream()
                 .filter(v -> getStatusInfoObject(v) != null)
                 .toList();
-    }
-
-    protected AjaxIconButton createAcceptDiscardBulkActionButton(String id,
-            IModel<String> iconCss, String labelKey, String cssClass, boolean isAccept) {
-        AjaxIconButton button = new AjaxIconButton(id, iconCss, createStringResource(labelKey)) {
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                List<PrismContainerValueWrapper<ShadowAssociationTypeDefinitionType>> allItems = getAllItemsWithStatus();
-                if (!allItems.isEmpty()) {
-
-                    ConfirmationPanel dialog = new ConfirmationPanel(getPageBase().getMainPopupBodyId(),
-                            createConfirmationTitle(getPageBase(), allItems.size(), getCurrentPageItems().isEmpty(), isAccept)) {
-
-                        @Override
-                        public void yesPerformed(AjaxRequestTarget target) {
-                            allItems.stream()
-                                    .filter(v -> getStatusInfoObject(v) != null)
-                                    .forEach(v -> {
-                                        if (isAccept) {
-                                            performAcceptOperationAction(target, v);
-                                        } else {
-                                            performOnDeleteSuggestion(getPageBase(), target, v, getStatusInfoObject(v));
-                                        }
-                                    });
-                            refreshAndDetach(target);
-                        }
-                    };
-
-                    getPageBase().showMainPopup(dialog, target);
-                }
-            }
-        };
-
-        button.setOutputMarkupId(true);
-        button.showTitleAsLabel(true);
-        button.add(AttributeModifier.replace("class", "ms-2 px-2 btn " + cssClass));
-        button.add(new VisibleBehaviour(() -> getSwitchToggleModel().getObject().equals(Boolean.TRUE) && !displayNoValuePanel()
-                && getStatusAwareDataProvider().getPageSuggestionCount() > 1));
-        return button;
-    }
-
-    @SuppressWarnings("rawtypes")
-    protected StatusAwareDataProvider<?> getStatusAwareDataProvider() {
-        return (StatusAwareDataProvider) getProvider();
     }
 
     protected abstract void onReviewValue(

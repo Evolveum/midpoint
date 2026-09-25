@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.web.component.menu.top;
 
 import java.util.List;
+import java.util.Locale;
 
 import com.evolveum.midpoint.common.AvailableLocale;
 
@@ -64,8 +65,10 @@ public class LocalesDropDownMenu extends BasePanel<List<AvailableLocale.LocaleDe
                 };
                 localeLink.add(AttributeAppender.append(
                         "aria-label",
-                        () -> LocalizationUtil.translate(
-                                "LocalesDropDownMenu.link.label", new Object[]{item.getModelObject().getName()})));
+                        () -> buildAriaLabel(item.getModelObject())));
+                localeLink.add(AttributeAppender.append(
+                        "lang",
+                        () -> item.getModelObject().getLocale().toLanguageTag()));
                 item.add(localeLink);
 
                 Label image = new Label(ID_LOCALES_ICON);
@@ -82,5 +85,18 @@ public class LocalesDropDownMenu extends BasePanel<List<AvailableLocale.LocaleDe
 
     protected void changeLocale(AjaxRequestTarget target, AvailableLocale.LocaleDescriptor descriptor) {
 
+    }
+
+    /**
+     * Builds the accessible label for a locale item entirely in that item's own target language
+     * (both the "change language to..." phrase and the language name), instead of the current
+     * UI locale. A mixed-language label (e.g. an English verb with a Slovak noun) can't be marked
+     * with a single lang attribute without mispronouncing one of the two parts.
+     */
+    private String buildAriaLabel(AvailableLocale.LocaleDescriptor descriptor) {
+        Locale targetLocale = descriptor.getLocale();
+        return LocalizationUtil.translate(
+                "LocalesDropDownMenu.link.label", new Object[]{descriptor.getName()},
+                "LocalesDropDownMenu.link.label", targetLocale);
     }
 }

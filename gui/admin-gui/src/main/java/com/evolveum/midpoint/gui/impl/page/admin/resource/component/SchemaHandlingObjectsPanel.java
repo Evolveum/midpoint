@@ -133,7 +133,7 @@ public abstract class SchemaHandlingObjectsPanel<C extends Containerable> extend
         LoadableDetachableModel<SmartGeneratingAlertDto> suggestionModel = new LoadableDetachableModel<>() {
             @Override
             protected @NotNull SmartGeneratingAlertDto load() {
-                return new SmartGeneratingAlertDto(null, Model.of(), getPageBase());
+                return new SmartGeneratingAlertDto(null, Model.of(), getSuggestionType(), getPageBase());
             }
         };
 

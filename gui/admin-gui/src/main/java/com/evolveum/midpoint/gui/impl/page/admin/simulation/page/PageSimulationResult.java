@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.gui.impl.page.admin.simulation.page;
 
 import java.io.Serial;
+import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.component.wizard.NavigationPanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
@@ -145,55 +146,35 @@ public class PageSimulationResult extends PageAdmin implements SimulationPage {
 
     // TODO temporary "hack" solution to identify correlation simulations - to be replaced by a proper flag in SimulationResultType
     public static boolean isCorrelationSimulation(PageBase pageBase, IModel<SimulationResultType> resultModel) {
-        SimulationResultType result = resultModel != null ? resultModel.getObject() : null;
-        if (result == null || result.getMetric() == null) {
-            return false;
-        }
-
-        PrismObject<ObjectType> task = WebModelServiceUtils.loadObject(resultModel.getObject().getRootTaskRef(), pageBase);
-        if (task == null) {
-            return false;
-        }
-
-        PrismContainer<ResourceObjectSetType> container =
-                task.findContainer(ItemPath.create(
-                        TaskType.F_ACTIVITY,
-                        ActivityDefinitionType.F_WORK,
-                        WorkDefinitionsType.F_CORRELATION));
-
-        return container != null && !container.isEmpty();
+        return hasSimulationWork(pageBase, resultModel, WorkDefinitionsType.F_CORRELATION);
     }
 
     public static boolean isMappingSimulation(PageBase pageBase, IModel<SimulationResultType> resultModel) {
+        return hasSimulationWork(pageBase, resultModel,
+                WorkDefinitionsType.F_INBOUND_MAPPINGS_SIMULATION,
+                WorkDefinitionsType.F_OUTBOUND_MAPPINGS_SIMULATION);
+    }
+
+    private static boolean hasSimulationWork(
+            PageBase pageBase, IModel<SimulationResultType> resultModel, QName... workNames) {
         SimulationResultType result = resultModel != null ? resultModel.getObject() : null;
-        if (result == null || result.getMetric() == null) {
+        if (result == null || result.getMetric() == null || result.getRootTaskRef() == null) {
             return false;
         }
 
-        PrismObject<ObjectType> task = WebModelServiceUtils.loadObject(resultModel.getObject().getRootTaskRef(), pageBase);
+        PrismObject<ObjectType> task = WebModelServiceUtils.loadObject(result.getRootTaskRef(), pageBase);
         if (task == null) {
             return false;
         }
 
-        // Check for inbound mappings simulation
-        PrismContainer<WorkDefinitionsType> inboundContainer =
-                task.findContainer(ItemPath.create(
-                        TaskType.F_ACTIVITY,
-                        ActivityDefinitionType.F_WORK,
-                        WorkDefinitionsType.F_INBOUND_MAPPINGS_SIMULATION));
-
-        if (inboundContainer != null && !inboundContainer.isEmpty()) {
-            return true;
+        for (QName workName : workNames) {
+            PrismContainer<?> container = task.findContainer(ItemPath.create(
+                    TaskType.F_ACTIVITY, ActivityDefinitionType.F_WORK, workName));
+            if (container != null && !container.isEmpty()) {
+                return true;
+            }
         }
-
-        // Check for outbound mappings simulation
-        PrismContainer<WorkDefinitionsType> outboundContainer =
-                task.findContainer(ItemPath.create(
-                        TaskType.F_ACTIVITY,
-                        ActivityDefinitionType.F_WORK,
-                        WorkDefinitionsType.F_OUTBOUND_MAPPINGS_SIMULATION));
-
-        return outboundContainer != null && !outboundContainer.isEmpty();
+        return false;
     }
 
     private void initModels() {

@@ -14,6 +14,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.web.session.SuggestionsStorage.SuggestionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStateType;
@@ -44,6 +45,7 @@ public class SmartGeneratingAlertDto implements Serializable {
     private final LoadableModel<StatusInfo<?>> statusInfo;
     private IModel<PrismObject<TaskType>> taskModel;
     private final IModel<Boolean> switchToggleModel;
+    private final SuggestionType suggestionType;
 
     public enum SmartGenerationState {
         NOT_STARTED("fa fa-wand-magic-sparkles text-purple",
@@ -88,9 +90,11 @@ public class SmartGeneratingAlertDto implements Serializable {
     public SmartGeneratingAlertDto(
             LoadableModel<StatusInfo<?>> statusInfo,
             IModel<Boolean> switchToggleModel,
+            @NotNull SuggestionType suggestionType,
             PageBase pageBase) {
         this.statusInfo = statusInfo;
         this.switchToggleModel = switchToggleModel;
+        this.suggestionType = suggestionType;
         this.taskModel = initTaskModel(statusInfo, pageBase);
     }
 
@@ -251,6 +255,12 @@ public class SmartGeneratingAlertDto implements Serializable {
 
     public IModel<String> getDefaultSubTextModel(PageBase pageBase) {
         SmartGenerationState state = resolveState();
+
+        if (state == SmartGenerationState.NOT_STARTED) {
+            String labelKey = "SmartGeneratingPanel.suggestionType." + suggestionType.name();
+            return state.createSubTextModel(
+                    pageBase, pageBase.createStringResource(labelKey).getString());
+        }
 
         if (state == SmartGenerationState.FINISHED) {
 
