@@ -26,11 +26,16 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.EventCategoryType;
 
 public class WorkItemAllocationEventImpl extends WorkItemEventImpl implements WorkItemAllocationEvent {
 
-    public WorkItemAllocationEventImpl(@NotNull LightweightIdentifierGenerator lightweightIdentifierGenerator,
+    public WorkItemAllocationEventImpl(
+            @NotNull LightweightIdentifierGenerator lightweightIdentifierGenerator,
             @NotNull ChangeType changeType,
-            @NotNull CaseWorkItemType workItem, @Nullable SimpleObjectRef assignee, @Nullable SimpleObjectRef initiator,
-            @Nullable WorkItemOperationInfo operationInfo, @Nullable WorkItemOperationSourceInfo sourceInfo,
-            @Nullable ApprovalContextType approvalContext, @NotNull CaseType aCase,
+            @NotNull CaseWorkItemType workItem,
+            @Nullable SimpleObjectRef assignee,
+            @Nullable SimpleObjectRef initiator,
+            @NotNull WorkItemOperationInfo operationInfo,
+            @Nullable WorkItemOperationSourceInfo sourceInfo,
+            @Nullable ApprovalContextType approvalContext,
+            @NotNull CaseType aCase,
             @Nullable Duration timeBefore) {
         super(lightweightIdentifierGenerator, changeType, workItem, assignee, initiator, operationInfo, sourceInfo,
                 approvalContext, aCase, timeBefore);

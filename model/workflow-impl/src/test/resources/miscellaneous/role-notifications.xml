@@ -1,0 +1,31 @@
+<!--
+  ~ Copyright (C) 2010-2023 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+    oid="5c097ab2-2413-49ba-8060-c8004901b5f9">
+    <name>notifications</name>
+    <displayName>Role for testing approval notifications</displayName>
+    <assignment>
+        <policyRule>
+            <policyConstraints>
+                <assignment>
+                    <operation>add</operation>
+                </assignment>
+            </policyConstraints>
+            <policyActions>
+                <approval>
+                    <approvalSchema>
+                        <stage>
+                            <number>1</number>
+                            <approverRef oid="00000000-0000-0000-0000-000000000002" type="UserType"/>
+                            <duration>P1D</duration>
+                        </stage>
+                    </approvalSchema>
+                </approval>
+            </policyActions>
+        </policyRule>
+    </assignment>
+</role>

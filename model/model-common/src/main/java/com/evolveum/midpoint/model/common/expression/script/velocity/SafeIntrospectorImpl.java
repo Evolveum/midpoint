@@ -24,6 +24,7 @@ import com.evolveum.midpoint.prism.Safe;
 import org.springframework.core.annotation.AnnotationUtils;
 
 import javax.xml.datatype.XMLGregorianCalendar;
+import javax.xml.namespace.QName;
 
 /**
  * Executes access checks related to methods that can be called from Velocity scripts.
@@ -50,7 +51,7 @@ class SafeIntrospectorImpl extends Introspector {
      * Immutability is required.
      *
      * These classes are also allowed to be passed into the Velocity context (along with others),
-     * see {@link #SAFE_TYPE_TO_PUT_INTO_CONTEXT}.
+     * see {@link #TYPES_SAFE_TO_INTO_CONTEXT_PREDICATE}.
      */
     private static final Collection<Class<?>> CLASSES_SAFE_TO_CALL = List.of(
             String.class,
@@ -65,41 +66,56 @@ class SafeIntrospectorImpl extends Introspector {
             BigDecimal.class,
             Boolean.class);
 
-    /** These are safe to put into context (with subclasses) but not to call methods on. */
-    private static final Collection<Class<?>> CLASSES_SAFE_TO_PUT_INTO_CONTEXT = List.of(
+    /**
+     * Allowed classes for which only some methods are allowed. The allowed methods are listed in the map.
+     *
+     * These classes are also allowed to be passed into the Velocity context (along with others),
+     * see {@link #TYPES_SAFE_TO_INTO_CONTEXT_PREDICATE}.
+     */
+    private static final Map<Class<?>, List<String>> ALLOWED_METHODS_BY_TYPE = Map.of(
             Enum.class,
+            List.of("name", "ordinal", "toString"),
+
+            XMLGregorianCalendar.class,
+            List.of("getYear", "getMonth", "getDay", "getHour", "getMinute",
+                    "getSecond", "getMillisecond", "getFractionalSecond", "getTimezone", "toXMLFormat",
+                    "toString"),
+
+            QName.class,
+            List.of("getNamespaceURI", "getLocalPart", "getPrefix"),
+
+            Collection.class,
+            List.of("isEmpty", "size"),
+
+            Map.class,
+            List.of("isEmpty", "size")
+    );
+
+    /**
+     * These are safe to put into context (with subclasses) but not to call all methods on.
+     *
+     * TODO specify allowed methods to call for these classes.
+     */
+    private static final Collection<Class<?>> TYPES_SAFE_TO_PUT_INTO_CONTEXT = List.of(
             java.util.Date.class,
             java.time.LocalDateTime.class,
             java.time.LocalDate.class,
-            java.time.LocalTime.class,
-            XMLGregorianCalendar.class);
+            java.time.LocalTime.class);
 
-    private static final List<String> ALLOWED_ENUM_METHODS = List.of("name", "ordinal", "toString");
-
-    private static final List<String> ALLOWED_XML_GREGORIAN_CALENDAR_METHODS =
-            List.of("getYear", "getMonth", "getDay", "getHour", "getMinute",
-                    "getSecond", "getMillisecond", "getFractionalSecond", "getTimezone", "toXMLFormat",
-                    "toString");
-
-    static final Predicate<Class<?>> SAFE_TYPE_TO_PUT_INTO_CONTEXT =
+    static final Predicate<Class<?>> TYPES_SAFE_TO_INTO_CONTEXT_PREDICATE =
             c -> CLASSES_SAFE_TO_CALL.stream().anyMatch(allowedClass -> allowedClass.isAssignableFrom(c))
-                    || CLASSES_SAFE_TO_PUT_INTO_CONTEXT.stream().anyMatch(allowedClass -> allowedClass.isAssignableFrom(c))
+                    || ALLOWED_METHODS_BY_TYPE.keySet().stream().anyMatch(allowedClass -> allowedClass.isAssignableFrom(c))
+                    || TYPES_SAFE_TO_PUT_INTO_CONTEXT.stream().anyMatch(allowedClass -> allowedClass.isAssignableFrom(c))
                     || isAnnotatedAsSafe(c);
 
     private static boolean isAnnotatedAsSafe(Class<?> clazz) {
         // This looks at all superclasses and intefaces of given class, so it is enough to annotate a base class or interface
         // to mark all subclasses safe.
         //
-        // However, beware that it also looks at _annotations_ of the class, so if any of them is marked as @Safe,
-        // the class will be considered safe as well. This is not a problem, but it is something to be aware of.
-        // Do not mark any annotation as @Safe unless you really mean it.
+        // However, beware that it also looks for it as a meta-annotation (i.e. annotation of an annotation of the class).
+        // So please don't use {@link Safe} as a meta-annotation for other annotations. It is not intended for that purpose.
         return AnnotationUtils.findAnnotation(clazz, Safe.class) != null;
     }
-
-    private static final Collection<Class<?>> COLLECTION_LIKE_CLASSES = List.of(Collection.class, Map.class);
-
-    /** Methods that are allowed for {@link #COLLECTION_LIKE_CLASSES}. */
-    private static final Collection<String> ALLOWED_COLLECTION_LIKE_METHODS = List.of("isEmpty", "size");
 
     SafeIntrospectorImpl(Logger log) {
         super(log);
@@ -118,32 +134,65 @@ class SafeIntrospectorImpl extends Introspector {
             log.trace("Method {}#{}({}) not found", c.getName(), name, params != null ? params.length : 0);
             return null;
         }
+
         var methodName = method.getName();
+
         if (FORBIDDEN_METHODS.contains(methodName)) {
             log.error("Method {}#{} is globally forbidden -> won't execute", c.getName(), methodName);
             return null;
         }
+
         if (CLASSES_SAFE_TO_CALL.contains(c)) {
             log.trace("Method {}#{} is allowed because it belongs to an allowed class -> allowing execution",
                     c.getName(), methodName);
             return method;
         }
-        boolean isCollectionLike = COLLECTION_LIKE_CLASSES.stream().anyMatch(clazz -> clazz.isAssignableFrom(c));
-        if (Enum.class.isAssignableFrom(c) && ALLOWED_ENUM_METHODS.contains(methodName)
-                || XMLGregorianCalendar.class.isAssignableFrom(c) && ALLOWED_XML_GREGORIAN_CALENDAR_METHODS.contains(methodName)
-                || isCollectionLike && ALLOWED_COLLECTION_LIKE_METHODS.contains(methodName)) {
-            log.trace("Method {}#{} is allowed because it belongs to specifically allowed methods -> allowing execution",
-                    c.getName(), methodName);
+
+        for (Map.Entry<Class<?>, List<String>> entry : ALLOWED_METHODS_BY_TYPE.entrySet()) {
+            Class<?> allowedClass = entry.getKey();
+            List<String> allowedMethods = entry.getValue();
+            if (allowedClass.isAssignableFrom(c) && allowedMethods.contains(methodName)) {
+                log.trace("Method {}#{} is allowed because it belongs to an allowed class and method -> allowing execution",
+                        c.getName(), methodName);
+                return method;
+            }
+        }
+
+        // The rest of the methods are our own ones, so we can check for @Safe annotation
+        if (isSafeAnnotationPresentOnMethodOrRelatedMethod(c, method)) {
+            log.trace("Method {}#{} is annotated with @Safe -> allowing execution", c.getName(), methodName);
             return method;
         }
-        // Note: the rest of collection access should be done through #foreach only
-        // The rest of the methods are our own ones, so we can check for @Safe annotation
-        if (!method.isAnnotationPresent(Safe.class)) {
-            log.error("Method {}#{} is not annotated with @Safe -> won't execute", c.getName(), methodName);
-            return null;
+
+        log.error("Method {}#{} is not annotated with @Safe -> won't execute", c.getName(), methodName);
+        return null;
+    }
+
+    /**
+     * In Velocity, the method is not always found on the class it is declared in, but SOMETIMES (strangely)
+     * on one of its superclasses or interfaces. For example, {@code common_3.ObjectReferenceType#getType} is found
+     * as {@code Referencable#getType}, not as {@code AbstractReferencable#getType}, where it's defined.
+     *
+     * To be deterministic, let's explicitly check for the method on the class in question.
+     */
+    private boolean isSafeAnnotationPresentOnMethodOrRelatedMethod(Class<?> c, Method method) {
+        if (isAnnotatedAsSafe(method)) {
+            return true; // This is hopefully the case
         }
-        log.trace("Method {}#{} is annotated with @Safe -> allowing execution", c.getName(), methodName);
-        return method;
+
+        try {
+            // Can take some time, but hopefully this is not called too often. We can cache the result if needed.
+            var realMethod = c.getMethod(method.getName(), method.getParameterTypes());
+            return isAnnotatedAsSafe(realMethod);
+        } catch (NoSuchMethodException e) {
+            log.error("Method {}#{} was found on a superclass or interface, but not on the class itself. This should not happen.",
+                    c.getName(), method.getName(), e);
+            return false;
+        }
+    }
+
+    private static boolean isAnnotatedAsSafe(Method method) {
+        return AnnotationUtils.findAnnotation(method, Safe.class) != null;
     }
 
     @Override

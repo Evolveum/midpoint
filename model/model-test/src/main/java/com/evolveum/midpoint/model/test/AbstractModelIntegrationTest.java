@@ -4085,7 +4085,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         dummyTransport.clearMessages();
     }
 
-    protected void checkDummyTransportMessages(String name, int expectedCount) {
+    protected List<Message> checkDummyTransportMessages(String name, int expectedCount) {
         List<Message> messages = dummyTransport.getMessages("dummy:" + name);
         if (expectedCount == 0) {
             if (messages != null && !messages.isEmpty()) {
@@ -4103,6 +4103,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
                 assertEquals("Invalid number of messages recorded in dummy transport '" + name + "'", expectedCount, messages.size());
             }
         }
+        return messages;
     }
 
     protected void assertSingleDummyTransportMessage(String name, String expectedBody) {

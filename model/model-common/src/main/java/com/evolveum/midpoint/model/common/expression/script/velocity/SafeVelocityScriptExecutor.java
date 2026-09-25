@@ -79,7 +79,7 @@ public class SafeVelocityScriptExecutor extends AbstractVelocityScriptExecutor {
     }
 
     private static boolean isAllowed(Class<?> clazz) {
-        return SAFE_TYPE_TO_PUT_INTO_CONTEXT.test(clazz);
+        return TYPES_SAFE_TO_INTO_CONTEXT_PREDICATE.test(clazz);
     }
 
     /** Just a safety check to make sure no sneaky variable of an incompatible type got into the context. */

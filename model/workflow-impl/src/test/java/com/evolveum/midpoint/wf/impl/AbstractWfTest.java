@@ -76,18 +76,14 @@ public abstract class AbstractWfTest extends AbstractModelImplementationIntegrat
 
     protected static final String DUMMY_SIMPLE_WORKFLOW_NOTIFIER_PROCESSES = "dummy:simpleWorkflowNotifier-Processes";
     protected static final String DUMMY_SIMPLE_WORKFLOW_NOTIFIER_WORK_ITEMS = "dummy:simpleWorkflowNotifier-WorkItems";
+    protected static final String DUMMY_WORKFLOW_PROCESS_SAFE = "dummy:workflow-process-safe";
+    protected static final String DUMMY_WORK_ITEM_SAFE = "dummy:work-item-safe";
 
     @Autowired protected Clockwork clockwork;
     @Autowired protected TaskManager taskManager;
     @Autowired protected CaseManager caseManager;
-    @Autowired protected CaseEngineImpl caseEngine;
-    @Autowired protected WorkItemManager workItemManager;
     @Autowired protected CaseService caseService;
-    @Autowired protected PrimaryChangeProcessor primaryChangeProcessor;
     @Autowired protected SystemObjectCache systemObjectCache;
-    @Autowired protected RelationRegistry relationRegistry;
-    @Autowired protected WfTestHelper testHelper;
-    @Autowired protected MiscHelper miscHelper;
 
     protected PrismObject<UserType> userAdministrator;
 
