@@ -766,8 +766,8 @@ Please see also xrefv:/midpoint/reference/support-4.8/upgrade/faq-issues/[Freque
 
 === Upgrade From Other MidPoint Versions
 
-Upgrade from midPoint versions other than 4.4.x or 4.7.x to midPoint {release-version} is not supported directly.
-Please upgrade to one of these versions (at least 4.4.6 or 4.7.2) first.
+Upgrading from other versions than those listed above is not supported directly.
+Upgrade to the latest maintenance release of a version that supports upgrading to {release-version} first (listed above).
 
 === Deprecation, Feature Removal And Major Incompatible Changes Since 4.7
 
