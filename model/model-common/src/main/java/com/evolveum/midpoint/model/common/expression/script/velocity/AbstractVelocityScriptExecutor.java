@@ -118,6 +118,7 @@ abstract class AbstractVelocityScriptExecutor extends AbstractScriptExecutor {
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,
             ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
 
+        ExecutionMode previousExecutionMode = EXECUTION_MODE_THREAD_LOCAL.get();
         try {
             EXECUTION_MODE_THREAD_LOCAL.set(getExecutionModeFromExecutor());
 
@@ -131,7 +132,11 @@ abstract class AbstractVelocityScriptExecutor extends AbstractScriptExecutor {
             return resultWriter.toString();
 
         } finally {
-            EXECUTION_MODE_THREAD_LOCAL.remove();
+            if (previousExecutionMode != null) {
+                EXECUTION_MODE_THREAD_LOCAL.set(previousExecutionMode);
+            } else {
+                EXECUTION_MODE_THREAD_LOCAL.remove();
+            }
         }
     }
 
