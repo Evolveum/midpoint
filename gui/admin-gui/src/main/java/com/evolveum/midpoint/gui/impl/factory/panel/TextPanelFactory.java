@@ -106,7 +106,12 @@ public class TextPanelFactory<T> extends AbstractInputGuiComponentFactory<T> imp
                     if (StringUtils.isNotEmpty(input)) {
                         IConverter<T> converter = getConverter(panelCtx.getTypeClass());
                         return choices.stream()
-                                .filter(choice -> converter.convertToString(choice, getLocale()).contains(input))
+                                .filter(choice -> {
+                                    String text = choice instanceof String value
+                                            ? value
+                                            : converter.convertToString(choice, getLocale());
+                                    return text != null && text.contains(input);
+                                })
                                 .collect(Collectors.toList()).iterator();
                     }
                     return choices.iterator();
