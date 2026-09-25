@@ -30,7 +30,7 @@
                     <bodyExpression>
                         <script>
                             <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#safe-velocity</language>
-                            <code>$custom.getObject($event).name/$custom.getObject($event).oid</code>
+                            <code>$event.object.name/$event.object.oid</code>
                         </script>
                     </bodyExpression>
                     <transport>dummy:Custom</transport>

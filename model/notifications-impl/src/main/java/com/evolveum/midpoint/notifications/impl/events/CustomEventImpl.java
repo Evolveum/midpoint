@@ -86,7 +86,7 @@ public class CustomEventImpl extends BaseEventImpl implements CustomEvent {
 
     @Override
     @Nullable
-    // not sure if safe
+    @Safe // safe to get; the security is ensured by restrictions on methods that can be called on the object
     public Object getObject() {
         return object;
     }

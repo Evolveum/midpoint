@@ -31,7 +31,7 @@
                 <bodyExpression>
                     <script>
                         <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#safe-velocity</language>
-                        <code>$custom.getObject($event).size()</code>
+                        <code>$event.object.size()</code>
                     </script>
                 </bodyExpression>
                 <transport>dummy:Custom</transport>
