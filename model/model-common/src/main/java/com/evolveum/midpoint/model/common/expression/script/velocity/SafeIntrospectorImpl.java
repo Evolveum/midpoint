@@ -17,6 +17,8 @@ import java.util.function.Predicate;
 
 import org.apache.velocity.util.introspection.Introspector;
 import org.apache.velocity.util.introspection.SecureIntrospectorImpl;
+import org.apache.velocity.util.introspection.UberspectImpl;
+import org.apache.velocity.util.introspection.UberspectPublicFields;
 import org.slf4j.Logger;
 
 import com.evolveum.midpoint.prism.Safe;
@@ -195,12 +197,18 @@ class SafeIntrospectorImpl extends Introspector {
         return AnnotationUtils.findAnnotation(method, Safe.class) != null;
     }
 
+    /**
+     * Used to access public fields directly, i.e., without getters/setters. We block that for safe mode.
+     *
+     * Actually, this method doesn't seem to be used by standard {@link UberspectImpl}, only by {@link UberspectPublicFields}
+     * which is not enabled by default. Nevertheless, let's play it safe and forbid access to public fields in safe
+     * Velocity scripts.
+     */
     @Override
     public Field getField(Class<?> c, String name) throws IllegalArgumentException {
         if (AbstractVelocityScriptExecutor.isFullExecutionMode()) {
             return super.getField(c, name);
         } else {
-            // Used when accessing public fields in Java classes directly, i.e., without a getter. We don't allow that.
             return null;
         }
     }

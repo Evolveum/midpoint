@@ -11,13 +11,13 @@ import static org.testng.AssertJUnit.assertEquals;
 
 import java.io.File;
 import java.io.FileWriter;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.model.common.expression.ExpressionTestUtil;
 import com.evolveum.midpoint.model.common.expression.script.velocity.SafeVelocityScriptExecutor;
 import com.evolveum.midpoint.model.common.expression.script.velocity.VelocityScriptExecutor;
+import com.evolveum.midpoint.prism.Safe;
 import com.evolveum.midpoint.prism.crypto.Protector;
 
 import org.testng.annotations.Test;
@@ -248,6 +248,63 @@ public class TestSafeVelocityExpressions extends AbstractVelocityExpressionsTest
                 "1234567890");
     }
 
+    @Test
+    public void testMapModificationsBlocked() {
+        assertUnsafeScriptBlocked(
+                """
+                        #set($b = "BOOM")
+                        before: $aMap.key
+                        ${aMap.put("key", $b)}
+                        after1: $aMap.key
+                        #set($aMap.key = $b)
+                        after2: $aMap.key
+                        #set($aMap["key"] = $b)
+                        after3: $aMap.key
+                        """,
+                unsafeVariables(),
+                "BOOM");
+    }
+
+    @Test
+    public void testGetFieldBlocked() {
+        // This shouldn't work even in the full mode, but let's check anyway
+        assertUnsafeScriptNeutralized("$fieldOnly.foo", unsafeVariables());
+    }
+
+    @Test
+    public void testSetFieldBlocked() {
+        // This shouldn't work even in the full mode, but let's check anyway
+        assertUnsafeScriptBlocked(
+                "#set($fieldOnly.foo = 'BOOM')#if($fieldOnly.foo == 'BOOM')BOOM#{else}SAFE#{end}",
+                unsafeVariables(),
+                "BOOM");
+    }
+
+    @Test
+    public void testSetRecordFieldBlocked() {
+        // This shouldn't work even in the full mode, but let's check anyway
+        assertUnsafeScriptBlocked(
+                "#set($myRecord.foo = 'BOOM')$myRecord.foo",
+                unsafeVariables(),
+                "BOOM");
+    }
+
+    /** Checks that access via get("property") is still blocked, unless the method is annotated with {@link Safe}. */
+    @Test
+    public void testGetViaDynamicAccessBlocked() {
+        assertUnsafeScriptNeutralized("$dynamicAccess.foo", unsafeVariables());
+    }
+
+    /** Checks that access via set("property", value) is still blocked, unless the method is annotated with {@link Safe}. */
+    @Test
+    public void testSetViaDynamicAccessBlocked() {
+        // This shouldn't work even in the full mode, but let's check anyway
+        assertUnsafeScriptBlocked(
+                "#set($dynamicAccess.foo = 'BOOM')$dynamicAccess.safeGetFoo()",
+                unsafeVariables(),
+                "BOOM");
+    }
+
     // ========================================================================================
     // Helpers for the unsafe-expression tests above
     // ========================================================================================
@@ -266,7 +323,63 @@ public class TestSafeVelocityExpressions extends AbstractVelocityExpressionsTest
 
                 "ps", PolyString.fromOrig("secret"), PolyStringType.COMPLEX_TYPE,
 
-                "list", List.of("a", "b", "c"), List.class);
+                "list", List.of("a", "b", "c"), List.class,
+
+                "aMap", new HashMap<>(Map.of("key", "value")), Map.class,
+
+                "fieldOnly", new FieldOnly(), FieldOnly.class,
+
+                "myRecord", new MyRecord(), MyRecord.class,
+
+                "dynamicAccess", new DynamicAccess(), DynamicAccess.class
+        );
+    }
+
+    @SuppressWarnings("WeakerAccess")
+    @Safe // to allow it to go into the Velocity context
+    public static class FieldOnly {
+        /** Intentionally public field. */
+        public String foo = "bar";
+    }
+
+    @Safe // to allow it to go into the Velocity context
+    public record MyRecord(String foo) {
+
+        public MyRecord() {
+            this("bar");
+        }
+
+        @Override
+        @Safe // to be able to call it from Velocity
+        public String foo() {
+            return foo;
+        }
+    }
+
+    @SuppressWarnings({ "WeakerAccess", "unused" })
+    @Safe // to allow it to go into the Velocity context
+    public static final class DynamicAccess {
+
+        private String foo = "bar";
+
+        public String get(String name) {
+            if ("foo".equals(name)) {
+                return foo;
+            } else {
+                return null;
+            }
+        }
+
+        public void put(String name, String value) {
+            if ("foo".equals(name)) {
+                foo = value;
+            }
+        }
+
+        @Safe // to check if put is blocked even when get is blocked as well
+        public String safeGetFoo() {
+            return foo;
+        }
     }
 
     private ScriptExpressionEvaluatorType createUnsafeScriptBean(String code) {

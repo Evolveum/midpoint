@@ -10,9 +10,7 @@ import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.Map;
 
-import org.apache.velocity.util.introspection.Info;
-import org.apache.velocity.util.introspection.Introspector;
-import org.apache.velocity.util.introspection.UberspectImpl;
+import org.apache.velocity.util.introspection.*;
 import org.slf4j.Logger;
 
 /**
@@ -53,6 +51,17 @@ public class SafeUberspectorImpl extends UberspectImpl {
             getLog().error("Forbidden attempt to iterate over object of class {} in Velocity script", obj.getClass().getName());
             return null;
         }
+    }
+
+    @Override
+    public VelPropertySet getPropertySet(Object obj, String identifier, Object arg, Info i) {
+        if (AbstractVelocityScriptExecutor.isFullExecutionMode()) {
+            return super.getPropertySet(obj, identifier, arg, i);
+        }
+        // This blocks especially putting into maps, as they don't go through getMethod calls in the introspector.
+        getLog().error("Forbidden attempt to set property '{}' on object of class {} in Velocity script",
+                identifier, obj.getClass().getName());
+        return null;
     }
 
     private Logger getLog() {
