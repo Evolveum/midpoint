@@ -124,7 +124,6 @@ public abstract class AbstractScriptExecutor implements ScriptExecutor {
             @NotNull ScriptExecutionContext context)
             throws Exception;
 
-
     protected void checkProfileAndSafetyRestrictions(ScriptExecutionContext context) throws SecurityViolationException {
         if (configuration.safeExpressionsOnly() && !isConsideredSafe()) {
             throw new SecurityViolationException(

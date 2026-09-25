@@ -85,6 +85,9 @@
         <constructor-arg name="configuration">
             <bean factory-bean="midpointConfiguration" factory-method="getExpressionsSection"/>
         </constructor-arg>
+        <constructor-arg name="expressionsConfigurationView">
+            <bean factory-bean="systemObjectCache" factory-method="getExpressionsConfigurationView"/>
+        </constructor-arg>
     </bean>
 
     <bean id="safeVelocityScriptExecutor"
@@ -94,6 +97,9 @@
         <constructor-arg name="localizationService" ref="localizationService"/>
         <constructor-arg name="configuration">
             <bean factory-bean="midpointConfiguration" factory-method="getExpressionsSection"/>
+        </constructor-arg>
+        <constructor-arg name="expressionsConfigurationView">
+            <bean factory-bean="systemObjectCache" factory-method="getExpressionsConfigurationView"/>
         </constructor-arg>
     </bean>
 

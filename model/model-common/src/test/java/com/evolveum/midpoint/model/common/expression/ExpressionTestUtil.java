@@ -19,6 +19,7 @@ import com.evolveum.midpoint.prism.impl.PrismContextImpl;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.repo.common.DirectoryFileObjectResolver;
 
+import com.evolveum.midpoint.repo.common.SystemObjectCache;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.task.api.ExpressionProfileSupplier;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -182,5 +183,9 @@ public class ExpressionTestUtil {
     public static ExpressionsConfigurationSection testingExpressionsConfiguration(
             boolean restrictedMode, Collection<String> javaMethodEvaluatorPackageNames) {
         return new TestingExpressionConfiguration(restrictedMode, restrictedMode, List.copyOf(javaMethodEvaluatorPackageNames));
+    }
+
+    public static SystemObjectCache.ExpressionsConfigurationView testingExpressionsConfigurationView() {
+        return result -> false;
     }
 }

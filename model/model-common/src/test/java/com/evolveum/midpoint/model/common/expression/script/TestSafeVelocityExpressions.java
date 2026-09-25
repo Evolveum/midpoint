@@ -42,7 +42,11 @@ public class TestSafeVelocityExpressions extends AbstractVelocityExpressionsTest
     @Override
     protected ScriptExecutor createExecutor(PrismContext prismContext, Protector protector, Clock clock, boolean restrictedMode) {
         return new SafeVelocityScriptExecutor(
-                prismContext, protector, localizationService, ExpressionTestUtil.testingExpressionsConfiguration(restrictedMode));
+                prismContext,
+                protector,
+                localizationService,
+                ExpressionTestUtil.testingExpressionsConfiguration(restrictedMode),
+                ExpressionTestUtil.testingExpressionsConfigurationView());
     }
 
     @Override
@@ -368,6 +372,10 @@ public class TestSafeVelocityExpressions extends AbstractVelocityExpressionsTest
 
     private ScriptExecutor createFullVelocityExecutor() {
         return new VelocityScriptExecutor(
-                prismContext, protector, localizationService, ExpressionTestUtil.testingExpressionsConfiguration());
+                prismContext,
+                protector,
+                localizationService,
+                ExpressionTestUtil.testingExpressionsConfiguration(),
+                ExpressionTestUtil.testingExpressionsConfigurationView());
     }
 }

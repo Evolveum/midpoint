@@ -6,6 +6,8 @@
 
 package com.evolveum.midpoint.model.common.expression.script.velocity;
 
+import com.evolveum.midpoint.repo.common.SystemObjectCache.ExpressionsConfigurationView;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.common.LocalizationService;
@@ -25,8 +27,9 @@ public class VelocityScriptExecutor extends AbstractVelocityScriptExecutor {
             PrismContext prismContext,
             Protector protector,
             LocalizationService localizationService,
-            ExpressionsConfigurationSection configuration) {
-        super(prismContext, protector, localizationService, configuration);
+            ExpressionsConfigurationSection configuration,
+            @NotNull ExpressionsConfigurationView expressionsConfigurationView) {
+        super(prismContext, protector, localizationService, configuration, expressionsConfigurationView);
     }
 
     @Override

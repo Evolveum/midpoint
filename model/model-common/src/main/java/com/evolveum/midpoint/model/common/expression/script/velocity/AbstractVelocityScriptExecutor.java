@@ -10,8 +10,10 @@ import java.io.StringWriter;
 import java.util.Map;
 import java.util.Properties;
 
+import com.evolveum.midpoint.repo.common.SystemObjectCache.ExpressionsConfigurationView;
 import com.evolveum.midpoint.schema.expression.CustomVelocityExtension;
 
+import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -49,18 +51,24 @@ abstract class AbstractVelocityScriptExecutor extends AbstractScriptExecutor {
 
     private static boolean velocityInitialized;
 
+    @Experimental
     @Nullable private static CustomVelocityExtension customVelocityExtension;
+
+    @NotNull private final ExpressionsConfigurationView expressionsConfigurationView;
 
     AbstractVelocityScriptExecutor(
             PrismContext prismContext,
             Protector protector,
             LocalizationService localizationService,
-            ExpressionsConfigurationSection configuration) {
+            ExpressionsConfigurationSection configuration,
+            @NotNull ExpressionsConfigurationView expressionsConfigurationView) {
         super(prismContext, protector, localizationService, configuration);
+        this.expressionsConfigurationView = expressionsConfigurationView;
         synchronized (AbstractVelocityScriptExecutor.class) {
             if (!velocityInitialized) {
                 Velocity.init(createVelocityEngineProperties());
                 LOGGER.info("Velocity initialized (legacy mode: {})", configuration.legacyVelocityEngine());
+                // We instantiate even if experimental code is disabled, as we don't have OperationResult here to get the config
                 instantiateCustomVelocityExtension(configuration.customVelocityExtensionClassName());
                 velocityInitialized = true;
             }
@@ -154,7 +162,11 @@ abstract class AbstractVelocityScriptExecutor extends AbstractScriptExecutor {
             velocityCtx.put(scriptVariable.getKey(), scriptVariable.getValue());
         }
         if (customVelocityExtension != null) {
-            velocityCtx.put(customVelocityExtension.getVariableName(), customVelocityExtension);
+            if (expressionsConfigurationView.isExperimentalCodeEnabled(context.getResult())) {
+                velocityCtx.put(customVelocityExtension.getVariableName(), customVelocityExtension);
+            } else {
+                LOGGER.warn("Ignoring custom velocity extension, as experimental code is not enabled");
+            }
         }
         checkVelocityContextBeforeExecution(velocityCtx);
         return velocityCtx;

@@ -10,6 +10,7 @@ import java.util.Arrays;
 
 import com.evolveum.midpoint.model.common.expression.script.ScriptExecutionContext;
 
+import com.evolveum.midpoint.repo.common.SystemObjectCache.ExpressionsConfigurationView;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 
 import org.apache.velocity.VelocityContext;
@@ -35,8 +36,9 @@ public class SafeVelocityScriptExecutor extends AbstractVelocityScriptExecutor {
             PrismContext prismContext,
             Protector protector,
             LocalizationService localizationService,
-            ExpressionsConfigurationSection configuration) {
-        super(prismContext, protector, localizationService, configuration);
+            ExpressionsConfigurationSection configuration,
+            @NotNull ExpressionsConfigurationView expressionsConfigurationView) {
+        super(prismContext, protector, localizationService, configuration, expressionsConfigurationView);
     }
 
     @Override

@@ -26,7 +26,11 @@ public class TestVelocityExpressions extends AbstractVelocityExpressionsTest {
     @Override
     protected ScriptExecutor createExecutor(PrismContext prismContext, Protector protector, Clock clock, boolean restrictedMode) {
         return new VelocityScriptExecutor(
-                prismContext, protector, localizationService, ExpressionTestUtil.testingExpressionsConfiguration(restrictedMode));
+                prismContext,
+                protector,
+                localizationService,
+                ExpressionTestUtil.testingExpressionsConfiguration(restrictedMode),
+                ExpressionTestUtil.testingExpressionsConfigurationView());
     }
 
     /**

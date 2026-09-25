@@ -23,18 +23,13 @@ public class TestingVelocityExtension implements CustomVelocityExtension {
 
     @Override
     public String getVariableName() {
-        return "custom";
-    }
-
-    @Safe
-    public @Nullable Object getObject(CustomEvent event) {
-        return event.getObject();
+        return "testingVelocityExtension";
     }
 
     @Safe
     public @Nullable Object getValueAt(CustomEvent event, int index) {
         //noinspection unchecked
-        return Objects.requireNonNull((List<PipelineItem>) getObject(event))
+        return Objects.requireNonNull((List<PipelineItem>) event.getObject())
                 .get(index)
                 .getValue()
                 .getRealValue();
