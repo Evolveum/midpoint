@@ -132,7 +132,13 @@ public class SqaleRepositoryBeanConfig {
 
         // Registered mapping needs repository context which needs registry. Now we can fill it.
         // Mappings are ordered alphabetically here, mappings without schema type are at the end.
+        registerMappings(mappingRegistry, repositoryContext);
 
+        return repositoryContext;
+    }
+
+    public static void registerMappings(
+            QueryModelMappingRegistry mappingRegistry, SqaleRepoContext repositoryContext) {
         mappingRegistry
                 .register(AbstractRoleType.COMPLEX_TYPE,
                         QAbstractRoleMapping.initAbstractRoleMapping(repositoryContext))
@@ -217,8 +223,6 @@ public class SqaleRepositoryBeanConfig {
                 .register(ConnectorDevelopmentType.COMPLEX_TYPE, QConnectorDevelopmentMapping.init(repositoryContext))
                 .register(AllowedConnectorsListType.COMPLEX_TYPE, QAllowedConnectorsListMapping.init(repositoryContext))
                 .seal();
-
-        return repositoryContext;
     }
 
     @Bean

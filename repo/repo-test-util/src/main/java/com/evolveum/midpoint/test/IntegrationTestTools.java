@@ -406,9 +406,30 @@ public class IntegrationTestTools {
         // we have timeout
         println("Timeout while " + message);
         LOGGER.error(LOG_MESSAGE_PREFIX + "Timeout while " + message);
+        dumpThreads("Timeout while " + message);
         // Invoke callback
         checker.timeout();
         throw new RuntimeException("Timeout while " + message);
+    }
+
+    /**
+     * Prints a JVM-wide thread dump. Used on wait timeouts to diagnose stalled operations
+     * (e.g. a task worker blocked on a lock or a database).
+     */
+    private static void dumpThreads(String reason) {
+        StringBuilder sb = new StringBuilder();
+        for (Map.Entry<Thread, StackTraceElement[]> entry : Thread.getAllStackTraces().entrySet()) {
+            Thread thread = entry.getKey();
+            sb.append('"').append(thread.getName()).append('"')
+                    .append(" #").append(thread.getId())
+                    .append(" state=").append(thread.getState())
+                    .append(" daemon=").append(thread.isDaemon()).append('\n');
+            for (StackTraceElement element : entry.getValue()) {
+                sb.append("\tat ").append(element).append('\n');
+            }
+        }
+        String dump = sb.toString();
+        println("---- Thread dump (" + reason + ") ----\n" + dump + "---- end of thread dump ----");
     }
 
     public static void displayJaxb(String title, Object o, QName defaultElementName) throws SchemaException {

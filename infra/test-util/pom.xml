@@ -106,5 +106,15 @@
             <groupId>org.apache.artemis</groupId>
             <artifactId>artemis-commons</artifactId>
         </dependency>
+        <!--
+        Embedded PostgreSQL (embedded-postgres profile, active by default) -
+        see EmbeddedPostgresBootstrapper. "provided" because the test modules
+        using the bootstrap declare this dependency with "test" scope themselves.
+        -->
+        <dependency>
+            <groupId>io.zonky.test</groupId>
+            <artifactId>embedded-postgres</artifactId>
+            <scope>provided</scope>
+        </dependency>
     </dependencies>
 </project>

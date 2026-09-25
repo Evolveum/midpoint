@@ -17,9 +17,21 @@
 
     <bean id="repoSimpleObjectResolver" class="com.evolveum.midpoint.test.RepoSimpleObjectResolver"/>
 
+    <!--
+    Bootstraps the embedded PostgreSQL (embedded-postgres profile, active by default).
+    It overrides the "midpoint.repository.jdbc*" system properties, which are read by
+    StartupConfiguration when it initializes. "depends-on" guarantees the bootstrap completes
+    before "midpointConfiguration" is created (it can be instantiated early, e.g. when
+    @ConditionalOnExpression SpEL references it during context parsing).
+    No-op when the embedded bootstrap is not enabled (e.g. "-Psqale" - external database).
+    -->
+    <bean id="embeddedPostgresBootstrapper" class="com.evolveum.midpoint.test.EmbeddedPostgresBootstrapper"
+            init-method="start"/>
+
     <bean id="midpointConfiguration"
             class="com.evolveum.midpoint.init.StartupConfiguration"
-            init-method="init">
+            init-method="init"
+            depends-on="embeddedPostgresBootstrapper">
         <constructor-arg value="./target/midpoint-home"/>
         <constructor-arg value="#{systemProperties['test.config.file'] ?: 'test-config.xml'}"/>
     </bean>

@@ -76,22 +76,26 @@
     mvn clean install -DredirectTestOutputToFile=false -pl model/model-intest
 
     DB SPECIFIC/TESTING:
+    - By default (profile "embedded-postgres", active by default) the tests run against an
+    EMBEDDED PostgreSQL (zonkyio/embedded-postgres) bootstrapped in the test JVM.
+    No external database is needed:
+    mvn clean install
+    - Use profile "sqale" to run tests against an EXTERNAL (separately installed/managed)
+    PostgreSQL instead; it deactivates the "embedded-postgres" profile.
+    Combine it with "dbtest" profile if additional tests (often taking longer) are desirable.
+    Also see the warning about overriding failsafe/surefire.args above.
     - Use profile "dbtest" to run additional tests.
     These tests are integration tests named in additional suite XML called "testng-db-specific.xml".
     Tests from main "testng-integration.xml" are run too.
-    - Use profile "sqale" to switch from old Generic repo tests (disables test execution for repo-sql-impl-test)
-    to the new Native repository tests (enables tests in repo-sqale module).
-    Combine it with "dbtest" profile if additional tests (often taking longer) are desirable.
-    Also see the warning about overriding failsafe/surefire.args above.
-    - Note, that both "sqale" and "extratest" profiles specify failsafe/surefire.args, so it's better to use
-    just "extratest" (memory settings, etc.) and specifying the Native test config like so:
-    mvn clean install -P extratest,-dist -Dtest.config.file=test-config-new-repo.xml
-    - To run tests against new Native repository in the IDE, just use this VM option
-    in the run configuration: -Dtest.config.file=test-config-new-repo.xml
-    - Tests using old repository support option -Dconfig=db-specific.properties to override default
-    repository test setup (config.xml).
-    This is not supported by new repository, but standard config.xml override mechanism can be used,
-    e.g. -Dmidpoint.repository.jdbcUrl=... and other properties.
+    - Note, that "sqale", "embedded-postgres" and "extratest" profiles all specify
+    failsafe/surefire.args, so don't combine them in unexpected ways.
+    An explicitly passed connection always wins (embedded bootstrap is skipped):
+    -Dmidpoint.repository.jdbcUrl=jdbc:postgresql://localhost:5432/midpoint
+    (standard config.xml override mechanism, see "midpoint.*" properties in StartupConfiguration).
+    - To run tests in the IDE, use these VM options in the run configuration:
+    -Dtest.config.file=test-config-new-repo.xml -Dmidpoint.embedded.postgres=true
+    -Dmaven.multiModuleProjectDirectory=<repository root>
+    (or pass -Dmidpoint.repository.jdbcUrl=... to use an external database).
 
     CODE SIGNING:
     - There is a profile `jar-signing` that causes `midpoint.jar` to be signed, as described in `midpoint-jar/pom.xml`.
@@ -286,6 +290,12 @@
         <java-otp.version>1.7.1</java-otp.version>
         <byte-buddy.version>1.17.8</byte-buddy.version>
         <antlr.version>4.13.2</antlr.version>
+        <!--
+        Embedded PostgreSQL used in tests by the "embedded-postgres" profile (active by default).
+        See the profile below for details.
+        -->
+        <embedded-postgres.version>2.2.2</embedded-postgres.version>
+        <embedded-postgres-binaries.version>16.14.0</embedded-postgres-binaries.version>
     </properties>
 
     <dependencyManagement>
@@ -1706,6 +1716,24 @@
                 </exclusions>
             </dependency>
 
+            <!--
+            Embedded PostgreSQL (https://github.com/zonkyio/embedded-postgres) used by tests.
+            Used when the "embedded-postgres" Maven profile is active (by default, see profile below).
+            The binaries BOM pins the version of the embedded PostgreSQL binaries.
+            -->
+            <dependency>
+                <groupId>io.zonky.test</groupId>
+                <artifactId>embedded-postgres</artifactId>
+                <version>${embedded-postgres.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.zonky.test.postgres</groupId>
+                <artifactId>embedded-postgres-binaries-bom</artifactId>
+                <version>${embedded-postgres-binaries.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+
             <dependency>
                 <groupId>org.keycloak</groupId>
                 <artifactId>keycloak-authz-client</artifactId>
@@ -2109,6 +2137,9 @@
                             <javax.net.ssl.trustStore>src/test/resources/truststore.jks</javax.net.ssl.trustStore>
                             <midpoint.home>target/midpoint-home</midpoint.home>
                             <java.util.logging.config.file>${project.build.directory}/test-classes/logging.properties</java.util.logging.config.file>
+                            <!-- Needed by tests bootstrapping the embedded PostgreSQL (embedded-postgres profile)
+                            to find the SQL scripts in the repository root (config/sql/native). -->
+                            <maven.multiModuleProjectDirectory>${maven.multiModuleProjectDirectory}</maven.multiModuleProjectDirectory>
                         </systemPropertyVariables>
                         <argLine>@{jacoco.argLine} ${surefire.args}</argLine>
                         <suiteXmlFiles>
@@ -2159,6 +2190,9 @@
                             <javax.net.ssl.trustStore>src/test/resources/truststore.jks</javax.net.ssl.trustStore>
                             <midpoint.home>target/midpoint-home</midpoint.home>
                             <java.util.logging.config.file>${project.build.directory}/test-classes/logging.properties</java.util.logging.config.file>
+                            <!-- Needed by tests bootstrapping the embedded PostgreSQL (embedded-postgres profile)
+                            to find the SQL scripts in the repository root (config/sql/native). -->
+                            <maven.multiModuleProjectDirectory>${maven.multiModuleProjectDirectory}</maven.multiModuleProjectDirectory>
                         </systemPropertyVariables>
                         <argLine>@{jacoco.argLine} ${failsafe.args}</argLine>
                         <suiteXmlFiles>
@@ -2300,9 +2334,11 @@
             <id>extratest</id>
             <properties>
                 <skipTests>true</skipTests>
-                <!-- Long/Story tests require more memory: -->
-                <surefire.args>-Xmx8g -Duser.language=en -Duser.country=US --add-exports java.management/sun.management=ALL-UNNAMED</surefire.args>
-                <failsafe.args>-Xmx8g -Duser.language=en -Duser.country=US --add-exports java.management/sun.management=ALL-UNNAMED</failsafe.args>
+                <!-- Long/Story tests require more memory.
+                Repeats the "embedded-postgres" profile settings, since explicitly activating
+                this profile deactivates all "active by default" profiles. -->
+                <surefire.args>-Xmx8g -Duser.language=en -Duser.country=US --add-exports java.management/sun.management=ALL-UNNAMED -Dtest.config.file=test-config-new-repo.xml -Dmidpoint.embedded.postgres=true</surefire.args>
+                <failsafe.args>-Xmx8g -Duser.language=en -Duser.country=US --add-exports java.management/sun.management=ALL-UNNAMED -Dtest.config.file=test-config-new-repo.xml -Dmidpoint.embedded.postgres=true</failsafe.args>
             </properties>
         </profile>
 
@@ -2329,6 +2365,35 @@
                 <!-- Switches test config.xml to the one declaring "sqale" repository. -->
                 <surefire.args>-Xmx6g -Duser.language=en -Duser.country=US --add-exports java.management/sun.management=ALL-UNNAMED -Dtest.config.file=test-config-new-repo.xml</surefire.args>
                 <failsafe.args>-Xmx6g -Duser.language=en -Duser.country=US --add-exports java.management/sun.management=ALL-UNNAMED -Dtest.config.file=test-config-new-repo.xml</failsafe.args>
+            </properties>
+        </profile>
+
+        <!--
+        Active by default: tests use an EMBEDDED PostgreSQL (zonkyio/embedded-postgres)
+        instead of an externally installed/managed one.
+        The -Dmidpoint.embedded.postgres=true flag makes the test contexts
+        (ctx-configuration-test.xml / repo-sqale's ctx-test.xml) bootstrap the embedded server
+        via EmbeddedPostgresBootstrapper and point the repository config at it.
+        Using an external database instead:
+        - activate the "sqale" profile (it deactivates this one):
+        mvn clean install -P sqale
+        - or pass an explicit connection (always wins, embedded is skipped):
+        -Dmidpoint.repository.jdbcUrl=jdbc:postgresql://localhost:5432/midpoint
+        Note: like any "active by default" profile, this one is inactive whenever
+        ANY profile is explicitly activated on the command line - that's why the
+        "extratest" profile below repeats the embedded-postgres settings.
+        If needed, re-enable it explicitly: -P embedded-postgres.
+        -->
+        <profile>
+            <id>embedded-postgres</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <properties>
+                <!-- Switches test config.xml to the one declaring "sqale" repository -->
+                <!-- and enables the embedded PostgreSQL bootstrap in test contexts. -->
+                <surefire.args>-Xmx6g -Duser.language=en -Duser.country=US --add-exports java.management/sun.management=ALL-UNNAMED -Dtest.config.file=test-config-new-repo.xml -Dmidpoint.embedded.postgres=true</surefire.args>
+                <failsafe.args>-Xmx6g -Duser.language=en -Duser.country=US --add-exports java.management/sun.management=ALL-UNNAMED -Dtest.config.file=test-config-new-repo.xml -Dmidpoint.embedded.postgres=true</failsafe.args>
             </properties>
         </profile>
         <profile>

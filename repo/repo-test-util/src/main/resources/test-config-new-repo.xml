@@ -14,10 +14,13 @@
             <type>native</type>
 
             <!--
-            Use this Vagrantbox to run this:
+            By default (embedded-postgres profile, active by default) these values are overridden
+            at test runtime: an embedded PostgreSQL (zonkyio) is started and the "midpoint.repository.jdbc*"
+            system properties are pointed at it (see EmbeddedPostgresBootstrapper).
+            Use the "sqale" Maven profile (or pass -Dmidpoint.repository.jdbcUrl=...) to run tests
+            against an externally managed PostgreSQL instead, e.g. this Vagrantbox:
             https://github.com/virgo47/midpoint-vagrantboxes/tree/master/vagrant-midpoint-db-pg-repo
-            Then connect to it with the info below and execute postgres.sql and postgres-audit.sql
-            files to initialize the DB.
+            (execute the config/sql/native/*.sql files to initialize the DB).
             -->
             <database>postgresql</database>
             <jdbcUrl>jdbc:postgresql://127.0.0.1:5432/midtest</jdbcUrl>

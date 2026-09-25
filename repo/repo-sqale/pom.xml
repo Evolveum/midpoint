@@ -146,11 +146,31 @@
             <artifactId>spring-aspects</artifactId>
             <scope>test</scope>
         </dependency>
+        <!-- Embedded PostgreSQL (embedded-postgres profile, active by default). -->
+        <dependency>
+            <groupId>io.zonky.test</groupId>
+            <artifactId>embedded-postgres</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <profiles>
         <profile>
             <id>sqale</id>
+            <properties>
+                <skipTests>false</skipTests>
+            </properties>
+        </profile>
+        <!--
+        Active by default (see the "embedded-postgres" profile in the main POM):
+        runs this module's tests in the default build, connecting to the embedded
+        PostgreSQL bootstrapped by EmbeddedPostgresBootstrapper (ctx-test.xml).
+        -->
+        <profile>
+            <id>embedded-postgres</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
             <properties>
                 <skipTests>false</skipTests>
             </properties>

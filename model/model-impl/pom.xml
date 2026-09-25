@@ -387,6 +387,11 @@
             <version>3.6.1</version>
             <scope>compile</scope>
         </dependency>
+        <dependency>
+            <groupId>io.zonky.test</groupId>
+            <artifactId>embedded-postgres</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>

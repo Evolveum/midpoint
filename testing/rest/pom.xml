@@ -360,6 +360,11 @@
             <version>1.15.1</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>io.zonky.test</groupId>
+            <artifactId>embedded-postgres</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>
