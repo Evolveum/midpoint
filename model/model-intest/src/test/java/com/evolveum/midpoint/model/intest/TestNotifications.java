@@ -1020,7 +1020,7 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
      * Checking notifications (from the training) related to "user add" operation.
      * In the system configuration we have collected fragments of velocity templates used in the training.
      *
-     * This test checks that each one is succesfully evaluated: no variable is left unexpanded
+     * This test checks that each one is successfully evaluated: no variable is left unexpanded
      * and no variable is expanded to empty string.
      */
     @Test
