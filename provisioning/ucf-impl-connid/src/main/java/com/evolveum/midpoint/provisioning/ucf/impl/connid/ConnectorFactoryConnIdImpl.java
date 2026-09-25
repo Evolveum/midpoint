@@ -705,28 +705,36 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
         return bundleUris;
     }
 
-    private void scanDirectoryNow(Set<URI> bundleUris, File dir) {
-        File[] dirEntries = dir.listFiles();
-        if (dirEntries == null) {
-            LOGGER.debug("No bundles found in directory {}", dir.getAbsolutePath());
-            return;
-        }
+     void scanDirectoryNow(Set<URI> bundleUris, File dir) {
 
-        for (File dirEntry : dirEntries) {
-            if (isThisJarFileBundle(dirEntry)) {
-                addBundleIfEligible(bundleUris, dirEntry);
-            }
-            if (dirEntry.isDirectory() && new File(dirEntry, "META-INF/MANIFEST.MF").exists()) {
-                try {
-                    var uri = dirEntry.toURI();
-                    if (isThisBundleCompatible(uri.toURL())) {
-                        bundleUris.add(uri);
-                    }
-                } catch (MalformedURLException e) {
-                    throw new SystemException(e);
-                }
-            }
-        }
+         if (dir == null || !dir.exists() || !dir.isDirectory()) {
+             return;
+         }
+
+         File[] dirEntries = dir.listFiles();
+         if (dirEntries == null) {
+             return;
+         }
+
+         for (File dirEntry : dirEntries) {
+             if (dirEntry.isDirectory()) {
+                 File manifestFile = new File(dirEntry, "META-INF/MANIFEST.MF");
+                 if (manifestFile.exists() && manifestFile.isFile()) {
+                     try {
+                         URL url = dirEntry.toURI().toURL();
+                         if (isThisBundleCompatible(url)) {
+                             bundleUris.add(dirEntry.toURI());
+                         }
+                     } catch (MalformedURLException e) {
+                         throw new SystemException("Malformed URL for bundle directory: " + dirEntry, e);
+                     }
+                 } else {
+                     scanDirectoryNow(bundleUris, dirEntry);
+                 }
+             } else if (isThisJarFileBundle(dirEntry)) {
+                 bundleUris.add(dirEntry.toURI());
+             }
+         }
     }
 
     private void addBundleIfEligible(Set<URI> bundle, File dirEntry) {
