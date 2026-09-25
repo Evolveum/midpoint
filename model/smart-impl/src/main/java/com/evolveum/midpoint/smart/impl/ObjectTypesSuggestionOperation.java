@@ -319,7 +319,7 @@ class ObjectTypesSuggestionOperation {
             @Nullable List<SiValidationErrorFeedbackEntryType> validationFeedback, OperationResult parentResult) throws SchemaException {
         var siRequest = new SiSuggestObjectTypesRequestType()
                 .schema(ResourceObjectClassSchemaSerializer.serialize(ctx.objectClassDefinition, ctx.resource))
-                .statistics(shadowObjectClassStatistics);
+                .statistics(ServiceStatisticsSanitizer.sanitize(shadowObjectClassStatistics));
         if (validationFeedback != null && !validationFeedback.isEmpty()) {
             siRequest.getValidationErrorFeedback().addAll(validationFeedback);
         }
