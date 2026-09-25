@@ -10,10 +10,12 @@ import java.io.Serial;
 import java.util.List;
 
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
+import com.evolveum.midpoint.gui.api.prism.wrapper.ItemMandatoryHandler;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.impl.component.input.range.MappingRangeUtils;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.focus.FocusDetailsModels;
 import com.evolveum.midpoint.gui.impl.prism.panel.SingleContainerPanel;
@@ -47,13 +49,8 @@ public class AutoassignPanel<AR extends AbstractRoleType> extends AbstractObject
 
     private static final String ID_AUTOASSIGN = "autoassign";
 
-    private static final ItemPath FOCUS_PATH = ItemPath.create(
-            AbstractRoleType.F_AUTOASSIGN, AutoassignSpecificationType.F_FOCUS);
-
-    private static final ItemPath MAPPING_PATH = FOCUS_PATH.append(FocalAutoassignSpecificationType.F_MAPPING);
-    private static final ItemPath SELECTOR_PATH = FOCUS_PATH.append(FocalAutoassignSpecificationType.F_SELECTOR);
-    private static final ItemPath TARGET_PATH = MAPPING_PATH.append(MappingType.F_TARGET);
-    private static final ItemPath TARGET_SET_PATH = TARGET_PATH.append(VariableBindingDefinitionType.F_SET);
+    private static final ItemPath SELECTOR_PATH =
+            MappingRangeUtils.AUTOASSIGN_FOCUS_PATH.append(FocalAutoassignSpecificationType.F_SELECTOR);
 
     private static final List<ItemName> VISIBLE_MAPPING_ITEMS = List.of(
             MappingType.F_NAME,
@@ -71,12 +68,6 @@ public class AutoassignPanel<AR extends AbstractRoleType> extends AbstractObject
             ObjectSelectorType.F_FILTER,
             ObjectSelectorType.F_ARCHETYPE_REF,
             ObjectSelectorType.F_ORG_REF);
-
-    private static final List<ItemName> VISIBLE_TARGET_ITEMS = List.of(
-            VariableBindingDefinitionType.F_SET);
-
-    private static final List<ItemName> VISIBLE_TARGET_SET_ITEMS = List.of(
-            ValueSetDefinitionType.F_PREDEFINED);
 
     public AutoassignPanel(String id, FocusDetailsModels<AR> model, ContainerPanelConfigurationType config) {
         super(id, model, config);
@@ -131,8 +122,19 @@ public class AutoassignPanel<AR extends AbstractRoleType> extends AbstractObject
                     protected ItemVisibility getVisibility(ItemWrapper itemWrapper) {
                         return AutoassignPanel.this.getVisibility(itemWrapper);
                     }
+
+                    @Override
+                    protected ItemMandatoryHandler getMandatoryHandler() {
+                        return AutoassignPanel.this::isMandatory;
+                    }
                 };
         add(panel);
+    }
+
+    private boolean isMandatory(ItemWrapper<?, ?> itemWrapper) {
+        ItemPath path = itemWrapper.getPath().namedSegmentsOnly();
+        return isDirectChildOf(path, MappingRangeUtils.AUTOASSIGN_MAPPING_PATH)
+                && QNameUtil.match(MappingType.F_NAME, itemWrapper.getItemName());
     }
 
     private ItemVisibility getVisibility(ItemWrapper<?, ?> itemWrapper) {
@@ -142,17 +144,11 @@ public class AutoassignPanel<AR extends AbstractRoleType> extends AbstractObject
 
         ItemPath path = itemWrapper.getPath().namedSegmentsOnly();
 
-        if (isDirectChildOf(path, MAPPING_PATH)) {
+        if (isDirectChildOf(path, MappingRangeUtils.AUTOASSIGN_MAPPING_PATH)) {
             return visibility(VISIBLE_MAPPING_ITEMS, itemWrapper);
         }
         if (isDirectChildOf(path, SELECTOR_PATH)) {
             return visibility(VISIBLE_SELECTOR_ITEMS, itemWrapper);
-        }
-        if (isDirectChildOf(path, TARGET_PATH)) {
-            return visibility(VISIBLE_TARGET_ITEMS, itemWrapper);
-        }
-        if (isDirectChildOf(path, TARGET_SET_PATH)) {
-            return visibility(VISIBLE_TARGET_SET_ITEMS, itemWrapper);
         }
         return ItemVisibility.AUTO;
     }

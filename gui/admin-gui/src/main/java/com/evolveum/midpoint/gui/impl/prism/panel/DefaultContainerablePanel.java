@@ -150,7 +150,7 @@ public class DefaultContainerablePanel<C extends Containerable, CVW extends Pris
                 typeName = new QName("ResourceAttributeDefinition");
             }
 
-            ItemPanelSettings settings = getSettings() != null ? getSettings().copy() : null;
+            ItemPanelSettings settings = createItemSettings(itemWrapper);
             Panel panel = getParentPage().initItemPanel(ID_PROPERTY, typeName, item.getModel(), settings);
             panel.setOutputMarkupId(true);
             item.add(new VisibleBehaviour(() -> itemWrapper.isVisible(getModelObject(), getVisibilityHandler())));
@@ -159,6 +159,16 @@ public class DefaultContainerablePanel<C extends Containerable, CVW extends Pris
         } catch (SchemaException e1) {
             throw new SystemException("Cannot instantiate " + itemWrapper.getTypeName());
         }
+    }
+
+    /**
+     * Consulted by the default {@link #populateNonContainer(ListItem)} rendering path only. Not used by
+     * {@link #populateContainer(ListItem)}, which builds its own settings inline, and not honored by
+     * subclasses that override {@code populateNonContainer} directly (e.g.
+     * {@code VerticalFormDefaultContainerablePanel}).
+     */
+    protected ItemPanelSettings createItemSettings(ItemWrapper<?, ?> itemWrapper) {
+        return getSettings() != null ? getSettings().copy() : null;
     }
 
     protected boolean isShowMoreButtonVisible(IModel<List<ItemWrapper<?, ?>>> nonContainerWrappers) {
