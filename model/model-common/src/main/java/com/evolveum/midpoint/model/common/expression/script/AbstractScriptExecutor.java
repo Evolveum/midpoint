@@ -189,15 +189,16 @@ public abstract class AbstractScriptExecutor implements ScriptExecutor {
     /**
      * Process functional libraries (name -> implementation) into a map, including a value conversion by lambda.
      */
-    protected <T> void prepareFunctionLibraryMap(
-            ScriptExecutionContext context, Map<String,T> map, Function<TypedValue<?>,T> converter) {
+    private <T> void prepareFunctionLibraryMap(
+            ScriptExecutionContext context, Map<String, T> map, Function<TypedValue<?>, T> converter) {
 
         // Functions
         for (FunctionLibraryBinding funcLib : emptyIfNull(context.getFunctionLibraryBindings())) {
             Object implementation = funcLib.getImplementation();
             TypedValue<?> typedValue = new TypedValue<>(implementation, implementation.getClass());
-            if (shouldProvideVariable(typedValue)) {
-                map.put(funcLib.getVariableName(), converter.apply(typedValue));
+            T convertedValue = converter.apply(typedValue);
+            if (shouldProvideVariable(convertedValue, typedValue)) {
+                map.put(funcLib.getVariableName(), convertedValue);
             }
         }
     }
@@ -233,11 +234,13 @@ public abstract class AbstractScriptExecutor implements ScriptExecutor {
                         valueVariableMode,
                         prismContext, context.getTask(), context.getResult());
 
-                if (!shouldProvideVariable(variableTypedValue)) {
+                T convertedValue = converter.apply(variableTypedValue);
+
+                if (!shouldProvideVariable(convertedValue, variableTypedValue)) {
                     continue;
                 }
 
-                map.put(variableName, converter.apply(variableTypedValue));
+                map.put(variableName, convertedValue);
                 if (context.getTrace() != null && !variables.isAlias(variableName)) {
                     ScriptVariableEvaluationTraceType variableTrace = new ScriptVariableEvaluationTraceType();
                     variableTrace.setName(new QName(variableName));
@@ -256,7 +259,7 @@ public abstract class AbstractScriptExecutor implements ScriptExecutor {
     }
 
     /** E.g. restricted executor may want to avoid selected (unsafe) variables. */
-    protected boolean shouldProvideVariable(TypedValue<?> typedValue) {
+    protected boolean shouldProvideVariable(@Nullable Object actualValue, @NotNull TypedValue<?> typedValue) {
         return true;
     }
 

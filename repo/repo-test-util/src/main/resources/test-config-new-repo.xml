@@ -87,6 +87,8 @@
         <expressions>
             <!-- used only in model-test and above -->
             <customVelocityExtensionClassName>com.evolveum.midpoint.model.test.TestingVelocityExtension</customVelocityExtensionClassName>
+            <!-- the same class as above is used as JavaMethodReference target -->
+            <javaMethodEvaluatorPackageName>com.evolveum.midpoint.model.test</javaMethodEvaluatorPackageName>
         </expressions>
     </midpoint>
 </configuration>

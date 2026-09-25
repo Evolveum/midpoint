@@ -183,7 +183,7 @@
                 <bodyExpression>
                     <script>
                         <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#safe-velocity</language>
-                        <code>$testingVelocityExtension.getValueAt($event, 0)</code>
+                        <code>$testingVelocityExtension.getValueAt($event, 0) / $testingFunctionLibrary.executeSimple("getValueAt", $event, 0) / $testingFunctionLibrary.execute("getValueAt", { "event" : $event, "index" : 0 })</code>
                     </script>
                 </bodyExpression>
                 <transport>dummy:CustomType2</transport>

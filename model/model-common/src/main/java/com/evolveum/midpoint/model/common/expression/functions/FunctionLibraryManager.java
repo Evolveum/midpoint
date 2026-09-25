@@ -226,21 +226,18 @@ public class FunctionLibraryManager implements CacheInvalidationListener, CacheD
 
     public void checkCallAllowed(
             @NotNull FunctionInLibrary function,
-            // TODO change to not-null when profiles are ubiquitous
-            @Nullable ExpressionProfile expressionProfile) throws ConfigurationException, SecurityViolationException {
-        if (expressionProfile != null) {
-            var decision = expressionProfile.getLibrariesProfile().decideFunctionAccess(
-                    function.library.getOid(),
-                    function.function.getName());
-            if (decision != AccessDecision.ALLOW) {
-                throw new SecurityViolationException(
-                        "Access to function library method %s %s (applied expression profile '%s', libraries profile '%s')"
-                                .formatted(
-                                        function,
-                                        decision == AccessDecision.DENY ? "denied" : "not allowed",
-                                        expressionProfile.getIdentifier(),
-                                        expressionProfile.getLibrariesProfile().getIdentifier()));
-            }
+            @NotNull ExpressionProfile expressionProfile) throws ConfigurationException, SecurityViolationException {
+        var decision = expressionProfile.getLibrariesProfile().decideFunctionAccess(
+                function.library.getOid(),
+                function.function.getName());
+        if (decision != AccessDecision.ALLOW) {
+            throw new SecurityViolationException(
+                    "Access to function library method %s %s (applied expression profile '%s', libraries profile '%s')"
+                            .formatted(
+                                    function,
+                                    decision == AccessDecision.DENY ? "denied" : "not allowed",
+                                    expressionProfile.getIdentifier(),
+                                    expressionProfile.getLibrariesProfile().getIdentifier()));
         }
     }
 

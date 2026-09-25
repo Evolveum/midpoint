@@ -25,6 +25,8 @@ import com.evolveum.midpoint.schema.expression.TypedValue;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 
+import org.jetbrains.annotations.Nullable;
+
 import static com.evolveum.midpoint.model.common.expression.script.velocity.SafeIntrospectorImpl.*;
 
 /**
@@ -62,15 +64,15 @@ public class SafeVelocityScriptExecutor extends AbstractVelocityScriptExecutor {
     }
 
     @Override
-    protected boolean shouldProvideVariable(TypedValue<?> typedValue) {
+    protected boolean shouldProvideVariable(@Nullable Object actualValue, @NotNull TypedValue<?> typedValueWrapper) {
         Class<?> clazz;
-        if (typedValue.getValue() != null) {
-            clazz = typedValue.getValue().getClass();
-        } else if (typedValue.canDetermineType()) {
+        if (actualValue != null) {
+            clazz = actualValue.getClass();
+        } else if (typedValueWrapper.canDetermineType()) {
             // This is just to be nice - not including variables of incompatible types.
             // No harm would be done, as they don't have a value anyway.
             try {
-                clazz = typedValue.determineClass();
+                clazz = typedValueWrapper.determineClass();
             } catch (SchemaException e) {
                 throw SystemException.unexpected(e);
             }

@@ -9,6 +9,8 @@ package com.evolveum.midpoint.model.test;
 import java.util.List;
 import java.util.Objects;
 
+import com.evolveum.midpoint.util.annotation.Experimental;
+
 import org.jetbrains.annotations.Nullable;
 import org.jspecify.annotations.NullMarked;
 
@@ -26,8 +28,19 @@ public class TestingVelocityExtension implements CustomVelocityExtension {
         return "testingVelocityExtension";
     }
 
+    /** Called right from Velocity template. Experimental, not recommended. Just for testing. */
+    @Experimental
     @Safe
     public @Nullable Object getValueAt(CustomEvent event, int index) {
+        return getValueAtInternal(event, index);
+    }
+
+    /** Called from Velocity template but via function library {@code testingFunctionLibrary}. This is the recommended way. */
+    public @Nullable static Object getValueAtStatic(CustomEvent event, int index) {
+        return getValueAtInternal(event, index);
+    }
+
+    private static @Nullable Object getValueAtInternal(CustomEvent event, int index) {
         //noinspection unchecked
         return Objects.requireNonNull((List<PipelineItem>) event.getObject())
                 .get(index)
