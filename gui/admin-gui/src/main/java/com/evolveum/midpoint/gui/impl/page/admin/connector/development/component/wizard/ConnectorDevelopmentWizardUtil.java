@@ -236,6 +236,14 @@ public class ConnectorDevelopmentWizardUtil {
     public static void reportScriptValidationErrors(
             AbstractWizardStepPanel<ConnectorDevelopmentDetailsModel> step, String stepId,
             ConnDevArtifactValidationResult validation, String fileName, AjaxRequestTarget target) {
+        reportScriptValidationErrors(step, stepId, validation, fileName);
+        refreshDrawerPanel(step, target);
+    }
+
+    /** As above, without the live drawer refresh - for callers with no {@link AjaxRequestTarget} to hand it. */
+    public static void reportScriptValidationErrors(
+            AbstractWizardStepPanel<ConnectorDevelopmentDetailsModel> step, String stepId,
+            ConnDevArtifactValidationResult validation, String fileName) {
         if (!(step.getWizard() instanceof WizardModelWithParentSteps wizardModel)) {
             return;
         }
@@ -254,7 +262,6 @@ public class ConnectorDevelopmentWizardUtil {
                         "OperationResultCollapsedItemPanel.disableButton", "fa fa-ban");
             }
         }
-        refreshDrawerPanel(step, target);
     }
 
     /**
