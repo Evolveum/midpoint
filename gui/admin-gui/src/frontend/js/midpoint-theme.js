@@ -936,7 +936,12 @@ export default class MidPointTheme {
                 if (!event.date) {
                     return;
                 }
-                const formatted = messageCurrent.replace('{0}', event.date.format());
+                // in the clock (time) view the date was already confirmed in the previous step,
+                // so announcing it again on every hour/minute change is redundant and long-winded
+                const value = event.viewMode === 'clock'
+                    ? event.date.format({ hour: '2-digit', minute: '2-digit' })
+                    : event.date.format();
+                const formatted = messageCurrent.replace('{0}', value);
                 pickerStatus.textContent = '';
                 setTimeout(() => {
                     pickerStatus.textContent = formatted;
