@@ -9,6 +9,7 @@ package com.evolveum.midpoint.notifications.impl.events;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 
 import com.evolveum.midpoint.prism.Safe;
 
@@ -91,13 +92,14 @@ public class ResourceObjectEventImpl extends BaseEventImpl implements ResourceOb
 
     @Override
     @Safe
-    public boolean isShadowKind(ShadowKindType shadowKindType) {
-        ShadowKindType actualKind = operationDescription.getCurrentShadow().asObjectable().getKind();
-        if (actualKind != null) {
-            return actualKind.equals(shadowKindType);
-        } else {
-            return ShadowKindType.ACCOUNT.equals(shadowKindType);
+    public boolean isShadowKind(ShadowKindType expectedKind) {
+        var shadow = getShadow();
+        if (shadow == null) {
+            return false; // just a safety check
         }
+        ShadowKindType actualKind = shadow.getKind();
+        return Objects.requireNonNullElse(actualKind, ShadowKindType.ACCOUNT)
+                .equals(expectedKind);
     }
 
     @Override
@@ -109,11 +111,16 @@ public class ResourceObjectEventImpl extends BaseEventImpl implements ResourceOb
 
     @Override
     @Safe
-    public boolean isShadowIntent(String intent) {
-        if (StringUtils.isNotEmpty(intent)) {
-            return intent.equals(operationDescription.getCurrentShadow().asObjectable().getIntent());
+    public boolean isShadowIntent(String expectedIntent) {
+        var shadow = getShadow();
+        if (shadow == null) {
+            return false; // just a safety check
+        }
+        // TODO clarify! e.g. what is the expected behavior when expectedIntent is null/empty
+        if (StringUtils.isNotEmpty(expectedIntent)) {
+            return expectedIntent.equals(shadow.getIntent());
         } else {
-            return StringUtils.isEmpty(operationDescription.getCurrentShadow().asObjectable().getIntent());
+            return StringUtils.isEmpty(shadow.getIntent());
         }
     }
 
