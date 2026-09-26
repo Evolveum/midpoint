@@ -129,23 +129,14 @@
         <focusMappings>
             <mapping id="24">
                 <strength>weak</strength>
+                <source>
+                    <path>$source/name</path>
+                    <name>archetypeName</name>
+                </source>
                 <expression>
                     <script>
-                        <code>
-                            import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType
-                            import org.apache.commons.lang3.StringUtils
-
-                            def task = focus as TaskType
-
-                            String name = source.name
-
-                            String description = midpoint.describeResourceObjectSet(task?.activity?.work?.getImport()?.resourceObjects)
-                            if(StringUtils.isNotEmpty(description)) {
-                            return name + ': ' + description
-                            }
-
-                            return name
-                        </code>
+                        <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
+                        <code>midpoint.getDefaultNameForResourceRelatedTask(stringify(archetypeName), focus.activity.work.import.resourceObjects)</code>
                     </script>
                 </expression>
                 <target>

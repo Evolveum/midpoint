@@ -31,6 +31,8 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
@@ -1745,6 +1747,23 @@ public interface MidpointFunctions {
         return describeResourceObjectSetShort(set);
     }
 
+    /**
+     * Determines the default name for a task that executes an operation against given resource, like import or reconciliation.
+     *
+     * @param taskTypeName name of the task type (e.g. "Import", "Reconciliation")
+     * @param set specification of the resource object set (typically, in the task activity work definition)
+     */
+    default @NotNull String getDefaultNameForResourceRelatedTask(
+            @NotNull String taskTypeName, @Nullable ResourceObjectSetType set)
+            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
+            ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
+        String description = describeResourceObjectSet(set);
+        if (StringUtils.isNotEmpty(description)) {
+            return taskTypeName + ": " + description;
+        } else {
+            return taskTypeName; // shouldn't occur
+        }
+    }
 
     /**
      * Selects specified values from all relevant identity data.

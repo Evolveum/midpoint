@@ -7,9 +7,11 @@ package com.evolveum.midpoint.model.common.expression.script.mel.extension;
 
 import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
 import com.evolveum.midpoint.model.common.expression.script.mel.CelTypeMapper;
+import com.evolveum.midpoint.model.common.expression.script.mel.value.ContainerValueCelValue;
 import com.evolveum.midpoint.model.common.expression.script.mel.value.ObjectCelValue;
 import com.evolveum.midpoint.model.common.expression.script.mel.value.QNameCelValue;
 import com.evolveum.midpoint.model.common.expression.script.mel.value.ReferenceCelValue;
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
@@ -377,6 +379,51 @@ public class CelMidPointExtensions extends AbstractMidPointCelExtensions {
                                 this::isFocusDeleted)
                 ),
 
+                // midpoint.isCurrentProjectionActivated()
+                new Function(
+                        CelFunctionDecl.newFunctionDeclaration(
+                                FUNCTION_NAME_PREFIX_DOT + "isCurrentProjectionActivated",
+                                CelOverloadDecl.newGlobalOverload(
+                                        FUNCTION_NAME_PREFIX_DASH + "isCurrentProjectionActivated",
+                                        "Returns 'true' if the current clockwork operation brings the projection into existence and being effectively enabled, " +
+                                        "i.e. with 'administrativeState' set to 'null' or 'ENABLED'. " +
+                                        "(So, previously the projection was either non-existent or effectively disabled.) " +
+                                        "Loads the full shadow if necessary.",
+                                        SimpleType.BOOL)),
+                        CelFunctionBinding.from(FUNCTION_NAME_PREFIX_DASH + "isCurrentProjectionActivated",
+                                ImmutableList.of(),
+                                this::isCurrentProjectionActivated)
+                ),
+
+                // midpoint.isCurrentProjectionDeactivated()
+                new Function(
+                        CelFunctionDecl.newFunctionDeclaration(
+                                FUNCTION_NAME_PREFIX_DOT + "isCurrentProjectionDeactivated",
+                                CelOverloadDecl.newGlobalOverload(
+                                        FUNCTION_NAME_PREFIX_DASH + "isCurrentProjectionDeactivated",
+                                        "Returns 'true' if the current clockwork operation causes the current projection to have 'administrativeState' switched to "
+                                                + "a disabled value (e.g. 'DISABLED' or 'ARCHIVED'). "
+                                                + "Not always precise - the original value may not be known.",
+                                        SimpleType.BOOL)),
+                        CelFunctionBinding.from(FUNCTION_NAME_PREFIX_DASH + "isCurrentProjectionDeactivated",
+                                ImmutableList.of(),
+                                this::isCurrentProjectionDeactivated)
+                ),
+
+                // midpoint.getDefaultNameForResourceRelatedTask(taskTypeName, resourceObjectSet)
+                new Function(
+                        CelFunctionDecl.newFunctionDeclaration(
+                                FUNCTION_NAME_PREFIX_DOT + "getDefaultNameForResourceRelatedTask",
+                                CelOverloadDecl.newGlobalOverload(
+                                        FUNCTION_NAME_PREFIX_DASH + "getDefaultNameForResourceRelatedTask",
+                                        "Determines the default name for a task that executes an operation against given resource, like import or reconciliation.",
+                                        SimpleType.STRING,
+                                        SimpleType.STRING, ContainerValueCelValue.CEL_TYPE)),
+                        CelFunctionBinding.from(FUNCTION_NAME_PREFIX_DASH + "getDefaultNameForResourceRelatedTask",
+                                String.class, ContainerValueCelValue.class,
+                                this::getDefaultNameForResourceRelatedTask)
+                ),
+
                 // midpoint.isUniquePropertyValue(object, propertyPathString, propertyValue)
                 new Function(
                         CelFunctionDecl.newFunctionDeclaration(
@@ -502,6 +549,30 @@ public class CelMidPointExtensions extends AbstractMidPointCelExtensions {
 
     private boolean isFocusDeleted(Object[] objects) {
         return midpointExpressionFunctions.isFocusDeleted();
+    }
+
+    private boolean isCurrentProjectionActivated(Object[] objects) {
+        try {
+            return midpointExpressionFunctions.isCurrentProjectionActivated();
+        } catch (CommonException e) {
+            throw createException(e);
+        }
+    }
+
+    private boolean isCurrentProjectionDeactivated(Object[] objects) {
+        try {
+            return midpointExpressionFunctions.isCurrentProjectionDeactivated();
+        } catch (CommonException e) {
+            throw createException(e);
+        }
+    }
+
+    private String getDefaultNameForResourceRelatedTask(String taskTypeName, ContainerValueCelValue<ResourceObjectSetType> set) {
+        try {
+            return midpointExpressionFunctions.getDefaultNameForResourceRelatedTask(taskTypeName, toJavaContainerable(set));
+        } catch (CommonException e) {
+            throw createException(e);
+        }
     }
 
     private CelValue getLinkedShadowRepo(ObjectCelValue<FocusType> celFocus, String oid) {
@@ -740,6 +811,16 @@ public class CelMidPointExtensions extends AbstractMidPointCelExtensions {
         return celObject.getObject().asObjectable();
     }
 
+    private <C extends Containerable> C toJavaContainerable(ContainerValueCelValue<C> celValue) {
+        if (celValue == null) {
+            return null;
+        }
+        var containerValue = celValue.getContainerValue();
+        if (containerValue == null) {
+            return null;
+        }
+        return containerValue.asContainerable();
+    }
 
     private static final class Library implements CelExtensionLibrary<CelMidPointExtensions> {
         private final CelMidPointExtensions version0;

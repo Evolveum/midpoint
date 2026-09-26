@@ -55,13 +55,10 @@
         <focusMappings>
             <mapping id="8">
                 <strength>weak</strength>
-                <expression>
-                    <script>
-                        <code>
-                            return source.name
-                        </code>
-                    </script>
-                </expression>
+                <source>
+                    <path>$source/name</path>
+                    <name>archetypeName</name>
+                </source>
                 <target>
                     <path>name</path>
                 </target>
@@ -84,9 +81,8 @@
                 </target>
                 <condition>
                     <script>
-                        <code>
-                            activity == null
-                        </code>
+                        <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
+                        <code>!isPresent(activity)</code>
                     </script>
                 </condition>
             </mapping>
