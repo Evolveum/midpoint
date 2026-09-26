@@ -34,7 +34,7 @@ import javax.xml.namespace.QName;
  *
  * NOTE: We don't use Velocity-provided {@link SecureIntrospectorImpl} because it is not a good fit for us.
  *
- * - It has slightly different rules of what is considered safe.
+ * - Its default rules of what is considered safe are too naive.
  * - Its decision algorithm has very limited configurability.
  * - It does not do logging.
  *
