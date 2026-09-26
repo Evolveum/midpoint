@@ -41,7 +41,7 @@ This may be an important detail when searching for solutions on the Internet.
     <accountPasswordNotifier>
         <bodyExpression>
             <script>
-                <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#velocity</language>
+                <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#safe-velocity</language>
                 <code>Password for account $event.shadowName on $event.resourceName is: $event.plaintextPassword</code>
             </script>
         </bodyExpression>
@@ -56,7 +56,7 @@ This may be an important detail when searching for solutions on the Internet.
     <simpleResourceObjectNotifier>
         <bodyExpression>
             <script>
-                <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#velocity</language>
+                <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#safe-velocity</language>
                 <code>Notification about account-related operation
 
 #if ($event.requesteeObject)Owner: $!event.requesteeDisplayName ($event.requesteeName, oid $event.requesteeOid)#end
@@ -79,7 +79,7 @@ Channel: $!event.channel</code>
     <simpleResourceObjectNotifier>
         <bodyExpression>
             <script>
-                <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#velocity</language>
+                <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#safe-velocity</language>
                 <code>Notification about account-related operation
 
 #if ($event.requesteeObject)Owner: $!event.requesteeDisplayName ($event.requesteeName, oid $event.requesteeOid)#end
@@ -102,7 +102,7 @@ Channel: $!event.channel</code>
     <simpleUserNotifier>
         <bodyExpression>
             <script>
-                <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#velocity</language>
+                <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#safe-velocity</language>
                 <code>Notification about ${event.focusTypeName.toLowerCase()}-related operation (status: $event.statusAsText)
 
 $event.focusTypeName: $event.requesteeDisplayName ($event.requesteeName, oid $event.requesteeOid)
@@ -196,7 +196,7 @@ The notification contains the modified user's names and office floor number, the
     <name>user-modified-notification</name>
     <bodyExpression>
         <script>
-            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#velocity</language>
+            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#safe-velocity</language>
             <code>
 #set($user = $event.requesteeObject)
 #set($officeFloor = ${basic.getExtensionPropertyValue($user, 'officeFloorNumber')})

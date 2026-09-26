@@ -25,7 +25,7 @@
                 </subjectExpression>
                 <bodyExpression>
                     <script>
-                        <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#velocity</language>
+                        <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#safe-velocity</language>
                         <code>$event.object.name/$event.object.oid</code>
                     </script>
                 </bodyExpression>

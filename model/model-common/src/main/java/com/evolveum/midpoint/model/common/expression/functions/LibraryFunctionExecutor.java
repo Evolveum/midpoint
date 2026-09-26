@@ -6,16 +6,15 @@
 
 package com.evolveum.midpoint.model.common.expression.functions;
 
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 
 import com.evolveum.midpoint.model.common.expression.functions.FunctionLibraryManager.FunctionInLibrary;
 import com.evolveum.midpoint.model.common.expression.script.ScriptExecutionContext;
-import com.evolveum.midpoint.schema.expression.ExpressionProfile;
+import com.evolveum.midpoint.prism.Safe;
 import com.evolveum.midpoint.task.api.Task;
 
-import org.apache.commons.collections4.MapUtils;
+import com.evolveum.midpoint.util.annotation.Experimental;
+
 import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -43,6 +42,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
  *
  * The processing is somewhat similar to the one in {@link FunctionExpressionEvaluator}.
  */
+@Safe // this is a safe class, as it respects the expression profile
 public class LibraryFunctionExecutor {
 
     private static final Trace LOGGER = TraceManager.getTrace(LibraryFunctionExecutor.class);
@@ -57,23 +57,104 @@ public class LibraryFunctionExecutor {
     }
 
     /**
-     * This method is invoked by the scripts. It is supposed to be only public method exposed
-     * by this class.
+     * This method is invoked by the scripts. It is more general version that accepts parameters as a map.
+     * The map keys are parameter names, the values are parameter values.
+     *
+     * The parameter names are used to disambiguate overloaded functions.
+     *
+     * This is the recommended way.
      */
-    public <V extends PrismValue, D extends ItemDefinition<?>> Object execute(
-            @NotNull String functionName, @Nullable Map<String, Object> rawParams)
+    @Safe
+    public Object execute(@NotNull String functionName, @Nullable Map<String, Object> rawParams)
+            throws ExpressionEvaluationException, SecurityViolationException {
+        return executeInternal(functionName, new Arguments.Named(rawParams));
+    }
+
+    /**
+     * This method is invoked by the scripts. It is a convenience method that accepts argument values as a varargs array.
+     *
+     * Limitation: there can be only a single method with a given name, as we cannot disambiguate overloaded functions based on
+     * parameter names. (We could do that based on number and types of values, but we're not there yet.)
+     *
+     * EXPERIMENTAL. Use with care. May be removed later.
+     */
+    @SuppressWarnings("unused") // used from scripts
+    @Experimental
+    @Safe
+    public Object executeSimple(@NotNull String functionName, Object... rawParams)
+            throws ExpressionEvaluationException, SecurityViolationException {
+        return executeInternal(functionName, new Arguments.Unnamed(Arrays.asList(rawParams)));
+    }
+
+    /** Names + values, or simply values. */
+    private interface Arguments {
+
+        @Nullable Collection<String> getParameterNamesIfKnown();
+
+        /**
+         * Returns a map of parameter names to argument values. For cases when we have values only, the caller provides
+         * expected parameter names. If we have names + values, we are NOT obliged to check that the provided names match
+         * the expected names.
+         */
+        @NotNull Map<String, Object> getArgumentsMap(List<String> parameterNames) throws ExpressionEvaluationException;
+
+        /** Caller provided names and values. */
+        record Named(@NotNull Map<String, Object> rawParams) implements Arguments {
+            public Named(@Nullable Map<String, Object> rawParams) {
+                this.rawParams = new HashMap<>(Objects.requireNonNullElseGet(rawParams, Map::of));
+            }
+
+            @Override
+            public @NotNull Collection<String> getParameterNamesIfKnown() {
+                return rawParams.keySet();
+            }
+
+            @Override
+            public @NotNull Map<String, Object> getArgumentsMap(List<String> ignored) {
+                return rawParams;
+            }
+        }
+
+        /** Caller provided values only. */
+        record Unnamed(@NotNull List<Object> rawParams) implements Arguments {
+            public Unnamed(@NotNull List<Object> rawParams) {
+                this.rawParams = Collections.unmodifiableList(new ArrayList<>(rawParams));
+            }
+
+            @Override
+            public @Nullable Collection<String> getParameterNamesIfKnown() {
+                return null;
+            }
+
+            @Override
+            public @NotNull Map<String, Object> getArgumentsMap(List<String> parameterNames)
+                    throws ExpressionEvaluationException {
+                if (rawParams.size() != parameterNames.size()) {
+                    throw new ExpressionEvaluationException(
+                            "Number of provided arguments (" + rawParams.size()
+                                    + ") does not match the number of parameters (" + parameterNames.size() + ")");
+                }
+                Map<String, Object> argumentsMap = new HashMap<>();
+                for (int i = 0; i < parameterNames.size(); i++) {
+                    argumentsMap.put(parameterNames.get(i), rawParams.get(i));
+                }
+                return argumentsMap;
+            }
+        }
+    }
+
+    private <V extends PrismValue, D extends ItemDefinition<?>> Object executeInternal(
+            @NotNull String functionName, @NotNull Arguments arguments)
             throws ExpressionEvaluationException, SecurityViolationException {
 
         Validate.notNull(functionName, "Function name must be specified");
 
         OperationResult result = ScriptExecutionContext.getOperationResultRequired();
 
-        Map<String, Object> params = Objects.requireNonNullElseGet(rawParams, Map::of);
-        Set<String> paramNames = params.keySet();
-
         try {
             FunctionConfigItem function =
-                    library.findFunction(functionName, paramNames, "custom function evaluation");
+                    library.findFunction(
+                            functionName, arguments.getParameterNamesIfKnown(), "custom function evaluation");
 
             var callerProfile = ScriptExecutionContext.getThreadLocalRequired().getExpressionProfile();
             functionLibraryManager.checkCallAllowed(
@@ -88,7 +169,7 @@ public class LibraryFunctionExecutor {
             Expression<V, D> expression =
                     functionLibraryManager.createFunctionExpression(function, outputDefinition, task, result);
 
-            ExpressionEvaluationContext functionEvaluationContext = createFunctionEvaluationContext(function, params, task);
+            ExpressionEvaluationContext functionEvaluationContext = createFunctionEvaluationContext(function, arguments, task);
 
             PrismValueDeltaSetTriple<V> outputTriple = expression.evaluate(functionEvaluationContext, result);
             LOGGER.trace("Result of the expression evaluation: {}", outputTriple);
@@ -103,15 +184,14 @@ public class LibraryFunctionExecutor {
     }
 
     private @NotNull ExpressionEvaluationContext createFunctionEvaluationContext(
-            FunctionConfigItem function, Map<String, Object> params, Task task)
-            throws SchemaException, ConfigurationException {
+            FunctionConfigItem function, Arguments arguments, Task task)
+            throws SchemaException, ConfigurationException, ExpressionEvaluationException {
         VariablesMap variables = new VariablesMap();
-        if (MapUtils.isNotEmpty(params)) {
-            for (Map.Entry<String, Object> entry : params.entrySet()) {
-                String argName = entry.getKey();
-                Object argValue = entry.getValue();
-                variables.put(argName, ExpressionEvaluationUtil.convertInput(argName, argValue, function));
-            }
+        var argumentsMap = arguments.getArgumentsMap(function.getParameterNames());
+        for (Map.Entry<String, Object> entry : argumentsMap.entrySet()) {
+            String argName = entry.getKey();
+            Object argValue = entry.getValue();
+            variables.put(argName, ExpressionEvaluationUtil.convertInput(argName, argValue, function));
         }
 
         ExpressionEvaluationContext context =

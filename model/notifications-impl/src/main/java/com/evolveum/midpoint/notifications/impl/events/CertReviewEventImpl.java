@@ -8,6 +8,7 @@ package com.evolveum.midpoint.notifications.impl.events;
 
 import com.evolveum.midpoint.notifications.api.events.CertReviewEvent;
 import com.evolveum.midpoint.notifications.api.events.SimpleObjectRef;
+import com.evolveum.midpoint.prism.Safe;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.cases.WorkItemTypeUtil;
 import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
@@ -44,6 +45,7 @@ public class CertReviewEventImpl extends AccessCertificationEventImpl implements
     }
 
     @Override
+    @Safe
     public SimpleObjectRef getActualReviewer() {
         return actualReviewer;
     }
@@ -53,6 +55,7 @@ public class CertReviewEventImpl extends AccessCertificationEventImpl implements
     }
 
     @Override
+    @Safe
     public boolean isCategoryType(EventCategoryType eventCategory) {
         return super.isCategoryType(eventCategory) ||
                 EventCategoryType.CERT_CASE_EVENT.equals(eventCategory);
@@ -60,6 +63,7 @@ public class CertReviewEventImpl extends AccessCertificationEventImpl implements
 
     @NotNull
     @Override
+    @Safe
     public Collection<AccessCertificationCaseType> getCasesAwaitingResponseFromActualReviewer() {
         List<AccessCertificationCaseType> rv = new ArrayList<>();
         for (AccessCertificationCaseType aCase : cases) {
@@ -83,11 +87,13 @@ public class CertReviewEventImpl extends AccessCertificationEventImpl implements
     }
 
     @Override
+    @Safe
     public List<AccessCertificationCaseType> getCases() {
         return cases;
     }
 
     @Override
+    @Safe
     public String debugDump(int indent) {
         StringBuilder sb = DebugUtil.createTitleStringBuilderLn(this.getClass(), indent);
         debugDumpCommon(sb, indent);

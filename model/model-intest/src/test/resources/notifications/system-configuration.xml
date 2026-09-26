@@ -37,7 +37,7 @@
                 </recipientExpression>
                 <bodyExpression>
                     <script>
-                        <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#velocity</language>
+                        <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#safe-velocity</language>
                         <code>Password for account $event.shadowName on $event.resourceName is: $event.plaintextPassword</code>
                     </script>
                 </bodyExpression>
@@ -51,7 +51,7 @@
                 </recipientExpression>
                 <bodyExpression>
                     <script>
-                        <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#velocity</language>
+                        <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#safe-velocity</language>
                         <code>Password: $event.focusPassword</code>
                     </script>
                 </bodyExpression>
@@ -94,7 +94,7 @@
                 </recipientExpression>
                 <bodyExpression>
                     <script>
-                        <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#velocity</language>
+                        <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#safe-velocity</language>
                         <!-- @formatter:off -->
                         <code>Notification about account-related operation
 
@@ -120,7 +120,7 @@ Channel: $!event.channel</code>
                 </recipientExpression>
                 <bodyExpression>
                     <script>
-                        <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#velocity</language>
+                        <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#safe-velocity</language>
                         <!-- @formatter:off -->
                         <code>Notification about account-related operation
 
@@ -146,7 +146,7 @@ Channel: $!event.channel</code>
                 </recipientExpression>
                 <bodyExpression>
                     <script>
-                        <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#velocity</language>
+                        <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#safe-velocity</language>
                         <!-- @formatter:off -->
                         <code>Notification about ${event.focusTypeName.toLowerCase()}-related operation (status: $event.statusAsText)
 
@@ -206,6 +206,78 @@ Channel: $!event.channel</code>
                 </recipientExpression>
                 <transport>dummy:simpleUserNotifier-FAILURE</transport>
             </simpleUserNotifier>
+        </handler>
+        <handler>
+            <simpleUserNotifier>
+                <bodyExpression>
+                    <script>
+                        <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#safe-velocity</language>
+                        <code> <!-- These are expressions from the notifications training -->
+                            [01: $requestee.name]
+                            [02: $requester.name]
+
+                            [10: $event.success]
+                            [11: $event.failure]
+                            [12: $event.add]
+                            [13: $event.modify]
+                            [14: $event.delete]
+
+                            [20: $event.requesteeDisplayName]
+                            [21: $event.requesteeName]
+                            [22: $event.requesteeOid]
+                            [23: $event.requesterDisplayName]
+                            [24: $event.requesterName]
+                            [25: $event.requesterOid]
+
+                            [30: $event.statusAsText]
+                            [31: $event.channel]
+
+                            [40: $event.contentAsFormattedList]
+
+                            [50: ${event.focusTypeName}]
+                            [51: ${event.focusTypeName.toLowerCase()}]
+                            [52: ${event.focusPassword}]
+                        </code>
+                    </script>
+                </bodyExpression>
+                <transport>dummy:user-notifier-safe</transport>
+            </simpleUserNotifier>
+            <simpleResourceObjectNotifier>
+                <bodyExpression>
+                    <script>
+                        <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#safe-velocity</language>
+                        <code> <!-- These are expressions from the notifications training -->
+                            [01: $requestee.name]
+                            [02: $requester.name]
+
+                            [10: $event.success]
+                            [11: $event.failure]
+                            [12: $event.add]
+                            [13: $event.modify]
+                            [14: $event.delete]
+
+                            [20: $event.requesteeDisplayName]
+                            [21: $event.requesteeName]
+                            [22: $event.requesteeOid]
+                            [23: $event.requesterDisplayName]
+                            [24: $event.requesterName]
+                            [25: $event.requesterOid]
+
+                            [30: $event.statusAsText]
+                            [31: $event.channel]
+
+                            [40: $event.contentAsFormattedList]
+
+                            [60: ${event.plaintextPassword}]
+                            [61: $event.isAccount()]
+                            [62: #if ( ${event.isAccount()} ) #set ( $obj = "account" ) #else #set ( $obj = "resource object" ) #end $obj]
+                            [63: ${event.shadowName}]
+                            [64: ${event.resourceName}]
+                        </code>
+                    </script>
+                </bodyExpression>
+                <transport>dummy:resource-object-notifier-safe</transport>
+            </simpleResourceObjectNotifier>
         </handler>
         <handler>
             <category>customEvent</category>

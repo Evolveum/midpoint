@@ -10,7 +10,9 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
+import com.evolveum.midpoint.common.configuration.api.ExpressionsConfigurationSection;
 import com.evolveum.midpoint.repo.api.*;
+import com.evolveum.midpoint.schema.util.SystemConfigurationTypeUtil;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 
 import jakarta.annotation.PostConstruct;
@@ -325,5 +327,29 @@ public class SystemObjectCache implements CacheInvalidationListener, CacheDiagno
                 cachedProfiles.getProfiles().forEach((k, v) -> LOGGER_CONTENT.info("Cached expression profile: {}: {}", k, v));
             }
         }
+    }
+
+    @SuppressWarnings("unused") // called by Spring
+    public @NotNull ExpressionsConfigurationView getExpressionsConfigurationView() {
+        return result ->
+                SystemConfigurationTypeUtil.isExperimentalCodeEnabled(
+                        getSystemConfigurationBean(result));
+    }
+
+    /**
+     * Provides a view of parts of system configuration that are relevant for expression evaluation.
+     * This is used by expression evaluators to obtain the configuration they need.
+     *
+     * It is a separate interface to allow for test/production flexibility.
+     *
+     * Unlike {@link ExpressionsConfigurationSection}, this interface is not tied to the configuration file ({@code config.xml}),
+     * but rather to the runtime configuration stored in the repository.
+     *
+     * @see ExpressionsConfigurationSection
+     */
+    public interface ExpressionsConfigurationView {
+
+        /** @see InternalsConfigurationType#isEnableExperimentalCode() */
+        boolean isExperimentalCodeEnabled(@NotNull OperationResult result) throws SchemaException;
     }
 }

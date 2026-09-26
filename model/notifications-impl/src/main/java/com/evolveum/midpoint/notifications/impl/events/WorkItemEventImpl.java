@@ -8,6 +8,7 @@ package com.evolveum.midpoint.notifications.impl.events;
 
 import javax.xml.datatype.Duration;
 
+import com.evolveum.midpoint.prism.Safe;
 import com.evolveum.midpoint.schema.util.WorkItemId;
 
 import org.apache.commons.lang3.Validate;
@@ -60,59 +61,72 @@ public class WorkItemEventImpl extends CaseManagementEventImpl implements WorkIt
         this.timeBefore = timeBefore;
     }
 
+    @Safe
     public String getWorkItemName() {
         return PolyString.getOrig(workItem.getName());  // todo MID-5916
     }
 
     @NotNull
+    @Safe
     public CaseWorkItemType getWorkItem() {
         return workItem;
     }
 
     @NotNull
+    @Safe
     public WorkItemId getWorkItemId() {
         return WorkItemId.create(aCase.getOid(), workItem.getId());
     }
 
     @Override
+    @Safe
     public boolean isCategoryType(EventCategoryType eventCategory) {
         return eventCategory == EventCategoryType.WORK_ITEM_EVENT
                 || eventCategory == EventCategoryType.WORKFLOW_EVENT;
     }
 
+    @Safe
     public SimpleObjectRef getAssignee() {
         return assignee;
     }
 
     @Override
+    @Safe
     public @Nullable String getWorkItemUrl() {
         return getMidpointFunctions().createWorkItemCompletionLink(getWorkItemId());
     }
 
+    @Safe
     public SimpleObjectRef getInitiator() {
         return initiator;
     }
 
+    @Safe
     public WorkItemOperationKindType getOperationKind() {
         return operationInfo != null ? operationInfo.getOperationKind() : null;
     }
 
+    @Safe
     public AbstractWorkItemActionType getSource() {
         return sourceInfo != null ? sourceInfo.getSource() : null;
     }
 
+    @Safe
     public WorkItemEventCauseInformationType getCause() {
         return sourceInfo != null ? sourceInfo.getCause() : null;
     }
 
+    @Safe
     public Duration getTimeBefore() {
         return timeBefore;
     }
 
+    @Safe
     public WorkItemOperationInfo getOperationInfo() {
         return operationInfo;
     }
 
+    @Safe
     public WorkItemOperationSourceInfo getSourceInfo() {
         return sourceInfo;
     }
@@ -124,11 +138,13 @@ public class WorkItemEventImpl extends CaseManagementEventImpl implements WorkIt
         variables.put(ExpressionConstants.VAR_WORK_ITEM, workItem, CaseWorkItemType.class);
     }
 
+    @Safe
     public AbstractWorkItemOutputType getOutput() {
         return workItem.getOutput();
     }
 
     @Override
+    @Safe
     public String getCaseOrItemOutcome() {
         AbstractWorkItemOutputType output = getOutput();
         return output != null ? output.getOutcome() : null;
@@ -143,6 +159,7 @@ public class WorkItemEventImpl extends CaseManagementEventImpl implements WorkIt
     }
 
     @Override
+    @Safe
     public String debugDump(int indent) {
         StringBuilder sb = DebugUtil.createTitleStringBuilderLn(this.getClass(), indent);
         debugDumpCommon(sb, indent);

@@ -112,4 +112,11 @@ public class FunctionConfigItem extends ExpressionConfigItem {
     public String getDocumentation() {
         return value().getDocumentation();
     }
+
+    /** Note that the list is ordered, because {@link ExpressionType} is not a container. */
+    public @NotNull List<String> getParameterNames() {
+        return value().getParameter().stream()
+                .map(ExpressionParameterType::getName)
+                .toList();
+    }
 }

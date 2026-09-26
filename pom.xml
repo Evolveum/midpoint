@@ -1295,6 +1295,12 @@
             <dependency>
                 <groupId>org.apache.velocity</groupId>
                 <artifactId>velocity-engine-core</artifactId>
+                <!--
+                BEWARE! When updating Velocity engine, please make sure that SafeUberspectorImpl and SafeIntrospectorImpl
+                still work as designed. They depend on internal workings of the Velocity engine. Although there are some tests
+                that prevent execution of unsafe scripts (in safe Velocity mode), their coverage cannot be complete, and manual
+                inspection of the code is necessary.
+                -->
                 <version>2.4.1</version>
             </dependency>
             <dependency>

@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.notifications.impl.events;
 
 import com.evolveum.midpoint.notifications.api.events.CaseEvent;
+import com.evolveum.midpoint.prism.Safe;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -23,17 +24,20 @@ public class CaseEventImpl extends CaseManagementEventImpl implements CaseEvent 
     }
 
     @Override
+    @Safe
     public boolean isCategoryType(EventCategoryType eventCategory) {
         return eventCategory == EventCategoryType.WORKFLOW_PROCESS_EVENT
                 || eventCategory == EventCategoryType.WORKFLOW_EVENT;
     }
 
     @Override
+    @Safe
     public String getCaseOrItemOutcome() {
         return aCase.getOutcome();
     }
 
     @Override
+    @Safe
     public String debugDump(int indent) {
         StringBuilder sb = DebugUtil.createTitleStringBuilderLn(this.getClass(), indent);
         debugDumpCommon(sb, indent);

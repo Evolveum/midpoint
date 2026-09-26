@@ -76,6 +76,7 @@ public abstract class BaseEventImpl implements Event, DebugDumpable, ShortDumpab
     }
 
     @NotNull
+    @Safe
     public LightweightIdentifier getId() {
         return id;
     }
@@ -88,12 +89,15 @@ public abstract class BaseEventImpl implements Event, DebugDumpable, ShortDumpab
         };
     }
 
+    @Safe
     abstract public boolean isCategoryType(EventCategoryType eventCategory);
 
+    @Safe
     public boolean isUserRelated() {
         return false; // overridden in ModelEvent
     }
 
+    @Safe
     public SimpleObjectRef getRequester() {
         return requester;
     }
@@ -103,6 +107,7 @@ public abstract class BaseEventImpl implements Event, DebugDumpable, ShortDumpab
         this.requester = requester;
     }
 
+    @Safe
     public SimpleObjectRef getRequestee() {
         return requestee;
     }
@@ -117,21 +122,25 @@ public abstract class BaseEventImpl implements Event, DebugDumpable, ShortDumpab
     }
 
     @Override
+    @Safe
     public ObjectType getRequesteeObject() {
         return resolveObject(requestee);
     }
 
     @SuppressWarnings("WeakerAccess")
+    @Safe
     public ObjectType getRequesterObject() {
         return resolveObject(requester);
     }
 
     @Override
+    @Safe
     public PolyStringType getRequesteeDisplayName() {
         return getDisplayName(getRequesteeObject());
     }
 
     @SuppressWarnings("unused")
+    @Safe
     public PolyStringType getRequesterDisplayName() {
         return getDisplayName(getRequesterObject());
     }
@@ -156,11 +165,13 @@ public abstract class BaseEventImpl implements Event, DebugDumpable, ShortDumpab
     }
 
     @SuppressWarnings("unused")
+    @Safe
     public PolyStringType getRequesteeName() {
         return getName(getRequesteeObject());
     }
 
     @SuppressWarnings("unused")
+    @Safe
     public PolyStringType getRequesterName() {
         return getName(getRequesterObject());
     }
@@ -190,6 +201,7 @@ public abstract class BaseEventImpl implements Event, DebugDumpable, ShortDumpab
     //
     // Very experimental implementation. Needs a bit of time to clean up and test adequately.
     @SuppressWarnings("WeakerAccess")
+    @Safe
     public boolean containsItem(ObjectDelta<?> delta, ItemPath itemPath) {
         if (delta.getChangeType() == ChangeType.ADD) {
             return containsItem(delta.getObjectToAdd(), itemPath);
@@ -300,6 +312,7 @@ public abstract class BaseEventImpl implements Event, DebugDumpable, ShortDumpab
     }
 
     @Override
+    @Safe
     public String getChannel() {
         return channel;
     }
@@ -309,6 +322,7 @@ public abstract class BaseEventImpl implements Event, DebugDumpable, ShortDumpab
     }
 
     @Override
+    @Safe
     public String getStatusAsText() {
         if (isSuccess()) {
             return "SUCCESS";
@@ -330,6 +344,7 @@ public abstract class BaseEventImpl implements Event, DebugDumpable, ShortDumpab
     }
 
     @Override
+    @Safe
     public void shortDump(StringBuilder sb) {
         sb.append(this.getClass().getSimpleName()).append("(").append(getId()).append(")");
     }
@@ -352,6 +367,7 @@ public abstract class BaseEventImpl implements Event, DebugDumpable, ShortDumpab
         return prismContext;
     }
 
+    @Safe
     TextFormatter getTextFormatter() {
         if (textFormatter == null) {
             textFormatter = ApplicationContextHolder.getBean(TextFormatter.class);
@@ -454,6 +470,7 @@ public abstract class BaseEventImpl implements Event, DebugDumpable, ShortDumpab
     }
 
     @Override
+    @Safe
     public String toString() {
         return toStringPrefix() + '}';
     }

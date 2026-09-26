@@ -8,7 +8,7 @@
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:xsd="http://www.w3.org/2001/XMLSchema"
         oid="724f2cce-c2d0-4a95-a67e-c922f9b806ab">
-    <name>test</name>
+    <name>testingFunctionLibrary</name>
     <function>
         <name>modify-user-description</name>
         <parameter>
@@ -32,5 +32,22 @@
                 midpoint.executeChanges(deltas, null)
             </code>
         </script>
+    </function>
+    <function>
+        <name>getValueAt</name>
+        <documentation>Called from the Velocity template</documentation>
+        <parameter>
+            <name>event</name>
+            <type>xsd:anyType</type> <!-- in fact, CustomEvent -->
+        </parameter>
+        <parameter>
+            <name>index</name>
+            <type>xsd:int</type>
+        </parameter>
+        <returnType>xsd:anyType</returnType>
+        <javaMethodReference>
+            <className>com.evolveum.midpoint.model.test.TestingVelocityExtension</className>
+            <methodName>getValueAtStatic</methodName>
+        </javaMethodReference>
     </function>
 </functionLibrary>

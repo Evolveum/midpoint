@@ -923,8 +923,6 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
 
         addObject(user, task, result);
 
-        turnMaintenanceModeOn(RESOURCE_DUMMY_OID, result);
-
         dummyTransport.clearMessages();
 
         when();
@@ -933,7 +931,12 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
                 .item(UserType.F_FULL_NAME).replace(PolyString.fromOrig("TEST510"))
                 .asObjectDelta(user.getOid());
 
-        executeChanges(delta, null, task, result);
+        turnMaintenanceModeOn(RESOURCE_DUMMY_OID, result);
+        try {
+            executeChanges(delta, null, task, result);
+        } finally {
+            turnMaintenanceModeOff(RESOURCE_DUMMY_OID, result);
+        }
 
         then();
 
@@ -1008,6 +1011,61 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
         assertEquals("Invalid list of recipients", singletonList("recipient@evolveum.com"), pwdMessage.getTo());
         assertThat(pwdMessage.getBody()) // there can be subscription footer
                 .startsWith("Password: dummyPassword");
+    }
+
+
+    //region Safe Velocity templates
+
+    /**
+     * Checking notifications (from the training) related to "user add" operation.
+     * In the system configuration we have collected fragments of velocity templates used in the training.
+     *
+     * This test checks that each one is successfully evaluated: no variable is left unexpanded
+     * and no variable is expanded to empty string.
+     */
+    @Test
+    public void test700UserAddSafeVelocityNotifications() throws CommonException {
+
+        var task = getTestTask();
+        var result = task.getResult();
+
+        preTestCleanup(AssignmentPolicyEnforcementType.POSITIVE);
+
+        var userName = "test700";
+        var user = new UserType()
+                .name(userName)
+                .fullName("f-" + userName)
+                .assignment(new AssignmentType()
+                        .construction(new ConstructionType()
+                                .resourceRef(RESOURCE_DUMMY_OID, ResourceType.COMPLEX_TYPE)))
+                .credentials(new CredentialsType()
+                        .password(new PasswordType()
+                                .value(protector.encryptString("dummyPassword"))));
+
+        when("user is added");
+        addObject(user.asPrismObject(), task, result);
+
+        then("user exists and notifications are sent");
+        assertSuccess(result);
+        assertUserAfterByUsername(userName)
+                .assertAssignments(1)
+                .assertLiveLinks(1);
+
+        var modelMsgs = checkDummyTransportMessages("user-notifier-safe", 1);
+        displayCollection("model messages", modelMsgs);
+        assertSuccessfullyExpanded(modelMsgs);
+
+        var resourceMsgs = checkDummyTransportMessages("resource-object-notifier-safe", 1);
+        displayCollection("resource messages", resourceMsgs);
+        assertSuccessfullyExpanded(resourceMsgs);
+    }
+
+    private void assertSuccessfullyExpanded(List<Message> messages) {
+        messages.forEach(message -> {
+            assertThat(message.getBody())
+                    .doesNotContain("$") // indicates that some variable was not expanded
+                    .doesNotContain(": ]"); // indicates that some variable was "expanded" to empty string
+        });
     }
 
     @SuppressWarnings("Duplicates")

@@ -9,6 +9,7 @@ package com.evolveum.midpoint.notifications.impl.events;
 import com.evolveum.midpoint.notifications.api.events.ActivityEvent;
 import com.evolveum.midpoint.notifications.api.events.ReportOutputCreatedEvent;
 import com.evolveum.midpoint.notifications.api.events.TaskEvent;
+import com.evolveum.midpoint.prism.Safe;
 import com.evolveum.midpoint.repo.common.activity.run.AbstractActivityRun;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -46,11 +47,13 @@ public class ReportOutputCreatedEventImpl extends BaseEventImpl implements Repor
     }
 
     @Override
+    @Safe
     public @NotNull ReportType getReport() {
         return report;
     }
 
     @Override
+    @Safe
     public @NotNull ReportDataType getReportData() {
         return reportData;
     }
@@ -66,18 +69,21 @@ public class ReportOutputCreatedEventImpl extends BaseEventImpl implements Repor
     }
 
     @Override
+    @Safe
     public boolean isStatusType(EventStatusType eventStatus) {
         // These events are emitted only if the report output was successfully created.
         return eventStatus == EventStatusType.SUCCESS || eventStatus == EventStatusType.ALSO_SUCCESS;
     }
 
     @Override
+    @Safe
     public boolean isOperationType(EventOperationType eventOperation) {
         // Conceptually, these events mean that "something has been added".
         return eventOperation == EventOperationType.ADD;
     }
 
     @Override
+    @Safe
     public boolean isCategoryType(EventCategoryType eventCategory) {
         return false; // We have no special category for these events.
     }

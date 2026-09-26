@@ -41,8 +41,9 @@ public class SimpleExpressionUtil {
     /**
      * Creates {@link ExpressionType} for specified Velocity template.
      */
-    public static ExpressionType velocityExpression(String velocityTemplate, @Nullable MidPointTrustDescriptor trustDescriptor) {
-        return scriptExpression(EXPRESSION_LANGUAGE_VELOCITY_URL, velocityTemplate, trustDescriptor);
+    public static ExpressionType safeVelocityExpression(
+            String velocityTemplate, @Nullable MidPointTrustDescriptor trustDescriptor) {
+        return scriptExpression(EXPRESSION_LANGUAGE_SAFE_VELOCITY_URL, velocityTemplate, trustDescriptor);
     }
 
     /**
