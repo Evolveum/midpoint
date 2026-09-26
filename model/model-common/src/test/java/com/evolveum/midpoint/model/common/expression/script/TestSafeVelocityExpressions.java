@@ -305,6 +305,13 @@ public class TestSafeVelocityExpressions extends AbstractVelocityExpressionsTest
                 "BOOM");
     }
 
+    /** Checks that {@code Integer.getInteger(String)} is blocked, as it can be used to read system properties. */
+    @Test
+    public void testGetSystemPropertyBlocked() {
+        System.setProperty("property", "123456");
+        assertUnsafeScriptBlocked("#set($a=1)$a.getInteger(\"property\")", unsafeVariables(), "123456");
+    }
+
     // ========================================================================================
     // Helpers for the unsafe-expression tests above
     // ========================================================================================

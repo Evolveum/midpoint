@@ -13,6 +13,7 @@ import java.math.BigInteger;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Predicate;
 
 import org.apache.velocity.util.introspection.Introspector;
@@ -46,35 +47,21 @@ class SafeIntrospectorImpl extends Introspector {
             List.of("wait", "notify", "notifyAll", "clone", "finalize", "getClass");
 
     /**
-     * Allowed classes for which all methods (except {@link #FORBIDDEN_METHODS}) are allowed.
-     * When deciding about methods, we check for class equality, as the subclasses may have additional methods
-     * that we don't want to allow.
-     *
-     * Immutability is required.
-     *
-     * These classes are also allowed to be passed into the Velocity context (along with others),
-     * see {@link #TYPES_SAFE_TO_INTO_CONTEXT_PREDICATE}.
-     */
-    private static final Collection<Class<?>> CLASSES_SAFE_TO_CALL = List.of(
-            String.class,
-            Byte.class,
-            Character.class,
-            Short.class,
-            Integer.class,
-            Long.class,
-            Float.class,
-            Double.class,
-            BigInteger.class,
-            BigDecimal.class,
-            Boolean.class);
-
-    /**
      * Allowed classes for which only some methods are allowed. The allowed methods are listed in the map.
      *
      * These classes are also allowed to be passed into the Velocity context (along with others),
      * see {@link #TYPES_SAFE_TO_INTO_CONTEXT_PREDICATE}.
      */
     private static final Map<Class<?>, List<String>> ALLOWED_METHODS_BY_TYPE = Map.of(
+            Boolean.class,
+            List.of("booleanValue", "toString", "equals", "hashCode", "compareTo"),
+
+            String.class,
+            List.of("length", "isEmpty", "charAt", "substring", "indexOf", "lastIndexOf",
+                    "startsWith", "endsWith", "contains", "toLowerCase", "toUpperCase",
+                    "trim", "replace", "replaceAll", "replaceFirst", "split",
+                    "equals", "equalsIgnoreCase", "compareTo"),
+
             Enum.class,
             List.of("name", "ordinal", "toString"),
 
@@ -93,6 +80,17 @@ class SafeIntrospectorImpl extends Introspector {
             List.of("isEmpty", "size")
     );
 
+    /** Special treatment for numeric types: there are many of them, with many methods allowed. */
+    private static final List<Class<?>> NUMERIC_TYPES = List.of(
+            Byte.class, Character.class, Short.class, Integer.class, Long.class,
+            Float.class, Double.class, BigInteger.class, BigDecimal.class);
+
+    private static final Collection<String> ALLOWED_METHODS_FOR_NUMERIC_TYPES = Set.of(
+            "byteValue", "charValue", "shortValue", "intValue", "longValue", "floatValue", "doubleValue",
+            "toString", "equals", "hashCode", "compareTo", "bitCount", "highestOneBit", "lowestOneBit",
+            "signum", "sum", "min", "max", "compareUnsigned", "divideUnsigned", "remainderUnsigned", "toUnsignedString",
+            "toBinaryString", "toOctalString", "toHexString", "toUnsignedLong", "isNaN", "isInfinite", "isFinite");
+
     /**
      * These are safe to put into context (with subclasses) but not to call all methods on.
      *
@@ -105,8 +103,8 @@ class SafeIntrospectorImpl extends Introspector {
             java.time.LocalTime.class);
 
     static final Predicate<Class<?>> TYPES_SAFE_TO_INTO_CONTEXT_PREDICATE =
-            c -> CLASSES_SAFE_TO_CALL.stream().anyMatch(allowedClass -> allowedClass.isAssignableFrom(c))
-                    || ALLOWED_METHODS_BY_TYPE.keySet().stream().anyMatch(allowedClass -> allowedClass.isAssignableFrom(c))
+            c -> ALLOWED_METHODS_BY_TYPE.keySet().stream().anyMatch(allowedClass -> allowedClass.isAssignableFrom(c))
+                    || NUMERIC_TYPES.stream().anyMatch(allowedClass -> allowedClass.isAssignableFrom(c))
                     || TYPES_SAFE_TO_PUT_INTO_CONTEXT.stream().anyMatch(allowedClass -> allowedClass.isAssignableFrom(c))
                     || isAnnotatedAsSafe(c);
 
@@ -144,8 +142,8 @@ class SafeIntrospectorImpl extends Introspector {
             return null;
         }
 
-        if (CLASSES_SAFE_TO_CALL.contains(c)) {
-            log.trace("Method {}#{} is allowed because it belongs to an allowed class -> allowing execution",
+        if (NUMERIC_TYPES.contains(c) && ALLOWED_METHODS_FOR_NUMERIC_TYPES.contains(methodName)) {
+            log.trace("Method {}#{} is allowed because it is a allowed numeric type + allowed method -> allowing execution",
                     c.getName(), methodName);
             return method;
         }
