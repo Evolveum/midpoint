@@ -266,8 +266,15 @@ To send the default message about user's registration, the default notifier shou
 </notificationConfiguration>
 ----
 
+The default message contains only the greeting and the confirmation link.
+It does not contain the user password.
+The user entered the password in the registration form, so there is no need to send it back.
+
 There is also a possibility to configure custom message by using custom expression for the body.
 In this case don't forget to add call for `midpoint.createRegistrationConfirmationLink(userType);` which will generate the confirmation link needed to finish the registration.
+
+WARNING: Do not put the user password into the message.
+Mail is not a secure channel and the message is sent to an address that was not verified yet.
 
 .Custom notification message.
 [source,xml]
@@ -291,14 +298,11 @@ In this case don't forget to add call for `midpoint.createRegistrationConfirmati
                         newUser = modelEvent.getFocusContext().getObjectNew();
                         userType = newUser.asObjectable();
 
-                        plainTextPassword = midpoint.getPlaintextUserPassword(userType);
-
                         bodyMessage = "Dear " + userType.getGivenName() + ",\n\n" +
-                            "your account was successfully created. To activate your account click on the confirmation link below in the                     email." +
+                            "your account was successfully created. To activate your account click on the confirmation link below in the email." +
                             "\n" +
-                            "After your account is activated, use following credentials to log in: \n" +
-                            "username: " + userType.getName().getOrig() + "\n" +
-                            "password: " + plainTextPassword+ "\n\n" +
+                            "After your account is activated, use the username " + userType.getName().getOrig() +
+                            " and the password you have chosen during the registration to log in.\n\n" +
                             midpoint.createRegistrationConfirmationLink(userType);
 
                         return bodyMessage;
@@ -392,8 +396,13 @@ image::registration-page.png[]
 image::confirm-message.png[]
 
 . Mail with confirmation link will be send on the mail you entered.
+The mail does not contain your password.
 +
-image::confirmation-mail.png[]
+----
+Dear Katarina,
+your account was successfully created. To activate your account click on the following confirmation link.
+http://localhost:8080/midpoint/auth/registration?user=ValalikovaK&token=frr1qcTJBmTUk8SUTG88C62e4hjSr8
+----
 
 . Click on the confirmation link in your email.
 If your registration is successful you can continue with login.
