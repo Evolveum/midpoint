@@ -129,6 +129,23 @@
   }
 }
 
+// A tablist with a single tab has nothing to switch between, so the tab properties (hover color,
+// active border, pointer cursor) looks inappropriate. We restyle it to read visually as a plain
+// heading (see WCAG 7.1 report comment for the reasoning).
+.card.card-primary.card-outline-tabs > .card-header > .nav-tabs > .nav-item:first-child:last-child {
+  flex: 1 1 auto;
+  border-bottom: 1px solid $gray-300;
+
+  & .nav-link,
+  & .nav-link:hover,
+  & .nav-link.active {
+    color: $text-color;
+    font-weight: 600;
+    cursor: default;
+    border-color: transparent;
+  }
+}
+
 //Override for table-success/danger/etc. coloring to fulfill the color contrasts with dark mode available
 @mixin table-background($color) {
   background-color: mix($white, $color, 88%);

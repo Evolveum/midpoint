@@ -6,6 +6,7 @@
 
 package com.evolveum.midpoint.web.component;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.List;
 
@@ -109,6 +110,9 @@ public class TabbedPanel<T extends ITab> extends Panel {
         WebMarkupContainer tabsContainer = newTabsContainer(ID_TABS_CONTAINER);
         tabsContainer.setOutputMarkupId(true);
         tabsContainer.setOutputMarkupPlaceholderTag(true);
+        // a tablist with nothing to switch between isn't a tablist; drop the role rather than
+        // let screen reader announce a "1 of 1" tab that can never change
+        tabsContainer.add(AttributeModifier.replace("role", (IModel<String>) () -> hasSingleVisibleTab() ? null : "tablist"));
         add(tabsContainer);
 
         // add the loop used to generate tab names
@@ -151,13 +155,21 @@ public class TabbedPanel<T extends ITab> extends Panel {
         final int index = item.getIndex();
         final T tab = TabbedPanel.this.tabs.getObject().get(index);
 
-        final WebMarkupContainer titleLink = newLink(ID_LINK, index);
+        // with nothing to switch to, an <a role="tab"> is neither a working tab nor an honest link;
+        // render a plain, non-interactive heading instead of the usual clickable tab title
+        final WebMarkupContainer titleLink;
+        if (hasSingleVisibleTab()) {
+            titleLink = newSingleTabHeading(ID_LINK);
+        } else {
+            titleLink = newLink(ID_LINK, index);
+            titleLink.add(AttributeAppender.append("role", "tab"));
+            titleLink.add(AttributeModifier.replace("aria-selected", (IModel<String>) () -> String.valueOf(getSelectedTab() == index)));
+            titleLink.add(AttributeModifier.replace("aria-controls", getTabPanelMarkupId(index)));
+        }
         titleLink.add(AttributeAppender.append("class", () -> getSelectedTab() == index ? getSelectedTabCssClass() : ""));
         titleLink.setOutputMarkupPlaceholderTag(true);
         titleLink.setOutputMarkupId(true);
         titleLink.setMarkupId(getTabLinkMarkupId(index));
-        titleLink.add(AttributeModifier.replace("aria-selected", (IModel<String>) () -> String.valueOf(getSelectedTab() == index)));
-        titleLink.add(AttributeModifier.replace("aria-controls", getTabPanelMarkupId(index)));
         item.add(titleLink);
 
         IModel<String> iconCssClass = null;
@@ -375,6 +387,28 @@ public class TabbedPanel<T extends ITab> extends Panel {
     }
 
     /**
+     * Factory method for the tab title when it's the only (visible) tab in the panel, so there is
+     * nothing to switch between.
+     *
+     * @param linkId component id with which the heading should be created, same id the usual link uses
+     * @return created component
+     */
+    protected WebMarkupContainer newSingleTabHeading(final String linkId) {
+        WebMarkupContainer heading = new WebMarkupContainer(linkId) {
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            protected void onComponentTag(final ComponentTag tag) {
+                super.onComponentTag(tag);
+                tag.setName("div");
+                tag.remove("href");
+            }
+        };
+        heading.add(AttributeModifier.replace("role", "heading"));
+        return heading;
+    }
+
+    /**
      * sets the selected tab
      *
      * @param index index of the tab to select
@@ -465,6 +499,19 @@ public class TabbedPanel<T extends ITab> extends Panel {
         }
 
         return visibilityCache;
+    }
+
+    private boolean hasSingleVisibleTab() {
+        int visibleCount = 0;
+        for (int i = 0; i < tabs.getObject().size(); i++) {
+            if (getVisiblityCache().isVisible(i)) {
+                visibleCount++;
+                if (visibleCount > 1) {
+                    return false;
+                }
+            }
+        }
+        return visibleCount == 1;
     }
 
     /**
