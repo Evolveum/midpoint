@@ -6,6 +6,8 @@
 
 package com.evolveum.midpoint.task.api;
 
+import com.evolveum.midpoint.prism.Safe;
+
 import java.io.Serializable;
 import java.util.Objects;
 
@@ -36,14 +38,17 @@ public class LightweightIdentifier implements Serializable {
         this.string = formatString();
     }
 
+    @Safe
     public long getTimestamp() {
         return timestamp;
     }
 
+    @Safe
     public int getHostIdentifier() {
         return hostIdentifier;
     }
 
+    @Safe
     public int getSequenceNumber() {
         return sequenceNumber;
     }

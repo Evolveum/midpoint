@@ -53,7 +53,7 @@ public abstract class AbstractScriptExecutor implements ScriptExecutor {
     private final PrismContext prismContext;
     private final Protector protector;
     private final LocalizationService localizationService;
-    private final ExpressionsConfigurationSection configuration;
+    protected final ExpressionsConfigurationSection configuration;
 
     public AbstractScriptExecutor(
             PrismContext prismContext,
@@ -124,9 +124,8 @@ public abstract class AbstractScriptExecutor implements ScriptExecutor {
             @NotNull ScriptExecutionContext context)
             throws Exception;
 
-
-    private void checkProfileAndSafetyRestrictions(ScriptExecutionContext context) throws SecurityViolationException {
-        if (configuration.isSafeExpressionsOnly() && !isConsideredSafe()) {
+    protected void checkProfileAndSafetyRestrictions(ScriptExecutionContext context) throws SecurityViolationException {
+        if (configuration.safeExpressionsOnly() && !isConsideredSafe()) {
             throw new SecurityViolationException(
                     ("Script interpreter for language '%s' is not considered safe; script execution prohibited in %s").formatted(
                             getLanguageName(),
@@ -190,14 +189,17 @@ public abstract class AbstractScriptExecutor implements ScriptExecutor {
     /**
      * Process functional libraries (name -> implementation) into a map, including a value conversion by lambda.
      */
-    protected <T> void prepareFunctionLibraryMap(
-            ScriptExecutionContext context, Map<String,T> map, Function<TypedValue<?>,T> converter) {
+    private <T> void prepareFunctionLibraryMap(
+            ScriptExecutionContext context, Map<String, T> map, Function<TypedValue<?>, T> converter) {
 
         // Functions
         for (FunctionLibraryBinding funcLib : emptyIfNull(context.getFunctionLibraryBindings())) {
             Object implementation = funcLib.getImplementation();
             TypedValue<?> typedValue = new TypedValue<>(implementation, implementation.getClass());
-            map.put(funcLib.getVariableName(), converter.apply(typedValue));
+            T convertedValue = converter.apply(typedValue);
+            if (shouldProvideVariable(convertedValue, typedValue)) {
+                map.put(funcLib.getVariableName(), convertedValue);
+            }
         }
     }
 
@@ -232,7 +234,13 @@ public abstract class AbstractScriptExecutor implements ScriptExecutor {
                         valueVariableMode,
                         prismContext, context.getTask(), context.getResult());
 
-                map.put(variableName, converter.apply(variableTypedValue));
+                T convertedValue = converter.apply(variableTypedValue);
+
+                if (!shouldProvideVariable(convertedValue, variableTypedValue)) {
+                    continue;
+                }
+
+                map.put(variableName, convertedValue);
                 if (context.getTrace() != null && !variables.isAlias(variableName)) {
                     ScriptVariableEvaluationTraceType variableTrace = new ScriptVariableEvaluationTraceType();
                     variableTrace.setName(new QName(variableName));
@@ -248,6 +256,11 @@ public abstract class AbstractScriptExecutor implements ScriptExecutor {
             putIfMissing(map, converter, ExpressionConstants.VAR_PRISM_CONTEXT, prismContext);
             putIfMissing(map, converter, ExpressionConstants.VAR_LOCALIZATION_SERVICE, localizationService);
         }
+    }
+
+    /** E.g. restricted executor may want to avoid selected (unsafe) variables. */
+    protected boolean shouldProvideVariable(@Nullable Object actualValue, @NotNull TypedValue<?> typedValue) {
+        return true;
     }
 
     protected boolean supportsDeprecatedVariables() {
@@ -282,7 +295,7 @@ public abstract class AbstractScriptExecutor implements ScriptExecutor {
     }
 
     /**
-     * Safe script evaluators are those that execute untrusted scripts. Currently, only MEL has this property.
+     * Safe script evaluators are those that execute untrusted scripts. Currently, only MEL and Safe Velocity have this property.
      *
      * @see MidpointConfiguration#isSafeExpressionsOnly()
      */

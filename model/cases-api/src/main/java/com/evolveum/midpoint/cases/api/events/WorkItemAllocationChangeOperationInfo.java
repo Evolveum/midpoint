@@ -6,6 +6,7 @@
 
 package com.evolveum.midpoint.cases.api.events;
 
+import com.evolveum.midpoint.prism.Safe;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemOperationKindType;
 import org.jetbrains.annotations.NotNull;
@@ -30,11 +31,13 @@ public class WorkItemAllocationChangeOperationInfo extends WorkItemOperationInfo
     }
 
     @NotNull
+    @Safe
     public List<ObjectReferenceType> getCurrentActors() {
         return currentActors;
     }
 
     @Nullable
+    @Safe
     public List<ObjectReferenceType> getNewActors() {
         return newActors;
     }

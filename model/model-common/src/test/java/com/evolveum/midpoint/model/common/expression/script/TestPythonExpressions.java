@@ -46,7 +46,7 @@ public class TestPythonExpressions extends AbstractScriptTest {
     }
 
     /**
-     * If {@link ExpressionsConfigurationSection#isSafeExpressionsOnly()} is set to {@code true}, then the script evaluator
+     * If {@link ExpressionsConfigurationSection#safeExpressionsOnly()} is set to {@code true}, then the script evaluator
      * should not be able to execute scripts that are not safe, like those in Python.
      */
     @Test

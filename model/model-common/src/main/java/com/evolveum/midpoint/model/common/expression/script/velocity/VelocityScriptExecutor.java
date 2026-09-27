@@ -6,77 +6,43 @@
 
 package com.evolveum.midpoint.model.common.expression.script.velocity;
 
-import java.io.StringWriter;
-import java.util.Map;
-import java.util.Properties;
+import com.evolveum.midpoint.repo.common.SystemObjectCache.ExpressionsConfigurationView;
 
-import com.evolveum.midpoint.common.configuration.api.ExpressionsConfigurationSection;
-import com.evolveum.midpoint.model.common.expression.script.ScriptExecutionContext;
-import com.evolveum.midpoint.schema.internals.InternalCounters;
-import com.evolveum.midpoint.schema.internals.InternalMonitor;
-
-import org.apache.velocity.VelocityContext;
-import org.apache.velocity.app.Velocity;
-import org.apache.velocity.app.event.EventCartridge;
-import org.apache.velocity.app.event.ReferenceInsertionEventHandler;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.common.LocalizationService;
-import com.evolveum.midpoint.model.common.expression.script.AbstractScriptExecutor;
-import com.evolveum.midpoint.prism.binding.TypeSafeEnum;
+import com.evolveum.midpoint.common.configuration.api.ExpressionsConfigurationSection;
+import com.evolveum.midpoint.model.common.expression.script.ScriptExecutionContext;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.util.exception.*;
 
 /**
- * Expression evaluator that is using Apache Velocity engine.
+ * Expression evaluator that is using Apache Velocity engine in the original way (before midPoint 4.11).
  */
-public class VelocityScriptExecutor extends AbstractScriptExecutor {
+public class VelocityScriptExecutor extends AbstractVelocityScriptExecutor {
 
     public VelocityScriptExecutor(
             PrismContext prismContext,
             Protector protector,
             LocalizationService localizationService,
-            ExpressionsConfigurationSection configuration) {
-        super(prismContext, protector, localizationService, configuration);
-        Velocity.init(new Properties());
+            ExpressionsConfigurationSection configuration,
+            @NotNull ExpressionsConfigurationView expressionsConfigurationView) {
+        super(prismContext, protector, localizationService, configuration, expressionsConfigurationView);
     }
 
     @Override
-    public @NotNull Object executeInternal(
-            @NotNull String codeString,
-            @NotNull ScriptExecutionContext context)
-            throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,
-            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
-
-        VelocityContext velocityCtx = createVelocityContext(context);
-
-        StringWriter resultWriter = new StringWriter();
-
-        InternalMonitor.recordCount(InternalCounters.SCRIPT_EXECUTION_COUNT);
-        Velocity.evaluate(velocityCtx, resultWriter, "", codeString);
-
-        return resultWriter.toString();
+    ExecutionMode getExecutionModeFromExecutor() {
+        return ExecutionMode.FULL;
     }
 
-    private VelocityContext createVelocityContext(ScriptExecutionContext context)
-            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
-            SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
-        VelocityContext velocityCtx = new VelocityContext();
-
-        // Render midPoint schema enums using their lexical values
-        EventCartridge eventCartridge = new EventCartridge();
-        eventCartridge.addEventHandler((ReferenceInsertionEventHandler)
-                        (velocityContext, reference, value) ->
-                                value instanceof TypeSafeEnum typeSafeEnum ? typeSafeEnum.value() : value);
-        eventCartridge.attachToContext(velocityCtx);
-
-        Map<String, Object> scriptVariables = prepareUnifiedScriptVariablesValueMap(context);
-        for (Map.Entry<String, Object> scriptVariable : scriptVariables.entrySet()) {
-            velocityCtx.put(scriptVariable.getKey(), scriptVariable.getValue());
+    @Override
+    protected void checkProfileAndSafetyRestrictions(ScriptExecutionContext context) throws SecurityViolationException {
+        super.checkProfileAndSafetyRestrictions(context);
+        if (configuration.safeVelocityExpressionsOnly()) {
+            throw new SecurityViolationException("Unsafe velocity expressions are not allowed in this configuration");
         }
-        return velocityCtx;
     }
 
     @Override

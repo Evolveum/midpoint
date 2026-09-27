@@ -8,6 +8,8 @@ package com.evolveum.midpoint.notifications.impl.events;
 
 import javax.xml.datatype.Duration;
 
+import com.evolveum.midpoint.prism.Safe;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -24,17 +26,23 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.EventCategoryType;
 
 public class WorkItemAllocationEventImpl extends WorkItemEventImpl implements WorkItemAllocationEvent {
 
-    public WorkItemAllocationEventImpl(@NotNull LightweightIdentifierGenerator lightweightIdentifierGenerator,
+    public WorkItemAllocationEventImpl(
+            @NotNull LightweightIdentifierGenerator lightweightIdentifierGenerator,
             @NotNull ChangeType changeType,
-            @NotNull CaseWorkItemType workItem, @Nullable SimpleObjectRef assignee, @Nullable SimpleObjectRef initiator,
-            @Nullable WorkItemOperationInfo operationInfo, @Nullable WorkItemOperationSourceInfo sourceInfo,
-            @Nullable ApprovalContextType approvalContext, @NotNull CaseType aCase,
+            @NotNull CaseWorkItemType workItem,
+            @Nullable SimpleObjectRef assignee,
+            @Nullable SimpleObjectRef initiator,
+            @NotNull WorkItemOperationInfo operationInfo,
+            @Nullable WorkItemOperationSourceInfo sourceInfo,
+            @Nullable ApprovalContextType approvalContext,
+            @NotNull CaseType aCase,
             @Nullable Duration timeBefore) {
         super(lightweightIdentifierGenerator, changeType, workItem, assignee, initiator, operationInfo, sourceInfo,
                 approvalContext, aCase, timeBefore);
     }
 
     @Override
+    @Safe
     public boolean isCategoryType(EventCategoryType eventCategory) {
         return eventCategory == EventCategoryType.WORK_ITEM_ALLOCATION_EVENT
                 || eventCategory == EventCategoryType.WORK_ITEM_EVENT

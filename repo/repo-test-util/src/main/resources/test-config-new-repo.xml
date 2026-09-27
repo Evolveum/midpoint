@@ -84,5 +84,11 @@
             <ad2025BaseDn>DC=ad2025,DC=lab,DC=evolveum,DC=com</ad2025BaseDn>
             <ad2025UsersDn>CN=Users,DC=ad2025,DC=lab,DC=evolveum,DC=com</ad2025UsersDn>
         </constants>
+        <expressions>
+            <!-- used only in model-test and above -->
+            <customVelocityExtensionClassName>com.evolveum.midpoint.model.test.TestingVelocityExtension</customVelocityExtensionClassName>
+            <!-- the same class as above is used as JavaMethodReference target -->
+            <javaMethodEvaluatorPackageName>com.evolveum.midpoint.model.test</javaMethodEvaluatorPackageName>
+        </expressions>
     </midpoint>
 </configuration>

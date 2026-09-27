@@ -9,6 +9,7 @@ package com.evolveum.midpoint.notifications.api.events;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.ModelElementContext;
 import com.evolveum.midpoint.model.api.context.ModelProjectionContext;
+import com.evolveum.midpoint.prism.Safe;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
@@ -68,12 +69,15 @@ public interface ModelEvent extends Event {
     /**
      * May be used from scripts
      */
+    @Safe
     default String getContentAsFormattedList() {
         return getContentAsFormattedList(false, null, null);
     }
 
+    @Safe
     default String getContentAsFormattedList(Task task, OperationResult result) {
         return getContentAsFormattedList(false, task, result);
     }
+
     String getContentAsFormattedList(boolean showAuxiliaryAttributes, Task task, OperationResult result);
 }

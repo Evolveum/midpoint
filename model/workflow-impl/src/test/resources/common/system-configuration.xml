@@ -65,6 +65,110 @@
                 </expressionFilter>
             </simpleTaskNotifier>
         </handler>
+        <handler>
+            <simpleWorkflowNotifier>
+                <category>workflowProcessEvent</category>
+                <operation>delete</operation> <!-- should be more information here -->
+                <bodyExpression>
+                    <script>
+                        <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#safe-velocity</language>
+                        <code> <!-- These are expressions from the notifications training -->
+                            [00: $event.statusAsText]
+
+                            [10: $event.requesterDisplayName]
+                            [11: $event.requesterName]
+
+                            [50: $event.caseName]
+                        </code>
+                    </script>
+                </bodyExpression>
+                <transport>dummy:workflow-process-safe</transport>
+            </simpleWorkflowNotifier>
+            <simpleWorkflowNotifier>
+                <category>workItemLifecycleEvent</category>
+                <operation>delete</operation> <!-- we need operationKind to be non-null, so we need completion notification -->
+                <bodyExpression>
+                    <script>
+                        <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#safe-velocity</language>
+                        <code> <!-- These are expressions from the notifications training -->
+                            [00: $event.statusAsText]
+                            [01: $event.getOperationKind()]
+
+                            [10: $event.requesterDisplayName]
+                            [11: $event.requesterName]
+
+                            [20: $event.requesteeDisplayName]
+                            [21: $event.requesteeName]
+
+                            [50: $event.caseName]
+
+                            [60: $event.workItemUrl]
+                            [61: $event.getWorkItem().getDeadline()]
+                            [62: $event.getCause().getType()]
+
+                            Complex scenario:
+
+                            [event: $event]
+
+                            [approvalContext: $event.approvalContext]
+
+                            [deltasToApprove: $event.approvalContext.deltasToApprove]
+
+                            #set ($primaryDelta = $event.approvalContext.deltasToApprove.focusPrimaryDelta)
+                            [primaryDelta: $primaryDelta]
+
+                            #set ($changeType = ${event.getApprovalContext().getDeltasToApprove().getFocusPrimaryDelta().getChangeType()})
+                            [changeType: $changeType]
+
+                            #set ($itemDeltas = ${event.getApprovalContext().getDeltasToApprove().getFocusPrimaryDelta().getItemDelta()})
+                            [itemDeltas: $itemDeltas]
+
+                            #foreach ($itemDelta in $itemDeltas)
+
+                              [itemDelta: $itemDelta]
+                              [values size: $itemDelta.getValue().size()]
+
+                              #foreach ($itemDeltaValue in $itemDelta.getValue())
+
+                                [itemDeltaValue: $itemDeltaValue]
+
+                                #set ($modificationType = $itemDelta.getModificationType())
+
+                                [modificationType: $modificationType]
+                                [path: $itemDelta.getPath()]
+
+                                #if ($itemDelta.getPath() == "assignment")
+
+                                  #set ($assignmentRaw = $itemDeltaValue)
+                                  [assignmentRaw: $assignmentRaw]
+
+                                  #set ($assignment = $assignmentRaw.getValue())
+                                  [assignment: $assignment]
+
+                                  [targetRef: $assignment.targetRef]
+                                  [targetRef type: $assignment.targetRef.type]
+
+                                  #set ($targetTypeShort = $assignment.getTargetRef().getType().getLocalPart())
+
+                                  [targetTypeShort: $targetTypeShort]
+
+                                  #set ($obj = $midpoint.resolveReferenceIfExists(${assignment.getTargetRef()}))
+
+                                  [obj: $obj] (target)
+                                  [obj.name: $obj.getName()]
+                                  [obj.displayName: $obj.getDisplayName()]
+
+                                #else
+                                  \$error (this will be reported!)
+                                #end
+                              #end
+                            #end
+                        </code>
+                    </script>
+                </bodyExpression>
+                <transport>dummy:work-item-safe</transport>
+            </simpleWorkflowNotifier>
+        </handler>
     </notificationConfiguration>
     <workflowConfiguration>
         <approverCommentsFormatting>
@@ -83,4 +187,7 @@
         <primaryChangeProcessor>
         </primaryChangeProcessor>
     </workflowConfiguration>
+    <infrastructure>
+        <publicHttpUrlPattern>http://evolveum.com/testing</publicHttpUrlPattern> <!-- to check the notifications -->
+    </infrastructure>
 </systemConfiguration>

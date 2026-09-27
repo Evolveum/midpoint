@@ -226,7 +226,7 @@ public abstract class EndpointsConnectorStepPanel extends AbstractWizardStepPane
                     objectClassModel.getObject().findContainer(ConnDevObjectClassInfoType.F_ENDPOINT);
 
             List<PrismContainerValueWrapper<ConnDevHttpEndpointType>> valuesToRemove = container.getValues().stream()
-                    .filter(value -> value.getRealValue().getSuggestedUse().contains(getEndpointIntents()))
+                    .filter(value -> getEndpointIntents().stream().anyMatch(i -> value.getRealValue().getSuggestedUse().contains(i)))
                     .toList();
 
             if (!valuesToRemove.isEmpty()) {
@@ -306,7 +306,7 @@ public abstract class EndpointsConnectorStepPanel extends AbstractWizardStepPane
 
             return container.getValues().stream()
                     .anyMatch(value -> value.getRealValue() != null
-                            && value.getRealValue().getSuggestedUse().contains(getEndpointIntents()));
+                            && getEndpointIntents().stream().anyMatch(i -> value.getRealValue().getSuggestedUse().contains(i)));
 
         } catch (SchemaException e) {
             throw new RuntimeException(e);

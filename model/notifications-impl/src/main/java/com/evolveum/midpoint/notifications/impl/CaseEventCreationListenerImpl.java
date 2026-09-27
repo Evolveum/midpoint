@@ -9,11 +9,7 @@ package com.evolveum.midpoint.notifications.impl;
 import java.util.List;
 import javax.xml.datatype.Duration;
 
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-
-import com.evolveum.midpoint.util.exception.SystemException;
-
+import com.google.common.base.Preconditions;
 import jakarta.annotation.PostConstruct;
 import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
@@ -33,7 +29,6 @@ import com.evolveum.midpoint.notifications.impl.util.EventHelper;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
 import com.evolveum.midpoint.schema.config.BaseEventHandlerConfigItem;
-import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
 import com.evolveum.midpoint.task.api.Task;
@@ -155,7 +150,7 @@ public class CaseEventCreationListenerImpl implements CaseEventCreationListener 
             @NotNull WorkItemAllocationChangeOperationInfo operationInfo,
             @Nullable WorkItemOperationSourceInfo sourceInfo,
             CaseType aCase, Task task, OperationResult result) {
-        Validate.notNull(operationInfo.getNewActors());
+        Preconditions.checkNotNull(operationInfo.getNewActors());
 
         checkOids(operationInfo.getCurrentActors());
         checkOids(operationInfo.getNewActors());
@@ -168,13 +163,25 @@ public class CaseEventCreationListenerImpl implements CaseEventCreationListener 
         refs.forEach(r -> Validate.notNull(r.getOid(), "No OID in actor object reference " + r));
     }
 
-    private void onWorkItemAllocationAdd(ObjectReferenceType newActor, @NotNull CaseWorkItemType workItem,
-            @Nullable WorkItemOperationInfo operationInfo, @Nullable WorkItemOperationSourceInfo sourceInfo,
-            CaseType aCase, Task task, OperationResult result) {
-        WorkItemAllocationEventImpl event = new WorkItemAllocationEventImpl(identifierGenerator, ChangeType.ADD, workItem,
+    private void onWorkItemAllocationAdd(
+            ObjectReferenceType newActor,
+            @NotNull CaseWorkItemType workItem,
+            @NotNull WorkItemOperationInfo operationInfo,
+            @Nullable WorkItemOperationSourceInfo sourceInfo,
+            CaseType aCase,
+            Task task,
+            OperationResult result) {
+        WorkItemAllocationEventImpl event = new WorkItemAllocationEventImpl(
+                identifierGenerator,
+                ChangeType.ADD,
+                workItem,
                 SimpleObjectRefImpl.create(newActor),
-                getInitiator(sourceInfo), operationInfo, sourceInfo,
-                aCase.getApprovalContext(), aCase, null);
+                getInitiator(sourceInfo),
+                operationInfo,
+                sourceInfo,
+                aCase.getApprovalContext(),
+                aCase,
+                null);
         initializeWorkflowEvent(event, aCase);
         eventHelper.processEvent(event, task, result);
     }
@@ -184,15 +191,26 @@ public class CaseEventCreationListenerImpl implements CaseEventCreationListener 
                 SimpleObjectRefImpl.create(sourceInfo.getInitiatorRef()) : null;
     }
 
-    private void onWorkItemAllocationModifyDelete(ObjectReferenceType currentActor, @NotNull CaseWorkItemType workItem,
-            @Nullable WorkItemOperationInfo operationInfo, @Nullable WorkItemOperationSourceInfo sourceInfo,
-            Duration timeBefore, CaseType aCase,
-            Task task, OperationResult result) {
-        WorkItemAllocationEventImpl event = new WorkItemAllocationEventImpl(identifierGenerator,
-                timeBefore != null ? ChangeType.MODIFY : ChangeType.DELETE, workItem,
+    private void onWorkItemAllocationModifyDelete(
+            ObjectReferenceType currentActor,
+            @NotNull CaseWorkItemType workItem,
+            @NotNull WorkItemOperationInfo operationInfo,
+            @Nullable WorkItemOperationSourceInfo sourceInfo,
+            Duration timeBefore,
+            CaseType aCase,
+            Task task,
+            OperationResult result) {
+        WorkItemAllocationEventImpl event = new WorkItemAllocationEventImpl(
+                identifierGenerator,
+                timeBefore != null ? ChangeType.MODIFY : ChangeType.DELETE,
+                workItem,
                 SimpleObjectRefImpl.create(currentActor),
-                getInitiator(sourceInfo), operationInfo, sourceInfo,
-                aCase.getApprovalContext(), aCase, timeBefore);
+                getInitiator(sourceInfo),
+                operationInfo,
+                sourceInfo,
+                aCase.getApprovalContext(),
+                aCase,
+                timeBefore);
         initializeWorkflowEvent(event, aCase);
         eventHelper.processEvent(event, task, result);
     }

@@ -6,6 +6,8 @@
 
 package com.evolveum.midpoint.notifications.impl.events;
 
+import com.evolveum.midpoint.prism.Safe;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -29,6 +31,7 @@ public class WorkItemCustomEventImpl extends WorkItemEventImpl implements WorkIt
     }
 
     @Override
+    @Safe
     public boolean isCategoryType(EventCategoryType eventCategory) {
         return eventCategory == EventCategoryType.WORK_ITEM_CUSTOM_EVENT
                 || eventCategory == EventCategoryType.WORK_ITEM_EVENT
@@ -36,6 +39,7 @@ public class WorkItemCustomEventImpl extends WorkItemEventImpl implements WorkIt
     }
 
     @Override
+    @Safe
     public WorkItemNotificationActionType getNotificationAction() {
         return (WorkItemNotificationActionType) getSource();
     }

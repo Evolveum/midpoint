@@ -12,6 +12,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.prism.Safe;
 import com.evolveum.midpoint.prism.path.ItemPath;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
@@ -71,10 +72,12 @@ public class WorkItemId implements Serializable {
     }
 
     @NotNull
+    @Safe
     public String getCaseOid() {
         return caseOid;
     }
 
+    @Safe
     public long getId() {
         return id;
     }
@@ -87,6 +90,7 @@ public class WorkItemId implements Serializable {
                 '}';
     }
 
+    @Safe
     public String asString() {
         return caseOid + ":" + id;
     }

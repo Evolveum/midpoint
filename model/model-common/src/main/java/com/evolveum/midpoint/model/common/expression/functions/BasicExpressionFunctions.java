@@ -87,6 +87,7 @@ import static java.util.Collections.emptySet;
  * @author Radovan Semancik
  */
 @SuppressWarnings({ "unused", "WeakerAccess" })
+@Safe
 public class BasicExpressionFunctions {
 
     public static final String NAME_SEPARATOR = " ";
@@ -120,6 +121,7 @@ public class BasicExpressionFunctions {
     /**
      * Convert string to lower case.
      */
+    @Safe
     public static String lc(String orig) {
         return StringUtils.lowerCase(orig);
     }
@@ -127,10 +129,12 @@ public class BasicExpressionFunctions {
     /**
      * Convert string to upper case.
      */
+    @Safe
     public static String uc(String orig) {
         return StringUtils.upperCase(orig);
     }
 
+    @Safe
     public boolean contains(Object object, Object search) {
         String objectStr = stringify(object);
         if (StringUtils.isEmpty(objectStr)) {
@@ -143,6 +147,7 @@ public class BasicExpressionFunctions {
         return objectStr.contains(searchStr);
     }
 
+    @Safe
     public boolean containsIgnoreCase(@Nullable Object object, @Nullable Object search) {
         String objectStr = stringify(object);
         if (StringUtils.isEmpty(objectStr)) {
@@ -155,6 +160,7 @@ public class BasicExpressionFunctions {
         return Strings.CI.contains(objectStr, searchStr);
     }
 
+    @Safe
     public boolean equalsIgnoreCase(@Nullable Object o1, @Nullable Object o2) {
         return Strings.CI.equals(stringify(o1), stringify(o2));
     }
@@ -162,6 +168,7 @@ public class BasicExpressionFunctions {
     /**
      * Remove whitespaces at the beginning and at the end of the string.
      */
+    @Safe
     public static String trim(String orig) {
         return StringUtils.trim(orig);
     }
@@ -170,6 +177,7 @@ public class BasicExpressionFunctions {
      * Concatenates the arguments to create a name.
      * Each argument is stringified, trimmed and the result is concatenated by spaces.
      */
+    @Safe
     public String concatName(Object... components) {
         if (components == null || components.length == 0) {
             return "";
@@ -211,6 +219,7 @@ public class BasicExpressionFunctions {
      * @param value  the value
      * @return true/false
      */
+    @Safe
     public boolean startsWith(String string, String value) {
         if (string == null || value == null) {
             return false;
@@ -226,6 +235,7 @@ public class BasicExpressionFunctions {
      * @param value  the value
      * @return true/false
      */
+    @Safe
     public boolean startsWith(PolyString polyString, String value) {
         if (polyString == null || value == null) {
             return false;
@@ -243,6 +253,7 @@ public class BasicExpressionFunctions {
      * @param value  the value
      * @return true/false
      */
+    @Safe
     public boolean endsWith(String string, String value) {
         if (string == null || value == null) {
             return false;
@@ -258,6 +269,7 @@ public class BasicExpressionFunctions {
      * @param value  the value
      * @return true/false
      */
+    @Safe
     public boolean endsWith(PolyString polyString, String value) {
         if (polyString == null || value == null) {
             return false;
@@ -273,6 +285,7 @@ public class BasicExpressionFunctions {
      * @param orig original value to normalize
      * @return normalized value
      */
+    @Safe
     public String norm(String orig) {
         if (orig == null) {
             return null;
@@ -288,6 +301,7 @@ public class BasicExpressionFunctions {
      * @param orig original value to normalize
      * @return normalized value
      */
+    @Safe
     public String norm(PolyString orig) {
         if (orig == null) {
             return null;
@@ -305,6 +319,7 @@ public class BasicExpressionFunctions {
      * @param orig original value to normalize
      * @return normalized value
      */
+    @Safe
     public String norm(PolyStringType orig) {
         if (orig == null) {
             return null;
@@ -314,10 +329,12 @@ public class BasicExpressionFunctions {
     }
 
     @Deprecated // use ascii() instead
+    @Safe
     public String toAscii(Object input) {
         return ascii(input);
     }
 
+    @Safe
     public String ascii(Object input) {
         if (input == null) {
             return null;
@@ -331,6 +348,7 @@ public class BasicExpressionFunctions {
      * Capitalizes a String changing the first character to title case as per Character.toTitleCase(int).
      * No other characters are changed.
      */
+    @Safe
     public String capitalize(Object input) {
         if (input == null) {
             return null;
@@ -344,6 +362,7 @@ public class BasicExpressionFunctions {
      * E.g. it tries to detect collections and returns the first element (if there is only one).
      * Never returns null. Returns empty string instead.
      */
+    @Safe
     public String stringify(Object whatever) {
         return ExpressionUtil.stringify(whatever, "");
     }
@@ -353,10 +372,12 @@ public class BasicExpressionFunctions {
      * E.g. it tries to detect collections and returns the first element (if there is only one).
      * Never returns null, returns value provided as second argument instead.
      */
+    @Safe
     public String stringify(Object whatever, String nullRepresentation) {
         return ExpressionUtil.stringify(whatever, nullRepresentation);
     }
 
+    @Safe
     public Collection<String> getOids(Collection<ObjectReferenceType> refs) {
         if (refs == null) {
             return null;
@@ -375,12 +396,14 @@ public class BasicExpressionFunctions {
 
     }
 
+    @Safe
     public Collection<String> getOids(ObjectReferenceType refs) {
         List<ObjectReferenceType> refList = new ArrayList<>();
         refList.add(refs);
         return getOids(refList);
     }
 
+    @Safe
     public Collection<String> getOids(ObjectType refs) {
         List<String> oid = new ArrayList<>();
         oid.add(refs.getOid());
@@ -388,6 +411,7 @@ public class BasicExpressionFunctions {
 
     }
 
+    @Safe
     public boolean isEmpty(Object whatever) {
         if (whatever == null) {
             return true;
@@ -414,6 +438,7 @@ public class BasicExpressionFunctions {
      * Returns real values of an extension property (of an object, assignment, or similar structure).
      * Do not modify the returned collection.
      */
+    @Safe
     public <T> @NotNull Collection<T> getExtensionPropertyValues(
             Containerable containerable, String namespace, @NotNull String localPart) {
         checkColon(localPart);
@@ -421,12 +446,14 @@ public class BasicExpressionFunctions {
     }
 
     /** @see #getExtensionPropertyValue(Containerable, String, String)  */
+    @Safe
     public <T> @NotNull Collection<T> getExtensionPropertyValues(
             Containerable object, @NotNull groovy.namespace.QName propertyQname) {
         return getExtensionPropertyValues(object, propertyQname.getNamespaceURI(), propertyQname.getLocalPart());
     }
 
     /** @see #getExtensionPropertyValue(Containerable, String, String)  */
+    @Safe
     public <T> @NotNull Collection<T> getExtensionPropertyValues(
             Containerable object, @NotNull javax.xml.namespace.QName propertyQname) {
         return ObjectTypeUtil.getExtensionPropertyValuesNotNull(object, propertyQname);
@@ -436,6 +463,7 @@ public class BasicExpressionFunctions {
      * Returns the real value of an extension property (of an object, assignment, or similar structure), or {@code null}
      * if no value exists. Throws a {@link SchemaException} if the property has multiple values.
      */
+    @Safe
     public <T> @Nullable T getExtensionPropertyValue(
             Containerable containerable, @NotNull javax.xml.namespace.QName propertyQname)
             throws SchemaException {
@@ -445,6 +473,7 @@ public class BasicExpressionFunctions {
     }
 
     /** @see #getExtensionPropertyValue(Containerable, QName)  */
+    @Safe
     public <T> @Nullable T getExtensionPropertyValue(
             Containerable containerable, @NotNull String localPart) throws SchemaException {
         checkColon(localPart);
@@ -452,6 +481,7 @@ public class BasicExpressionFunctions {
     }
 
     /** @see #getExtensionPropertyValue(Containerable, QName)  */
+    @Safe
     public <T> @Nullable T getExtensionPropertyValue(
             Containerable containerable, String namespace, @NotNull String localPart) throws SchemaException {
         checkColon(localPart);
@@ -459,6 +489,7 @@ public class BasicExpressionFunctions {
     }
 
     /** @see #getExtensionPropertyValue(Containerable, QName)  */
+    @Safe
     public <T> @Nullable T getExtensionPropertyValue(
             Containerable containerable, @NotNull groovy.namespace.QName propertyQname) throws SchemaException {
         return getExtensionPropertyValue(containerable, propertyQname.getNamespaceURI(), propertyQname.getLocalPart());
@@ -468,6 +499,7 @@ public class BasicExpressionFunctions {
      * Returns the value of an extension reference item (of an object, assignment, or similar structure), or {@code null}
      * if no value exists. Throws a {@link SchemaException} if the item has multiple values.
      */
+    @Safe
     public @Nullable Referencable getExtensionReferenceValue(
             Containerable containerable, @NotNull javax.xml.namespace.QName itemQName)
             throws SchemaException {
@@ -477,6 +509,7 @@ public class BasicExpressionFunctions {
     }
 
     /** @see #getExtensionReferenceValue(Containerable, QName) */
+    @Safe
     public @Nullable Referencable getExtensionReferenceValue(
             Containerable containerable, String namespace, @NotNull String localPart) throws SchemaException {
         checkColon(localPart);
@@ -516,35 +549,43 @@ public class BasicExpressionFunctions {
         }
     }
 
+    @Safe
     public <T> T getPropertyValue(Containerable c, String path) throws SchemaException {
         return getPropertyValue(c, prismContext.itemPathParser().asItemPathType(path));
     }
 
+    @Safe
     public <T> Collection<T> getPropertyValues(Containerable c, String path) {
         return getPropertyValues(c, prismContext.itemPathParser().asItemPathType(path));
     }
 
+    @Safe
     public <T> T getPropertyValue(Containerable c, ItemPathType path) throws SchemaException {
         return c != null ? getPropertyValue(c.asPrismContainerValue(), path) : null;
     }
 
+    @Safe
     public <T> Collection<T> getPropertyValues(Containerable c, ItemPathType path) {
         return c != null ? getPropertyValues(c.asPrismContainerValue(), path) : emptyList();
     }
 
+    @Safe
     public <T> T getPropertyValue(PrismContainerValue<?> pcv, String path) throws SchemaException {
         return getPropertyValue(pcv, prismContext.itemPathParser().asItemPathType(path));
     }
 
+    @Safe
     public <T> T getPropertyValue(PrismContainerValue<?> pcv, ItemPathType path) throws SchemaException {
         Collection<T> values = getPropertyValues(pcv, path);
         return single(values, "a multi-valued property " + path);
     }
 
+    @Safe
     public <T> Collection<T> getPropertyValues(PrismContainerValue<?> pcv, String path) {
         return getPropertyValues(pcv, prismContext.itemPathParser().asItemPathType(path));
     }
 
+    @Safe
     public <T> Collection<T> getPropertyValues(PrismContainerValue<?> pcv, ItemPathType path) {
         if (pcv == null) {
             return emptyList();
@@ -557,52 +598,63 @@ public class BasicExpressionFunctions {
         return (Collection<T>) item.getRealValues();
     }
 
+    @Safe
     public <T> Collection<T> getAttributeValues(ShadowType shadow, String attributeNamespace, String attributeLocalPart) {
         checkColon(attributeLocalPart);
         return getAttributeValues(shadow, new javax.xml.namespace.QName(attributeNamespace, attributeLocalPart));
     }
 
+    @Safe
     public <T> Collection<T> getAttributeValues(ShadowType shadow, String attributeLocalPart) {
         checkColon(attributeLocalPart);
         return getAttributeValues(shadow, new javax.xml.namespace.QName(MidPointConstants.NS_RI, attributeLocalPart));
     }
 
+    @Safe
     public <T> Collection<T> getAttributeValues(ShadowType shadow, groovy.namespace.QName attributeQname) {
         return getAttributeValues(shadow, attributeQname.getNamespaceURI(), attributeQname.getLocalPart());
     }
 
+    @Safe
     public <T> Collection<T> getAttributeValues(ShadowType shadow, javax.xml.namespace.QName attributeQname) {
         return ShadowUtil.getAttributeValues(shadow, attributeQname);
     }
 
+    @Safe
     public <T> T getAttributeValue(ShadowType shadow, String attributeNamespace, String attributeLocalPart) throws SchemaException {
         checkColon(attributeLocalPart);
         return getAttributeValue(shadow, new javax.xml.namespace.QName(attributeNamespace, attributeLocalPart));
     }
 
     /** The namespace of the attribute is assumed to be "ri:" */
+    @Safe
     public <T> T getAttributeValue(ShadowType shadow, String attributeLocalPart) throws SchemaException {
         checkColon(attributeLocalPart);
         return getAttributeValue(shadow, new javax.xml.namespace.QName(MidPointConstants.NS_RI, attributeLocalPart));
     }
 
+    @Safe
     public <T> T getAttributeValue(ShadowType shadow, groovy.namespace.QName attributeQname) throws SchemaException {
         return getAttributeValue(shadow, attributeQname.getNamespaceURI(), attributeQname.getLocalPart());
     }
 
+    @Safe
     public <T> T getAttributeValue(ShadowType shadow, javax.xml.namespace.QName attributeQname) throws SchemaException {
         return ShadowUtil.getAttributeValue(shadow, attributeQname);
     }
 
+    @Safe
     public Collection<String> getAttributeStringValues(ShadowType shadow, String attributeNamespace, String attributeLocalPart) {
         checkColon(attributeLocalPart);
         return getAttributeStringValues(shadow, new javax.xml.namespace.QName(attributeNamespace, attributeLocalPart));
     }
 
+    @Safe
     public Collection<String> getAttributeStringValues(ShadowType shadow, groovy.namespace.QName attributeQname) {
         return getAttributeStringValues(shadow, attributeQname.getNamespaceURI(), attributeQname.getLocalPart());
     }
 
+    @Safe
     public Collection<String> getAttributeStringValues(ShadowType shadow, javax.xml.namespace.QName attributeQname) {
         return ShadowUtil.getAttributeValues(shadow, attributeQname, String.class);
     }
@@ -614,6 +666,7 @@ public class BasicExpressionFunctions {
      */
     @Experimental
     @NotNull
+    @Safe
     public Collection<?> getMetadataValues(PrismValue value, Object... pathSegments) {
         if (value == null) {
             return emptySet();
@@ -629,6 +682,7 @@ public class BasicExpressionFunctions {
 
     @Experimental
     @NotNull
+    @Safe
     public Collection<?> getMetadataValues(PrismValue value, String path) {
         return getMetadataValues(value, (Object[]) path.split("/")); // temporary TODO rework this!
     }
@@ -638,16 +692,19 @@ public class BasicExpressionFunctions {
      */
     @Experimental
     @NotNull
+    @Safe
     public Collection<?> getMetadataExtensionValues(PrismValue value, String itemLocalPart) {
         checkColon(itemLocalPart);
         return getMetadataValues(value, ValueMetadataType.F_EXTENSION, itemLocalPart);
     }
 
     @Deprecated // Use getPrimaryIdentifierValue instead
+    @Safe
     public <T> T getIdentifierValue(ShadowType shadow) throws SchemaException {
         return getPrimaryIdentifierValue(shadow);
     }
 
+    @Safe
     public <T> T getPrimaryIdentifierValue(ShadowType shadow) throws SchemaException {
         if (shadow == null) {
             return null;
@@ -666,6 +723,7 @@ public class BasicExpressionFunctions {
     }
 
     /** Beware, the shadow may legally have more than one secondary identifier. */
+    @Safe
     public <T> T getSecondaryIdentifierValue(ShadowType shadow) throws SchemaException {
         if (shadow == null) {
             return null;
@@ -689,11 +747,13 @@ public class BasicExpressionFunctions {
     }
 
     @SuppressWarnings("rawtypes")
+    @Safe
     public String determineLdapSingleAttributeValue(Collection<String> dns, String attributeName, PrismProperty attribute) throws NamingException {
         //noinspection unchecked
         return determineLdapSingleAttributeValue(dns, attributeName, attribute.getRealValues());
     }
 
+    // unsafe (but probably can be achieved in alternative way)
     public <T> T getResourceIcfConfigurationPropertyValue(ResourceType resource, javax.xml.namespace.QName propertyQname) {
         if (propertyQname == null) {
             return null;
@@ -709,6 +769,7 @@ public class BasicExpressionFunctions {
         return property.getRealValue();
     }
 
+    // unsafe (but probably can be achieved in alternative way)
     public <T> T getResourceIcfConfigurationPropertyValue(ResourceType resource, String propertyLocalPart) {
         checkColon(propertyLocalPart);
         if (propertyLocalPart == null) {
@@ -728,6 +789,7 @@ public class BasicExpressionFunctions {
         return null;
     }
 
+    // unsafe (but probably can be achieved in alternative way)
     private PrismContainer<?> getIcfConfigurationProperties(ResourceType resource) {
         if (resource == null) {
             return null;
@@ -739,6 +801,7 @@ public class BasicExpressionFunctions {
         return connectorConfiguration.findContainer(SchemaConstants.ICF_CONFIGURATION_PROPERTIES_NAME);
     }
 
+    @Safe
     public String determineLdapSingleAttributeValue(Collection<String> dns, String attributeName, Collection<String> values) throws NamingException {
         if (values == null || values.isEmpty()) {
             // Shortcut. This is maybe the most common case. We want to return quickly and we also need to avoid more checks later.
@@ -760,6 +823,7 @@ public class BasicExpressionFunctions {
      */
     // We cannot have Collection<String> here. The generic type information will disappear at runtime and the scripts can pass
     // anything that they find suitable. E.g. XPath is passing elements
+    @Safe
     public String determineLdapSingleAttributeValue(String dn, String attributeName, Collection<?> values) throws NamingException {
         if (values == null || values.isEmpty()) {
             return null;
@@ -814,15 +878,18 @@ public class BasicExpressionFunctions {
     }
 
     @Deprecated // Use 'single' instead. Changed to match with MEL.
+    @Safe
     public <T> T toSingle(Collection<T> values) throws SchemaException {
         return single(values);
     }
 
     @Deprecated // Use 'single' instead. Changed to match with MEL.
+    @Safe
     private <T> T toSingle(Collection<T> values, Object contextDesc) throws SchemaException {
         return single(values, contextDesc);
     }
 
+    @Safe
     public <T> T single(Collection<T> values) throws SchemaException {
         if (values == null || values.isEmpty()) {
             return null;
@@ -833,6 +900,7 @@ public class BasicExpressionFunctions {
         }
     }
 
+    @Safe
     private <T> T single(Collection<T> values, Object contextDesc) throws SchemaException {
         if (values == null || values.isEmpty()) {
             return null;
@@ -843,10 +911,12 @@ public class BasicExpressionFunctions {
         }
     }
 
+    // unsafe!
     public static String readFile(String filename) throws IOException {
         return FileUtils.readFileToString(new File(filename), Charset.defaultCharset());
     }
 
+    @Safe
     public String formatDateTime(String format, XMLGregorianCalendar xmlCal) {
         if (xmlCal == null || format == null) {
             return null;
@@ -856,6 +926,7 @@ public class BasicExpressionFunctions {
         return sdf.format(date);
     }
 
+    @Safe
     public String formatDateTime(String format, Long millis) {
         if (millis == null || format == null) {
             return null;
@@ -864,6 +935,7 @@ public class BasicExpressionFunctions {
         return sdf.format(millis);
     }
 
+    @Safe
     public XMLGregorianCalendar parseDateTime(String format, String stringDate) throws ParseException {
         if (format == null || stringDate == null) {
             return null;
@@ -874,6 +946,7 @@ public class BasicExpressionFunctions {
     }
 
     // POSIX-like function, compatible with the UNIX world
+    @Safe
     public String strftime(String posixFormat, XMLGregorianCalendar xmlCal) {
         if (xmlCal == null || posixFormat == null) {
             return null;
@@ -882,6 +955,7 @@ public class BasicExpressionFunctions {
     }
 
     // POSIX-like function, compatible with the UNIX world
+    @Safe
     public String strftime(String posixFormat, Long millis) {
         if (millis == null || posixFormat == null) {
             return null;
@@ -890,6 +964,7 @@ public class BasicExpressionFunctions {
     }
 
     // POSIX-like function, compatible with the UNIX world
+    @Safe
     public XMLGregorianCalendar strptime(String posixFormat, String stringDate) throws ParseException {
         if (posixFormat == null || stringDate == null) {
             return null;
@@ -899,14 +974,17 @@ public class BasicExpressionFunctions {
     }
 
 
+    @Safe
     public XMLGregorianCalendar currentDateTime() {
         return clock.currentTimeXMLGregorianCalendar();
     }
 
+    @Safe
     public XMLGregorianCalendar fromNow(String timeSpec) {
         return XmlTypeConverter.fromNow(timeSpec);
     }
 
+    @Safe
     public XMLGregorianCalendar addDuration(XMLGregorianCalendar now, Duration duration) {
         if (now == null) {
             return null;
@@ -917,6 +995,7 @@ public class BasicExpressionFunctions {
         return XmlTypeConverter.addDuration(now, duration);
     }
 
+    @Safe
     public XMLGregorianCalendar addDuration(XMLGregorianCalendar now, String duration) {
         if (now == null) {
             return null;
@@ -927,6 +1006,7 @@ public class BasicExpressionFunctions {
         return XmlTypeConverter.addDuration(now, duration);
     }
 
+    @Safe
     public XMLGregorianCalendar addMillis(XMLGregorianCalendar now, long duration) {
         if (now == null) {
             return null;
@@ -938,10 +1018,12 @@ public class BasicExpressionFunctions {
     }
 
     @Deprecated // Use atStartOfDay instead
+    @Safe
     public XMLGregorianCalendar roundDownToMidnight(XMLGregorianCalendar in) {
         return atStartOfDay(in);
     }
 
+    @Safe
     public XMLGregorianCalendar atStartOfDay(XMLGregorianCalendar in) {
         XMLGregorianCalendar out = XmlTypeConverter.createXMLGregorianCalendar(in);
         out.setTime(0, 0, 0, 0);
@@ -949,16 +1031,19 @@ public class BasicExpressionFunctions {
     }
 
     @Deprecated // Use atEndOfDay instead
+    @Safe
     public XMLGregorianCalendar roundUpToEndOfDay(XMLGregorianCalendar in) {
         return atEndOfDay(in);
     }
 
+    @Safe
     public XMLGregorianCalendar atEndOfDay(XMLGregorianCalendar in) {
         XMLGregorianCalendar out = XmlTypeConverter.createXMLGregorianCalendar(in);
         out.setTime(23, 59, 59, 999);
         return out;
     }
 
+    @Safe
     public XMLGregorianCalendar longAgo() {
         return LONG_AGO;
     }
@@ -1039,6 +1124,7 @@ public class BasicExpressionFunctions {
         return p;
     }
 
+    @Safe
     public String parseGivenName(Object fullName) {
         ParsedFullName p = parseFullName(stringify(fullName));
         if (p == null) {
@@ -1048,6 +1134,7 @@ public class BasicExpressionFunctions {
         }
     }
 
+    @Safe
     public String parseFamilyName(Object fullName) {
         ParsedFullName p = parseFullName(stringify(fullName));
         if (p == null) {
@@ -1057,6 +1144,7 @@ public class BasicExpressionFunctions {
         }
     }
 
+    @Safe
     public String parseAdditionalName(Object fullName) {
         ParsedFullName p = parseFullName(stringify(fullName));
         if (p == null) {
@@ -1066,6 +1154,7 @@ public class BasicExpressionFunctions {
         }
     }
 
+    @Safe
     public String parseNickName(Object fullName) {
         ParsedFullName p = parseFullName(stringify(fullName));
         if (p == null) {
@@ -1075,6 +1164,7 @@ public class BasicExpressionFunctions {
         }
     }
 
+    @Safe
     public String parseHonorificPrefix(Object fullName) {
         ParsedFullName p = parseFullName(stringify(fullName));
         if (p == null) {
@@ -1084,6 +1174,7 @@ public class BasicExpressionFunctions {
         }
     }
 
+    @Safe
     public String parseHonorificSuffix(Object fullName) {
         ParsedFullName p = parseFullName(stringify(fullName));
         if (p == null) {
@@ -1093,6 +1184,7 @@ public class BasicExpressionFunctions {
         }
     }
 
+    // probably unsafe (but what about password notifiers?)
     public String decrypt(ProtectedStringType protectedString) {
         try {
             return protector.decryptString(protectedString);
@@ -1101,6 +1193,7 @@ public class BasicExpressionFunctions {
         }
     }
 
+    // safety is to be determined
     public ProtectedStringType encrypt(String string) {
         try {
             return protector.encryptString(string);
@@ -1109,6 +1202,7 @@ public class BasicExpressionFunctions {
         }
     }
 
+    // probably unsafe
     public String resolveSecretString(@NotNull String provider, @NotNull String key) {
         if (!(protector instanceof SecretsResolver sr)) {
             throw new SystemException("Current protector instance can't resolve secrets");
@@ -1121,6 +1215,7 @@ public class BasicExpressionFunctions {
         }
     }
 
+    // probably unsafe
     public ByteBuffer resolveSecretBinary(@NotNull String provider, @NotNull String key) {
         if (!(protector instanceof SecretsResolver sr)) {
             throw new SystemException("Current protector instance can't resolve secrets");
@@ -1133,6 +1228,7 @@ public class BasicExpressionFunctions {
         }
     }
 
+    // probably unsafe
     public ProtectedStringType resolveSecretProtectedString(@NotNull String provider, @NotNull String key) {
         return encrypt(resolveSecretString(provider,key));
     }
@@ -1151,6 +1247,7 @@ public class BasicExpressionFunctions {
      * Note: the DN is not normalized. The case of the attribute names and white spaces are
      * preserved.
      */
+    @Safe
     public static String composeDn(Object... components) throws InvalidNameException {
         if (components == null) {
             return null;
@@ -1207,6 +1304,7 @@ public class BasicExpressionFunctions {
      * Note: the DN is not normalized. The case of the attribute names and white spaces are
      * preserved.
      */
+    @Safe
     public static String composeDnWithSuffix(Object... components) throws InvalidNameException {
         if (components == null) {
             return null;
@@ -1244,6 +1342,7 @@ public class BasicExpressionFunctions {
     /**
      * Hashes cleartext password in an (unofficial) LDAP password format. Supported algorithms: SSHA, SHA and MD5.
      */
+    @Safe
     public String hashLdapPassword(ProtectedStringType protectedString, String alg) throws NoSuchAlgorithmException, EncryptionException {
         if (protectedString == null) {
             return null;
@@ -1258,6 +1357,7 @@ public class BasicExpressionFunctions {
     /**
      * Hashes cleartext password in an (unofficial) LDAP password format. Supported algorithms: SSHA, SHA and MD5.
      */
+    @Safe
     public String hashLdapPassword(String clearString, String alg) throws NoSuchAlgorithmException {
         if (clearString == null) {
             return null;
@@ -1268,6 +1368,7 @@ public class BasicExpressionFunctions {
     /**
      * Hashes cleartext password in an (unofficial) LDAP password format. Supported algorithms: SSHA, SHA and MD5.
      */
+    @Safe
     public String hashLdapPassword(byte[] clearBytes, String alg) throws NoSuchAlgorithmException {
         if (clearBytes == null) {
             return null;
@@ -1307,10 +1408,12 @@ public class BasicExpressionFunctions {
         return '{' + alg + '}' + Base64.getEncoder().encodeToString(hashAndSalt);
     }
 
+    @Safe
     public static String debugDump(Object o) {
         return DebugUtil.debugDump(o, 0);
     }
 
+    @Safe
     public static String debugDump(Object o, int indent) {
         return DebugUtil.debugDump(o, indent);
     }
@@ -1335,6 +1438,7 @@ public class BasicExpressionFunctions {
     }
 
     // TODO decide about this method
+    @Safe
     public static String substringAfter(String string, String separator) {
         if (string == null || separator == null) {
             return null;
@@ -1347,6 +1451,7 @@ public class BasicExpressionFunctions {
     }
 
     // TODO decide about this method
+    @Safe
     public static String map(String string, String... keyValuePairs) {
         if (string == null || keyValuePairs == null) {
             return string;

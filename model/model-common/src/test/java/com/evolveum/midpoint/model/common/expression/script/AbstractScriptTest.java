@@ -86,7 +86,7 @@ public abstract class AbstractScriptTest extends AbstractUnitTest
     protected PrismContext prismContext;
     protected ScriptFactory scriptFactory;
     protected ScriptExecutor scriptExecutor;
-    /** As {@link #scriptExecutor} but having {@link ExpressionsConfigurationSection#isSafeExpressionsOnly()} set to `true`. */
+    /** As {@link #scriptExecutor} but having {@link ExpressionsConfigurationSection#safeExpressionsOnly()} set to `true`. */
     protected ScriptExecutor scriptExecutorInRestrictedMode;
     protected LocalizationService localizationService;
     protected final Clock clock = new Clock();
@@ -380,8 +380,13 @@ public abstract class AbstractScriptTest extends AbstractUnitTest
     }
 
     protected ScriptExpressionEvaluatorType parseScriptType(String fileName) throws SchemaException, IOException {
-        return PrismTestUtil.parseAtomicValue(
+        ScriptExpressionEvaluatorType bean = PrismTestUtil.parseAtomicValue(
                 new File(getTestDir(), fileName), ScriptExpressionEvaluatorType.COMPLEX_TYPE);
+        processScriptBeanAfterParsing(bean);
+        return bean;
+    }
+
+    protected void processScriptBeanAfterParsing(ScriptExpressionEvaluatorType bean) {
     }
 
     private <T> List<PrismPropertyValue<T>> executeScript(

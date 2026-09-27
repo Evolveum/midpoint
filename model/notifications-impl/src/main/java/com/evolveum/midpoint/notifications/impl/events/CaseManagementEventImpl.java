@@ -11,6 +11,8 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.prism.Safe;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -51,11 +53,13 @@ abstract public class CaseManagementEventImpl extends BaseEventImpl implements C
 
     @Override
     @NotNull
+    @Safe
     public CaseType getCase() {
         return aCase;
     }
 
     @Override
+    @Safe
     public OperationStatus getOperationStatus() {
         return outcomeToStatus(changeType, getCaseOrItemOutcome());
     }
@@ -63,6 +67,7 @@ abstract public class CaseManagementEventImpl extends BaseEventImpl implements C
     public abstract String getCaseOrItemOutcome();
 
     @Override
+    @Safe
     public String getStatusAsText() {
         if (isApproval()) {
             if (isResultKnown()) {
@@ -92,31 +97,37 @@ abstract public class CaseManagementEventImpl extends BaseEventImpl implements C
     }
 
     @Override
+    @Safe
     public boolean isStatusType(EventStatusType eventStatus) {
         return getOperationStatus().matchesEventStatusType(eventStatus);
     }
 
     @Override
+    @Safe
     public @NotNull ChangeType getChangeType() {
         return changeType;
     }
 
     @Override
+    @Safe
     public boolean isOperationType(EventOperationType eventOperation) {
         return changeTypeMatchesOperationType(changeType, eventOperation);
     }
 
     @Override
+    @Safe
     public boolean isResultKnown() {
         return !isInProgress(); // for now
     }
 
     @Override
+    @Safe
     public boolean isApproved() {
         return isSuccess(); // for now
     }
 
     @Override
+    @Safe
     public boolean isRejected() {
         return isFailure(); // for now
     }
@@ -154,31 +165,37 @@ abstract public class CaseManagementEventImpl extends BaseEventImpl implements C
 
     @Override
     @Nullable
+    @Safe
     public ApprovalContextType getApprovalContext() {
         return approvalContext;
     }
 
     @Override
+    @Safe
     public @Nullable ObjectType getObject() {
         return resolveReferenceIfExists(aCase.getObjectRef());
     }
 
     @Override
+    @Safe
     public @Nullable PolyStringType getObjectName() {
         return getNameFromReference(aCase.getObjectRef());
     }
 
     @Override
+    @Safe
     public @Nullable ObjectType getTarget() {
         return resolveReferenceIfExists(aCase.getTargetRef());
     }
 
     @Override
+    @Safe
     public @Nullable PolyStringType getTargetName() {
         return getNameFromReference(aCase.getTargetRef());
     }
 
     @Override
+    @Safe
     public @Nullable Object getFocusValue(@NotNull String pathString) {
         Set<?> realValues = getFocusValues(pathString);
         if (realValues.isEmpty()) {
@@ -191,6 +208,7 @@ abstract public class CaseManagementEventImpl extends BaseEventImpl implements C
     }
 
     @Override
+    @Safe
     public @NotNull Set<?> getFocusValues(@NotNull String pathString) {
         CaseCorrelationContextType correlationContext = getCorrelationContext();
         if (correlationContext == null) {
