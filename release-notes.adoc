@@ -103,6 +103,7 @@ The ticket is managed as a projection (a shadow of the `work` kind) of the midPo
 This is mainly used when password hashing is enabled.
 See xref:/midpoint/guides/account-activation-sequence/[Account Activation Authentication Sequence] for the required configuration.
 * Fixed object marks not being removed immediately after unassigning the policy that induces them. See bug:MID-10641[].
+* Registration confirmation notifier doesn't send cleartext username and password by default.
 
 #TODO#
 
@@ -562,6 +563,7 @@ See also bug:MID-11250[].
 +
 Existing users may not have `displayName` populated immediately after upgrade. Most user-facing places use fallback display logic, but places that display the raw `displayName` value may remain empty until the value is materialized.
 To populate `displayName` for existing person users, set `preferredName` where needed and recompute the users so the person object-template mapping is applied. See also bug:MID-8802[].
+
 
 ++++
 {% include release-issues.html %}

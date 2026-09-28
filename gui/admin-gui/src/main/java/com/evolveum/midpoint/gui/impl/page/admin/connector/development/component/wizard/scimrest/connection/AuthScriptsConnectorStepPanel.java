@@ -100,6 +100,6 @@ public class AuthScriptsConnectorStepPanel extends ScriptConnectorStepPanel {
 
     @Override
     protected List<HelpTab> computeHelpTabs() {
-        return ConnectorDevelopmentWizardUtil.helpTabs(getDetailsModel(), ConnectorWizardHelpTopics.AUTHENTICATION, null);
+        return ConnectorDevelopmentWizardUtil.helpTabs(getDetailsModel(), ConnectorWizardHelpTopics.AUTHENTICATION_SCRIPTS, null);
     }
 }

@@ -19,18 +19,13 @@ import org.apache.wicket.markup.html.panel.Panel;
 import org.springframework.stereotype.Component;
 
 /**
- * Renders the range sub-panel for the mapping targets rendered through the generic (auto-generated)
- * container panels.
+ * Renders both a path picker and the range editor for inducement/construction attribute mapping
+ * targets.
  */
 @Component
 public class MappingPathWithRangePanelFactory extends VariableBindingDefinitionTypePanelFactory {
 
     private static final List<ItemPath> ENABLED_PATHS = List.of(
-            ItemPath.create(
-                    RoleType.F_AUTOASSIGN,
-                    AutoassignSpecificationType.F_FOCUS,
-                    FocalAutoassignSpecificationType.F_MAPPING,
-                    AutoassignMappingType.F_TARGET),
             ItemPath.create(
                     AbstractRoleType.F_INDUCEMENT,
                     AssignmentType.F_CONSTRUCTION,
@@ -56,7 +51,8 @@ public class MappingPathWithRangePanelFactory extends VariableBindingDefinitionT
 
     @Override
     protected Panel getPanel(PrismPropertyPanelContext<VariableBindingDefinitionType> panelCtx) {
-        return new VariableBindingDefinitionTypePanel(panelCtx.getComponentId(), panelCtx.getRealValueModel(), true);
+        return new VariableBindingDefinitionTypePanel(
+                panelCtx.getComponentId(), panelCtx.getRealValueModel(), true, mappingValueModel(panelCtx));
     }
 
     @Override
