@@ -2714,6 +2714,11 @@ footer.app-footer a {
   line-height: 1.5;
   font-family: var(--bs-body-font-family);
   font-size: 14px;
+
+  // needed for read-only reference panel (LinkedReferencePanel)
+  a {
+    white-space: normal;
+  }
 }
 
 .info-box-progress-bar {
