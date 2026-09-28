@@ -161,10 +161,11 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
     }
 
     @Override
-    public Optional<AiInfo> getAiInfo() {
-        try (var client = clientFactory.getServiceClient(new OperationResult("getAiInfo"))) {
+    public Optional<AiInfo> getAiInfo(Task task, OperationResult result) {
+        try (var client = clientFactory.getServiceClient(result)) {
+            authorizeSmartIntegration(task, result);
             return client.getAiInfo();
-        } catch (Exception e) {
+        } catch (CommonException e) {
             throw new SystemException("Failed to retrieve AI info: " + e.getMessage(), e);
         }
     }
@@ -226,6 +227,7 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
             OperationResult parentResult)
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
             ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
+        authorizeSmartIntegration(task, parentResult);
         return schemaMatchService.computeSchemaMatch(resourceOid, typeIdentification, useAiService, task, parentResult);
     }
 
@@ -386,6 +388,7 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
     public SmartIntegrationArtifactType getLatestObjectTypeSchemaMatch(
             String resourceOid, ResourceObjectTypeIdentification typeIdentification, Task task, OperationResult parentResult)
             throws CommonException {
+        authorizeSmartIntegration(task, parentResult);
         return schemaMatchService.getLatestObjectTypeSchemaMatch(resourceOid, typeIdentification, task, parentResult);
     }
 
@@ -505,6 +508,7 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
                     resourceOid,
                     objectClass,
                     List.of(SchemaConstantsGenerated.C_OBJECT_TYPES_SUGGESTION),
+                    task,
                     result);
 
             var resultingList = new ArrayList<StatusInfo<ObjectTypesSuggestionType>>();
@@ -885,6 +889,7 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
                     resourceOid,
                     null,
                     List.of(SchemaConstantsGenerated.C_CORRELATION_SUGGESTION),
+                    task,
                     result);
 
             var resultingList = new ArrayList<StatusInfo<CorrelationSuggestionsType>>();
@@ -998,6 +1003,7 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
                     resourceOid,
                     null,
                     List.of(SchemaConstantsGenerated.C_MAPPINGS_SUGGESTION),
+                    task,
                     result);
 
             var resultingList = new ArrayList<StatusInfo<MappingsSuggestionType>>();
@@ -1084,8 +1090,10 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
             @NotNull String resourceOid,
             @Nullable QName objectClass,
             @NotNull List<ItemName> activityTypes,
+            Task task,
             @NotNull OperationResult result)
-            throws SchemaException {
+            throws CommonException {
+        authorizeSmartIntegration(task, result);
         ObjectQuery query = createQueryForObjectTypeSuggestionTasks(
                 objectTypeIdentification, resourceOid, objectClass, activityTypes);
 

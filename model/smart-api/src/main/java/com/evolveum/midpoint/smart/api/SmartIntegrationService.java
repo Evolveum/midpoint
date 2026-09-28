@@ -44,7 +44,7 @@ public interface SmartIntegrationService {
      * Returns AI provider and model info fetched from the microservice health endpoint.
      * Returns empty Optional if the information is unavailable.
      */
-    Optional<AiInfo> getAiInfo();
+    Optional<AiInfo> getAiInfo(Task task, OperationResult result);
 
     /**
      * Creates a new resource with the given connector and the given connector configuration.
@@ -411,5 +411,6 @@ public interface SmartIntegrationService {
             @NotNull String resourceOid,
             @Nullable QName objectClass,
             @NotNull List<ItemName> activityTypes,
-            @NotNull OperationResult result) throws SchemaException;
+            Task task,
+            @NotNull OperationResult result) throws CommonException;
 }

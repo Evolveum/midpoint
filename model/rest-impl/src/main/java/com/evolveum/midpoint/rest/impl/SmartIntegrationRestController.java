@@ -277,7 +277,7 @@ public class SmartIntegrationRestController extends AbstractRestController {
         var result = createSubresult(task, OPERATION_GET_AI_INFO);
 
         try {
-            var aiInfo = smartIntegrationService.getAiInfo();
+            var aiInfo = smartIntegrationService.getAiInfo(task, result);
 
             if (aiInfo.isEmpty()) {
                 return createResponse(HttpStatus.NOT_FOUND, null, result);

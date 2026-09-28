@@ -316,6 +316,7 @@ public class ResourceDetailsModel extends AssignmentHolderDetailsModel<ResourceT
                             resourceOid,
                             null,
                             OBJECT_TYPE_SUGGESTION_ACTIVITY_TYPES,
+                            task,
                             result);
 
             for (PrismObject<TaskType> taskToDelete : relatedTasks) {

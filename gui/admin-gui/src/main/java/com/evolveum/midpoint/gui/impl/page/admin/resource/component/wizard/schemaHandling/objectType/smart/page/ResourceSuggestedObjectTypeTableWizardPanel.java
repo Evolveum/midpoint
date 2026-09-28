@@ -351,8 +351,9 @@ public abstract class ResourceSuggestedObjectTypeTableWizardPanel<P extends Cont
             @Override
             protected AiInfo load() {
                 try {
+                    var task = getPageBase().createSimpleTask("getAiInfo");
                     return getPageBase().getSmartIntegrationService()
-                            .getAiInfo()
+                            .getAiInfo(task, task.getResult())
                             .orElse(null);
                 } catch (SystemException e) {
                     return null;
