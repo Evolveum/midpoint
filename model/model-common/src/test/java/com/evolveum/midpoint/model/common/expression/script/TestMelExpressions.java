@@ -3849,6 +3849,28 @@ public class TestMelExpressions extends AbstractScriptTest {
         evaluateAndAssertBooleanScalarExpression("expression-proportional-value.xml", vars.apply(3), false);
     }
 
+    @Test void testPasswordPolicy() throws Exception {
+        testPasswordPolicySingle(USER_JACK_FILE, "jack", false); // matches name & given name
+        testPasswordPolicySingle(USER_JACK_FILE, "sparrow", false); // matches family name
+        testPasswordPolicySingle(USER_JACK_FILE, "jackie", false); // matches additional name
+        testPasswordPolicySingle(USER_JACK_FILE, "nbusr123", true); // doesn't match any
+        testPasswordPolicySingle(USER_JACK_FILE, "", true); // "containsIgnoreCase" treats empty string as not contained in anything
+        testPasswordPolicySingle(USER_JACK_FILE, null, true); // probably correct, code path is the same as above
+        testPasswordPolicySingle(USER_BARBOSSA_FILE, "aaa", true); // barbossa has no additional name
+        testPasswordPolicySingle(GENERIC_OBJECT_FILE, "aaa", true); // not a user
+        testPasswordPolicySingle(GENERIC_OBJECT_FILE, "generic123", false); // not a user, but matches name
+    }
+
+    private void testPasswordPolicySingle(File objectFile, String inputValue, boolean expectedResult) throws Exception {
+        PrismObject<UserType> userJack = prismContext.parseObject(objectFile);
+        evaluateAndAssertBooleanScalarExpression(
+                "expression-password-policy.xml",
+                createVariables(
+                        ExpressionConstants.VAR_OBJECT, userJack, userJack.getDefinition(),
+                        ExpressionConstants.VAR_INPUT, inputValue, String.class),
+                expectedResult);
+    }
+
     @FunctionalInterface
     public interface DeltaProducer<O extends ObjectType> {
         ObjectDelta<O> produce(PrismObject<? extends ObjectType> object) throws SchemaException;

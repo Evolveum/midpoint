@@ -76,6 +76,7 @@ public abstract class AbstractScriptTest extends AbstractUnitTest
     protected static final File USER_JACK_FILE = new File(OBJECTS_DIR, USER_JACK_OID + ".xml");
     protected static final String USER_BARBOSSA_OID = "c0c010c0-d34d-b33f-f00d-111111111112";
     protected static final File USER_BARBOSSA_FILE = new File(OBJECTS_DIR, USER_BARBOSSA_OID + ".xml");
+    protected static final File GENERIC_OBJECT_FILE = new File(OBJECTS_DIR, "c0c010c0-d34d-b33f-f00d-999111111122.xml");
     protected static final String NON_EXISTENT_USER_OID = "608ccca5-5268-44d0-85b8-38f531df56b4";
 
     public static final String VAR_POISON = "poison";
