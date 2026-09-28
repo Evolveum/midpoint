@@ -2496,4 +2496,9 @@ footer.main-footer a {
   line-height: 1.5;
   font-family: $font-family-base;
   font-size: 14px;
+
+  // needed for read-only reference panel (LinkedReferencePanel)
+  a {
+    white-space: normal;
+  }
 }
