@@ -3859,14 +3859,15 @@ public class TestMelExpressions extends AbstractScriptTest {
         testPasswordPolicySingle(USER_BARBOSSA_FILE, "aaa", true); // barbossa has no additional name
         testPasswordPolicySingle(GENERIC_OBJECT_FILE, "aaa", true); // not a user
         testPasswordPolicySingle(GENERIC_OBJECT_FILE, "generic123", false); // not a user, but matches name
+        testPasswordPolicySingle(null, "test", true);
     }
 
     private void testPasswordPolicySingle(File objectFile, String inputValue, boolean expectedResult) throws Exception {
-        PrismObject<UserType> userJack = prismContext.parseObject(objectFile);
+        PrismObject<?> object = objectFile != null ? prismContext.parseObject(objectFile) : null;
         evaluateAndAssertBooleanScalarExpression(
                 "expression-password-policy.xml",
                 createVariables(
-                        ExpressionConstants.VAR_OBJECT, userJack, userJack.getDefinition(),
+                        ExpressionConstants.VAR_OBJECT, object, object != null ? object.getDefinition() : ObjectType.class,
                         ExpressionConstants.VAR_INPUT, inputValue, String.class),
                 expectedResult);
     }
