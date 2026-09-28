@@ -793,16 +793,13 @@ public class CelMidPointExtensions extends AbstractMidPointCelExtensions {
         }
     }
 
-
-    @Nullable
-    private <F extends FocusType> Object searchShadowOwner(String accountOid) {
+    private Object searchShadowOwner(String accountOid) {
         try {
             return toCelObjectPrism(midpointExpressionFunctions.searchShadowOwner(accountOid));
         } catch (CommonException e) {
             throw createException(e);
         }
     }
-
 
     private static <O extends ObjectType> CelValue toCelObject(O o) {
         if (o == null) {
@@ -816,7 +813,6 @@ public class CelMidPointExtensions extends AbstractMidPointCelExtensions {
         if (o == null) {
             return Optional.empty();
         }
-        //noinspection unchecked
         return ObjectCelValue.create(o);
     }
 

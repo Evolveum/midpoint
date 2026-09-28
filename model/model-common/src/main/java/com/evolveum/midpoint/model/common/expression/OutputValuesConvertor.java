@@ -146,7 +146,11 @@ public class OutputValuesConvertor {
 
     // FIXME deduplicate with PrismValue#toPrismValue (there are minor differences)
     private static PrismValue toPrismValue(Object realValue) {
-        if (realValue instanceof Objectable objectable) {
+        if (realValue instanceof PrismObject<?> prismObject) {
+            // Exotic case - e.g. result of midpoint.searchShadowOwner in MEL
+            // (it is actually an anomaly but we should keep it because of backward compatibility)
+            return prismObject.getValue();
+        } else if (realValue instanceof Objectable objectable) {
             return objectable.asPrismObject().getValue();
         } else if (realValue instanceof Containerable containerable) {
             return containerable.asPrismContainerValue();

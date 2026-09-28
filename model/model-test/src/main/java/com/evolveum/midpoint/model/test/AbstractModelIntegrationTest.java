@@ -7550,4 +7550,16 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
                         .build(),
                 null, getTestTask(), getTestOperationResult());
     }
+
+    protected void setDefaultExpressionProfile(String identifier, Task task, OperationResult result) throws CommonException {
+        modifyObjectReplaceProperty(
+                SystemConfigurationType.class,
+                SystemObjectsType.SYSTEM_CONFIGURATION.value(),
+                ItemPath.create(
+                        SystemConfigurationType.F_EXPRESSIONS,
+                        SystemConfigurationExpressionsType.F_DEFAULTS,
+                        DefaultExpressionProfilesConfigurationType.F_AUTHORIZED_OBJECTS),
+                task, result,
+                identifier);
+    }
 }

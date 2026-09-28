@@ -30,11 +30,8 @@
                             path: "$situation"
                     ``` and objectClass = yaml```
                             queryInterpretationOfNoValue: filterAll
-                            script:
-                                code: |
-                                    import javax.xml.namespace.QName;
-                                    if (objectClass != null)
-                                        return new QName("http://midpoint.evolveum.com/xml/ns/public/resource/instance-3", objectClass)
+                            javaMethodReference:
+                                methodName: qualifyObjectClassName
                     ``` and kind = yaml```
                             queryInterpretationOfNoValue: filterAll
                             path: "$kind"
@@ -135,19 +132,8 @@
                 <export>
                     <expression>
                         <script>
-                            <code>
-                                import com.evolveum.midpoint.schema.GetOperationOptions;
-                                import com.evolveum.midpoint.schema.SelectorOptions;
-                                import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-                                import com.evolveum.midpoint.prism.query.*
-
-                                query = midpoint.getPrismContext().queryFor(FocusType.class)
-                                .item(FocusType.F_LINK_REF).ref(object.getOid())
-                                .build();
-
-                                options = SelectorOptions.createCollection(GetOperationOptions.createRaw())
-                                return midpoint.searchObjects(FocusType.class, query, options);
-                            </code>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
+                            <code>midpoint.searchShadowOwner(object.oid)</code>
                         </script>
                     </expression>
                 </export>

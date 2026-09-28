@@ -93,15 +93,7 @@ public class JavaMethodReferenceExpressionEvaluator<V extends PrismValue, D exte
         var className = getClassName();
         var methodName = getMethodName();
 
-        // Deferring the static initialization of the class until we are sure that it is in an allowed package.
-        // (It will get executed automatically when we access the class below.)
-        var clazz = Class.forName(className, false, JavaMethodReferenceExpressionEvaluator.class.getClassLoader());
-
-        if (!configuration.javaMethodEvaluatorPackageNames().contains(clazz.getPackageName())) {
-            throw new ConfigurationException(
-                    "Class '%s' referenced by an expression is not in a package that is allowed to be called in such a way"
-                            .formatted(className));
-        }
+        var clazz = getClass(className);
 
         var matchingMethods = Arrays.stream(clazz.getMethods())
                 .filter(m -> m.getName().equals(methodName))
@@ -113,6 +105,26 @@ public class JavaMethodReferenceExpressionEvaluator<V extends PrismValue, D exte
                 () -> new ConfigurationException(
                         "Expected exactly one method named '%s' in class '%s', but found none".formatted(
                                 methodName, className)));
+    }
+
+    private Class<?> getClass(@Nullable String className) throws ClassNotFoundException, ConfigurationException {
+
+        if (className == null) {
+            // TEMPORARY WORKAROUND for missing MEL methods
+            return DefaultJavaMethodReferenceLibrary.class;
+        }
+
+        // Deferring the static initialization of the class until we are sure that it is in an allowed package.
+        // (It will get executed automatically when we access the class below.)
+        var clazz = Class.forName(className, false, JavaMethodReferenceExpressionEvaluator.class.getClassLoader());
+
+        if (!configuration.javaMethodEvaluatorPackageNames().contains(clazz.getPackageName())) {
+            throw new ConfigurationException(
+                    "Class '%s' referenced by an expression is not in a package that is allowed to be called in such a way"
+                            .formatted(className));
+        }
+
+        return clazz;
     }
 
     private ArrayList<Object> prepareArguments(Method method, ValueTransformationContext vtCtx, OperationResult result)

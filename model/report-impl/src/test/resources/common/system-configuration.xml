@@ -65,7 +65,29 @@
             </profile>
         </caching>
     </internals>
+    <expressions>
+        <expressionProfile>
+            <identifier>safe-scripts-only</identifier>
+            <description>
+                Regarding scripts, allows only MEL and safe Velocity.
 
+                TO USE IN TESTS ONLY
+            </description>
+            <decision>allow</decision>
+            <evaluator>
+                <type>script</type>
+                <decision>deny</decision>
+                <script>
+                    <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
+                    <decision>allow</decision>
+                </script>
+                <script>
+                    <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#safe-velocity</language>
+                    <decision>allow</decision>
+                </script>
+            </evaluator>
+        </expressionProfile>
+    </expressions>
     <simulation>
         <metric>
             <identifier>modifications</identifier>
