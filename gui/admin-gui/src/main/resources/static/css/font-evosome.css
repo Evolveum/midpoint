@@ -6,22 +6,30 @@
 
 @font-face {
   font-family: 'font-evosome';
-  src:  url('../fonts/font-evosome.eot?8leql6');
-  src:  url('../fonts/font-evosome.eot?8leql6#iefix') format('embedded-opentype'),
-    url('../fonts/font-evosome.ttf?8leql6') format('truetype'),
-    url('../fonts/font-evosome.woff?8leql6') format('woff'),
-    url('../fonts/font-evosome.svg?8leql6#font-evosome') format('svg');
+  src:  url('../fonts/font-evosome.eot?ilzqhq');
+  src:  url('../fonts/font-evosome.eot?ilzqhq#iefix') format('embedded-opentype'),
+    url('../fonts/font-evosome.ttf?ilzqhq') format('truetype'),
+    url('../fonts/font-evosome.woff?ilzqhq') format('woff'),
+    url('../fonts/font-evosome.svg?ilzqhq#font-evosome') format('svg');
   font-weight: normal;
   font-style: normal;
 }
 
-.fe {
+.fe, .fer, .fe-regular, .fes, fe-solid {
   display: inline-block;
   font: normal normal normal 14px/1 font-evosome;
   font-size: inherit;
   text-rendering: auto;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  text-align: center;
+  line-height: 1;
+  width:var(--fe-width, 1.25em);
+  font-weight:var(--fe-style, 400);
+}
+
+.fe-solid, .fes {
+  --fe-style:900;
 }
 
 .fe-assignment:before {
@@ -133,4 +141,11 @@
 }
 .fe-role:before {
     content: "\e922";
+}
+
+.fe-bullseye:before {
+    content: "\e917";
+}
+.fe-circle-dashed:before {
+    content: "\e921";
 }
