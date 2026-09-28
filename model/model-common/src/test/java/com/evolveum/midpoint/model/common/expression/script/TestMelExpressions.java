@@ -14,6 +14,7 @@ import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Function;
 
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.model.common.expression.ExpressionTestUtil;
@@ -3818,6 +3819,35 @@ public class TestMelExpressions extends AbstractScriptTest {
                 "Captain");
     }
 
+    @Test
+    public void testProportionalPercentageWithFullDefinition() throws Exception {
+        Function<Float, VariablesMap> vars = value -> createVariables(
+                "proportional",
+                new IntegerStatType().percentage(value),
+                prismContext.getSchemaRegistry().findContainerDefinitionByCompileTimeClass(IntegerStatType.class));
+        evaluateAndAssertBooleanScalarExpression("expression-proportional-percentage.xml", vars.apply(7.0f), true);
+        evaluateAndAssertBooleanScalarExpression("expression-proportional-percentage.xml", vars.apply(3.0f), false);
+    }
+
+    @Test
+    public void testProportionalPercentageWithSimpleDefinition() throws Exception {
+        Function<Float, VariablesMap> vars = value -> createVariables(
+                "proportional",
+                new IntegerStatType().percentage(value),
+                IntegerStatType.class);
+        evaluateAndAssertBooleanScalarExpression("expression-proportional-percentage.xml", vars.apply(7.0f), true);
+        evaluateAndAssertBooleanScalarExpression("expression-proportional-percentage.xml", vars.apply(3.0f), false);
+    }
+
+    @Test
+    public void testProportionalValueWithSimpleDefinition() throws Exception {
+        Function<Integer, VariablesMap> vars = value -> createVariables(
+                "proportional",
+                new IntegerStatType().value(value),
+                IntegerStatType.class);
+        evaluateAndAssertBooleanScalarExpression("expression-proportional-value.xml", vars.apply(7), true);
+        evaluateAndAssertBooleanScalarExpression("expression-proportional-value.xml", vars.apply(3), false);
+    }
 
     @FunctionalInterface
     public interface DeltaProducer<O extends ObjectType> {

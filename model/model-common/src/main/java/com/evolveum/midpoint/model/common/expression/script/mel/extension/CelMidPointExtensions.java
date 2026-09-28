@@ -531,6 +531,20 @@ public class CelMidPointExtensions extends AbstractMidPointCelExtensions {
                         CelFunctionBinding.from(FUNCTION_NAME_PREFIX_DASH + "searchShadowOwner", String.class,
                                 this::searchShadowOwner)
 
+                ),
+
+                // midpoint.translateKeyInCurrentLocale(key)
+                new Function(
+                        CelFunctionDecl.newFunctionDeclaration(
+                                FUNCTION_NAME_PREFIX_DOT + "translateKeyInCurrentLocale",
+                                CelOverloadDecl.newGlobalOverload(
+                                        FUNCTION_NAME_PREFIX_DASH + "translateKeyInCurrentLocale",
+                                        "Translates message key in user's current locale.",
+                                        SimpleType.STRING,
+                                        SimpleType.STRING)),
+                        CelFunctionBinding.from(FUNCTION_NAME_PREFIX_DASH + "translateKeyInCurrentLocale",
+                                String.class,
+                                key -> midpointExpressionFunctions.translateKeyInCurrentLocale(key))
                 )
 
                 // selectIdentityItemValues: not implemented yet.

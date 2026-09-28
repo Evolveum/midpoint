@@ -401,12 +401,24 @@ public class CelTypeMapper implements CelTypeProvider  {
         if (javaValue instanceof Duration xmlDuration) {
             return toGoogleDuration(xmlDuration);
         }
+        if (javaValue instanceof Float floatValue) {
+            return floatValue.doubleValue();
+        }
+        if (javaValue instanceof Integer
+                || javaValue instanceof Short
+                || javaValue instanceof Byte) {
+            return ((Number) javaValue).longValue();
+        }
         if (javaValue instanceof PrismObject<?> o) {
             return ObjectCelValue.create(o);
         }
         if (javaValue instanceof PrismContainerValue<?> cval) {
             return ContainerValueCelValue.create(cval);
         }
+        if (javaValue instanceof Containerable c) {
+            return ContainerValueCelValue.create((PrismContainerValue<?>) c.asPrismContainerValue());
+        }
+        // TODO what about Objectable and Referencable? Is it better to treat these tree "*able"s here or in convertVariableValue()?
         if (javaValue instanceof PrismReferenceValue rval) {
             return ReferenceCelValue.create(rval);
         }

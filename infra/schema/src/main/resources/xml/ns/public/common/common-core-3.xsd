@@ -13948,6 +13948,7 @@
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
+    <xsd:element name="integerStatType" type="tns:IntegerStatType"/>
 
     <xsd:complexType name="PrismConfigurationType">
         <xsd:annotation>

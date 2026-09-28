@@ -1408,6 +1408,11 @@ public interface MidpointFunctions {
      */
     String translate(LocalizableMessageType message, boolean useDefaultLocale);
 
+    /** Translates message key in user's current locale. */
+    default String translateKeyInCurrentLocale(String key) {
+        return translate(new SingleLocalizableMessageType().key(key), false);
+    }
+
     /**
      * Counts accounts having `attributeValue` of `attributeName`.
      *
