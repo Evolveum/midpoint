@@ -120,7 +120,7 @@
                             <code>
                                 list(input).map(a,
                                     a.isTargetRole(),
-                                midpoint.resolveReferenceIfExists(a.targetRef).name)
+                                    midpoint.resolveReferenceIfExists(a.targetRef).name)
                             </code>
                         </script>
                     </expression>
