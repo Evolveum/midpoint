@@ -122,9 +122,9 @@ public class StatisticsService {
             }
 
             return latestStatisticsObject != null ? latestStatisticsObject.asObjectable() : null;
-        } catch (Throwable t) {
-            result.recordException(t);
-            throw t;
+        } catch (CommonException e) {
+            result.recordException(e);
+            throw e;
         } finally {
             result.close();
         }
@@ -182,9 +182,9 @@ public class StatisticsService {
                     resourceOid, objectClassName, oid);
             return oid;
 
-        } catch (Throwable t) {
-            result.recordException(t);
-            throw t;
+        } catch (CommonException e) {
+            result.recordException(e);
+            throw e;
         } finally {
             result.close();
         }
@@ -243,9 +243,9 @@ public class StatisticsService {
                     resourceOid, typeIdentification, oid);
             return oid;
 
-        } catch (Throwable t) {
-            result.recordException(t);
-            throw t;
+        } catch (CommonException e) {
+            result.recordException(e);
+            throw e;
         } finally {
             result.close();
         }
@@ -400,9 +400,9 @@ public class StatisticsService {
             }
 
             return latestStatisticsObject != null ? latestStatisticsObject.asObjectable() : null;
-        } catch (Throwable t) {
-            result.recordException(t);
-            throw t;
+        } catch (CommonException e) {
+            result.recordException(e);
+            throw e;
         } finally {
             result.close();
         }
@@ -461,10 +461,10 @@ public class StatisticsService {
             LOGGER.info("Synchronously computed and saved object type statistics for {}/{}/{}",
                     resourceOid, typeIdentification.getKind().value(), typeIdentification.getIntent());
             return statistics;
-        } catch (Throwable t) {
-            result.recordException(t);
+        } catch (CommonException e) {
+            result.recordException(e);
             LOGGER.warn("Failed to compute object type statistics synchronously for {}/{}: {}",
-                    resourceOid, typeIdentification, t.getMessage());
+                    resourceOid, typeIdentification, e.getMessage());
             return null;
         } finally {
             result.close();
@@ -500,9 +500,9 @@ public class StatisticsService {
             LOGGER.info("Manually deleted {} statistics objects for resource {} and class {}",
                     objects.size(), resourceOid, objectClassName);
             result.recordSuccess();
-        } catch (Throwable t) {
-            result.recordException(t);
-            throw t;
+        } catch (CommonException e) {
+            result.recordException(e);
+            throw e;
         } finally {
             result.close();
         }
@@ -536,9 +536,9 @@ public class StatisticsService {
             LOGGER.info("Manually deleted {} object type statistics for resource {}/{}",
                     objects.size(), resourceOid, typeIdentification);
             result.recordSuccess();
-        } catch (Throwable t) {
-            result.recordException(t);
-            throw t;
+        } catch (CommonException e) {
+            result.recordException(e);
+            throw e;
         } finally {
             result.close();
         }
@@ -588,9 +588,9 @@ public class StatisticsService {
             }
 
             return latestStatisticsObject != null ? latestStatisticsObject.asObjectable() : null;
-        } catch (Throwable t) {
-            result.recordException(t);
-            throw t;
+        } catch (CommonException e) {
+            result.recordException(e);
+            throw e;
         } finally {
             result.close();
         }
@@ -629,9 +629,9 @@ public class StatisticsService {
             LOGGER.info("Manually deleted {} focus object statistics for type {}",
                     objects.size(), focusTypeName);
             result.recordSuccess();
-        } catch (Throwable t) {
-            result.recordException(t);
-            throw t;
+        } catch (CommonException e) {
+            result.recordException(e);
+            throw e;
         } finally {
             result.close();
         }
@@ -689,9 +689,9 @@ public class StatisticsService {
             LOGGER.debug("Submitted regenerate focus object statistics operation for type {}: {}",
                     objectTypeName, oid);
             return oid;
-        } catch (Throwable t) {
-            result.recordException(t);
-            throw t;
+        } catch (CommonException e) {
+            result.recordException(e);
+            throw e;
         } finally {
             result.close();
         }

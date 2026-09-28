@@ -193,9 +193,6 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
             modelService.importObject(resource.asPrismObject(), options, task, result);
 
             return resource.getOid();
-        } catch (Throwable t) {
-            result.recordException(t);
-            throw t;
         } finally {
             result.close();
         }
@@ -299,9 +296,9 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
                         .value(found)
                         .precision(ObjectClassSizeEstimationPrecisionType.AT_LEAST);
             }
-        } catch (Throwable t) {
-            result.recordException(t);
-            throw t;
+        } catch (CommonException e) {
+            result.recordException(e);
+            throw e;
         } finally {
             result.close();
         }
@@ -446,9 +443,9 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
                     resourceOid, objectClassName, permissions, regenerateMode, oid);
 
             return oid;
-        } catch (Throwable t) {
-            result.recordException(t);
-            throw t;
+        } catch (CommonException e) {
+            result.recordException(e);
+            throw e;
         } finally {
             result.close();
         }
@@ -479,9 +476,9 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
                     task, result);
             LOGGER.debug("Submitted schema match preload for resourceOid {}, objectClassName {}: {}",
                     resourceOid, objectClassName, oid);
-        } catch (Throwable t) {
-            result.recordException(t);
-            throw t;
+        } catch (CommonException e) {
+            result.recordException(e);
+            throw e;
         } finally {
             result.close();
         }
@@ -520,9 +517,9 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
 
             sortByFinishAndStartTime(resultingList);
             return resultingList;
-        } catch (Throwable t) {
-            result.recordException(t);
-            throw t;
+        } catch (CommonException e) {
+            result.recordException(e);
+            throw e;
         } finally {
             result.close();
         }
@@ -549,9 +546,9 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
                     getTask(token, result),
                     ObjectTypesSuggestionWorkStateType.F_RESULT,
                     ObjectTypesSuggestionType.class);
-        } catch (Throwable t) {
-            result.recordException(t);
-            throw t;
+        } catch (CommonException e) {
+            result.recordException(e);
+            throw e;
         } finally {
             result.close();
         }
@@ -592,9 +589,9 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
             LOGGER.debug("Submitted suggest focus type operation for resourceOid {}, typeIdentification {}: {}",
                     resourceOid, typeIdentification, oid);
             return oid;
-        } catch (Throwable t) {
-            result.recordException(t);
-            throw t;
+        } catch (CommonException e) {
+            result.recordException(e);
+            throw e;
         } finally {
             result.close();
         }
@@ -624,9 +621,9 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
             }
             sortByFinishAndStartTime(resultingList);
             return resultingList;
-        } catch (Throwable t) {
-            result.recordException(t);
-            throw t;
+        } catch (CommonException e) {
+            result.recordException(e);
+            throw e;
         } finally {
             result.close();
         }
@@ -645,9 +642,9 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
                     getTask(token, result),
                     FocusTypeSuggestionWorkStateType.F_RESULT,
                     FocusTypeSuggestionType.class);
-        } catch (Throwable t) {
-            result.recordException(t);
-            throw t;
+        } catch (CommonException e) {
+            result.recordException(e);
+            throw e;
         } finally {
             result.close();
         }
@@ -676,9 +673,9 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
             var types = op.suggestObjectTypes(statistics, result);
             LOGGER.debug("Object types suggestion:\n{}", types.debugDump(1));
             return types;
-        } catch (Throwable t) {
-            result.recordException(t);
-            throw t;
+        } catch (CommonException e) {
+            result.recordException(e);
+            throw e;
         } finally {
             result.closeWithSummarizedSuccesses();
         }
@@ -704,9 +701,9 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
                 LOGGER.debug("Suggested focus type: {}", suggestion.getFocusType());
                 return suggestion;
             }
-        } catch (Throwable t) {
-            result.recordException(t);
-            throw t;
+        } catch (CommonException e) {
+            result.recordException(e);
+            throw e;
         } finally {
             result.closeWithSummarizedSuccesses();
         }
@@ -732,9 +729,9 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
                 LOGGER.debug("Suggested focus type: {}", suggestion.getFocusType());
                 return suggestion;
             }
-        } catch (Throwable t) {
-            result.recordException(t);
-            throw t;
+        } catch (CommonException e) {
+            result.recordException(e);
+            throw e;
         } finally {
             result.closeWithSummarizedSuccesses();
         }
@@ -764,9 +761,9 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
                     .suggestCorrelation(result, schemaMatch, targetPathsToIgnore);
             LOGGER.debug("Suggested correlation:\n{}", correlation.debugDump(1));
             return correlation;
-        } catch (Throwable t) {
-            result.recordException(t);
-            throw t;
+        } catch (CommonException e) {
+            result.recordException(e);
+            throw e;
         } finally {
             result.closeWithSummarizedSuccesses();
         }
@@ -799,9 +796,9 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
                     .suggestMappings(result, schemaMatch, targetPathsToIgnore);
             LOGGER.debug("Suggested mappings:\n{}", mappings.debugDumpLazily(1));
             return mappings;
-        } catch (Throwable t) {
-            result.recordException(t);
-            throw t;
+        } catch (CommonException e) {
+            result.recordException(e);
+            throw e;
         } finally {
             result.closeWithSummarizedSuccesses();
         }
@@ -857,9 +854,9 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
             LOGGER.debug("Submitted suggest correlation operation for resourceOid {}, object type {}, permissions {}: {}",
                     resourceOid, typeIdentification, permissions, oid);
             return oid;
-        } catch (Throwable t) {
-            result.recordException(t);
-            throw t;
+        } catch (CommonException e) {
+            result.recordException(e);
+            throw e;
         } finally {
             result.close();
         }
@@ -900,9 +897,9 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
 
             sortByFinishAndStartTime(resultingList);
             return resultingList;
-        } catch (Throwable t) {
-            result.recordException(t);
-            throw t;
+        } catch (CommonException e) {
+            result.recordException(e);
+            throw e;
         } finally {
             result.close();
         }
@@ -920,9 +917,9 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
                     getTask(token, result),
                     CorrelationSuggestionWorkStateType.F_RESULT,
                     CorrelationSuggestionsType.class);
-        } catch (Throwable t) {
-            result.recordException(t);
-            throw t;
+        } catch (CommonException e) {
+            result.recordException(e);
+            throw e;
         } finally {
             result.close();
         }
@@ -968,9 +965,9 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
             LOGGER.debug("Submitted suggest mappings operation for resourceOid {}, object type {}: {}",
                     resourceOid, typeIdentification, oid);
             return oid;
-        } catch (Throwable t) {
-            result.recordException(t);
-            throw t;
+        } catch (CommonException e) {
+            result.recordException(e);
+            throw e;
         } finally {
             result.close();
         }
@@ -1031,9 +1028,9 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
 
             sortByFinishAndStartTime(resultingList);
             return resultingList;
-        } catch (Throwable t) {
-            result.recordException(t);
-            throw t;
+        } catch (CommonException e) {
+            result.recordException(e);
+            throw e;
         } finally {
             result.close();
         }
@@ -1052,9 +1049,9 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
                     getTask(token, result),
                     MappingsSuggestionWorkStateType.F_RESULT,
                     MappingsSuggestionType.class);
-        } catch (Throwable t) {
-            result.recordException(t);
-            throw t;
+        } catch (CommonException e) {
+            result.recordException(e);
+            throw e;
         } finally {
             result.close();
         }
@@ -1170,9 +1167,9 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
             LOGGER.trace("Suggesting associations for resourceOid {}", resourceOid);
 
             return new SmartAssociationImpl().suggestSmartAssociation(resource.asObjectable());
-        } catch (Throwable t) {
-            result.recordException(t);
-            throw t;
+        } catch (CommonException e) {
+            result.recordException(e);
+            throw e;
         } finally {
             result.close();
         }
@@ -1204,9 +1201,9 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
 
             LOGGER.debug("Submitted suggest associations operation for resourceOid: {}, odi: {}", resourceOid, oid);
             return oid;
-        } catch (Throwable t) {
-            result.recordException(t);
-            throw t;
+        } catch (CommonException e) {
+            result.recordException(e);
+            throw e;
         } finally {
             result.close();
         }
@@ -1239,9 +1236,9 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
 
             sortByFinishAndStartTime(resultingList);
             return resultingList;
-        } catch (Throwable t) {
-            result.recordException(t);
-            throw t;
+        } catch (CommonException e) {
+            result.recordException(e);
+            throw e;
         } finally {
             result.close();
         }
@@ -1261,9 +1258,9 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
                     getTask(token, result),
                     AssociationSuggestionWorkStateType.F_RESULT,
                     AssociationsSuggestionType.class);
-        } catch (Throwable t) {
-            result.recordException(t);
-            throw t;
+        } catch (CommonException e) {
+            result.recordException(e);
+            throw e;
         } finally {
             result.close();
         }
