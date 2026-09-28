@@ -328,10 +328,16 @@ public class ConnectorDevelopmentWizardUtil {
 
         try {
             PrismContainerWrapper<?> parentWrapper = container.findContainer(path);
-            if (parentWrapper == null || parentWrapper.getValues().isEmpty()) {
+            if (parentWrapper == null) {
                 return false;
             }
-            PrismContainerValue<?> cloneValue = parentWrapper.getValues().get(0).getNewValue().clone();
+            Optional<? extends PrismContainerValueWrapper<?>> activeValue = parentWrapper.getValues().stream()
+                    .filter(value -> value.getStatus() != ValueStatus.DELETED)
+                    .findFirst();
+            if (activeValue.isEmpty()) {
+                return false;
+            }
+            PrismContainerValue<?> cloneValue = activeValue.get().getNewValue().clone();
             WebPrismUtil.cleanupEmptyContainerValue(cloneValue);
             return !cloneValue.isEmpty();
 
@@ -347,10 +353,16 @@ public class ConnectorDevelopmentWizardUtil {
 
         try {
             PrismContainerWrapper<?> parentWrapper = containerValue.findContainer(path);
-            if (parentWrapper == null || parentWrapper.getValues().isEmpty()) {
+            if (parentWrapper == null) {
                 return false;
             }
-            PrismContainerValue<?> cloneValue = parentWrapper.getValues().get(0).getNewValue().clone();
+            Optional<? extends PrismContainerValueWrapper<?>> activeValue = parentWrapper.getValues().stream()
+                    .filter(value -> value.getStatus() != ValueStatus.DELETED)
+                    .findFirst();
+            if (activeValue.isEmpty()) {
+                return false;
+            }
+            PrismContainerValue<?> cloneValue = activeValue.get().getNewValue().clone();
             WebPrismUtil.cleanupEmptyContainerValue(cloneValue);
             return !cloneValue.isEmpty();
 
@@ -596,7 +608,8 @@ public class ConnectorDevelopmentWizardUtil {
             if (objectClassesWrapper != null && !objectClassesWrapper.getValues().isEmpty()) {
                 Optional<PrismContainerValueWrapper<ConnDevObjectClassInfoType>> objectClassValue = objectClassesWrapper.getValues().stream()
                         .filter(value ->
-                                Strings.CS.equals(value.getRealValue().getName(), objectClassName))
+                                Strings.CS.equals(value.getRealValue().getName(), objectClassName)
+                                        && value.getStatus() != ValueStatus.DELETED)
                         .findFirst();
 
                 return objectClassValue.orElse(null);
