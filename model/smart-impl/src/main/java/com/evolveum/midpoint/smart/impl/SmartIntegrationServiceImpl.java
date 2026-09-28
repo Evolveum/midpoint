@@ -165,7 +165,7 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
         try (var client = clientFactory.getServiceClient(result)) {
             authorizeSmartIntegration(task, result);
             return client.getAiInfo();
-        } catch (CommonException e) {
+        } catch (Exception e) {
             throw new SystemException("Failed to retrieve AI info: " + e.getMessage(), e);
         }
     }
