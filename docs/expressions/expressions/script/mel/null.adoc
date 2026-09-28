@@ -137,7 +137,7 @@ isPresent(focus.?activation.?administrativeStatus)
 
 NOTE: There is a `has()` macro in CEL, which can be used to check for presence of a particular element in structured data.
 However, the `has()` macro has limitations, which makes it difficult to use in some cases.
-The use of `isNill()` and `isPresent()` functions is recommended instead of use of `has()` macro, especially for new users.
+The use of `isNil()` and `isPresent()` functions is recommended instead of use of `has()` macro, especially for new users.
 
 Moreover, there is a `default()` function which is very handy, and it reliably detects present or missing value in all the cases:
 

@@ -154,7 +154,7 @@ list(['foo'])     // Returns ['foo']
 ----
 
 The `list()` function always returns list.
-If a single-valued (scalar_ argument is provided, it returns a single-element list containing that argument.
+If a single-valued (scalar) argument is provided, it returns a single-element list containing that argument.
 If a list is provided as argument, the same list is returned.
 Hence, the `list()` function can be used to make sure that list is provided in context where list arguments are required.
 

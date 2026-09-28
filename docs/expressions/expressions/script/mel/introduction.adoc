@@ -85,7 +85,7 @@ MEL is _designed to be secure_.
 MEL expressions can use only the safe operations that are provided to them and nothing else.
 In that respect, MEL is very unlike Groovy, which exposes almost the entire Java environment to the script.
 MEL is the exact opposite.
-All mel operators and functions are designed to be secure.
+All MEL operators and functions are designed to be secure.
 In fact, the entire expression language environment is designed to contain the expression within secure constraints.
 
 This means that MEL is _not_ Turing-complete language - by its very design.
@@ -162,7 +162,7 @@ foo.isEmpty()
 isEmpty(foo)
 ----
 
-See xref:../specification/[full MEP specification] for list of all applicable functions.
+See xref:../specification/[full MEL specification] for list of all applicable functions.
 
 .Macros
 NOTE: Some MEL functionality is implemented using _macros_ instead of functions.
@@ -274,7 +274,7 @@ It exists just because it came with CEL.
 
 |===
 
-See xref:../specification/[full MEP specification] for the details.
+See xref:../specification/[full MEL specification] for the details.
 
 == No Flow Control
 
@@ -397,11 +397,11 @@ The `filter` macro can be used to filter lists or search for values:
 [1, 2, 3, 4, 5].filter(x, x % 2 == 1)      // Evaluates to [1,3,5]
 ----
 
-There are other macros such as `all`, `exists` and `exsists_one`.
-See xref:../specification/[full MEP specification] for the details.
+There are other macros such as `all`, `exists` and `exists_one`.
+See xref:../specification/[full MEL specification] for the details.
 
 Multi-valued items of midPoint objects behave as lists as well.
-E.g. expression `focus.assginemnt` evaluates to a _list_ of all assignments that the focus has.
+E.g. expression `focus.assignment` evaluates to a _list_ of all assignments that the focus has.
 The macros above can be applied to multi-valued items.
 E.g. following expression returns a list of OIDs from `targetRef` of all assignments that have `targetRef` specified:
 
@@ -410,7 +410,7 @@ E.g. following expression returns a list of OIDs from `targetRef` of all assignm
 focus.assignment.filter(a, isPresent(a.targetRef)).map(a, a.targetRef.oid)
 ----
 
-This can be combined into a single `map`:
+This can be combined into a single `map` call:
 
 [source,mel]
 ----
