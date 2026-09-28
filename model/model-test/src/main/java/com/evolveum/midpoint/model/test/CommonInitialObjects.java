@@ -341,6 +341,11 @@ public interface CommonInitialObjects {
             "100-report-reconciliation.xml",
             SystemObjectsType.REPORT_RECONCILIATION.value());
 
+    TestReport REPORT_USER_LIST = TestReport.classPath(
+            REPORTS,
+            "110-report-user-list.xml",
+            SystemObjectsType.REPORT_USERS.value());
+
     TestReport REPORT_SIMULATION_OBJECTS = TestReport.classPath(
             REPORTS,
             "170-report-simulation-objects.xml",

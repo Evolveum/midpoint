@@ -408,6 +408,11 @@ public class ExpressionUtil {
             Task task, OperationResult result) throws SchemaException, ObjectNotFoundException,
             CommunicationException, ConfigurationException, SecurityViolationException,
             ExpressionEvaluationException, SubscriptionComplianceException {
+
+        if (objectVariableMode == ObjectVariableModeType.REFERENCABLE_WITHOUT_RESOLUTION) {
+            return referenceTypedValue;
+        }
+
         TypedValue<?> resolvedTypedValue;
         Referencable originalReference = (Referencable) referenceTypedValue.getValue();
         Itemable originalParent = originalReference.asReferenceValue().getParent();

@@ -7064,6 +7064,20 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
+            <xsd:enumeration value="referencableWithoutResolution">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The variable will be presented as a Referencable (typically ObjectReferenceType),
+                        without any attempt to resolve it.
+
+                        Experimental.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="REFERENCABLE_WITHOUT_RESOLUTION"/>
+                        <a:experimental>true</a:experimental>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
             <!-- TODO: "prismObject" that will present the variables as PrismObject<O> -->
             <!-- TODO: maybe "reference" that will present the variables as ObjectReferenceType -->
         </xsd:restriction>
@@ -18674,6 +18688,7 @@
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
+    <xsd:element name="selectorQualifiedGetOptions" type="tns:SelectorQualifiedGetOptionsType"/>
 
     <xsd:complexType name="SelectorQualifiedGetOptionType">
         <xsd:annotation>

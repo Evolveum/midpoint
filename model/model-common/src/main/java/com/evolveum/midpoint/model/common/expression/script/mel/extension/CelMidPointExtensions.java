@@ -14,8 +14,12 @@ import com.evolveum.midpoint.model.common.expression.script.mel.value.ReferenceC
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
+import com.evolveum.midpoint.schema.util.GetOperationOptionsUtil;
 import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -243,10 +247,23 @@ public class CelMidPointExtensions extends AbstractMidPointCelExtensions {
                                         SimpleType.STRING, SimpleType.STRING)),
                         CelFunctionBinding.from(FUNCTION_NAME_PREFIX_DASH + "getObject-string", String.class, String.class,
                                 this::getObject)
-
                 ),
 
-                // TODO(maybe): getObject with options
+                // midpoint.getObject(string(type), oid, string(options))
+                new Function(
+                        CelFunctionDecl.newFunctionDeclaration(
+                                FUNCTION_NAME_PREFIX_DOT + "getObject",
+                                CelOverloadDecl.newGlobalOverload(
+                                        FUNCTION_NAME_PREFIX_DASH + "getObject-string-options",
+                                        "Returns object for provided OID. It retrieves the object from an appropriate source "
+                                                + "for an object type (e.g. internal repository, resource or both), merging data as necessary, "
+                                                + "processing any policies, caching mechanisms, etc..",
+                                        ObjectCelValue.CEL_TYPE,
+                                        SimpleType.STRING, SimpleType.STRING, SimpleType.STRING)),
+                        CelFunctionBinding.from(FUNCTION_NAME_PREFIX_DASH + "getObject-string-options",
+                                ImmutableList.of(String.class, Object.class, Object.class),
+                                this::getObject)
+                ),
 
                 // midpoint.getObjectsInConflictOnPropertyValue(object, propertyPathString, propertyValue, getAllConflicting)
                 new Function(
@@ -515,6 +532,21 @@ public class CelMidPointExtensions extends AbstractMidPointCelExtensions {
 
                 ),
 
+                // midpoint.searchObjects(string(type), filter, string(options))
+                new Function(
+                        CelFunctionDecl.newFunctionDeclaration(
+                                FUNCTION_NAME_PREFIX_DOT + "searchObjects",
+                                CelOverloadDecl.newGlobalOverload(
+                                        FUNCTION_NAME_PREFIX_DASH + "searchObjects-string-options",
+                                        "Searches through all object of a specified type. Returns a list of objects that "
+                                                + "match search criteria.",
+                                        ListType.create(ObjectCelValue.CEL_TYPE),
+                                        SimpleType.STRING, SimpleType.STRING, SimpleType.STRING)),
+                        CelFunctionBinding.from(FUNCTION_NAME_PREFIX_DASH + "searchObjects-string-options",
+                                ImmutableList.of(String.class, Object.class, Object.class),
+                                this::searchObjects)
+                ),
+
                 // searchObjectsIterative: not implemented, at least not for now
                 // Could we even do that in CEL?
 
@@ -698,18 +730,26 @@ public class CelMidPointExtensions extends AbstractMidPointCelExtensions {
     }
 
 
-    private <O extends ObjectType> CelValue getObject(String typeLocalPart, String oid) {
-        return getObject(new QName(ObjectFactory.NAMESPACE, typeLocalPart), oid);
+    private CelValue getObject(Object[] args) {
+        return getObject(new QName(ObjectFactory.NAMESPACE, (String) args[0]), (String) args[1], args[2]);
     }
 
-    private <O extends ObjectType> CelValue getObject(QNameCelValue celTypeQname, String oid) {
-        return getObject(celTypeQname.getQName(), oid);
+    private CelValue getObject(String typeLocalPart, String oid) {
+        return getObject(new QName(ObjectFactory.NAMESPACE, typeLocalPart), oid, null);
     }
 
-    private <O extends ObjectType> CelValue getObject(QName type, String oid) {
+    private CelValue getObject(QNameCelValue celTypeQname, String oid) {
+        return getObject(celTypeQname.getQName(), oid, null);
+    }
+
+    private <O extends ObjectType> CelValue getObject(QName type, String oid, Object optionsAsString) {
         Class<O> typeClass = prismContext.getSchemaRegistry().determineClassForType(type);
         try {
-            return toCelObject(midpointExpressionFunctions.getObject(typeClass, oid));
+            if (CelTypeMapper.isCelNull(optionsAsString)) {
+                return toCelObject(midpointExpressionFunctions.getObject(typeClass, oid));
+            } else {
+                return toCelObject(midpointExpressionFunctions.getObject(typeClass, oid, parseOptions(optionsAsString)));
+            }
         } catch (CommonException e) {
             throw createException(e);
         }
@@ -770,15 +810,19 @@ public class CelMidPointExtensions extends AbstractMidPointCelExtensions {
         }
     }
 
+    private <O extends ObjectType> List<CelValue> searchObjects(Object[] args) {
+        return searchObjects(new QName(ObjectFactory.NAMESPACE, (String) args[0]), args[1], args[2]);
+    }
+
     private <O extends ObjectType> List<CelValue> searchObjects(String typeLocalPart, Object filter) {
-        return searchObjects(new QName(ObjectFactory.NAMESPACE, typeLocalPart), filter);
+        return searchObjects(new QName(ObjectFactory.NAMESPACE, typeLocalPart), filter, null);
     }
 
     private <O extends ObjectType> List<CelValue> searchObjects(QNameCelValue celTypeQname, Object filter) {
-        return searchObjects(celTypeQname.getQName(), filter);
+        return searchObjects(celTypeQname.getQName(), filter, null);
     }
 
-    private <O extends ObjectType> List<CelValue> searchObjects(QName type, Object filter) {
+    private <O extends ObjectType> List<CelValue> searchObjects(QName type, Object filter, Object optionsAsString) {
         Class<O> typeClass = prismContext.getSchemaRegistry().determineClassForType(type);
         String filterString;
         if (CelTypeMapper.isCelNull(filter)) {
@@ -787,10 +831,24 @@ public class CelMidPointExtensions extends AbstractMidPointCelExtensions {
             filterString = (String) filter;
         }
         try {
-            return toCelObjectList(midpointExpressionFunctions.searchObjects(typeClass, filterString));
+            if (CelTypeMapper.isCelNull(optionsAsString)) {
+                return toCelObjectList(
+                        midpointExpressionFunctions.searchObjects(typeClass, filterString));
+            } else {
+                return toCelObjectList(
+                        midpointExpressionFunctions.searchObjects(typeClass, filterString, parseOptions(optionsAsString)));
+            }
         } catch (CommonException e) {
             throw createException(e);
         }
+    }
+
+    private List<SelectorOptions<GetOperationOptions>> parseOptions(Object optionsAsString) throws SchemaException {
+        // We have to wrap the data because we don't have an equivalent of "serializePrismValueContent" in the parser.
+        // The parser expects a root element (in fact, ignored), so we wrap the options in a "dummy" element.
+        var wrappedString = "{ \"dummy\": %s }".formatted(optionsAsString);
+        var bean = prismContext.parserFor(wrappedString).json().parseRealValue(SelectorQualifiedGetOptionsType.class);
+        return GetOperationOptionsUtil.optionsBeanToOptions(bean);
     }
 
     private Object searchShadowOwner(String accountOid) {

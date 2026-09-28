@@ -16,6 +16,7 @@ import com.evolveum.midpoint.schema.expression.VariablesMap;
 
 import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
@@ -279,6 +280,41 @@ public class TestModelExpressionsMel extends AbstractModelExpressionsTest {
                 ),
                 "search-shadow-owner",
                 USER_GUYBRUSH_USERNAME);
+    }
+
+    @Test
+    public void testResolveReferenceIfExists() throws Exception {
+        assertExecuteScriptExpressionString(
+                createFocusProjectionResourceVariables(
+                        "ref",
+                        new ObjectReferenceType()
+                                .oid(USER_GUYBRUSH_OID)
+                                .type(UserType.COMPLEX_TYPE),
+                        ObjectReferenceType.class
+                ),
+                "resolve-reference-if-exists",
+                "Guybrush Threepwood");
+    }
+
+    @Test
+    public void testGetObjectWithOptions() throws Exception {
+        assertExecuteScriptExpressionString(
+                createFocusProjectionResourceVariables(
+                        "oid", ACCOUNT_SHADOW_GUYBRUSH_OID, PrimitiveType.STRING
+                ),
+                "get-object-with-options",
+                "Dummy Resource");
+    }
+
+    @Test
+    public void testSearchObjectsWithOptions() throws Exception {
+        // There should be 3 shadows, all of them on Dummy Resource. The script should return the resource name for each of them.
+        //displayCollection("shadows", repositoryService.searchObjects(ShadowType.class, null, null, getTestOperationResult()));
+
+        assertExecuteScriptExpressionStringList(
+                createVariables("filter", null, PrimitiveType.STRING),
+                "search-objects-with-options",
+                "Dummy Resource");
     }
 
     @Test

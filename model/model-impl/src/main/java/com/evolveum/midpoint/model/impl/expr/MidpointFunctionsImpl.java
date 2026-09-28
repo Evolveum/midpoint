@@ -1250,8 +1250,15 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     }
 
     @Override
+    public <T extends ObjectType> List<T> searchObjects(Class<T> type, String filter)
+            throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException,
+            ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException {
+        return searchObjects(type, filter, getDefaultGetOptionCollection());
+    }
+
+    @Override
     public <T extends ObjectType> List<T> searchObjects(
-            Class<T> type, String filter) throws SchemaException,
+            Class<T> type, String filter, Collection<SelectorOptions<GetOperationOptions>> options) throws SchemaException,
             ObjectNotFoundException, SecurityViolationException,
             CommunicationException, ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException {
         ObjectFilter objectFilter;
@@ -1263,8 +1270,8 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
         }
         ObjectQuery query = prismContext.queryFactory().createQuery(objectFilter);
         return MiscSchemaUtil.toObjectableList(
-                modelService.searchObjects(type, query,
-                        getDefaultGetOptionCollection(), getCurrentTask(), getCurrentResult()));
+                modelService.searchObjects(
+                        type, query, options, getCurrentTask(), getCurrentResult()));
     }
 
     private PrismNamespaceContext getNamespaceContext() {

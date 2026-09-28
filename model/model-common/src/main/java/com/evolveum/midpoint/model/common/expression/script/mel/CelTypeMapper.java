@@ -415,12 +415,18 @@ public class CelTypeMapper implements CelTypeProvider  {
         if (javaValue instanceof PrismContainerValue<?> cval) {
             return ContainerValueCelValue.create(cval);
         }
-        if (javaValue instanceof Containerable c) {
-            return ContainerValueCelValue.create((PrismContainerValue<?>) c.asPrismContainerValue());
-        }
-        // TODO what about Objectable and Referencable? Is it better to treat these tree "*able"s here or in convertVariableValue()?
         if (javaValue instanceof PrismReferenceValue rval) {
             return ReferenceCelValue.create(rval);
+        }
+        // TODO Is it better to treat these tree "*able"s here or in convertVariableValue()?
+        if (javaValue instanceof Objectable objectable) {
+            return ObjectCelValue.create((PrismObject<?>) objectable.asPrismObject());
+        }
+        if (javaValue instanceof Containerable containerable) {
+            return ContainerValueCelValue.create((PrismContainerValue<?>) containerable.asPrismContainerValue());
+        }
+        if (javaValue instanceof Referencable referencable) {
+            return ReferenceCelValue.create(referencable.asReferenceValue());
         }
         if (javaValue instanceof ObjectDeltaType od) {
             return ObjectDeltaCelValue.create(od);

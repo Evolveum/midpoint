@@ -115,18 +115,12 @@
                 <export>
                     <expression>
                         <script>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
+                            <!-- input can be either a single assignment or a list of assignments -->
                             <code>
-                                if (input != null){
-                                    roles = report.resolveRoles(input);
-                                    if (roles.isEmpty()) {
-                                        return null;
-                                    }
-                                    list = new ArrayList();
-                                    for (role in roles) {
-                                        list.add(role.getName());
-                                    }
-                                    return list;
-                                }
+                                list(input).map(a,
+                                    a.isTargetRole(),
+                                midpoint.resolveReferenceIfExists(a.targetRef).name)
                             </code>
                         </script>
                     </expression>
@@ -147,18 +141,12 @@
                 <export>
                     <expression>
                         <script>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
+                            <!-- input can be either a single assignment or a list of assignments -->
                             <code>
-                                if (input != null){
-                                    orgs = report.resolveOrgs(input);
-                                    if (orgs.isEmpty()) {
-                                        return null;
-                                    }
-                                    list = new ArrayList();
-                                    for (org in orgs) {
-                                        list.add(org.getName());
-                                    }
-                                    return list;
-                                }
+                                list(input).map(a,
+                                    a.isTargetOrg(),
+                                    midpoint.resolveReferenceIfExists(a.targetRef).name)
                             </code>
                         </script>
                     </expression>
@@ -179,20 +167,18 @@
                 <export>
                     <expression>
                         <script>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
+                            <objectVariableMode>referencableWithoutResolution</objectVariableMode>
+                            <!-- input can be either a single assignment or a list of assignments -->
                             <code>
-                                import com.evolveum.midpoint.schema.SelectorOptions;
-                                import com.evolveum.midpoint.schema.GetOperationOptions;
-                                import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-
-                                if (input != null){
-                                    list = new ArrayList();
-                                    for (linkRef in input){
-                                    shadow = midpoint.getObject(ShadowType.class, linkRef.getOid(),
-                                    SelectorOptions.createCollection(GetOperationOptions.createNoFetch().resolveNames(true)));
-                                    list.add(shadow.getName().getOrig() + "(Resource: " + shadow.getResourceRef().getTargetName()?.getOrig() + ")");
-                                }
-                                return list;
-                                }
+                                list(input).map(linkRef,
+                                    cel.bind(shadow,
+                                        midpoint.getObject(
+                                                'ShadowType', linkRef.oid,
+                                                '{ "option" : { "options" : { "resolveNames" : true, "noFetch" : true } } }'),
+                                        "%s (Resource: %s)".format([shadow.name, shadow.resourceRef.targetName])
+                                    )
+                                )
                             </code>
                         </script>
                     </expression>

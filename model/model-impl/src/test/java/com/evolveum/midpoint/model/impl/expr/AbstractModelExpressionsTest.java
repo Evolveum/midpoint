@@ -462,7 +462,6 @@ public abstract class AbstractModelExpressionsTest extends AbstractInternalModel
                 ACCOUNT_GUYBRUSH_DUMMY_FULLNAME);
     }
 
-
     protected VariablesMap createFocusProjectionResourceVariables(Object... args) throws Exception {
         PrismObject<UserType> user = getUser(USER_GUYBRUSH_OID);
         PrismObject<ResourceType> resource = getDummyResourceObject();

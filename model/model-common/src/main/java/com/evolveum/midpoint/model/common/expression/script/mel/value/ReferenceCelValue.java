@@ -34,6 +34,7 @@ public class ReferenceCelValue extends CelValue implements Map<String,Object>, M
     private static final String F_OID = ObjectReferenceType.F_OID.getLocalPart();
     private static final String F_RELATION = ObjectReferenceType.F_RELATION.getLocalPart();
     private static final String F_TYPE = ObjectReferenceType.F_TYPE.getLocalPart();
+    private static final String F_TARGET_NAME = ObjectReferenceType.F_TARGET_NAME.getLocalPart();
     public static final CelType CEL_TYPE = createObjectReferenceType();
     private final PrismReferenceValue objectReferenceValue;
 
@@ -47,7 +48,8 @@ public class ReferenceCelValue extends CelValue implements Map<String,Object>, M
 
     public Map<String, Object> value() {
         return Map.of(F_OID, objectReferenceValue.getOid(),
-                F_RELATION, CelTypeMapper.toCelValue(objectReferenceValue.getRelation()));
+                F_RELATION, CelTypeMapper.toCelValue(objectReferenceValue.getRelation()),
+                F_TARGET_NAME, CelTypeMapper.toCelValue(objectReferenceValue.getTargetName()));
     }
 
     @Override

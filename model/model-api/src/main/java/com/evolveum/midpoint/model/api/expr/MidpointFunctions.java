@@ -645,8 +645,12 @@ public interface MidpointFunctions {
      *             wrong query format
      */
     <T extends ObjectType> List<T> searchObjects(Class<T> type, String filter) throws SchemaException,
-            ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException;
+            ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException,
+            ExpressionEvaluationException, SubscriptionComplianceException;
 
+    <T extends ObjectType> List<T> searchObjects(Class<T> type, String filter, Collection<SelectorOptions<GetOperationOptions>> options)
+            throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException,
+            ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException;
 
     /**
      * <p>
