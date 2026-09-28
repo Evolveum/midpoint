@@ -132,6 +132,16 @@ You can get all server certificates in the chain by using:
 openssl s_client -showcerts -connect <server_name>:<port>
 ----
 +
+[TIP]
+====
+If `openssl` is not available in your environment, you can use `keytool` instead:
+
+[source]
+----
+keytool -printcert -rfc -sslserver <server_name>:<port>
+----
+====
++
 If the server hosts multiple domains, use `-servername` for Server Name Indication (SNI):
 +
 [source]
