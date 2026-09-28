@@ -165,7 +165,7 @@
                 <collectLogEntries>true</collectLogEntries>
                 <loggingOverride>
                     <levelOverride id="19">
-                        <logger>org.hibernate.SQL</logger>
+                        <logger>com.evolveum.midpoint.repo.sqlbase.querydsl.SqlLogger</logger>
                         <level>TRACE</level>
                     </levelOverride>
                 </loggingOverride>
