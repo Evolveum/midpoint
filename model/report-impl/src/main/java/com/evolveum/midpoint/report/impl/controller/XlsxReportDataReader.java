@@ -21,7 +21,6 @@ import javax.xml.parsers.ParserConfigurationException;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.UnsupportedFileFormatException;
 import org.apache.poi.ooxml.POIXMLException;
-import org.apache.poi.ooxml.POIXMLTypeLoader;
 import org.apache.poi.openxml4j.exceptions.OpenXML4JException;
 import org.apache.poi.openxml4j.opc.OPCPackage;
 import org.apache.poi.openxml4j.opc.PackageAccess;
@@ -35,14 +34,13 @@ import org.apache.poi.xssf.eventusermodel.ReadOnlySharedStringsTable;
 import org.apache.poi.xssf.eventusermodel.XSSFReader;
 import org.apache.poi.xssf.eventusermodel.XSSFSheetXMLHandler;
 import org.apache.poi.xssf.usermodel.XSSFComment;
-import org.apache.xmlbeans.XmlException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.openxmlformats.schemas.spreadsheetml.x2006.main.CTWorkbookPr;
-import org.openxmlformats.schemas.spreadsheetml.x2006.main.WorkbookDocument;
+import org.xml.sax.Attributes;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
+import org.xml.sax.helpers.DefaultHandler;
 
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FileFormatConfigurationType;
@@ -161,7 +159,7 @@ public class XlsxReportDataReader implements ReportDataReader {
             throw e.getCause();
         } catch (UnsupportedFileFormatException e) {
             throw new IOException("File " + file + " is not an XLSX file: " + e.getMessage(), e);
-        } catch (OpenXML4JException | SAXException | ParserConfigurationException | XmlException | POIXMLException e) {
+        } catch (OpenXML4JException | SAXException | ParserConfigurationException | POIXMLException e) {
             throw new IOException("Couldn't read XLSX file " + file + ": " + e.getMessage(), e);
         }
     }
@@ -170,21 +168,35 @@ public class XlsxReportDataReader implements ReportDataReader {
      * Formats cell values like POI does for the in-memory workbook, including dates in workbooks
      * using the 1904 date system (which the event API does not take into account by itself).
      */
-    private static DataFormatter createFormatter(XSSFReader reader) throws IOException, OpenXML4JException, XmlException {
-        boolean date1904;
+    private static DataFormatter createFormatter(XSSFReader reader)
+            throws IOException, OpenXML4JException, SAXException, ParserConfigurationException {
+        Date1904Detector date1904Detector = new Date1904Detector();
+        XMLReader parser = XMLHelper.newXMLReader();
+        parser.setContentHandler(date1904Detector);
         try (InputStream workbookData = reader.getWorkbookData()) {
-            CTWorkbookPr workbookProperties = WorkbookDocument.Factory
-                    .parse(workbookData, POIXMLTypeLoader.DEFAULT_XML_OPTIONS)
-                    .getWorkbook()
-                    .getWorkbookPr();
-            date1904 = workbookProperties != null && workbookProperties.getDate1904();
+            parser.parse(new InputSource(workbookData));
         }
+        boolean date1904 = date1904Detector.date1904;
         return new DataFormatter() {
             @Override
             public String formatRawCellContents(double value, int formatIndex, String formatString) {
                 return formatRawCellContents(value, formatIndex, formatString, date1904);
             }
         };
+    }
+
+    /** Finds out whether the workbook uses the 1904 date system: `workbookPr/@date1904` in `xl/workbook.xml`. */
+    private static class Date1904Detector extends DefaultHandler {
+
+        private boolean date1904;
+
+        @Override
+        public void startElement(String uri, String localName, String qName, Attributes attributes) {
+            if ("workbookPr".equals(localName)) {
+                String value = attributes.getValue("date1904");
+                date1904 = "1".equals(value) || "true".equals(value);
+            }
+        }
     }
 
     /** Collects the cells reported by POI for each row, and passes the whole row to the handler. */
