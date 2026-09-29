@@ -232,6 +232,7 @@ See xref:/midpoint/guides/account-activation-sequence/[Account Activation Authen
 * Fixed visualization item descriptiveness handling for added and deleted containers. See bug:MID-10620[]
 * Fixed displaying of the error while adding a delegation. See bug:MID-12364[]
 * Fixed extra reviewer reference labels in certification campaign stage definitions. See bug:MID-6647[]
+* Fixed access certification ignoring overridden system clock in deadlines, reminders, notifications and campaign cleanup. See bug:MID-11008[]
 
 === Releases Of Other Components
 
