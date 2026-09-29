@@ -104,6 +104,7 @@ This is mainly used when password hashing is enabled.
 See xref:/midpoint/guides/account-activation-sequence/[Account Activation Authentication Sequence] for the required configuration.
 * Fixed object marks not being removed immediately after unassigning the policy that induces them. See bug:MID-10641[].
 * Registration confirmation notifier doesn't send cleartext username and password by default.
+* Password hint is now hidden by default in the self-service user interface.
 
 #TODO#
 
