@@ -351,28 +351,31 @@ public abstract class CorrelationProcessedObjectPanel
                     String id,
                     IModel<SelectableBean<SimulationResultProcessedObjectType>> rowModel) {
 
-                ProcessedObject<?> processedObject = SimulationsGuiUtil.parseProcessedObject(rowModel.getObject().getValue(), getPageBase());
-                IModel<String> title = () -> SimulationsGuiUtil.getShadowNameFromAttribute(processedObject);
-                IModel<String> realMarksModel = () -> createRealMarksList(getPageBase(), processedObject);
-                item.add(new TitleWithMarks(id, title, realMarksModel) {
+                var resultObject = rowModel.getObject().getValue();
+                ProcessedObject<?> processedObject = resultObject != null
+                        ? SimulationsGuiUtil.parseProcessedObject(resultObject, getPageBase())
+                        : null;
 
+                IModel<String> titleModel = () -> SimulationsGuiUtil.getShadowDisplayNameFromAttribute(processedObject);
+                IModel<String> marksModel = () -> createRealMarksList(getPageBase(), processedObject);
+
+                item.add(new TitleWithMarks(id, titleModel, marksModel) {
                     @Override
                     protected boolean isTitleLinkEnabled() {
-                        return rowModel.getObject().getValue() != null;
+                        return resultObject != null;
                     }
 
                     @Override
                     protected void onTitleClicked(AjaxRequestTarget target) {
-                        SimulationResultProcessedObjectType object = rowModel.getObject().getValue();
-                        if (object == null) {
+
+                        if (resultObject == null) {
                             return;
                         }
 
-                        String simulationResultOid = CorrelationProcessedObjectPanel.this
+                        String resultOid = CorrelationProcessedObjectPanel.this
                                 .getSimulationResultModel().getObject().getOid();
-                        navigateToSimulationResultObject(simulationResultOid, null, object, target);
+                        navigateToSimulationResultObject(resultOid, null, resultObject, target);
                     }
-
                 });
             }
         };
