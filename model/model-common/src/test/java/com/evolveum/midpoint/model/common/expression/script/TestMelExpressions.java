@@ -87,6 +87,117 @@ public class TestMelExpressions extends AbstractScriptTest {
     }
 
     @Test
+    public void testFormatReferenceNamed() throws Exception {
+        var definition = prismContext.definitionFactory()
+                .newReferenceDefinition(UserType.F_PERSONA_REF, UserType.COMPLEX_TYPE);
+        var reference = new ObjectReferenceType()
+                .oid(USER_JACK_OID)
+                .type(UserType.COMPLEX_TYPE)
+                .targetName(createPolyStringType("Jack Sparrow"));
+
+        executeAndAssertStringScalarExpression(
+                "expression-format-reference.xml",
+                createVariables("input", reference, definition),
+                "User: Jack Sparrow");
+    }
+
+    @Test
+    public void testFormatReferenceOidFallback() throws Exception {
+        var definition = prismContext.definitionFactory()
+                .newReferenceDefinition(UserType.F_PERSONA_REF, UserType.COMPLEX_TYPE);
+        var reference = new ObjectReferenceType()
+                .oid(USER_JACK_OID)
+                .type(UserType.COMPLEX_TYPE);
+
+        executeAndAssertStringScalarExpression(
+                "expression-format-reference.xml",
+                createVariables("input", reference, definition),
+                "User: " + USER_JACK_OID);
+    }
+
+    @Test
+    public void testFormatReferenceNull() throws Exception {
+        var definition = prismContext.definitionFactory()
+                .newReferenceDefinition(UserType.F_PERSONA_REF, UserType.COMPLEX_TYPE);
+
+        executeAndAssertStringScalarExpression(
+                "expression-format-reference.xml",
+                createVariables("input", null, definition),
+                "");
+    }
+
+    @Test
+    public void testFormatCertificationOutcomeAccept() throws Exception {
+        executeAndAssertStringScalarExpression(
+                "expression-format-certification-outcome.xml",
+                createVariables(
+                        "input",
+                        SchemaConstants.MODEL_CERTIFICATION_OUTCOME_ACCEPT,
+                        PrimitiveType.STRING),
+                "Accept");
+    }
+
+    @Test
+    public void testFormatCertificationOutcomeNoResponse() throws Exception {
+        executeAndAssertStringScalarExpression(
+                "expression-format-certification-outcome.xml",
+                createVariables(
+                        "input",
+                        SchemaConstants.MODEL_CERTIFICATION_OUTCOME_NO_RESPONSE,
+                        PrimitiveType.STRING),
+                "");
+    }
+
+    @Test
+    public void testFormatCertificationOutcomeNull() throws Exception {
+        executeAndAssertStringScalarExpression(
+                "expression-format-certification-outcome.xml",
+                createVariables("input", null, PrimitiveType.STRING),
+                "");
+    }
+
+    @Test
+    public void testFormatCertificationOutcomeInvalid() throws Exception {
+        try {
+            evaluateStringScalarExpression(
+                    "expression-format-certification-outcome.xml",
+                    createVariables("input", "invalid", PrimitiveType.STRING));
+            fail("Unexpected success");
+        } catch (ExpressionEvaluationException e) {
+            displayExpectedException(e);
+            assertTrue(
+                    "Unexpected exception message: " + e.getMessage(),
+                    e.getMessage().contains("format_certificationOutcome"));
+        }
+    }
+
+    @Test
+    public void testContainingObjectAttached() throws Exception {
+        PrismObject<UserType> userJack = prismContext.parseObject(USER_JACK_FILE);
+        PrismContainer<ActivationType> activation =
+                userJack.findContainer(UserType.F_ACTIVATION);
+
+        executeAndAssertStringScalarExpression(
+                "expression-containing-object-oid.xml",
+                createVariables("input", activation.getValue(), activation.getDefinition()),
+                USER_JACK_OID);
+    }
+
+    @Test
+    public void testContainingObjectDetached() throws Exception {
+        PrismObject<UserType> userJack = prismContext.parseObject(USER_JACK_FILE);
+        PrismContainer<ActivationType> activation =
+                userJack.findContainer(UserType.F_ACTIVATION);
+        PrismContainerValue<ActivationType> detached = activation.getValue().clone();
+        detached.setParent(null);
+
+        executeAndAssertStringScalarExpression(
+                "expression-containing-object-oid.xml",
+                createVariables("input", detached, activation.getDefinition()),
+                null);
+    }
+
+    @Test
     public void testUserGivenNameMap() throws Exception {
         executeAndAssertStringScalarExpression(
                 "expression-user-given-name-map.xml",

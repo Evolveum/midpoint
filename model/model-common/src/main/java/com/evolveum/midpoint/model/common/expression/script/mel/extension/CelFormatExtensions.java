@@ -9,7 +9,9 @@ import com.evolveum.midpoint.model.common.expression.functions.BasicExpressionFu
 import com.evolveum.midpoint.model.common.expression.functions.TimestampFormatUtil;
 import com.evolveum.midpoint.model.common.expression.script.mel.CelTypeMapper;
 import com.evolveum.midpoint.model.common.expression.script.mel.value.PolyStringCelValue;
+import com.evolveum.midpoint.model.common.expression.script.mel.value.ReferenceCelValue;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
+import com.evolveum.midpoint.schema.util.SchemaDisplayUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
@@ -17,10 +19,12 @@ import com.google.common.collect.ImmutableSet;
 import dev.cel.common.CelFunctionDecl;
 import dev.cel.common.CelOverloadDecl;
 import dev.cel.common.types.ListType;
+import dev.cel.common.types.NullableType;
 import dev.cel.common.types.SimpleType;
 import dev.cel.extensions.CelExtensionLibrary;
 import dev.cel.runtime.CelFunctionBinding;
 import dev.cel.runtime.CelFunctionOverload;
+import dev.cel.runtime.NullabilityProperties;
 import org.jetbrains.annotations.NotNull;
 
 import java.text.ParseException;
@@ -69,6 +73,31 @@ public class CelFormatExtensions extends AbstractMidPointCelExtensions {
 
                 ),
 
+                // format.reference
+                new Function(
+                        CelFunctionDecl.newFunctionDeclaration(
+                                FUNCTION_NAME_PREFIX_DOT + "reference",
+                                CelOverloadDecl.newGlobalOverload(
+                                        FUNCTION_NAME_PREFIX + "_reference",
+                                        "Formats an object reference for display.",
+                                        SimpleType.STRING,
+                                        NullableType.create(ReferenceCelValue.CEL_TYPE))),
+                        CelFunctionBinding.from(FUNCTION_NAME_PREFIX + "_reference", Object.class,
+                                CelFormatExtensions::formatReference,
+                                NullabilityProperties.NULLABLE)),
+
+                // format.certificationOutcome
+                new Function(
+                        CelFunctionDecl.newFunctionDeclaration(
+                                FUNCTION_NAME_PREFIX_DOT + "certificationOutcome",
+                                CelOverloadDecl.newGlobalOverload(
+                                        FUNCTION_NAME_PREFIX + "_certificationOutcome",
+                                        "Formats a certification outcome URI for display.",
+                                        SimpleType.STRING,
+                                        NullableType.create(SimpleType.STRING))),
+                        CelFunctionBinding.from(FUNCTION_NAME_PREFIX + "_certificationOutcome", Object.class,
+                                CelFormatExtensions::formatCertificationOutcome,
+                                NullabilityProperties.NULLABLE)),
 
                 // DateTime functions:
 
@@ -303,6 +332,20 @@ public class CelFormatExtensions extends AbstractMidPointCelExtensions {
 
     public String concatName(List<Object> args) {
         return basicExpressionFunctions.concatName(CelTypeMapper.toJavaValues(args.toArray()));
+    }
+
+    private static String formatReference(Object reference) {
+        if (isCelNull(reference)) {
+            return SchemaDisplayUtil.formatReference(null);
+        }
+        return SchemaDisplayUtil.formatReference(
+                ((ReferenceCelValue) reference).getObjectReferenceValue().asReferencable());
+    }
+
+    private static String formatCertificationOutcome(Object outcome) {
+        return SchemaDisplayUtil.formatCertificationOutcome(
+                isCelNull(outcome) ? null : (String) outcome,
+                false);
     }
 
     public String parseGivenName(Object fullName) {

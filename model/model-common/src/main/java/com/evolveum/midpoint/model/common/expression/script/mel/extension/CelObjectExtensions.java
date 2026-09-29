@@ -20,6 +20,7 @@ import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ShadowSimpleAttribute;
 import com.evolveum.midpoint.schema.util.FocusTypeUtil;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.*;
@@ -122,6 +123,20 @@ public class CelObjectExtensions extends AbstractMidPointCelExtensions {
                     CelFunctionBinding.from("prism-object-type",
                             ObjectCelValue.class,
                             CelObjectExtensions::objectType,
+                            NullabilityProperties.NULLABLE_NULL)),
+
+            // object.containingObject()
+            new Function(
+                    CelFunctionDecl.newFunctionDeclaration(
+                            "containingObject",
+                            CelOverloadDecl.newMemberOverload(
+                                    "prism-container-containingObject",
+                                    "Returns the object containing this container value.",
+                                    NullableType.create(ObjectCelValue.CEL_TYPE),
+                                    ContainerValueCelValue.CEL_TYPE)),
+                    CelFunctionBinding.from("prism-container-containingObject",
+                            ContainerValueCelValue.class,
+                            CelObjectExtensions::containingObject,
                             NullabilityProperties.NULLABLE_NULL)),
 
             // resource.connectorConfiguration(propertyName)
@@ -454,6 +469,12 @@ public class CelObjectExtensions extends AbstractMidPointCelExtensions {
             return NullValue.NULL_VALUE;
         }
         return QNameCelValue.create(definition.getTypeName());
+    }
+
+    private static ObjectCelValue<?> containingObject(ContainerValueCelValue<?> value) {
+        Objectable containingObject = ObjectTypeUtil.getParentObject(value.getContainerValue().asContainerable());
+        return containingObject != null
+                ? ObjectCelValue.create(containingObject.asPrismObject()) : null;
     }
 
     private static Object estimateAddedValuesFor(ObjectDeltaCelValue<?> objectDeltaCelValue, Object path) {

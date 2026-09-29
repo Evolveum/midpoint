@@ -23,8 +23,9 @@
                     . ownedByOid yaml```
                         queryInterpretationOfNoValue: filterAll
                         script:
-                            objectVariableMode: prismReference
-                            code: campaignRef?.oid
+                            language: http://midpoint.evolveum.com/xml/ns/public/expression/language#mel
+                            objectVariableMode: referencableWithoutResolution
+                            code: 'isPresent(campaignRef) ? campaignRef.oid : nil'
                     ```
                 </q:text>
             </filter>
@@ -47,13 +48,9 @@
                 <export>
                     <expression>
                         <script>
-                            <objectVariableMode>prismReference</objectVariableMode>
-                            <code>
-                                import com.evolveum.midpoint.report.impl.ReportUtils
-
-                                // Provides the type plus object name
-                                ReportUtils.prettyPrintForReport(input)
-                            </code>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
+                            <objectVariableMode>referencableWithoutResolution</objectVariableMode>
+                            <code>format.reference(input)</code>
                         </script>
                     </expression>
                 </export>
@@ -73,13 +70,9 @@
                 <export>
                     <expression>
                         <script>
-                            <objectVariableMode>prismReference</objectVariableMode>
-                            <code>
-                                import com.evolveum.midpoint.report.impl.ReportUtils
-
-                                // Provides the type plus object name
-                                ReportUtils.prettyPrintForReport(input)
-                            </code>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
+                            <objectVariableMode>referencableWithoutResolution</objectVariableMode>
+                            <code>format.reference(input)</code>
                         </script>
                     </expression>
                 </export>
@@ -98,11 +91,11 @@
                 <export>
                     <expression>
                         <script>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                             <code>
-                                import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil
-                                import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType
-
-                                CertCampaignTypeUtil.getCampaign(object as AccessCertificationCaseType)?.name?.orig
+                                cel.bind(campaign, object.containingObject(),
+                                    isPresent(campaign) &amp;&amp; isPresent(campaign.name)
+                                        ? campaign.name.orig : nil)
                             </code>
                         </script>
                     </expression>
@@ -122,11 +115,16 @@
                 <export>
                     <expression>
                         <script>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                             <code>
-                                import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil
-                                import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType
-
-                                return CertCampaignTypeUtil.getCurrentlyAssignedReviewers(object as AccessCertificationCaseType)
+                                join(
+                                    object.workItem
+                                        .filter(w, w.stageNumber == default(object.stageNumber, 0))
+                                        .map(w, w.assigneeRef)
+                                        .flatten()
+                                        .map(ref, isPresent(ref.targetName) &amp;&amp; isPresent(ref.targetName.orig)
+                                            ? ref.targetName.orig : ref.oid),
+                                ',')
                             </code>
                         </script>
                     </expression>
@@ -146,11 +144,15 @@
                 <export>
                     <expression>
                         <script>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                             <code>
-                                import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil
-                                import com.evolveum.midpoint.report.impl.ReportUtils
-
-                                CertCampaignTypeUtil.getLastReviewedOn(object.asPrismContainerValue())
+                                cel.bind(responded, object.workItem.filter(w, isPresent(w.output) &amp;&amp;(isPresent(w.output.outcome)
+                                || (isPresent(w.output.comment) &amp;&amp; w.output.comment != '' ))),
+                                    responded.size() == 0 ? nil : responded
+                                            .map(w, w.outputChangeTimestamp)
+                                            .sort()
+                                            .reverse()[0]
+                                )
                             </code>
                         </script>
                     </expression>
@@ -170,11 +172,14 @@
                 <export>
                     <expression>
                         <script>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                             <code>
-                                import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil
-                                import com.evolveum.midpoint.report.impl.ReportUtils
-
-                                CertCampaignTypeUtil.getReviewedBy(object.asPrismContainerValue())
+                                object.workItem
+                                    .filter(w, isPresent(w.output) &amp;&amp; (isPresent(w.output.outcome)
+                                || (isPresent(w.output.comment) &amp;&amp;w.output.comment != '' )))
+                                    .map(w, w.performerRef)
+                                 .map(ref, isPresent(ref.targetName) &amp;&amp; isPresent(ref.targetName.orig)
+                                     ? ref.targetName.orig : ref.oid)
                             </code>
                         </script>
                     </expression>
@@ -221,11 +226,8 @@
                 <export>
                     <expression>
                         <script>
-                            <code>
-                                import com.evolveum.midpoint.report.impl.ReportUtils
-
-                                ReportUtils.prettyPrintCertOutcomeForReport(input as String, false)
-                            </code>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
+                            <code>format.certificationOutcome(input)</code>
                         </script>
                     </expression>
                 </export>
@@ -244,11 +246,11 @@
                 <export>
                     <expression>
                         <script>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                             <code>
-                                import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil
-                                import com.evolveum.midpoint.report.impl.ReportUtils
-
-                                CertCampaignTypeUtil.getComments(object.asPrismContainerValue())
+                                object.workItem .filter(w, isPresent(w.output)
+                                &amp;&amp; isPresent(w.output.comment) &amp;&amp; w.output.comment != '')
+                                    .map(w, w.output.comment)
                             </code>
                         </script>
                     </expression>
