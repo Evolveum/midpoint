@@ -353,8 +353,8 @@ public class PageResources extends PageAdmin {
     private List<IColumn<SelectableBean<ResourceType>, String>> initResourceColumns() {
         List<IColumn<SelectableBean<ResourceType>, String>> columns = new ArrayList<>();
 
-        columns.add(new PropertyColumn<>(createStringResource("pageResources.connectorType"),
-                SelectableBeanImpl.F_VALUE + ".connectorRef.objectable.connectorType"));
+        columns.add(new PropertyColumn<>(createStringResource("pageResources.connector"),
+                SelectableBeanImpl.F_VALUE + ".connectorRef.objectable.name"));
         columns.add(new PropertyColumn<>(createStringResource("pageResources.version"),
                 SelectableBeanImpl.F_VALUE + ".connectorRef.objectable.connectorVersion"));
 
