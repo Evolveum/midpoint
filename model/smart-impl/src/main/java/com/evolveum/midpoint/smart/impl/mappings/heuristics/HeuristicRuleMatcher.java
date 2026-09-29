@@ -10,6 +10,7 @@ package com.evolveum.midpoint.smart.impl.mappings.heuristics;
 import java.util.List;
 import java.util.Optional;
 
+import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.expression.MidPointTrustDescriptor;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -31,7 +32,7 @@ import org.springframework.stereotype.Component;
 public class HeuristicRuleMatcher {
 
     private static final Trace LOGGER = TraceManager.getTrace(HeuristicRuleMatcher.class);
-    private static final String EXPRESSION_LANGUAGE = "mel";
+    private static final String EXPRESSION_LANGUAGE = MidPointConstants.EXPRESSION_LANGUAGE_MEL_NAME; // TODO or qualified URI here?
 
     private final List<HeuristicRule> rules;
     private final MappingsQualityAssessor qualityAssessor;
