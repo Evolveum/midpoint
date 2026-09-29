@@ -130,15 +130,19 @@ public class BrowserTabSessionStorage implements Serializable, DebugDumpable {
 
     @Deprecated
     public ResourceContentStorage getResourceContentStorage(ShadowKindType kind, String searchMode) {
-        String key = getContentStorageKey(kind, searchMode);
-        return getPageStorage(key, new ResourceContentStorage(kind));
+        return getPageStorage(SessionStorage.KEY_RESOURCE_PAGE, new ResourceDetailsPageStorage())
+                .getResourceContentStorage(kind, searchMode);
 
     }
 
     public ResourceContentStorage getResourceContentStorage(ShadowKindType kind) {
-        String key = getContentStorageKey(kind, SessionStorage.KEY_RESOURCE_PAGE_REPOSITORY_CONTENT);
-        return getPageStorage(key, new ResourceContentStorage(kind));
+        return getPageStorage(SessionStorage.KEY_RESOURCE_PAGE, new ResourceDetailsPageStorage())
+                .getResourceContentStorage(kind);
 
+    }
+
+    public ResourceDetailsPageStorage getResourceDetailsPageStorage() {
+        return getPageStorage(SessionStorage.KEY_RESOURCE_PAGE, new ResourceDetailsPageStorage());
     }
 
     private ContainerTabStorage getContainerTabStorage(String key) {
@@ -147,29 +151,6 @@ public class BrowserTabSessionStorage implements Serializable, DebugDumpable {
 
     public ContainerTabStorage getNotificationConfigurationTabMailServerTableStorage() {
         return getContainerTabStorage(SessionStorage.KEY_NOTIFICATION_TAB_MAIL_SERVER_TABLE);
-    }
-
-    private String getContentStorageKey(ShadowKindType kind, String searchMode) {
-        if (kind == null) {
-            return SessionStorage.KEY_RESOURCE_OBJECT_CLASS_CONTENT;
-        }
-
-        switch (kind) {
-            case ACCOUNT:
-                return SessionStorage.KEY_RESOURCE_ACCOUNT_CONTENT + searchMode;
-
-            case ENTITLEMENT:
-                return SessionStorage.KEY_RESOURCE_ENTITLEMENT_CONTENT + searchMode;
-
-            case GENERIC:
-                return SessionStorage.KEY_RESOURCE_GENERIC_CONTENT + searchMode;
-
-            case WORK:
-                return SessionStorage.KEY_RESOURCE_WORK_CONTENT + searchMode;
-            default:
-                return SessionStorage.KEY_RESOURCE_OBJECT_CLASS_CONTENT;
-
-        }
     }
 
     public WorkItemsStorage getWorkItemStorage() {
@@ -249,18 +230,6 @@ public class BrowserTabSessionStorage implements Serializable, DebugDumpable {
 
     public void setUserProfile(UserProfileStorage profile) {
         userProfile = profile;
-    }
-
-    public void clearResourceContentStorage() {
-        pageStorageMap.remove(SessionStorage.KEY_RESOURCE_ACCOUNT_CONTENT + SessionStorage.KEY_RESOURCE_PAGE_REPOSITORY_CONTENT);
-        pageStorageMap.remove(SessionStorage.KEY_RESOURCE_ACCOUNT_CONTENT + SessionStorage.KEY_RESOURCE_PAGE_RESOURCE_CONTENT);
-        pageStorageMap.remove(SessionStorage.KEY_RESOURCE_ENTITLEMENT_CONTENT + SessionStorage.KEY_RESOURCE_PAGE_REPOSITORY_CONTENT);
-        pageStorageMap.remove(SessionStorage.KEY_RESOURCE_ENTITLEMENT_CONTENT + SessionStorage.KEY_RESOURCE_PAGE_RESOURCE_CONTENT);
-        pageStorageMap.remove(SessionStorage.KEY_RESOURCE_GENERIC_CONTENT + SessionStorage.KEY_RESOURCE_PAGE_REPOSITORY_CONTENT);
-        pageStorageMap.remove(SessionStorage.KEY_RESOURCE_GENERIC_CONTENT + SessionStorage.KEY_RESOURCE_PAGE_RESOURCE_CONTENT);
-        pageStorageMap.remove(SessionStorage.KEY_RESOURCE_WORK_CONTENT + SessionStorage.KEY_RESOURCE_PAGE_REPOSITORY_CONTENT);
-        pageStorageMap.remove(SessionStorage.KEY_RESOURCE_WORK_CONTENT + SessionStorage.KEY_RESOURCE_PAGE_RESOURCE_CONTENT);
-        pageStorageMap.remove(SessionStorage.KEY_RESOURCE_OBJECT_CLASS_CONTENT);
     }
 
     public void clearTaskErrorsStorage(String taskOidToExclude) {

@@ -122,7 +122,6 @@ public class PageResources extends PageAdmin {
 
             @Override
             protected void objectDetailsPerformed(ResourceType object) {
-                clearSessionStorageForResourcePage();
                 super.objectDetailsPerformed(object);
             }
 
@@ -514,10 +513,6 @@ public class PageResources extends PageAdmin {
         parameters.add(PageDebugView.PARAM_OBJECT_ID, resourceType.getOid());
         parameters.add(PageDebugView.PARAM_OBJECT_TYPE, ResourceType.class.getSimpleName());
         navigateToNext(PageDebugView.class, parameters);
-    }
-
-    private void clearSessionStorageForResourcePage() {
-        getBrowserTabSessionStorage().clearResourceContentStorage();
     }
 
     @Override
