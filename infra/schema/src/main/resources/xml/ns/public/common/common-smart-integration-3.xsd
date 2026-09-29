@@ -1259,10 +1259,11 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="name" type="xsd:QName">
+            <xsd:element name="name" type="xsd:string">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Name of the type, e.g., "ri:inetOrgPerson" or "c:UserType".
+                        Name of the type, e.g., "ri:inetOrgPerson" or "UserType". The common midPoint
+                        ("c:") namespace, being the default one, is never shown.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>

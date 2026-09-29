@@ -18,6 +18,7 @@ import org.apache.wicket.spring.injection.annot.SpringBean;
 
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.component.result.MessagePanel;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 
@@ -25,6 +26,7 @@ public class InternalsClockPanel extends BasePanel<XMLGregorianCalendar>{
 
     private static final long serialVersionUID = 1L;
 
+    private static final String ID_WARNING = "warning";
     private static final String ID_FORM = "form";
     private static final String ID_OFFSET = "offset";
     private static final String ID_BUTTON_SAVE = "save";
@@ -43,6 +45,13 @@ public class InternalsClockPanel extends BasePanel<XMLGregorianCalendar>{
         super.onInitialize();
 
         setOutputMarkupId(true);
+
+        MessagePanel<String> warning = new MessagePanel<>(
+                ID_WARNING,
+                MessagePanel.MessagePanelType.WARN,
+                createStringResource("PageInternals.message.timeChangeWarning"),
+                false);
+        add(warning);
 
         Form form = new MidpointForm<>(ID_FORM);
         form.setOutputMarkupId(true);

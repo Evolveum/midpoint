@@ -36,7 +36,7 @@ class ResourceObjectClassSchemaSerializer extends SchemaSerializer {
     public SiObjectSchemaType serialize() {
         var shadowDefinition = objectClassDef.getPrismObjectDefinition();
         var schema = new SiObjectSchemaType()
-                .name(objectClassDef.getObjectClassName())
+                .name(serializeTypeName(objectClassDef.getObjectClassName()))
                 .description(objectClassDef.getDescription()); // TODO change to native description
         for (ShadowAttributeDefinition<?, ?, ?, ?> attributeDefinition : objectClassDef.getAttributeDefinitions()) {
             var path = attributeDefinition.getStandardPath();
