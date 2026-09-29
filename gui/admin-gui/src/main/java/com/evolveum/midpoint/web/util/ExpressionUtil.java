@@ -115,7 +115,8 @@ public class ExpressionUtil {
             new EvaluatorElement(SchemaConstantsGenerated.C_SCRIPT, ExpressionEvaluatorType.SCRIPT),
             new EvaluatorElement(SchemaConstantsGenerated.C_VALUE, ExpressionEvaluatorType.LITERAL),
             new EvaluatorElement(SchemaConstantsGenerated.C_FILTER, ExpressionEvaluatorType.FILTER),
-            new EvaluatorElement(SchemaConstantsGenerated.C_ASSOCIATION_FROM_LINK, ExpressionEvaluatorType.ASSOCIATION_FROM_LINK));
+            new EvaluatorElement(SchemaConstantsGenerated.C_ASSOCIATION_FROM_LINK, ExpressionEvaluatorType.ASSOCIATION_FROM_LINK),
+            new EvaluatorElement(SchemaConstantsGenerated.C_NULL, ExpressionEvaluatorType.NULL));
 
     /**
      * Recognizes the evaluator from the names of the evaluator elements. Preferred over the text based
