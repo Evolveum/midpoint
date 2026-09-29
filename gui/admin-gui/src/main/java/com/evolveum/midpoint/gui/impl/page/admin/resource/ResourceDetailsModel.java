@@ -227,14 +227,14 @@ public class ResourceDetailsModel extends AssignmentHolderDetailsModel<ResourceT
     }
 
     public QName getDefaultObjectClass() {
-        List<QName> objectClassDefinitions = getResourceObjectClassesDefinitions();
+        List<QName> objectClassDefinitions = getResourceObjectClassesDefinitions(false);
         if (objectClassDefinitions == null) {
             return null;
         }
         return objectClassDefinitions.iterator().next();
     }
 
-    public List<QName> getResourceObjectClassesDefinitions() {
+    public List<QName> getResourceObjectClassesDefinitions(boolean includedEmbedded) {
         ResourceSchema resourceSchema = getResourceSchemaOrNothing();
 
         if (resourceSchema == null) {
@@ -242,6 +242,12 @@ public class ResourceDetailsModel extends AssignmentHolderDetailsModel<ResourceT
         }
         return resourceSchema.getObjectClassDefinitions()
                 .stream()
+                .filter(resourceObjectClassDefinition -> {
+                        if (!resourceObjectClassDefinition.isEmbedded()) {
+                            return true;
+                        }
+                        return includedEmbedded;
+                })
                 .map(ResourceObjectDefinition::getObjectClassName)
                 .collect(Collectors.toList());
     }
