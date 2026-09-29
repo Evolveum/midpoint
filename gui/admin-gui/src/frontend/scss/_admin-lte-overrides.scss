@@ -70,6 +70,13 @@
   color: $gray-700;
 }
 
+// AdminLTE uses secondary (75% alpha) text color here, which is below 4.5:1 contrast for every
+// text that inherits it, e.g. file name in file input (WCAG report 8.32).
+.login-card-body,
+.register-card-body {
+  color: var(--bs-body-color);
+}
+
 .form-control::placeholder {
   color: $gray-700;
   opacity: 0.9;
