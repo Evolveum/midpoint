@@ -7,19 +7,14 @@
 package com.evolveum.midpoint.report.impl.controller;
 
 import java.io.IOException;
-import java.io.Reader;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.*;
+import java.util.function.Predicate;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.api.BulkActionExecutionOptions;
 import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
 import com.evolveum.midpoint.schema.config.ExecuteScriptConfigItem;
 
-import org.apache.commons.csv.CSVFormat;
-import org.apache.commons.csv.CSVParser;
-import org.apache.commons.csv.CSVRecord;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.apache.commons.text.StringEscapeUtils;
@@ -32,6 +27,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.report.impl.ReportServiceImpl;
+import com.evolveum.midpoint.report.impl.ReportUtils;
 import com.evolveum.midpoint.report.impl.activity.InputReportLine;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
@@ -43,6 +39,7 @@ import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -72,14 +69,6 @@ public class ImportController {
      */
     private List<GuiObjectColumnType> columns;
 
-    @NotNull private final CommonCsvSupport support;
-
-    // MID-11009: Streaming CSV processing fields to avoid loading all records into memory
-    private CSVParser csvParser;
-    private Iterator<CSVRecord> csvIterator;
-    private List<String> csvHeaders;
-    private int recordCount;
-
     // Useful Spring beans
     private final ReportServiceImpl reportService;
     private final SchemaRegistry schemaRegistry;
@@ -107,7 +96,6 @@ public class ImportController {
         } else {
             this.script = null;
         }
-        this.support = new CommonCsvSupport(report.getFileFormat());
     }
 
     /**
@@ -402,119 +390,35 @@ public class ImportController {
     }
 
     /**
-     * Builds CSVFormat configuration for parsing.
-     * @param headers List to populate with header names
-     * @return Configured CSVFormat
+     * Counts the data rows of the input file. As the whole file is read, this also checks that it can be parsed.
      */
-    private CSVFormat buildCsvFormat(List<String> headers) {
-        CSVFormat csvFormat = support.createCsvFormat();
+    public int countRowsInFile(ReportDataType reportData) throws IOException, ConfigurationException {
+        return ReportUtils.createDataReader(report, reportData).countRows(reportData, getViewHeaders());
+    }
+
+    /**
+     * Reads the rows of the input file one by one as named values, passing them to the handler,
+     * until it returns false.
+     */
+    public void readRowsInFile(ReportDataType reportData, Predicate<VariablesMap> rowHandler)
+            throws IOException, ConfigurationException {
+        ReportUtils.createDataReader(report, reportData).read(reportData, getViewHeaders(), rowHandler);
+    }
+
+    private List<String> getViewHeaders() {
+        List<String> headers = new ArrayList<>();
         if (compiledCollection != null) {
             Class<ObjectType> type = compiledCollection.getTargetClass();
             if (type == null) {
                 throw new IllegalArgumentException("Couldn't define type of imported objects");
             }
-            PrismObjectDefinition<?> def = reportService.getPrismContext().getSchemaRegistry()
-                    .findItemDefinitionByCompileTimeClass(type, PrismObjectDefinition.class);
+            PrismObjectDefinition<?> def = reportService.getPrismContext().getSchemaRegistry().findItemDefinitionByCompileTimeClass(
+                    type, PrismObjectDefinition.class);
             for (GuiObjectColumnType column : columns) {
                 Validate.notNull(column.getName(), "Name of column is null");
-                String label = GenericSupport.getLabel(column, def, localizationService);
-                headers.add(label);
-            }
-        } else {
-            csvFormat = csvFormat.withFirstRecordAsHeader();
-        }
-        if (support.isHeader()) {
-            if (!headers.isEmpty()) {
-                csvFormat = csvFormat.withHeader(headers.toArray(new String[0]));
-            }
-            csvFormat = csvFormat.withSkipHeaderRecord(true);
-        } else {
-            if (headers.isEmpty()) {
-                throw new IllegalArgumentException("Couldn't find headers please "
-                        + "define them via view element or write them to csv file and set "
-                        + "header element in file format configuration to true.");
-            }
-            csvFormat = csvFormat.withSkipHeaderRecord(false);
-        }
-        return csvFormat;
-    }
-
-    /**
-     * Counts records in CSV file without loading all data into memory.
-     */
-    private int countRecords(String filePath) throws IOException {
-        List<String> tempHeaders = new ArrayList<>();
-        CSVFormat csvFormat = buildCsvFormat(tempHeaders);
-        try (Reader reader = Files.newBufferedReader(Paths.get(filePath));
-             CSVParser parser = new CSVParser(reader, csvFormat)) {
-            int count = 0;
-            for (CSVRecord record : parser) {
-                count++;
-            }
-            return count;
-        }
-    }
-
-    /**
-     * Initializes CSV parser for streaming processing.
-     * First counts records (lightweight pass), then initializes parser for actual processing.
-     */
-    public void initializeCsvParser(ReportDataType reportData) throws IOException {
-        String filePath = reportData.getFilePath();
-
-        // 1. Count records (lightweight pass - no VariablesMap creation)
-        recordCount = countRecords(filePath);
-
-        // 2. Initialize CSVParser for actual processing
-        csvHeaders = new ArrayList<>();
-        CSVFormat csvFormat = buildCsvFormat(csvHeaders);
-        Reader reader = Files.newBufferedReader(Paths.get(filePath));
-        csvParser = new CSVParser(reader, csvFormat);
-        if (csvHeaders.isEmpty()) {
-            csvHeaders = csvParser.getHeaderNames();
-        }
-        csvIterator = csvParser.iterator();
-    }
-
-    /**
-     * Returns the next record as VariablesMap, or null if no more records.
-     */
-    public VariablesMap getNextVariablesMap() {
-        if (csvIterator == null || !csvIterator.hasNext()) {
-            return null;
-        }
-        CSVRecord csvRecord = csvIterator.next();
-        VariablesMap variables = new VariablesMap();
-        for (String name : csvHeaders) {
-            String value = support.isHeader()
-                    ? csvRecord.get(name)
-                    : csvRecord.get(csvHeaders.indexOf(name));
-            if (value != null && value.isEmpty()) {
-                value = null;
-            }
-            if (value != null && value.contains(support.getMultivalueDelimiter())) {
-                String[] realValues = value.split(support.getMultivalueDelimiter());
-                variables.put(name, Arrays.asList(realValues), String.class);
-            } else {
-                variables.put(name, value, String.class);
+                headers.add(GenericSupport.getLabel(column, def, localizationService));
             }
         }
-        return variables;
-    }
-
-    /**
-     * Returns the total record count (determined during initialization).
-     */
-    public int getRecordCount() {
-        return recordCount;
-    }
-
-    /**
-     * Closes the CSV parser and releases resources.
-     */
-    public void close() throws IOException {
-        if (csvParser != null) {
-            csvParser.close();
-        }
+        return headers;
     }
 }
