@@ -21,12 +21,15 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.web.component.input.EnumCardChoicePanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnDevApplicationInfoType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnDevConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnDevIntegrationType;
 
 /**
- * Renders {@code application/integrationType} as a card-based single selection
- * (see {@link EnumCardChoicePanel}) and restricts it so that a connector development
- * can never be switched between {@link ConnDevIntegrationType#SQL} and REST/SCIM once created —
+ * Renders {@code application/integrationType} (the protocol intended to use) and
+ * {@code connector/integrationType} (the actual implementation type of the generated
+ * connector) as a card-based single selection (see {@link EnumCardChoicePanel}) and
+ * restricts it so that a connector development can never be switched between
+ * {@link ConnDevIntegrationType#SQL} and REST/SCIM once created —
  * the SQL backend is a structurally different template/backend family, so such a switch would
  * leave the object in an inconsistent state. New (not yet persisted) objects still offer all values.
  */
@@ -40,10 +43,13 @@ public class ConnDevIntegrationTypeGuiComponentFactory extends AbstractGuiCompon
 
     @Override
     public <IW extends ItemWrapper<?, ?>, VW extends PrismValueWrapper<?>> boolean match(IW wrapper, VW valueWrapper) {
-        if (wrapper.getParentContainerValue(ConnDevApplicationInfoType.class) == null) {
-            return false;
+        if (wrapper.getParentContainerValue(ConnDevApplicationInfoType.class) != null) {
+            return QNameUtil.match(wrapper.getItemName(), ConnDevApplicationInfoType.F_INTEGRATION_TYPE);
         }
-        return QNameUtil.match(wrapper.getItemName(), ConnDevApplicationInfoType.F_INTEGRATION_TYPE);
+        if (wrapper.getParentContainerValue(ConnDevConnectorType.class) != null) {
+            return QNameUtil.match(wrapper.getItemName(), ConnDevConnectorType.F_INTEGRATION_TYPE);
+        }
+        return false;
     }
 
     @Override
