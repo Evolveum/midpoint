@@ -233,6 +233,7 @@ See xref:/midpoint/guides/account-activation-sequence/[Account Activation Authen
 * Fixed displaying of the error while adding a delegation. See bug:MID-12364[]
 * Fixed extra reviewer reference labels in certification campaign stage definitions. See bug:MID-6647[]
 * Fixed access certification ignoring overridden system clock in deadlines, reminders, notifications and campaign cleanup. See bug:MID-11008[]
+* Replaced Groovy usage in repository factory reset with a dedicated initial import activity and safe default password policy expression. See bug:MID-12370[]
 
 === Releases Of Other Components
 
@@ -538,6 +539,7 @@ Modified:
 * 000-system-configuration.xml -  Poly-string translation keys added.
 * 041-role-approver.xml - Removed obsolete authorization item references and added `personalNumber` alongside deprecated `employeeNumber`.
 * 042-role-reviewer.xml - Removed obsolete authorization item references and added `personalNumber` alongside deprecated `employeeNumber`.
+* 010-value-policy.xml - Replaced the default Groovy password policy expression with MEL for safe-expression compatibility.
 
 Please review link:https://github.com/Evolveum/midpoint/commits/master/repo/system-init/src/main/resources/initial-objects[source code history] for detailed list of changes.
 
