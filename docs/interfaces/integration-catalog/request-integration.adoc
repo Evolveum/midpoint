@@ -8,7 +8,7 @@ This page describes how to request new integration methods in the xref:/midpoint
 
 == Request new integration method
 
-Before requesting a new integration method, make sure the integration you need is not already xref:/midpoint/reference/interfaces/integration-catalog/download-integrations/[[available in the Integration catalog] (IC).
+Before requesting a new integration method, make sure the integration you need is not already xref:/midpoint/reference/interfaces/integration-catalog/download-integrations/[available in the Integration catalog] (IC).
 
 If you do not find the application that you need to integrate with midPoint with the required integration method in the IC, you can request an addition to the catalog:
 
@@ -21,6 +21,7 @@ image::ic-request-tailored-solution.webp["Request tailored solution"]
 
 . Fill in the following information:
 ** Integration application name - The name of the application for which you need a new integration method.
+//TODO fix example of protocol
 ** Integration method - Select the protocol that should be used for the integration, such as REST API or SCIM.
 ** Short description of the requested integration with the specific use case (required capabilities) you need it for.
 The description should be descriptive and specific enough for the implementation team to best understand your intentions.
@@ -28,18 +29,19 @@ The description should be descriptive and specific enough for the implementation
 While not mandatory, this may be relevant as various application versions may use different protocols.
 ** Your contact information so that the Evolveum team can get back to you in case further details are needed.
 ** Deployment type - Whether the application is on-premise, cloud, or whether it is used in both of those environments.
-** Configure requested capabilities - Define if the requested capabilities should be supported for all, or only for specific object classes.
+** Configure requested capabilities - Define if the requested capabilities should be supported for specific object.
 
 +
 .Request application integration
 image::ic-request-application.webp["Request application integration form"]
 
+//TODO That sounds far too binding to me… We’ll look into it, but it mustn’t sound binding on our part, and the community might react to it as well.
 . Click [.nowrap]#btn:[Submit request]# and wait for the Evolveum team to review your request and get back to you.
 
 == See also
 
 * xref:/midpoint/reference/interfaces/integration-catalog/[Integration catalog]
 * xref:/midpoint/reference/interfaces/integration-catalog/download-integrations[Downloading integration methods]
-* xref:/midpoint/reference/interfaces/integration-catalog/share-connectors[Sharing custom connectors]
+* xref:/midpoint/reference/interfaces/integration-catalog/share-connectors[Open sourcing of custom connectors]
 * xref:/midpoint/reference/interfaces/integration-catalog/share-connectors/validate-connector/[Validating custom connectors]
 * xref:/midpoint/reference/interfaces/integration-catalog/share-connectors/upgrade-integration/[Upgrading existing integration methods]

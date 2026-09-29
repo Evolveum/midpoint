@@ -10,7 +10,7 @@ As integrations may become dated over time, you may want to update and publish a
 
 This process shares the same configuration options with the xref:/midpoint/reference/interfaces/integration-catalog/share-connectors/[uploading custom connectors] process.
 
-. Make sure you have xref:/midpoint/reference/interfaces/integration-catalog/#features[sufficient privileges] to contribute to the Integration catalog. 
+. Make sure you have xref:/midpoint/reference/interfaces/integration-catalog/#features[sufficient privileges] to contribute to the Integration catalog.
 . xref:/midpoint/reference/interfaces/integration-catalog/share-connectors/#licenses[Search for the application] for which you want to publish a new integration version in the Integration catalog.
 . Open it by clicking it and hover your mouse over the integration that you want to upgrade.
 
@@ -28,6 +28,6 @@ image::../ic-application-detail.webp["Hover your mouse over an integration"]
 
 * xref:/midpoint/reference/interfaces/integration-catalog/[Integration catalog]
 * xref:/midpoint/reference/interfaces/integration-catalog/download-integrations[Downloading integration methods]
-* xref:/midpoint/reference/interfaces/integration-catalog/share-connectors[Sharing custom connectors]
+* xref:/midpoint/reference/interfaces/integration-catalog/share-connectors[Open sourcing of custom connectors]
 * xref:/midpoint/reference/interfaces/integration-catalog/share-connectors/validate-connector/[Validating custom connectors]
 * xref:/midpoint/reference/interfaces/integration-catalog/request-integration[Requesting new integration methods]

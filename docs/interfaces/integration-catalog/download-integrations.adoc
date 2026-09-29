@@ -19,6 +19,7 @@ To get integration methods that allow you to connect midPoint with your target a
 +
 .Locate the application using Search
 image::ic-search-integrations.webp["Locate the application using Search"]
+//TODO We need a new screen once the catalog has been populated
 
 +
 You can use pre-defined filters to narrow down the listing by clicking [.nowrap]#icon:filter[] btn:[Filter]#:
@@ -26,6 +27,7 @@ You can use pre-defined filters to narrow down the listing by clicking [.nowrap]
 +
 .Apply filters to search results
 image::ic-filters.webp["Apply filters to search results"]
+//TODO We need a new screen
 
 +
 Configure filters by expanding and editing them, or click the btn:[Reset filter] button next to the [.nowrap]#icon:filter[] btn:[Filter]# button to remove all applied filters.
@@ -46,12 +48,11 @@ Note that the available buttons may differ from those in the image above based o
 
 . Click the [.nowrap]#icon:download[] btn:[Download]# button to download a package file containing the integration including the connector and other relevant information, such as documentation (if available).
 . Import the connector found in the package into your midPoint installation.
-. xref:/midpoint/reference/interfaces/integration-catalog/share-connectors/#validation[Validate the connector] in your midPoint installation.
 
 == See also
 
 * xref:/midpoint/reference/interfaces/integration-catalog/[Integration catalog]
-* xref:/midpoint/reference/interfaces/integration-catalog/share-connectors[Sharing custom connectors]
+* xref:/midpoint/reference/interfaces/integration-catalog/share-connectors[Open sourcing of custom connectors]
 * xref:/midpoint/reference/interfaces/integration-catalog/share-connectors/validate-connector/[Validating custom connectors]
 * xref:/midpoint/reference/interfaces/integration-catalog/share-connectors/upgrade-integration/[Upgrading existing integration methods]
 * xref:/midpoint/reference/interfaces/integration-catalog/request-integration[Requesting new integration methods]

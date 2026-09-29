@@ -1,14 +1,16 @@
-= Upload custom connector
+= Create new Integration method
 :experimental:
 :page-toc: top
 :page-description: This describes how to upload custom connectors to the Integration catalog
 :page-keywords: integration catalog, integration, custom connector, upload connector, share connector
 
-This describes how to upload custom connectors to the xref:/midpoint/reference/interfaces/integration-catalog/[Integration catalog].
+//TODO Overall, we want to focus on you creating a new integration… yes, you do have the option to add a new connector; or rather, if you want to add a connector, you have to do so via the integration… but we’re emphasising the integration
+This describes how to upload custom integration to the xref:/midpoint/reference/interfaces/integration-catalog/[Integration catalog].
 
+//TODO
 [[upload-integration]]
 == Create new integration
-
+//TODO
 You can upload your own connectors into the Integration catalog (IC) to make them available for your own engineers and for other midPoint engineers.
 Connectors are uploaded together with some necessary configuration details as _integration methods_.
 
@@ -56,6 +58,7 @@ This is relevant as applications may support different integration methods in cl
 [[select-integration-method-type]]
 === Select integration method type
 
+//TODO examples of protocols
 In this step, you need to select one or more integration method types.
 These describe how midPoint exchanges data with the target application or system.
 They include the most common protocols, such as REST API, integration via a file, etc.
@@ -134,11 +137,11 @@ Typically, only one integration method type is selected, however, you can create
 // image needs updating
 .Select integration method type
 image::../ic-select-integration-method-type.webp["select integration method type"]
-
+//TODO change screen
 
 [[define-integration-method]]
 === Define integration method
-
+//TODO no connector supports but integration supports ... this is different
 In this step, you define the details for the selected integration method type.
 This describes how your connector is deployed and what xref:/midpoint/reference/admin-gui/resource-wizard/object-type/capability/[capabilities] it supports.
 In essence, this defines which features of the target application are accessible in midPoint for particular resource object classes.
@@ -147,6 +150,7 @@ Configure the following:
 
 * *Integration method name* - Name the method.
 * *Description* - Describe the integration method.
+//TODO change it (now we use only specific capabilities and for 'object')
 * *Define capabilities for* - Select the capabilities that the integration method has on two distinctive levels:
 ** All object classes - The selected capabilities apply globally for the connected application irrespective of a particular xref:/midpoint/reference/resources/shadow/kind-intent-objectclass/#object-class[object class].
 ** Specific object classes - Select capabilities that apply only to a specific object class.
@@ -173,8 +177,8 @@ You are selecting:
 ** Java-based - If you can supply the connector JAR file, or source code that compiles into a connector JAR file.
 ** Low-code - If the connector JAR file is composed (not compiled) using Evolveum AI features from sources located in your own repository (GitHub or GitLab).
 In this case, you define the connector declaratively rather than implementing the Java code.
-// this needs further details
-** Low-code with repository - If you want to maintain your connector on your own but want Evolveum to provide a repository.
+// TODO this needs further details
+//** Low-code with repository - If you want to maintain your connector on your own but want Evolveum to provide a repository.
 * Or an existing connector by clicking *Select one from the catalog* and selecting the connector.
 
 
@@ -189,9 +193,10 @@ Depending on the selection made in the previous step, a particular subset of the
 * *Connector name* - Name the connector.
 * *Connector version* - Specify the version of the connector you want to share.
 You will provide the link to the specific version further down this page in the *Commit hash* setting.
-* *Maintainer* - Specify the person (or team) responsible for the development of the connector. 
+* *Maintainer* - Specify the person (or team) responsible for the development of the connector.
 
 [[licenses]]
+//TODO add CDDL
 * *License type* - Specify the type of license under which the connector is distributed.
 The following options are available:
 ** *MIT* - A permissive open-source license that allows the connector to be used, modified and redistributed, including proprietary software.
@@ -204,6 +209,7 @@ The exact obligations depend on the specific BSD variant.
 ** *EUPL 1.2* - A copyleft open-source license created by the European Commission.
 It allows the connector to be used, modified, and redistributed, but redistribution of modified or combined software under the conditions of the license generally requires the derivative work to be made available under the EUPL or a compatible license.
 * *Connector description* - Describe the connector.
+//TODO it's not true, this is only display name for bundle
 * *Connector bundle name* - Specify the symbolic name that identifies the connector bundle in the ConnId framework.
 This name is used by midPoint and ConnId to identify the connector bundle.
 It is defined in the connector JAR's manifest, i.e., in the `MANIFEST.MF` file.
@@ -240,6 +246,7 @@ image::../ic-tag.webp["Go to Tags in the repository"]
 image::../ic-tag-commit-hash.webp["Copy the commit hash"]
 * *Project folder path* - Specify the folder where the connector source code is located.
 Leave this field empty if the code is in the main (root) directory of the repository.
+//TODO can describe that .java file contains java annotation '@ConnectorClass'
 * *Class name* - Specify the full Java class name that implements the connector.
 This tells midPoint which part of the code to execute.
 For example, the class name of the midPoint LDAP connector is `com.evolveum.polygon.connector.ldap.LdapConnector`, i.e., a concatenation of the `package` and the `public class` located in the connector `.JAVA` file.
@@ -251,6 +258,7 @@ For example, the class name of the midPoint LDAP connector is `com.evolveum.poly
 This step specifies which midPoint and connector versions the integration method supports.
 Compatibility settings help classify and search for integration methods.
 
+//TODO add Application versions
 * *Supported midPoint version* - Defines the supported version range of midPoint by defining *From version* (mandatory) and *To version*. +
 Only specify versions that you have actively tested and verified work with the integration method.
 If you later verify another version of midPoint works with the integration method, you can add that version to the supported range.
@@ -285,7 +293,7 @@ At the same time, other users will also be able to download the connector you ha
 
 * xref:/midpoint/reference/interfaces/integration-catalog/[Integration catalog]
 * xref:/midpoint/reference/interfaces/integration-catalog/download-integrations[Downloading integration methods]
-* xref:/midpoint/reference/interfaces/integration-catalog/share-connectors[Sharing custom connectors]
+* xref:/midpoint/reference/interfaces/integration-catalog/share-connectors[Open sourcing of custom connectors]
 * xref:/midpoint/reference/interfaces/integration-catalog/share-connectors/validate-connector/[Validating custom connectors]
 * xref:/midpoint/reference/interfaces/integration-catalog/share-connectors/upgrade-integration/[Upgrading existing integration methods]
 * xref:/midpoint/reference/interfaces/integration-catalog/request-integration[Requesting new integration methods]
