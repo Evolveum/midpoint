@@ -11,21 +11,26 @@
     <div wicket:id="mainPopup"/>
     <div class="app-wrapper">
         <div id="skip-link">
-            <a href="#main" tabindex="1" class="btn-sm">
+            <a href="#main" class="btn-sm">
                 <wicket:message key="Accessibility.PageBase.skiplink.title"/>
             </a>
         </div>
+        <wicket:remove>
+            Sidebar toggle is placed directly before the sidebar it controls, so that the sidebar follows
+            the button in focus and reading order (WCAG 2.2, 2.4.3). CSS draws it in the header.
+        </wicket:remove>
+        <div wicket:id="menuToggle" class="app-header app-menu-toggle navbar navbar-expand border-bottom-0">
+            <a class="nav-link menu-toggle" data-lte-toggle="sidebar" href="#" role="button" aria-controls="navigation"
+                    wicket:message="title:Accessibility.PageBase.pushmenu.title,data-title-collapsed:Accessibility.PageBase.pushmenu.title.expand,data-title-expanded:Accessibility.PageBase.pushmenu.title,data-collapsed-message:Accessibility.PageBase.pushmenu.switchedToCompact,data-expanded-message:Accessibility.PageBase.pushmenu.switchedToFull"><i class="fas fa-bars"></i></a>
+            <span id="menuToggleStatus" aria-live="polite" class="visually-hidden"></span>
+        </div>
+
+        <wicket:enclosure child="sidebarMenu">
+            <aside class="app-sidebar" id="navigation" wicket:id="sidebarMenu"/>
+        </wicket:enclosure>
+
         <nav wicket:id="mainHeader" class="app-header navbar navbar-expand border-bottom-0">
             <div class="container-fluid">
-                <wicket:remove>
-                    accessibilityLogo component is here only to place logo in the correct spot for
-                    keyboard navigation when using screen reader. Actual logo is placed in the sidebar.
-                    (WCAG 2.2)
-                </wicket:remove>
-                <div class="visually-hidden" wicket:id="accessibilityLogo"/>
-                <a wicket:id="menuToggle" tabindex="3" class="nav-link menu-toggle" data-lte-toggle="sidebar" href="#" role="button"
-                        wicket:message="title:Accessibility.PageBase.pushmenu.title,data-title-collapsed:Accessibility.PageBase.pushmenu.title.expand,data-title-expanded:Accessibility.PageBase.pushmenu.title,data-collapsed-message:Accessibility.PageBase.pushmenu.switchedToCompact,data-expanded-message:Accessibility.PageBase.pushmenu.switchedToFull"><i class="fas fa-bars"></i></a>
-                <span id="menuToggleStatus" aria-live="polite" class="visually-hidden"></span>
                 <div class="ms-2 navbar-title" wicket:id="pageTitleContainer" role="heading" aria-level="1">
                 <span class="page-title" wicket:id="pageTitle">
                     <span wicket:id="deploymentName"/>
@@ -39,7 +44,7 @@
                     <div class="nav-item d-none d-md-inline" style="min-width: 0; width: 100%" wicket:message="aria-label:PageBase.breadcrumb" role="navigation">
                         <div class="breadcrumb d-none d-xl-flex justify-content-end p-0" style="width: 100%; overflow: hidden;">
                             <div class="breadcrumb-item" wicket:id="breadcrumb" style="padding: 5px;">
-                                <a wicket:id="bcLink" tabindex="4">
+                                <a wicket:id="bcLink">
                                     <i wicket:id="bcIcon"></i>&nbsp;
                                     <span class="visually-hidden" wicket:id="bcSrCurrentMessage"><wicket:message key="PageBase.bcSrCurrentMessage"/></span>
                                     <span wicket:id="bcName"/>
@@ -50,7 +55,7 @@
                     <ul class="navbar-nav" role="menu">
                         <wicket:enclosure child="cartLink">
                             <li class="nav-item" role="menuitem">
-                                <a class="nav-link" wicket:id="cartLink" tabindex="5">
+                                <a class="nav-link" wicket:id="cartLink">
                                     <i class="fas fa-cart-shopping"></i>
                                     <span class="badge text-bg-danger navbar-badge" wicket:id="cartCount"/>
                                 </a>
@@ -58,7 +63,7 @@
                         </wicket:enclosure>
                         <wicket:remove>
                             <li class="nav-item notification" role="menuitem">
-                                <a class="nav-link" tabindex="6">
+                                <a class="nav-link">
                                     <i class="fas fa-bell"></i>
                                     <span class="badge text-bg-danger">1</span>
                                 </a>
@@ -69,13 +74,13 @@
                         </li>
                         <wicket:enclosure child="mode">
                             <li class="nav-item" role="menuitem">
-                                <a class="nav-link" href="#" wicket:id="mode" tabindex="8"/>
+                                <a class="nav-link" href="#" wicket:id="mode"/>
                             </li>
                         </wicket:enclosure>
                         <wicket:enclosure child="logoutForm">
                             <li class="nav-item" role="menuitem">
                                 <form method="post" wicket:id="logoutForm">
-                                    <button type="submit" class="btn btn-link nav-link" tabindex="9" wicket:message="title:PageBase.logout,aria-label:PageBase.logout">
+                                    <button type="submit" class="btn btn-link nav-link" wicket:message="title:PageBase.logout,aria-label:PageBase.logout">
                                         <i class="fas fa-power-off"></i>
                                     </button>
                                 </form>
@@ -85,10 +90,6 @@
                 </div>
             </div>
         </nav>
-
-        <wicket:enclosure child="sidebarMenu">
-            <aside class="app-sidebar" id="navigation" wicket:id="sidebarMenu"/>
-        </wicket:enclosure>
 
         <main class="app-main d-flex" id="main" role="main" style="min-height: 916px;">
             <div class="d-flex flex-grow-1">
