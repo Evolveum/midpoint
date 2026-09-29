@@ -6,9 +6,7 @@
 
 package com.evolveum.midpoint.certification.test;
 
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertNotNull;
-import static org.testng.AssertJUnit.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.File;
 import java.util.List;
@@ -20,18 +18,15 @@ import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import com.evolveum.midpoint.certification.impl.AccessCertificationCloseStageApproachingTriggerHandler;
+import com.evolveum.midpoint.certification.impl.AccessCertificationCloseStageTriggerHandler;
 import com.evolveum.midpoint.notifications.api.transports.Message;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationStageType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TriggerType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * Checks that certification honors the logical {@link com.evolveum.midpoint.common.Clock}
@@ -92,7 +87,7 @@ public class TestClockUsage extends AbstractCertificationTest {
         TestUtil.assertInProgressOrSuccess(result);
 
         List<PrismObject<TaskType>> tasks = getFirstStageTasks(campaignOid, startedAfter, result);
-        assertEquals("Unexpected number of related tasks", 1, tasks.size());
+        assertThat(tasks).as("related tasks").hasSize(1);
         waitForTaskFinish(tasks.get(0).getOid());
 
         AccessCertificationCaseType aCase = findCase(
@@ -111,10 +106,7 @@ public class TestClockUsage extends AbstractCertificationTest {
                 USER_JACK_OID,
                 ROLE_CEO_OID);
 
-        assertEquals(
-                "Remedied timestamp should follow Clock",
-                0,
-                XmlTypeConverter.compareMillis(overriddenNow, updatedCase.getRemediedTimestamp()));
+        assertTimestamp(updatedCase.getRemediedTimestamp(), overriddenNow, "remedied timestamp");
     }
 
     @Test
@@ -137,28 +129,21 @@ public class TestClockUsage extends AbstractCertificationTest {
         TestUtil.assertInProgressOrSuccess(result);
 
         List<PrismObject<TaskType>> tasks = getFirstStageTasks(campaignOid, startedAfter, result);
-        assertEquals("Unexpected number of related tasks", 1, tasks.size());
+        assertThat(tasks).as("related tasks").hasSize(1);
         waitForTaskFinish(tasks.get(0).getOid());
 
         AccessCertificationCampaignType openedCampaign = getObject(AccessCertificationCampaignType.class, campaignOid).asObjectable();
         AccessCertificationStageType stage = openedCampaign.getStage().get(0);
 
-        assertEquals(
-                "Campaign start timestamp should follow Clock",
-                0,
-                XmlTypeConverter.compareMillis(overriddenNow, openedCampaign.getStartTimestamp()));
-        assertEquals(
-                "Stage start timestamp should follow Clock",
-                0,
-                XmlTypeConverter.compareMillis(overriddenNow, stage.getStartTimestamp()));
+        assertTimestamp(openedCampaign.getStartTimestamp(), overriddenNow, "campaign start timestamp");
+        assertTimestamp(stage.getStartTimestamp(), overriddenNow, "stage start timestamp");
 
-        assertNotNull("Campaign triggers should be present", openedCampaign.getTrigger());
-        assertEquals("Wrong number of campaign triggers", 2, openedCampaign.getTrigger().size());
-        assertTrue(
-                "Expected notify-before-deadline trigger to be created from logical time",
-                openedCampaign.getTrigger().stream()
-                        .map(TriggerType::getHandlerUri)
-                        .anyMatch(uri -> uri != null && uri.contains("close-stage-approaching")));
+        assertThat(openedCampaign.getTrigger())
+                .as("campaign triggers, notify-before-deadline one is created only from logical time")
+                .extracting(TriggerType::getHandlerUri)
+                .containsExactlyInAnyOrder(
+                        AccessCertificationCloseStageTriggerHandler.HANDLER_URI,
+                        AccessCertificationCloseStageApproachingTriggerHandler.HANDLER_URI);
     }
 
     @Test
@@ -181,22 +166,23 @@ public class TestClockUsage extends AbstractCertificationTest {
         TestUtil.assertInProgressOrSuccess(result);
 
         List<PrismObject<TaskType>> tasks = getFirstStageTasks(campaignOid, startedAfter, result);
-        assertEquals("Unexpected number of related tasks", 1, tasks.size());
+        assertThat(tasks).as("related tasks").hasSize(1);
         waitForTaskFinish(tasks.get(0).getOid());
 
         List<Message> messages = dummyTransport.getMessages("dummy:simpleReviewerNotifier");
-        assertTrue("Expected reviewer notifications to be sent", !messages.isEmpty());
-        assertTrue(
-                "Reviewer notification should compute remaining time from Clock",
-                messages.stream()
-                        .map(Message::getBody)
-                        .filter(body -> body != null && body.contains("The stage ends in "))
-                        .anyMatch(body -> body.contains("14 day")));
-        assertTrue(
-                "Reviewer notification should not treat the stage as already expired",
-                messages.stream()
-                        .map(Message::getBody)
-                        .filter(body -> body != null)
-                        .noneMatch(body -> body.contains("The stage should have ended")));
+        assertThat(messages)
+                .as("reviewer notifications")
+                .isNotEmpty()
+                .extracting(Message::getBody)
+                .as("reviewer notification bodies, remaining time computed from logical time")
+                .anySatisfy(body -> assertThat(body).contains("The stage ends in ", "14 day"))
+                .noneSatisfy(body -> assertThat(body).contains("The stage should have ended"));
+    }
+
+    private void assertTimestamp(XMLGregorianCalendar actual, XMLGregorianCalendar expected, String description) {
+        assertThat(actual).as(description).isNotNull();
+        assertThat(XmlTypeConverter.toMillis(actual))
+                .as(description + " should follow the clock")
+                .isEqualTo(XmlTypeConverter.toMillis(expected));
     }
 }
