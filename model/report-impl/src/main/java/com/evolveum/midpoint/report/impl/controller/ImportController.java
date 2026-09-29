@@ -81,7 +81,6 @@ public class ImportController {
     private CSVParser csvParser;
     private Iterator<CSVRecord> csvIterator;
     private List<String> csvHeaders;
-    private int recordCount;
 
     // Useful Spring beans
     private final ReportServiceImpl reportService;
@@ -444,11 +443,12 @@ public class ImportController {
 
     /**
      * Counts records in CSV file without loading all data into memory.
+     * As the whole file is read, a file that cannot be parsed is detected here already.
      */
-    private int countRecords(String filePath) throws IOException {
+    public int countRecords(ReportDataType reportData) throws IOException {
         List<String> tempHeaders = new ArrayList<>();
         CSVFormat csvFormat = buildCsvFormat(tempHeaders);
-        try (Reader reader = Files.newBufferedReader(Paths.get(filePath));
+        try (Reader reader = getReportReader(reportData);
              CSVParser parser = new CSVParser(reader, csvFormat)) {
             int count = 0;
             for (CSVRecord record : parser) {
@@ -459,19 +459,12 @@ public class ImportController {
     }
 
     /**
-     * Initializes CSV parser for streaming processing.
-     * First counts records (lightweight pass), then initializes parser for actual processing.
+     * Initializes CSV parser for streaming processing. The caller must call {@link #close()} afterwards.
      */
     public void initializeCsvParser(ReportDataType reportData) throws IOException {
-        String filePath = reportData.getFilePath();
-
-        // 1. Count records (lightweight pass - no VariablesMap creation)
-        recordCount = countRecords(filePath);
-
-        // 2. Initialize CSVParser for actual processing
         csvHeaders = new ArrayList<>();
         CSVFormat csvFormat = buildCsvFormat(csvHeaders);
-        Reader reader = Files.newBufferedReader(Paths.get(filePath));
+        Reader reader = getReportReader(reportData);
         csvParser = new CSVParser(reader, csvFormat);
         if (csvHeaders.isEmpty()) {
             csvHeaders = csvParser.getHeaderNames();
@@ -503,13 +496,6 @@ public class ImportController {
             }
         }
         return variables;
-    }
-
-    /**
-     * Returns the total record count (determined during initialization).
-     */
-    public int getRecordCount() {
-        return recordCount;
     }
 
     /**

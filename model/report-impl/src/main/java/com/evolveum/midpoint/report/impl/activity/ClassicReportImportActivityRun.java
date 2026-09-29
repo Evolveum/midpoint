@@ -22,8 +22,7 @@ import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.util.exception.CommonException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractActivityWorkStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityOverallItemCountingOptionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
@@ -38,8 +37,6 @@ final class ClassicReportImportActivityRun
                 ClassicReportImportWorkDefinition,
                 ClassicReportImportActivityHandler,
                 AbstractActivityWorkStateType> {
-
-    private static final Trace LOGGER = TraceManager.getTrace(ClassicReportImportActivityRun.class);
 
     @NotNull private final ImportActivitySupport support;
 
@@ -76,8 +73,7 @@ final class ClassicReportImportActivityRun
                 report, reportService, support.existCollectionConfiguration() ? support.getCompiledCollectionView(result) : null);
         controller.initialize();
         try {
-            controller.initializeCsvParser(support.getReportData());
-            recordCount = controller.getRecordCount();
+            recordCount = controller.countRecords(support.getReportData());
         } catch (IOException e) {
             String message = "Couldn't read content of imported file: " + e.getMessage();
             result.recordFatalError(message, e);
@@ -96,18 +92,29 @@ final class ClassicReportImportActivityRun
     }
 
     @Override
-    public void iterateOverItemsInBucket(OperationResult result) {
-        AtomicInteger sequence = new AtomicInteger(1);
-        VariablesMap variablesMap;
-        while ((variablesMap = controller.getNextVariablesMap()) != null) {
-            int lineNumber = sequence.getAndIncrement();
-            InputReportLine line = new InputReportLine(lineNumber, variablesMap);
-            boolean canContinue = coordinator.submit(
-                    new InputReportLineProcessingRequest(line, this),
-                    result);
-            if (!canContinue) {
-                break;
+    public void iterateOverItemsInBucket(OperationResult result) throws CommonException {
+        try {
+            // The parser is opened and closed here (not in beforeRun/afterRun), so that the file is closed
+            // also when the processing fails: afterRun is not called in that case.
+            controller.initializeCsvParser(support.getReportData());
+            try {
+                AtomicInteger sequence = new AtomicInteger(1);
+                VariablesMap variablesMap;
+                while ((variablesMap = controller.getNextVariablesMap()) != null) {
+                    int lineNumber = sequence.getAndIncrement();
+                    InputReportLine line = new InputReportLine(lineNumber, variablesMap);
+                    boolean canContinue = coordinator.submit(
+                            new InputReportLineProcessingRequest(line, this),
+                            result);
+                    if (!canContinue) {
+                        break;
+                    }
+                }
+            } finally {
+                controller.close();
             }
+        } catch (IOException e) {
+            throw new SystemException("Couldn't read content of imported file: " + e.getMessage(), e);
         }
     }
 
@@ -123,15 +130,5 @@ final class ClassicReportImportActivityRun
     @Override
     public @NotNull ErrorHandlingStrategyExecutor.FollowUpAction getDefaultErrorAction() {
         return ErrorHandlingStrategyExecutor.FollowUpAction.CONTINUE;
-    }
-
-    @Override
-    public void afterRun(OperationResult result) throws CommonException, ActivityRunException {
-        super.afterRun(result);
-        try {
-            controller.close();
-        } catch (IOException e) {
-            LOGGER.warn("Failed to close CSV parser", e);
-        }
     }
 }
