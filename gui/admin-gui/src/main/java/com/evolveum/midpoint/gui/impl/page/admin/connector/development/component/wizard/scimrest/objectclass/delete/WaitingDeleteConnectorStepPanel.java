@@ -21,6 +21,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnDevHttpEndpointIntentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnDevObjectClassInfoType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorDevelopmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationTypeType;
@@ -49,7 +50,11 @@ public class WaitingDeleteConnectorStepPanel extends WaitingObjectClassScriptCon
         var realValue = getObjectClassModel().getObject().getRealValue();
 
         return getDetailsModel().getConnectorDevelopmentOperation().submitGenerateDeleteScript(
-                realValue.getName(), realValue.getEndpoint(), regenerate, getRepairScript(), getRepairErrors(), task, result);
+                realValue.getName(),
+                realValue.getEndpoint().stream()
+                        .filter(e -> e.getSuggestedUse().contains(ConnDevHttpEndpointIntentType.DELETE))
+                        .toList(),
+                regenerate, getRepairScript(), getRepairErrors(), task, result);
     }
 
     @Override
@@ -83,7 +88,7 @@ public class WaitingDeleteConnectorStepPanel extends WaitingObjectClassScriptCon
     }
 
     @Override
-    protected ConnectorDevelopmentArtifacts.KnownArtifactType getScriptType() {
+    public ConnectorDevelopmentArtifacts.KnownArtifactType getScriptType() {
         return ConnectorDevelopmentArtifacts.KnownArtifactType.DELETE;
     }
 }
