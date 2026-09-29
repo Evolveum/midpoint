@@ -31,6 +31,7 @@ import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
 import com.evolveum.prism.xml.ns._public.types_3.EvaluationTimeType;
 
+import org.apache.commons.lang3.RandomStringUtils;
 import org.assertj.core.api.Assertions;
 import org.jetbrains.annotations.NotNull;
 import org.testng.AssertJUnit;
@@ -4004,7 +4005,8 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
     public void test993UserSubtypeLengthLimit() throws Exception {
         given("delta to replace subtype with a value exceeding the limit");
 
-        String tooLongValue = "a".repeat(400000);
+        RandomStringUtils random = RandomStringUtils.secure();
+        String tooLongValue = random.nextAlphanumeric(40000);
 
         ObjectDelta<UserType> tooLongDelta = prismContext.deltaFor(UserType.class)
                 .item(UserType.F_SUBTYPE)
@@ -4026,7 +4028,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
 
         given("delta to replace subtype with a value within the limit");
 
-        String validValue = "a".repeat(2000);
+        String validValue = random.nextAlphabetic(2000);
 
         ObjectDelta<UserType> validDelta = prismContext.deltaFor(UserType.class)
                 .item(UserType.F_SUBTYPE)

@@ -386,7 +386,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
             }
             jdbcSession.commit();
             return oid;
-        } catch (RuntimeException e) {
+        } catch (RepositoryException | RuntimeException e) {
             SqaleUtils.handlePostgresException(e);
             throw e;
         } finally {
@@ -447,7 +447,15 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
         try {
             return executeModifyObject(type, oidUuid, modifications, precondition, options, operationResult);
         } catch (RepositoryException | RuntimeException e) {
-            SqaleUtils.handlePostgresException(e);
+
+            // Handle PostgreSQL errors explicitly to correctly mark the operation 'Modify Object' as failed.
+            try {
+                SqaleUtils.handlePostgresException(e);
+            } catch (SchemaException ex) {
+                recordFatalError(operationResult, ex);
+                throw ex;
+            }
+
             throw handledGeneralException(e, operationResult);
         } catch (Throwable t) {
             recordFatalError(operationResult, t);
