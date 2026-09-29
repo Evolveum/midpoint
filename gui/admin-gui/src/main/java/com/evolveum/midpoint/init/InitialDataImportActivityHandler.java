@@ -88,7 +88,7 @@ public class InitialDataImportActivityHandler
             InitialDataImportActivityHandler handler = getActivityHandler();
 
             handler.securityEnforcer.authorizeAll(getRunningTask(), result);
-            handler.initialDataImport.init(true);
+            handler.initialDataImport.init(true, result);
 
             // TODO consider if we need to go clusterwide here
             handler.cacheDispatcher.dispatchInvalidation(null, null, true, null);
