@@ -289,6 +289,13 @@ public class ConnectorDevelopmentServiceImpl implements ConnectorDevelopmentServ
         }
 
         @Override
+        public String saveDocumentationFile(String fileName, InputStream content, String contentType, Task task, OperationResult result)
+                throws IOException {
+            return ConnectorDevelopmentBackend.backendFor(stateObject, task, result)
+                    .saveDocumentationFile(fileName, content, contentType);
+        }
+
+        @Override
         public ConnDevArtifactValidationResult validateArtifact(ConnDevArtifactType artifact, Task task, OperationResult result) {
             return ConnectorDevelopmentBackend.backendFor(stateObject, task, result)
                     .validateArtifact(artifact);

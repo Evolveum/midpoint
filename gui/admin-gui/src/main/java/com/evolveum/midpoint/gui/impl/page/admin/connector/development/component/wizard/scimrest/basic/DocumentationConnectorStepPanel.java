@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.basic;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.Serial;
 import java.util.ArrayList;
 import java.util.List;
@@ -16,6 +18,7 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.form.upload.FileUpload;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -80,6 +83,7 @@ public class DocumentationConnectorStepPanel extends AbstractWizardStepPanel<Con
     private static final String CLASS_DOT = DocumentationConnectorStepPanel.class.getName() + ".";
     private static final String OP_LOAD_DOCS = CLASS_DOT + "loadDocumentations";
     private static final String OP_REMOVE_DISCOVERED_DOCUMENTATION = CLASS_DOT + "removeDiscoveredDocumentation";
+    private static final String OP_SAVE_DOCUMENTATION_FILE = CLASS_DOT + "saveDocumentationFile";
 
     private static final String ID_PANEL = "panel";
     private static final String ID_AI_ALERT = "aiAlert";
@@ -91,8 +95,9 @@ public class DocumentationConnectorStepPanel extends AbstractWizardStepPanel<Con
     }
 
     private void deleteDocumentationSource(PrismContainerValueWrapper<ConnDevDocumentationSourceType> value) throws CommonException {
-        if (value.getStatus() != ValueStatus.ADDED) {
-            PrismContainerWrapper<ConnDevDocumentationSourceType> container = getDetailsModel().getObjectWrapper().findContainer(ConnectorDevelopmentType.F_DOCUMENTATION_SOURCE);
+        PrismContainerWrapper<ConnDevDocumentationSourceType> container = getDetailsModel().getObjectWrapper().findContainer(ConnectorDevelopmentType.F_DOCUMENTATION_SOURCE);
+        // ADDED values are mostly AI suggestions outside the container, but uploaded files are ADDED and inside it.
+        if (value.getStatus() != ValueStatus.ADDED || container.getValues().contains(value)) {
             container.remove(value, getPageBase());
         }
 
@@ -308,6 +313,7 @@ public class DocumentationConnectorStepPanel extends AbstractWizardStepPanel<Con
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
+                        onUploadFilePerformed(target);
                     }
                 };
 
@@ -384,16 +390,9 @@ public class DocumentationConnectorStepPanel extends AbstractWizardStepPanel<Con
 
                     @Override
                     protected PrismContainerValueWrapper<ConnDevDocumentationSourceType> load() {
-                        PrismContainerWrapperModel<ConnectorDevelopmentType, ConnDevDocumentationSourceType> model
-                                = PrismContainerWrapperModel.fromContainerWrapper(
-                                getDetailsModel().getObjectWrapperModel(),
-                                ConnectorDevelopmentType.F_DOCUMENTATION_SOURCE);
                         PrismContainerValueWrapper<ConnDevDocumentationSourceType> newItemWrapper;
                         try {
-                            PrismContainerValue<ConnDevDocumentationSourceType> newItem = model.getObject().getItem().createNewValue();
-                            newItemWrapper = WebPrismUtil.createNewValueWrapper(
-                                    model.getObject(), newItem, getPageBase());
-                            model.getObject().getValues().add(newItemWrapper);
+                            newItemWrapper = addNewDocumentationSourceValue();
                         } catch (SchemaException e) {
                             LOGGER.error("Couldn't create new value for limitation container", e);
                             return null;
@@ -428,6 +427,63 @@ public class DocumentationConnectorStepPanel extends AbstractWizardStepPanel<Con
         };
         popup.setOutputMarkupId(true);
         getPageBase().showMainPopup(popup, target);
+    }
+
+    private void onUploadFilePerformed(AjaxRequestTarget target) {
+        DocumentationUploadPopupPanel popup = new DocumentationUploadPopupPanel(getPageBase().getMainPopupBodyId()) {
+            @Override
+            protected void onFileUploaded(FileUpload fileUpload, AjaxRequestTarget target) {
+                if (uploadDocumentationFile(fileUpload, target)) {
+                    valuesModel.detach();
+                    ((MultiSelectContainerActionTileTablePanel) DocumentationConnectorStepPanel.this.get(ID_PANEL)).refreshAndDetach(target);
+                }
+                getPageBase().hideMainPopup(target);
+            }
+        };
+        popup.setOutputMarkupId(true);
+        getPageBase().showMainPopup(popup, target);
+    }
+
+    private PrismContainerValueWrapper<ConnDevDocumentationSourceType> addNewDocumentationSourceValue() throws SchemaException {
+        PrismContainerWrapper<ConnDevDocumentationSourceType> container =
+                PrismContainerWrapperModel.<ConnectorDevelopmentType, ConnDevDocumentationSourceType>fromContainerWrapper(
+                        getDetailsModel().getObjectWrapperModel(),
+                        ConnectorDevelopmentType.F_DOCUMENTATION_SOURCE).getObject();
+        PrismContainerValue<ConnDevDocumentationSourceType> newItem = container.getItem().createNewValue();
+        PrismContainerValueWrapper<ConnDevDocumentationSourceType> newItemWrapper =
+                WebPrismUtil.createNewValueWrapper(container, newItem, getPageBase());
+        container.getValues().add(newItemWrapper);
+        return newItemWrapper;
+    }
+
+    private void addUploadedFileDocumentationSource(FileUpload fileUpload) throws SchemaException {
+        PrismContainerValueWrapper<ConnDevDocumentationSourceType> newItemWrapper = addNewDocumentationSourceValue();
+        newItemWrapper.findProperty(ConnDevDocumentationSourceType.F_NAME).getValue().setRealValue(fileUpload.getClientFileName());
+        newItemWrapper.findProperty(ConnDevDocumentationSourceType.F_CONTENT_TYPE).getValue().setRealValue(fileUpload.getContentType());
+    }
+
+    private boolean uploadDocumentationFile(FileUpload fileUpload, AjaxRequestTarget target) {
+        String fileName = fileUpload.getClientFileName();
+        Task task = getPageBase().createSimpleTask(OP_SAVE_DOCUMENTATION_FILE);
+        OperationResult result = task.getResult();
+        try (InputStream content = fileUpload.getInputStream()) {
+            getDetailsModel().getConnectorDevelopmentOperation()
+                    .saveDocumentationFile(fileName, content, fileUpload.getContentType(), task, result);
+            addUploadedFileDocumentationSource(fileUpload);
+        } catch (IOException | CommonException e) {
+            LOGGER.error("Couldn't save documentation file {}", fileName, e);
+            result.recordFatalError(
+                    createStringResource("DocumentationUploadPopupPanel.message.error.uploadFailed", fileName).getString(), e);
+        }
+        result.computeStatus();
+
+        if (result.isError()) {
+            getPageBase().showResult(result);
+        } else {
+            getPageBase().success(createStringResource("DocumentationUploadPopupPanel.message.success.uploaded", fileName).getString());
+        }
+        target.add(getFeedback());
+        return !result.isError();
     }
 
     protected String getPanelType() {

@@ -10,6 +10,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import static com.evolveum.midpoint.smart.api.conndev.ConnectorDevelopmentArtifacts.KnownArtifactType.*;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.List;
 import java.util.function.Consumer;
 
@@ -213,6 +214,19 @@ public interface ConnectorDevelopmentOperation {
 
 
     void saveArtifact(ConnDevArtifactType endpoint, Task task, OperationResult result) throws IOException, CommonException;
+
+    /**
+     * Saves the uploaded documentation file to disk (tmp-docs).
+     *
+     * @param fileName original name of the uploaded file
+     * @param content file content
+     * @param contentType MIME type of the file
+     * @param task task of the operation
+     * @param result operation result
+     * @return generated UUID under which the file is stored
+     */
+    String saveDocumentationFile(String fileName, InputStream content, String contentType, Task task, OperationResult result)
+            throws IOException, CommonException;
 
     /**
      * Marks an already-deployed script as disabled in the manifest, so the connector skips it both
