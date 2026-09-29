@@ -22,10 +22,10 @@
                     state = yaml```
                         queryInterpretationOfNoValue: filterAll
                         script:
+                            language: http://midpoint.evolveum.com/xml/ns/public/expression/language#mel
                             code: |
-                                import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType
-                                // If \"alsoClosedCampaigns\" is true, we return null that causes all campaigns to be considered
-                                return alsoClosedCampaigns ? null : AccessCertificationCampaignStateType.CREATED
+                                // If \"alsoClosedCampaigns\" is true, return no value so all campaigns are considered
+                                str(alsoClosedCampaigns) == 'true' ? nil : 'created'
                     ``` or state = 'inReviewStage' or state = 'reviewStageDone' or state = 'inRemediation'
                 </q:text>
             </filter>
@@ -139,13 +139,8 @@
                 <export>
                     <expression>
                         <script>
-                            <code>
-                                import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil
-                                import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType
-
-                                def campaign = object as AccessCertificationCampaignType
-                                CertCampaignTypeUtil.getActiveCases(campaign.case, campaign.stageNumber, campaign.state)
-                            </code>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
+                            <code>object.case.filter(c, c.reviewFinishedTimestamp == null).size()</code>
                         </script>
                     </expression>
                 </export>
@@ -163,15 +158,9 @@
                 <previousColumn>stageCases</previousColumn>
                 <export>
                     <expression>
-                        <script>
-                            <code>
-                                import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil
-                                import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType
-
-                                def campaign = object as AccessCertificationCampaignType
-                                CertCampaignTypeUtil.getCasesDecidedPercentageAllStagesAllIterations(campaign) + " %"
-                            </code>
-                        </script>
+                        <javaMethodReference>
+                            <methodName>certificationCasesDecidedPercentageAllStagesAllIterations</methodName>
+                        </javaMethodReference>
                     </expression>
                 </export>
             </column>

@@ -14,6 +14,8 @@ import org.jetbrains.annotations.Nullable;
 import org.jspecify.annotations.NullMarked;
 
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
 
 /**
  * Temporary class to hold the default Java method reference library.
@@ -35,5 +37,12 @@ public class DefaultJavaMethodReferenceLibrary {
      */
     public static @Nullable QName qualifyObjectClassName(@Nullable String objectClass) {
         return objectClass != null ? new QName(SchemaConstants.NS_RI, objectClass) : null;
+    }
+
+    /**
+     * Used by {@code 140-report-certification-campaigns}.
+     */
+    public static String certificationCasesDecidedPercentageAllStagesAllIterations(AccessCertificationCampaignType input) {
+        return CertCampaignTypeUtil.getCasesDecidedPercentageAllStagesAllIterations(input) + " %";
     }
 }
