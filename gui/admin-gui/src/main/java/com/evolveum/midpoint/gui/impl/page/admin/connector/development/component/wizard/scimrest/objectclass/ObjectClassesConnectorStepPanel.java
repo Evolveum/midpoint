@@ -266,11 +266,12 @@ public class ObjectClassesConnectorStepPanel extends AbstractWizardStepPanel<Con
         Map<String, List<ItemName>> itemNames = new LinkedHashMap<>();
         itemNames.put("ObjectClassesConnectorStepPanel.schema",
                 List.of(ConnDevObjectClassInfoType.F_NATIVE_SCHEMA_SCRIPT));
-        itemNames.put("ObjectClassesConnectorStepPanel.search",
-                List.of(
-                        ConnDevObjectClassInfoType.F_SEARCH_ALL_OPERATION,
-                        ConnDevObjectClassInfoType.F_SEARCH_ID_OPERATION,
-                        ConnDevObjectClassInfoType.F_SEARCH_FILTER_OPERATION));
+        itemNames.put("ObjectClassesConnectorStepPanel.searchAll",
+                List.of(ConnDevObjectClassInfoType.F_SEARCH_ALL_OPERATION));
+        itemNames.put("ObjectClassesConnectorStepPanel.get",
+                List.of(ConnDevObjectClassInfoType.F_SEARCH_ID_OPERATION));
+        itemNames.put("ObjectClassesConnectorStepPanel.searchFilter",
+                List.of(ConnDevObjectClassInfoType.F_SEARCH_FILTER_OPERATION));
         itemNames.put("ObjectClassesConnectorStepPanel.create", List.of(ConnDevObjectClassInfoType.F_CREATE_SCRIPT));
         itemNames.put("ObjectClassesConnectorStepPanel.update", List.of(ConnDevObjectClassInfoType.F_UPDATE_SCRIPT));
         itemNames.put("ObjectClassesConnectorStepPanel.delete", List.of(ConnDevObjectClassInfoType.F_DELETE_SCRIPT));
