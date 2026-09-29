@@ -22,6 +22,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectDeltaOperationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemEscalationLevelType;
 import com.evolveum.prism.xml.ns._public.types_3.*;
 
 import com.google.common.collect.ImmutableCollection;
@@ -408,6 +409,12 @@ public class CelTypeMapper implements CelTypeProvider  {
                 || javaValue instanceof Short
                 || javaValue instanceof Byte) {
             return ((Number) javaValue).longValue();
+        }
+        if (javaValue instanceof WorkItemEscalationLevelType escalationLevel) {
+            return Map.of(
+                    "number", toCelValue(escalationLevel.getNumber()),
+                    "name", toCelValue(escalationLevel.getName()),
+                    "displayName", toCelValue(escalationLevel.getDisplayName()));
         }
         if (javaValue instanceof PrismObject<?> o) {
             return ObjectCelValue.create(o);

@@ -198,6 +198,21 @@ public class TestMelExpressions extends AbstractScriptTest {
     }
 
     @Test
+    public void testWorkItemEscalationLevelNumber() throws Exception {
+        var definition = prismContext.getSchemaRegistry()
+                .findContainerDefinitionByType(AccessCertificationWorkItemType.COMPLEX_TYPE);
+        var workItem = new AccessCertificationWorkItemType()
+                .escalationLevel(new WorkItemEscalationLevelType()
+                        .number(2)
+                        .name("second-level"));
+
+        evaluateAndAssertIntegerScalarExpression(
+                "expression-work-item-escalation-level-number.xml",
+                createVariables("workItems", workItem.asPrismContainerValue(), definition),
+                2);
+    }
+
+    @Test
     public void testUserGivenNameMap() throws Exception {
         executeAndAssertStringScalarExpression(
                 "expression-user-given-name-map.xml",
