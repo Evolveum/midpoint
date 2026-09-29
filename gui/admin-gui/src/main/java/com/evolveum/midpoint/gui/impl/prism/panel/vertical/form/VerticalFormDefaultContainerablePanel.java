@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.gui.impl.prism.panel.vertical.form;
 
 import java.io.Serial;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
@@ -191,6 +192,9 @@ public class VerticalFormDefaultContainerablePanel<C extends Containerable> exte
             protected List<PrismContainerWrapper<? extends Containerable>> load() {
                 ContainerPanelConfigurationType config = getPanelConfiguration();
                 PrismContainerValueWrapper<C> modelObject = getModelObject();
+                if (modelObject == null) {
+                    return new ArrayList<>();
+                }
                 List<PrismContainerWrapper<? extends Containerable>> containers = modelObject.getContainers(getPanelConfiguration(), getPageBase());
 
                 if (config == null) {
