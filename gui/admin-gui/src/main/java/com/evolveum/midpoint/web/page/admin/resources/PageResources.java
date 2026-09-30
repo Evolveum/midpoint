@@ -122,7 +122,6 @@ public class PageResources extends PageAdmin {
 
             @Override
             protected void objectDetailsPerformed(ResourceType object) {
-                clearSessionStorageForResourcePage();
                 super.objectDetailsPerformed(object);
             }
 
@@ -354,8 +353,8 @@ public class PageResources extends PageAdmin {
     private List<IColumn<SelectableBean<ResourceType>, String>> initResourceColumns() {
         List<IColumn<SelectableBean<ResourceType>, String>> columns = new ArrayList<>();
 
-        columns.add(new PropertyColumn<>(createStringResource("pageResources.connectorType"),
-                SelectableBeanImpl.F_VALUE + ".connectorRef.objectable.connectorType"));
+        columns.add(new PropertyColumn<>(createStringResource("pageResources.connector"),
+                SelectableBeanImpl.F_VALUE + ".connectorRef.objectable.name"));
         columns.add(new PropertyColumn<>(createStringResource("pageResources.version"),
                 SelectableBeanImpl.F_VALUE + ".connectorRef.objectable.connectorVersion"));
 
@@ -514,10 +513,6 @@ public class PageResources extends PageAdmin {
         parameters.add(PageDebugView.PARAM_OBJECT_ID, resourceType.getOid());
         parameters.add(PageDebugView.PARAM_OBJECT_TYPE, ResourceType.class.getSimpleName());
         navigateToNext(PageDebugView.class, parameters);
-    }
-
-    private void clearSessionStorageForResourcePage() {
-        getBrowserTabSessionStorage().clearResourceContentStorage();
     }
 
     @Override

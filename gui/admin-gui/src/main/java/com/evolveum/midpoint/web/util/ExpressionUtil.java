@@ -64,7 +64,8 @@ public class ExpressionUtil {
         GROOVY("http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy"),
         PYTHON("http://midpoint.evolveum.com/xml/ns/public/expression/language#python"),
         MEL("http://midpoint.evolveum.com/xml/ns/public/expression/language#mel"),
-        VELOCITY("http://midpoint.evolveum.com/xml/ns/public/expression/language#velocity"),
+        VELOCITY("http://midpoint.evolveum.com/xml/ns/public/expression/language#safe-velocity"),
+        SAFE_VELOCITY("http://midpoint.evolveum.com/xml/ns/public/expression/language#safe-velocity"),
         JAVASCRIPT("http://midpoint.evolveum.com/xml/ns/public/expression/language#ECMAScript");
 
         private final String language;

@@ -8,6 +8,7 @@ package com.evolveum.midpoint.gui.impl.util;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismReferenceWrapper;
+import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismReferenceValueWrapperImpl;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -50,15 +51,15 @@ public class ReferenceExecutedDeltaProcessor implements Serializable, ExecutedDe
                 .oid(resourceOid)
                 .relation(RelationUtil.getDefaultRelation())
                 .targetName("")
-                .type(getType());
+                .type(getType(pageBase));
         String displayName = WebComponentUtil.getReferencedObjectDisplayNameAndName(ref, true, pageBase);
         ref.targetName(displayName);
         referenceWrapper.setRealValue(ref);
         referenceWrapper.resetNewObjectModel();
     }
 
-    private QName getType() {
-        List<QName> types = ((PrismReferenceWrapper)referenceWrapper.getParent()).getTargetTypes();
+    private QName getType(ModelServiceLocator modelServiceLocator) {
+        List<QName> types = ((PrismReferenceWrapper)referenceWrapper.getParent()).getTargetTypes(modelServiceLocator);
         if (types.size() == 1) {
             QName type = types.get(0);
             if (type != null && StringUtils.isEmpty(type.getNamespaceURI())) {

@@ -284,3 +284,31 @@ li.dropdown.user.user-menu {
 }
 
 // end sidebar styles extension
+
+// Sidebar toggle is placed in markup before the sidebar (focus order, WCAG 2.4.3), here it is drawn
+// over the left corner of the header. Header content is shifted by the width of the button.
+$menu-toggle-width: 3rem;
+
+.app-header.app-menu-toggle {
+  justify-self: start;
+  padding-left: $container-padding-x * .5;
+  z-index: $lte-zindex-fixed-header + 1;
+  background-color: transparent !important;
+
+  .menu-toggle {
+    width: $menu-toggle-width;
+    padding-right: 0;
+    padding-left: 0;
+    text-align: center;
+  }
+}
+
+.app-menu-toggle ~ .app-header > .container-fluid {
+  padding-left: calc(#{$container-padding-x * .5} + #{$menu-toggle-width});
+}
+
+// AdminLTE does not give the sidebar any background. When it is shown as an overlay (below the
+// sidebar-expand-lg breakpoint) page content would be visible through it.
+.app-sidebar {
+  background-color: var(--#{$prefix}body-bg);
+}

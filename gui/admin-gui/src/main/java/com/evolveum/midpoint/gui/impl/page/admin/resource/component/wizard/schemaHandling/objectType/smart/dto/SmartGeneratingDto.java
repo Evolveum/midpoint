@@ -81,15 +81,19 @@ public class SmartGeneratingDto implements Serializable {
             return false;
         }
 
-        if (isSuspended()) {
+        if (statusInfo.getObject().isComplete()) {
             return true;
         }
 
-        return statusInfo.getObject().isComplete();
+        return isSuspended();
     }
 
     public boolean isSuspended() {
         if (statusInfo == null || statusInfo.getObject() == null) {
+            return false;
+        }
+
+        if (statusInfo.getObject().isComplete()) {
             return false;
         }
 
@@ -98,7 +102,14 @@ public class SmartGeneratingDto implements Serializable {
             return true;
         }
 
-        return statusInfo.getObject().isHalted();
+        if (!statusInfo.getObject().isHalted()) {
+            return false;
+        }
+
+        if (taskModel instanceof LoadableModel<PrismObject<TaskType>> loadable) {
+            loadable.reset();
+        }
+        return getTaskExecutionState() == TaskExecutionStateType.SUSPENDED;
     }
 
     public boolean isFailed() {

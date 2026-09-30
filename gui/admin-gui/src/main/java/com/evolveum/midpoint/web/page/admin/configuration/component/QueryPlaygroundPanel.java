@@ -174,7 +174,7 @@ public class QueryPlaygroundPanel extends BasePanel<RepoQueryDto> {
 
         DropDownChoicePanel<QName> objectTypeChoice = new DropDownChoicePanel<>(ID_OBJECT_TYPE,
                 new PropertyModel<>(getModel(), RepoQueryDto.F_OBJECT_TYPE),
-                new ListModel<>(ObjectTypeListUtil.createSearchableTypeList()),
+                new ListModel<>(ObjectTypeListUtil.createSearchableTypeList(getPageBase())),
                 new QNameObjectTypeChoiceRenderer());
         objectTypeChoice.setOutputMarkupId(true);
         objectTypeChoice.getBaseFormComponent().setNullValid(true);
