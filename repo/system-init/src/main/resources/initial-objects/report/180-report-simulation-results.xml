@@ -36,6 +36,7 @@
                 <export>
                     <expression>
                         <script>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                             <code>object.oid</code>
                         </script>
                     </expression>
@@ -125,10 +126,9 @@
                 <export>
                     <expression>
                         <script>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                             <code>
-                                import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationMetricValuesType
-
-                                (metric as SimulationMetricValuesType)?.ref?.builtIn
+                                isPresent(metric) &amp;&amp; isPresent(metric.ref) ? metric.ref.builtIn : nil
                             </code>
                         </script>
                     </expression>
@@ -151,10 +151,9 @@
                 <export>
                     <expression>
                         <script>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                             <code>
-                                import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationMetricValuesType
-
-                                (metric as SimulationMetricValuesType)?.ref?.eventMarkRef
+                                isPresent(metric) &amp;&amp; isPresent(metric.ref) ? metric.ref.eventMarkRef : nil
                             </code>
                         </script>
                     </expression>
@@ -177,10 +176,9 @@
                 <export>
                     <expression>
                         <script>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                             <code>
-                                import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationMetricValuesType
-
-                                (metric as SimulationMetricValuesType)?.ref?.identifier
+                                isPresent(metric) &amp;&amp; isPresent(metric.ref) ? metric.ref.identifier : nil
                             </code>
                         </script>
                     </expression>
@@ -200,11 +198,8 @@
                 <export>
                     <expression>
                         <script>
-                            <code>
-                                import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationMetricValuesType
-
-                                (metric as SimulationMetricValuesType)?.aggregationFunction
-                            </code>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
+                            <code>isPresent(metric) ? metric.aggregationFunction : nil</code>
                         </script>
                     </expression>
                 </export>
@@ -227,10 +222,9 @@
                 <export>
                     <expression>
                         <script>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                             <code>
-                                import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationMetricPartitionType
-
-                                (partition as SimulationMetricPartitionType)?.scope?.typeName
+                                isPresent(partition) &amp;&amp; isPresent(partition.scope) ? partition.scope.typeName : nil
                             </code>
                         </script>
                     </expression>
@@ -253,14 +247,15 @@
                 <export>
                     <expression>
                         <script>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                             <code>
-                                import com.evolveum.midpoint.schema.constants.ObjectTypes
-                                import com.evolveum.midpoint.schema.util.ObjectTypeUtil
-                                import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationMetricPartitionType
-
-                                (partition as SimulationMetricPartitionType)?.scope?.structuralArchetypeOid?.with {
-                                    ObjectTypeUtil.createObjectRef(it, ObjectTypes.ARCHETYPE)
-                                }
+                                isPresent(partition) &amp;&amp;
+                                isPresent(partition.scope) &amp;&amp;
+                                isPresent(partition.scope.structuralArchetypeOid)
+                                    ? objectReference(
+                                        partition.scope.structuralArchetypeOid,
+                                        qname( 'http://midpoint.evolveum.com/xml/ns/public/common/common-3', 'ArchetypeType'))
+                                    : nil
                             </code>
                         </script>
                     </expression>
@@ -283,14 +278,15 @@
                 <export>
                     <expression>
                         <script>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                             <code>
-                                import com.evolveum.midpoint.schema.constants.ObjectTypes
-                                import com.evolveum.midpoint.schema.util.ObjectTypeUtil
-                                import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationMetricPartitionType
-
-                                (partition as SimulationMetricPartitionType)?.scope?.resourceOid?.with {
-                                    ObjectTypeUtil.createObjectRef(it, ObjectTypes.RESOURCE)
-                                }
+                                isPresent(partition) &amp;&amp;
+                                isPresent(partition.scope) &amp;&amp;
+                                isPresent(partition.scope.resourceOid)
+                                    ? objectReference(
+                                        partition.scope.resourceOid,
+                                        qname( 'http://midpoint.evolveum.com/xml/ns/public/common/common-3', 'ResourceType'))
+                                    : nil
                             </code>
                         </script>
                     </expression>
@@ -313,10 +309,9 @@
                 <export>
                     <expression>
                         <script>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                             <code>
-                                import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationMetricPartitionType
-
-                                (partition as SimulationMetricPartitionType)?.scope?.kind
+                                isPresent(partition) &amp;&amp; isPresent(partition.scope) ? partition.scope.kind : nil
                             </code>
                         </script>
                     </expression>
@@ -339,10 +334,9 @@
                 <export>
                     <expression>
                         <script>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                             <code>
-                                import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationMetricPartitionType
-
-                                (partition as SimulationMetricPartitionType)?.scope?.intent
+                                isPresent(partition) &amp;&amp; isPresent(partition.scope) ? partition.scope.intent : nil
                             </code>
                         </script>
                     </expression>
@@ -365,11 +359,8 @@
                 <export>
                     <expression>
                         <script>
-                            <code>
-                                import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationMetricPartitionType
-
-                                (partition as SimulationMetricPartitionType)?.value
-                            </code>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
+                            <code>isPresent(partition) ? partition.value : nil</code>
                         </script>
                     </expression>
                 </export>
@@ -393,11 +384,8 @@
                 <export>
                     <expression>
                         <script>
-                            <code>
-                                import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationMetricPartitionType
-
-                                (partition as SimulationMetricPartitionType)?.selectionSize
-                            </code>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
+                            <code>isPresent(partition) ? partition.selectionSize : nil</code>
                         </script>
                     </expression>
                 </export>
@@ -419,11 +407,8 @@
                 <export>
                     <expression>
                         <script>
-                            <code>
-                                import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationMetricPartitionType
-
-                                (partition as SimulationMetricPartitionType)?.selectionTotalValue
-                            </code>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
+                            <code>isPresent(partition) ? partition.selectionTotalValue : nil</code>
                         </script>
                     </expression>
                 </export>
@@ -445,11 +430,8 @@
                 <export>
                     <expression>
                         <script>
-                            <code>
-                                import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationMetricPartitionType
-
-                                (partition as SimulationMetricPartitionType)?.domainSize
-                            </code>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
+                            <code>isPresent(partition) ? partition.domainSize : nil</code>
                         </script>
                     </expression>
                 </export>
@@ -471,11 +453,8 @@
                 <export>
                     <expression>
                         <script>
-                            <code>
-                                import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationMetricPartitionType
-
-                                (partition as SimulationMetricPartitionType)?.domainTotalValue
-                            </code>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
+                            <code>isPresent(partition) ? partition.domainTotalValue : nil</code>
                         </script>
                     </expression>
                 </export>
@@ -487,6 +466,7 @@
             <type>SimulationMetricValuesType</type>
             <expression>
                 <script>
+                    <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                     <code>object.metric</code>
                 </script>
             </expression>
@@ -500,11 +480,8 @@
             <type>SimulationMetricPartitionType</type>
             <expression>
                 <script>
-                    <code>
-                        import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationMetricValuesType
-
-                        (metric as SimulationMetricValuesType)?.partition
-                    </code>
+                    <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
+                    <code>isPresent(metric) ? metric.partition : nil</code>
                 </script>
             </expression>
             <order>20</order>

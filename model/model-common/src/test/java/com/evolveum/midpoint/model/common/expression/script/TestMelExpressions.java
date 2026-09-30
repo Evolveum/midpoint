@@ -22,7 +22,10 @@ import com.evolveum.midpoint.model.common.expression.functions.BasicExpressionFu
 import com.evolveum.midpoint.model.common.expression.functions.FunctionLibraryBinding;
 import com.evolveum.midpoint.model.common.expression.functions.FunctionLibraryUtil;
 import com.evolveum.midpoint.model.common.expression.functions.LogExpressionFunctions;
+import com.evolveum.midpoint.model.common.expression.script.mel.CelTypeMapper;
 import com.evolveum.midpoint.model.common.expression.script.mel.MelScriptExecutor;
+import com.evolveum.midpoint.model.common.expression.script.mel.extension.CelMelExtensions;
+import com.evolveum.midpoint.model.common.expression.script.mel.value.QNameCelValue;
 
 import com.evolveum.midpoint.prism.*;
 
@@ -124,6 +127,19 @@ public class TestMelExpressions extends AbstractScriptTest {
                 "expression-format-reference.xml",
                 createVariables("input", null, definition),
                 "");
+    }
+
+    @Test
+    public void testObjectReference() throws Exception {
+        switchToRestrictedMode();
+        try {
+            executeAndAssertStringScalarExpression(
+                    "expression-object-reference.xml",
+                    createVariables(),
+                    USER_JACK_OID);
+        } finally {
+            switchToUnrestrictedMode();
+        }
     }
 
     @Test
