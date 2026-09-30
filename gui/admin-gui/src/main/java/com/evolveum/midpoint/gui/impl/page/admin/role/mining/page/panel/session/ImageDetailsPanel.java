@@ -20,8 +20,6 @@ import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.Icon
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.image.CustomImageResource;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
 
-import org.jspecify.annotations.NonNull;
-
 public class ImageDetailsPanel extends BasePanel<CustomImageResource> implements Popupable {
 
     private static final String ID_IMAGE = "image";
@@ -48,7 +46,7 @@ public class ImageDetailsPanel extends BasePanel<CustomImageResource> implements
             }
 
             @Override
-            protected @NonNull String getAdditionalIconCss() {
+            protected String getAdditionalIconCss() {
                 return "";
             }
         };
@@ -60,7 +58,7 @@ public class ImageDetailsPanel extends BasePanel<CustomImageResource> implements
             }
 
             @Override
-            protected @NonNull String getAdditionalIconCss() {
+            protected String getAdditionalIconCss() {
                 return "";
             }
 

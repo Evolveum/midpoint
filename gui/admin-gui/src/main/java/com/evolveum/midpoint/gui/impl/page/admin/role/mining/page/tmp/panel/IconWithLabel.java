@@ -21,7 +21,6 @@ import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
 
 import org.jetbrains.annotations.NotNull;
-import org.jspecify.annotations.NonNull;
 
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.RoleAnalysisWebUtils.CLASS_CSS;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.RoleAnalysisWebUtils.STYLE_CSS;
@@ -68,7 +67,7 @@ public class IconWithLabel extends BasePanel<String> {
         add(textComponent);
     }
 
-    protected @NonNull String getAdditionalIconCss() {
+    protected String getAdditionalIconCss() {
         return " fa-sm";
     }
 
