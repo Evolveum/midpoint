@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.gui.impl.component.search.wrapper;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.search.panel.ReferenceSearchItemPanel;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -30,14 +31,16 @@ public class ReferenceSearchItemWrapper extends PropertySearchItemWrapper<Object
     PrismReferenceDefinition def;
     Class<?> searchType;
     private QName targetType;
+    private final ModelServiceLocator modelServiceLocator;
 //    List<T> availableValues = new ArrayList<>();
 
     public ReferenceSearchItemWrapper(
-            PrismReferenceDefinition def, ItemPath pathFromSearchableObjects, QName targetType, Class<?> searchType) {
+            PrismReferenceDefinition def, ItemPath pathFromSearchableObjects, QName targetType, Class<?> searchType, ModelServiceLocator modelServiceLocator) {
         super(pathFromSearchableObjects);
         this.def = def;
         this.targetType = targetType;
         this.searchType = searchType;
+        this.modelServiceLocator = modelServiceLocator;
     }
 
 //    public ReferenceSearchItemWrapper(PrismReferenceDefinition def, Class<? extends Containerable> searchType) {
@@ -71,7 +74,8 @@ public class ReferenceSearchItemWrapper extends PropertySearchItemWrapper<Object
     }
 
     private List<QName> getSupportedTargetTypes() {
-        return targetType != null ? Arrays.asList(targetType) : WebComponentUtil.createSupportedTargetTypeList(def.getTargetTypeName());
+        return targetType != null ?
+                Arrays.asList(targetType) : WebComponentUtil.createSupportedTargetTypeList(def.getTargetTypeName(), modelServiceLocator);
     }
 
     @Override

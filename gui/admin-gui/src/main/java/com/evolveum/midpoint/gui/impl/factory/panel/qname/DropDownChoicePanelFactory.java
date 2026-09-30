@@ -64,14 +64,14 @@ public class DropDownChoicePanelFactory extends AbstractInputGuiComponentFactory
 
     protected List<QName> getTypesList(PrismPropertyPanelContext<QName> panelCtx) {
         if (AssignmentType.F_FOCUS_TYPE.equals(panelCtx.getDefinitionName())) {
-            return ObjectTypeListUtil.createFocusTypeList();
+            return ObjectTypeListUtil.createFocusTypeList(panelCtx.getPageBase());
         } else if ((ObjectCollectionType.F_TYPE.equals(panelCtx.getDefinitionName()) || GuiObjectListViewType.F_TYPE.equals(panelCtx.getDefinitionName()))
                 && panelCtx.unwrapWrapperModel().getParent().getDefinition() != null &&
                 (ObjectCollectionType.class.equals(panelCtx.unwrapWrapperModel().getParent().getDefinition().getTypeClass())
                         || GuiObjectListViewType.class.equals(panelCtx.unwrapWrapperModel().getParent().getDefinition().getTypeClass()))) {
-            return ObjectTypeListUtil.createContainerableTypesQnameList();
+            return ObjectTypeListUtil.createContainerableTypesQnameList(panelCtx.getPageBase());
         }
-        return ObjectTypeListUtil.createObjectTypeList();
+        return ObjectTypeListUtil.createObjectTypeList(panelCtx.getPageBase());
     }
 
     @Override

@@ -315,7 +315,9 @@ public class LeftMenuPanel extends BasePanel<Void> {
         SideBarMenuItem menu = new SideBarMenuItem("PageAdmin.menu.mainNavigation", experimentalFeaturesEnabled);
         menu.addMainMenuItem(createHomeItems());
         menu.addMainMenuItem(createUsersItems());
-        menu.addMainMenuItem(createApplicationsItems());
+        if (experimentalFeaturesEnabled) {
+            menu.addMainMenuItem(createApplicationsItems());
+        }
         menu.addMainMenuItem(createOrganizationsMenu());
         menu.addMainMenuItem(createRolesMenu());
         menu.addMainMenuItem(createServicesItems());    // TODO get rid of applications (object collection view in sys config)

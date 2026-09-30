@@ -14,7 +14,6 @@ import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
@@ -22,6 +21,7 @@ import java.text.Collator;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static com.evolveum.midpoint.gui.api.page.PageAdminLTE.createStringResourceStatic;
@@ -33,8 +33,8 @@ import static com.evolveum.midpoint.gui.api.page.PageAdminLTE.createStringResour
 public class ObjectTypeListUtil {
 
     //TODO what about reference search?
-    public static List<QName> createSearchableTypeList() {
-        var supportedObjectTypeList = new ArrayList<>(ObjectTypeListUtil.createObjectTypeList());
+    public static List<QName> createSearchableTypeList(ModelServiceLocator modelServiceLocator) {
+        var supportedObjectTypeList = new ArrayList<>(ObjectTypeListUtil.createObjectTypeList(modelServiceLocator));
         supportedObjectTypeList.add(AssignmentType.COMPLEX_TYPE);
         supportedObjectTypeList.add(CaseWorkItemType.COMPLEX_TYPE);
         supportedObjectTypeList.add(AccessCertificationCaseType.COMPLEX_TYPE);
@@ -46,17 +46,26 @@ public class ObjectTypeListUtil {
     }
 
     // TODO: move to schema component
-    public static List<QName> createObjectTypeList() {
-        return createObjectTypesList().stream().map(ObjectTypes::getTypeQName).collect(Collectors.toList());
+    public static List<QName> createObjectTypeList(ModelServiceLocator modelServiceLocator) {
+        return createObjectTypesList(modelServiceLocator).stream().map(ObjectTypes::getTypeQName).collect(Collectors.toList());
 
     }
 
-    public static List<ObjectTypes> createObjectTypesList() {
-        List<ObjectTypes> types = Arrays.asList(ObjectTypes.values());
+    public static List<ObjectTypes> createObjectTypesList(ModelServiceLocator modelServiceLocator) {
+        List<ObjectTypes> types = new ArrayList<>(Arrays.asList(ObjectTypes.values()));
+
+        boolean experimentalFeaturesEnabled = false;
+        if (modelServiceLocator != null) {
+            experimentalFeaturesEnabled = WebModelServiceUtils.isEnableExperimentalFeature(modelServiceLocator);
+        }
+
+        if (!experimentalFeaturesEnabled) {
+            types.remove(ObjectTypes.APPLICATION);
+        }
 
         return types.stream().sorted((type1, type2) -> {
-            Validate.notNull(type1);
-            Validate.notNull(type2);
+            Objects.requireNonNull(type1);
+            Objects.requireNonNull(type2);
 
             ObjectTypeGuiDescriptor decs1 = ObjectTypeGuiDescriptor.getDescriptor(type1);
             ObjectTypeGuiDescriptor desc2 = ObjectTypeGuiDescriptor.getDescriptor(type2);
@@ -78,8 +87,8 @@ public class ObjectTypeListUtil {
         return translatedValue != null ? translatedValue : descriptor.getLocalizationKey();
     }
 
-    public static List<QName> createContainerableTypesQnameList() {
-        List<QName> qnameList = createObjectTypeList();
+    public static List<QName> createContainerableTypesQnameList(ModelServiceLocator modelServiceLocator) {
+        List<QName> qnameList = createObjectTypeList(modelServiceLocator);
         //todo create enum for containerable types?
         qnameList.add(AuditEventRecordType.COMPLEX_TYPE);
         qnameList.add(AccessCertificationCaseType.COMPLEX_TYPE);
@@ -89,8 +98,8 @@ public class ObjectTypeListUtil {
 
     public static List<QName> sortTypesList(List<QName> qnameList) {
         return qnameList.stream().sorted((type1, type2) -> {
-            Validate.notNull(type1);
-            Validate.notNull(type2);
+            Objects.requireNonNull(type1);
+            Objects.requireNonNull(type2);
 
             String key1 = "ObjectType." + type1.getLocalPart();
             String localizedType1 = createStringResourceStatic(key1).getString();
@@ -111,22 +120,31 @@ public class ObjectTypeListUtil {
         }).collect(Collectors.toList());
     }
 
-    public static List<QName> createAssignmentHolderTypeQnamesList() {
-        List<ObjectTypes> objectTypes = createAssignmentHolderTypesList();
-        return objectTypes.stream().map(ObjectTypes::getTypeQName).collect(Collectors.toList());
+    public static List<QName> createAssignmentHolderTypeQnamesList(ModelServiceLocator modelServiceLocator) {
+        List<ObjectTypes> objectTypes = createAssignmentHolderTypesList(modelServiceLocator);
+        return objectTypes.stream()
+                .map(ObjectTypes::getTypeQName)
+                .collect(Collectors.toList());
     }
 
-    public static List<ObjectTypes> createAssignmentHolderTypesList() {
-        return createObjectTypesList().stream().filter(type -> AssignmentHolderType.class.isAssignableFrom(type.getClassDefinition())).collect(Collectors.toList());
+    public static List<ObjectTypes> createAssignmentHolderTypesList(ModelServiceLocator modelServiceLocator) {
+        return createObjectTypesList(modelServiceLocator).stream()
+                .filter(type -> AssignmentHolderType.class.isAssignableFrom(type.getClassDefinition()))
+                .collect(Collectors.toList());
     }
 
     // TODO: move to schema component
-    public static List<QName> createFocusTypeList() {
-        return createFocusTypeList(false);
+    public static List<QName> createFocusTypeList(ModelServiceLocator modelServiceLocator) {
+        return createFocusTypeList(false, modelServiceLocator);
     }
 
-    public static List<QName> createFocusTypeList(boolean includeAbstractType) {
+    public static List<QName> createFocusTypeList(boolean includeAbstractType, ModelServiceLocator modelServiceLocator) {
         List<QName> focusTypeList = new ArrayList<>();
+
+        boolean experimentalFeaturesEnabled = false;
+        if (modelServiceLocator != null) {
+            experimentalFeaturesEnabled = WebModelServiceUtils.isEnableExperimentalFeature(modelServiceLocator);
+        }
 
         focusTypeList.add(UserType.COMPLEX_TYPE);
         focusTypeList.add(OrgType.COMPLEX_TYPE);
@@ -138,18 +156,31 @@ public class ObjectTypeListUtil {
             focusTypeList.add(FocusType.COMPLEX_TYPE);
         }
 
+        if (experimentalFeaturesEnabled) {
+            focusTypeList.add(ApplicationType.COMPLEX_TYPE);
+        }
+
         return focusTypeList;
     }
 
     // TODO: move to schema component
-    public static List<QName> createAbstractRoleTypeList() {
+    public static List<QName> createAbstractRoleTypeList(ModelServiceLocator modelServiceLocator) {
         List<QName> focusTypeList = new ArrayList<>();
+
+        boolean experimentalFeaturesEnabled = false;
+        if (modelServiceLocator != null) {
+            experimentalFeaturesEnabled = WebModelServiceUtils.isEnableExperimentalFeature(modelServiceLocator);
+        }
 
         focusTypeList.add(AbstractRoleType.COMPLEX_TYPE);
         focusTypeList.add(OrgType.COMPLEX_TYPE);
         focusTypeList.add(RoleType.COMPLEX_TYPE);
         focusTypeList.add(ServiceType.COMPLEX_TYPE);
         focusTypeList.add(PolicyType.COMPLEX_TYPE);
+
+        if (experimentalFeaturesEnabled) {
+            focusTypeList.add(ApplicationType.COMPLEX_TYPE);
+        }
 
         return focusTypeList;
     }
