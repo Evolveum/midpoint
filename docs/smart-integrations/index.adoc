@@ -18,3 +18,4 @@ Setting relevant to Smart Integration are configured globally in the midPoint sy
 
 * xref:shadow-sampling.adoc[Shadow Sampling Configuration] - Configure sample size constraints for correlation and mapping suggestions based on shadow caching availability.
 * xref:multivalued-mappings.adoc[Multivalued Attributes in Mapping Suggestions] - Behavior, evaluation flow, and limitations when generating mapping suggestions for multivalued schema attributes.
+* xref:service-item-paths.adoc[Item Paths and Type Names in Service Requests] - Format of item paths and type names sent to the Smart Integration microservice (common `c:` namespace prefix is omitted).
