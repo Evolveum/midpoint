@@ -43,6 +43,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
+import org.jspecify.annotations.NonNull;
+
 public abstract class RoleAnalysisObjectColumn<A extends MiningBaseTypeChunk> extends RoleAnalysisMatrixColumn<A> {
 
     public RoleAnalysisObjectColumn(
@@ -71,6 +73,11 @@ public abstract class RoleAnalysisObjectColumn<A extends MiningBaseTypeChunk> ex
                 iconBuilder.build(),
                 getPageBase().createStringResource("RoleMining.operation.panel.${chunkModeValue}.button.title", getModel())) {
             @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            protected @NonNull String getMarginCssClass() {
+                return "";
+            }
 
             @Override
             public CompositedIcon getIcon() {

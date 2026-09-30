@@ -61,7 +61,7 @@ public class RoleAnalysisHeaderWithWidgetsPanel extends BasePanel<List<WidgetIte
     }
 
     protected @NotNull String replaceWidgetCssClass() {
-        return "col-4 mb-3";
+        return "col-4 p-2";
     }
 
 }

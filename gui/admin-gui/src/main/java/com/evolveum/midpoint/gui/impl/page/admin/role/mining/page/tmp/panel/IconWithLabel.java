@@ -21,6 +21,7 @@ import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
 
 import org.jetbrains.annotations.NotNull;
+import org.jspecify.annotations.NonNull;
 
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.RoleAnalysisWebUtils.CLASS_CSS;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.RoleAnalysisWebUtils.STYLE_CSS;
@@ -53,7 +54,7 @@ public class IconWithLabel extends BasePanel<String> {
         Label image = new Label(ID_ICON);
         image.add(AttributeModifier.replace(CLASS_CSS, (IModel<String>) () -> {
             String icon = getIconCssClass();
-            return icon == null || icon.isEmpty() ? "" : icon + " fa-sm";
+            return icon == null || icon.isEmpty() ? "" : icon + getAdditionalIconCss();
         }));
         image.add(AttributeModifier.replace(STYLE_CSS, (IModel<String>) this::getIconComponentCssStyle));
         image.setOutputMarkupId(true);
@@ -65,6 +66,10 @@ public class IconWithLabel extends BasePanel<String> {
 
         Component textComponent = createComponent(getModel());
         add(textComponent);
+    }
+
+    protected @NonNull String getAdditionalIconCss() {
+        return " fa-sm";
     }
 
     private @NotNull Component createComponent(IModel<String> model) {
