@@ -233,10 +233,14 @@ public class VerticalFormDefaultContainerablePanel<C extends Containerable> exte
 
             @Override
             public boolean isEnabled() {
-                return !itemWrapper.isReadOnly() || itemWrapper.isMetadata(); //TODO hack isMetadata - beacuse all links are then disabled.
+                return isSubContainerEnabled(itemWrapper);
             }
         });
         container.add(panel);
+    }
+
+    protected boolean isSubContainerEnabled(PrismContainerWrapper<?> wrapper) {
+        return !wrapper.isReadOnly() || wrapper.isMetadata();
     }
 
     @Override
