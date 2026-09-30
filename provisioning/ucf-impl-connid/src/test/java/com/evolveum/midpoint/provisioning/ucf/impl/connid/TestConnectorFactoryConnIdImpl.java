@@ -82,7 +82,6 @@ public class TestConnectorFactoryConnIdImpl  {
         assertEquals(bundleUris.size(), 2, "Expected exactly 2 JAR connectors.");
         assertTrue(bundleUris.contains(rootJarFile.toURI()), "JAR in root was not found");
         assertTrue(bundleUris.contains(subDirJarFile.toURI()), "JAR in subdirectory was not  found during recursive scan");
-        bundleUris.forEach(System.out::println);
     }
 
     private void deleteRecursively(File file) {
