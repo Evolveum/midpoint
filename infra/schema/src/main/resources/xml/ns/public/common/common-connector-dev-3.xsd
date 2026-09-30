@@ -69,7 +69,8 @@
             <xsd:element name="integrationType" type="tns:ConnDevIntegrationType">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Integration type of application.
+                        The protocol intended to use when integrating with the application. Used for application
+                        identification and documentation discovery.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -162,7 +163,8 @@
             <xsd:element name="integrationType" type="tns:ConnDevIntegrationType">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Type of connector / integration.
+                        The actual implementation type of the generated connector - the protocol the connector
+                        is built on. Overrides the application-side intended type when set.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
