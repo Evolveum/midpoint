@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2025 Evolveum and contributors
+ * Copyright (C) 2010-2026 Evolveum and contributors
  *
  * Licensed under the EUPL-1.2 or later.
  */
@@ -10,6 +10,7 @@ import com.evolveum.midpoint.gui.api.component.BadgePanel;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettings;
 import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettingsBuilder;
 import com.evolveum.midpoint.gui.impl.prism.panel.vertical.form.VerticalFormCorrelationItemPanel;
@@ -27,7 +28,6 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
@@ -35,6 +35,9 @@ import static com.evolveum.midpoint.gui.api.util.WebPrismUtil.setReadOnlyRecursi
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationStatusInfoUtils.extractEfficiencyFromSuggestedCorrelationItemWrapper;
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils.getAiEfficiencyBadgeModel;
 
+/**
+ * Panel for viewing and editing a correlation item rule.
+ */
 public class CorrelationItemRulePanel<C extends Containerable> extends BasePanel<PrismContainerValueWrapper<ItemsSubCorrelatorType>> implements Popupable {
 
     private static final String ID_PANEL = "panel";
@@ -86,6 +89,11 @@ public class CorrelationItemRulePanel<C extends Containerable> extends BasePanel
         infoPanel.add(new Label(ID_ALERT_DESCRIPTION,
                 createStringResource("SmartCorrelationTilePanel.unconfirmed.suggestion.description")));
 
+        infoPanel.add(createEfficiencyBadge());
+        add(infoPanel);
+    }
+
+    private BadgePanel createEfficiencyBadge() {
         String efficiency = extractEfficiencyFromSuggestedCorrelationItemWrapper(getModelObject());
 
         String tooltip = createStringResource("SmartIntegration.badge.tooltip.ai").getObject();
@@ -95,44 +103,56 @@ public class CorrelationItemRulePanel<C extends Containerable> extends BasePanel
                                 efficiency).getString(),
                         tooltip));
         badge.setOutputMarkupId(true);
-        infoPanel.add(badge);
-        add(infoPanel);
+        return badge;
     }
 
     private void initLayout() {
-        IModel<PrismContainerValueWrapper<ItemsSubCorrelatorType>> valueModel = getModel();
+        prepareRuleWrapper();
+        add(createVerticalFormCorrelationPanel(getModel(), createRuleSettings()));
+        add(createCorrelationItemRefsTable());
+    }
 
-        ItemPanelSettings settings = new ItemPanelSettingsBuilder()
-                .visibilityHandler((wrapper) -> {
-                    ItemName itemName = wrapper.getPath().lastName();
-                    return itemName.equivalent(ItemsSubCorrelatorType.F_DESCRIPTION)
-                            || itemName.equivalent(ItemsSubCorrelatorType.F_NAME)
-                            || itemName.equivalent(ItemsSubCorrelatorType.F_ENABLED)
-                            || itemName.equivalent(ItemsSubCorrelatorType.F_COMPOSITION)
-                            || itemName.equivalent(CorrelatorCompositionDefinitionType.F_IGNORE_IF_MATCHED_BY)
-                            || itemName.equivalent(CorrelatorCompositionDefinitionType.F_TIER)
-                            || itemName.equivalent(CorrelatorCompositionDefinitionType.F_WEIGHT)
-                            ? ItemVisibility.AUTO
-                            : ItemVisibility.HIDDEN;
-                })
+    private void prepareRuleWrapper() {
+        if (isSuggestionApplied()) {
+            setReadOnlyRecursively(getModelObject());
+        }
+        getModelObject().setShowEmpty(isShowEmptyField());
+    }
+
+    private ItemPanelSettings createRuleSettings() {
+        return new ItemPanelSettingsBuilder()
+                .visibilityHandler(this::getRuleItemVisibility)
                 .isRemoveButtonVisible(false)
                 .build();
+    }
 
-        if (isSuggestionApplied()) {
-            setReadOnlyRecursively(valueModel.getObject());
-        }
+    private ItemVisibility getRuleItemVisibility(ItemWrapper<?, ?> wrapper) {
+        ItemName itemName = wrapper.getPath().lastName();
+        return itemName.equivalent(ItemsSubCorrelatorType.F_DESCRIPTION)
+                || itemName.equivalent(ItemsSubCorrelatorType.F_NAME)
+                || itemName.equivalent(ItemsSubCorrelatorType.F_ENABLED)
+                || itemName.equivalent(ItemsSubCorrelatorType.F_COMPOSITION)
+                || itemName.equivalent(CorrelatorCompositionDefinitionType.F_IGNORE_IF_MATCHED_BY)
+                || itemName.equivalent(CorrelatorCompositionDefinitionType.F_TIER)
+                || itemName.equivalent(CorrelatorCompositionDefinitionType.F_WEIGHT)
+                ? ItemVisibility.AUTO
+                : ItemVisibility.HIDDEN;
+    }
 
-        valueModel.getObject().setShowEmpty(isShowEmptyField());
+    private VerticalFormCorrelationItemPanel createVerticalFormCorrelationPanel(
+            IModel<PrismContainerValueWrapper<ItemsSubCorrelatorType>> valueModel,
+            ItemPanelSettings settings) {
         VerticalFormCorrelationItemPanel panel =
                 new VerticalFormCorrelationItemPanel(ID_PANEL, valueModel, settings) {
                     @Override
-                    protected boolean isShowEmptyButtonVisible() {
-                        return isShowEmptyField();
+                    protected boolean isSubContainerEnabled(PrismContainerWrapper<?> wrapper) {
+                        // Keep metadata accessible; property wrappers enforce read-only values.
+                        return true;
                     }
 
                     @Override
-                    protected boolean isShowEmptyButtonContainerVisible() {
-                        return super.isShowEmptyButtonContainerVisible();
+                    protected boolean isShowEmptyButtonVisible() {
+                        return isShowEmptyField();
                     }
 
                     @Override
@@ -146,14 +166,10 @@ public class CorrelationItemRulePanel<C extends Containerable> extends BasePanel
                     }
                 };
         panel.setOutputMarkupId(true);
-        add(panel);
-        valueModel.getObject().getRealValue().asPrismContainerValue();
-
-        CorrelationItemRefsTable<C> table = buildCorrelationitemRefsTable();
-        add(table);
+        return panel;
     }
 
-    private @NotNull CorrelationItemRefsTable<C> buildCorrelationitemRefsTable() {
+    private CorrelationItemRefsTable<C> createCorrelationItemRefsTable() {
         CorrelationItemRefsTable<C> table = new CorrelationItemRefsTable<>(ID_TABLE, getModel(), getConfiguration()) {
             @Override
             boolean isReadOnlyTable() {
@@ -161,7 +177,7 @@ public class CorrelationItemRulePanel<C extends Containerable> extends BasePanel
             }
 
             @Override
-            public @NotNull IModel<PrismContainerValueWrapper<C>> getMappingContainerParent() {
+            public IModel<PrismContainerValueWrapper<C>> getMappingContainerParent() {
                 return CorrelationItemRulePanel.this.getParentContainerWrapper();
             }
         };
