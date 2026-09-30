@@ -21,7 +21,15 @@
         <collection>
             <!-- Type is declared in the view element. -->
             <filter>
-                <q:text>. ownedByOid `simulationResultRef?.oid`</q:text>
+                <q:text>
+                    . ownedByOid yaml```
+                        queryInterpretationOfNoValue: filterAll
+                        script:
+                            language: http://midpoint.evolveum.com/xml/ns/public/expression/language#mel
+                            objectVariableMode: referencableWithoutResolution
+                            code: 'isPresent(simulationResultRef) ? simulationResultRef.oid : nil'
+                    ```
+                </q:text>
             </filter>
         </collection>
         <view>
@@ -38,6 +46,7 @@
                 <export>
                     <expression>
                         <script>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                             <code>object.id</code>
                         </script>
                     </expression>
@@ -105,7 +114,12 @@
                 <export>
                     <expression>
                         <script>
-                            <code>objectMarks</code>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
+                            <code>
+                                isPresent(objectMarks) ? objectMarks.map(ref, isPresent(ref.targetName) &amp;&amp; isPresent(ref.targetName.orig)
+                                    ? ref.targetName.orig : ref.oid)
+                                : nil
+                            </code>
                         </script>
                     </expression>
                 </export>
@@ -140,11 +154,8 @@
                 <export>
                     <expression>
                         <script>
-                            <code>
-                                import static com.evolveum.midpoint.model.api.simulation.ProcessedObject.*
-
-                                (itemDelta as ProcessedObjectItemDelta)?.path
-                            </code>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
+                            <code>isPresent(itemDelta) ? itemDelta.path : nil</code>
                         </script>
                     </expression>
                 </export>
@@ -163,11 +174,8 @@
                 <export>
                     <expression>
                         <script>
-                            <code>
-                                import static com.evolveum.midpoint.model.api.simulation.ProcessedObject.*
-
-                                (itemDelta as ProcessedObjectItemDelta)?.realValuesBefore
-                            </code>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
+                            <code>isPresent(itemDelta) ? itemDelta.realValuesBefore : nil</code>
                         </script>
                     </expression>
                 </export>
@@ -186,11 +194,8 @@
                 <export>
                     <expression>
                         <script>
-                            <code>
-                                import static com.evolveum.midpoint.model.api.simulation.ProcessedObject.*
-
-                                (itemDelta as ProcessedObjectItemDelta)?.realValuesAfter
-                            </code>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
+                            <code>isPresent(itemDelta) ? itemDelta.realValuesAfter : nil</code>
                         </script>
                     </expression>
                 </export>
@@ -209,11 +214,8 @@
                 <export>
                     <expression>
                         <script>
-                            <code>
-                                import static com.evolveum.midpoint.model.api.simulation.ProcessedObject.*
-
-                                (itemDelta as ProcessedObjectItemDelta)?.realValuesAdded
-                            </code>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
+                            <code>isPresent(itemDelta) ? itemDelta.realValuesAdded : nil</code>
                         </script>
                     </expression>
                 </export>
@@ -232,11 +234,8 @@
                 <export>
                     <expression>
                         <script>
-                            <code>
-                                import static com.evolveum.midpoint.model.api.simulation.ProcessedObject.*
-
-                                (itemDelta as ProcessedObjectItemDelta)?.realValuesDeleted
-                            </code>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
+                            <code>isPresent(itemDelta) ? itemDelta.realValuesDeleted : nil</code>
                         </script>
                     </expression>
                 </export>
@@ -255,6 +254,7 @@
                 <export>
                     <expression>
                         <script>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                             <code>relatedAssignment</code>
                         </script>
                     </expression>
@@ -274,7 +274,8 @@
                 <export>
                     <expression>
                         <script>
-                            <code>relatedAssignment?.id</code>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
+                            <code>isPresent(relatedAssignment) ? relatedAssignment.id : nil</code>
                         </script>
                     </expression>
                 </export>
@@ -293,7 +294,8 @@
                 <export>
                     <expression>
                         <script>
-                            <code>relatedAssignment?.targetRef</code>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
+                            <code>isPresent(relatedAssignment) ? relatedAssignment.targetRef : nil</code>
                         </script>
                     </expression>
                 </export>
@@ -312,7 +314,11 @@
                 <export>
                     <expression>
                         <script>
-                            <code>relatedAssignment?.targetRef?.relation</code>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
+                            <code>
+                                isPresent(relatedAssignment) &amp;&amp; isPresent(relatedAssignment.targetRef)
+                                    ? relatedAssignment.targetRef.relation : nil
+                            </code>
                         </script>
                     </expression>
                 </export>
@@ -331,7 +337,11 @@
                 <export>
                     <expression>
                         <script>
-                            <code>relatedAssignment?.construction?.resourceRef</code>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
+                            <code>
+                                isPresent(relatedAssignment) &amp;&amp; isPresent(relatedAssignment.construction)
+                                    ? relatedAssignment.construction.resourceRef : nil
+                            </code>
                         </script>
                     </expression>
                 </export>
@@ -350,7 +360,11 @@
                 <export>
                     <expression>
                         <script>
-                            <code>relatedAssignment?.construction?.kind</code>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
+                            <code>
+                                isPresent(relatedAssignment) &amp;&amp; isPresent(relatedAssignment.construction)
+                                    ? relatedAssignment.construction.kind : nil
+                            </code>
                         </script>
                     </expression>
                 </export>
@@ -369,7 +383,11 @@
                 <export>
                     <expression>
                         <script>
-                            <code>relatedAssignment?.construction?.intent</code>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
+                            <code>
+                                isPresent(relatedAssignment) &amp;&amp; isPresent(relatedAssignment.construction)
+                                    ? relatedAssignment.construction.intent : nil
+                            </code>
                         </script>
                     </expression>
                 </export>
@@ -442,10 +460,11 @@
             <type>c:ObjectReferenceType</type>
             <expression>
                 <script>
+                    <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                     <code>
-                        import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationResultProcessedObjectType
-
-                        report.getObjectMarks(object as SimulationResultProcessedObjectType)
+                        cel.bind(markedObject,
+                            isPresent(object.before) ? object.before : object.after,
+                            markedObject.effectiveMarkRefs())
                     </code>
                 </script>
             </expression>
@@ -456,14 +475,13 @@
             <!-- Returns a list of (non-prism) ProcessedObjectItemDelta objects (EXPERIMENTAL, may change in the future) -->
             <expression>
                 <script>
+                    <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                     <code>
-                        import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationResultProcessedObjectType
-
-                        report.getProcessedObjectItemDeltas(
-                                object as SimulationResultProcessedObjectType,
-                                pathsToInclude,
-                                pathsToExclude,
-                                includeOperationalItems)
+                        simulation.itemDeltas(
+                            object,
+                            pathsToInclude,
+                            pathsToExclude,
+                            includeOperationalItems)
                     </code>
                 </script>
             </expression>
@@ -478,7 +496,8 @@
             <type>xsd:boolean</type>
             <expression>
                 <script>
-                    <code>showIfNoDetails != false || itemDelta != null ? true : null</code>
+                    <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
+                    <code>str(showIfNoDetails) != 'false' || isPresent(itemDelta) ? true : nil</code>
                 </script>
             </expression>
             <order>20</order>
@@ -491,7 +510,8 @@
             <type>AssignmentType</type>
             <expression>
                 <script>
-                    <code>report.getRelatedAssignment(itemDelta)</code>
+                    <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
+                    <code>isPresent(itemDelta) ? itemDelta.relatedAssignment() : nil</code>
                 </script>
             </expression>
             <order>30</order>

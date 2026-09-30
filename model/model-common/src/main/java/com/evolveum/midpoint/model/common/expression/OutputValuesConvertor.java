@@ -57,7 +57,8 @@ public class OutputValuesConvertor {
         if (outputDefinition == null) {
             // No outputDefinition may mean "void" return type
             // or it can mean that we do not have definition, because this is something non-prism (e.g. report template).
-            // Either way we can return immediately, without any value conversion. Just wrap the value in fake PrismPropertyValue.
+            // Either way we can return immediately, without any value conversion. Preserve PrismValue instances;
+            // wrap other values in fake PrismPropertyValue instances.
             // For no value/null we return empty list.
             List<V> convertedResultValues = new ArrayList<>();
             if (rawResult instanceof Collection<?> collection) {
@@ -146,7 +147,9 @@ public class OutputValuesConvertor {
 
     // FIXME deduplicate with PrismValue#toPrismValue (there are minor differences)
     private static PrismValue toPrismValue(Object realValue) {
-        if (realValue instanceof PrismObject<?> prismObject) {
+        if (realValue instanceof PrismValue prismValue) {
+            return prismValue;
+        } else if (realValue instanceof PrismObject<?> prismObject) {
             // Exotic case - e.g. result of midpoint.searchShadowOwner in MEL
             // (it is actually an anomaly but we should keep it because of backward compatibility)
             return prismObject.getValue();

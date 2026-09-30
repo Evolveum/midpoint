@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.model.common.expression.script.mel;
 
 import com.evolveum.midpoint.model.common.expression.script.mel.value.*;
+import com.evolveum.midpoint.model.api.simulation.ProcessedObject;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.binding.TypeSafeEnum;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
@@ -72,7 +73,11 @@ public class CelTypeMapper implements CelTypeProvider  {
                 ItemPathCelValue.CEL_TYPE,
                 PROTECTED_STRING_CEL_TYPE,
                 ObjectDeltaOperationCelValue.CEL_TYPE,
-                OperationResultCelValue.CEL_TYPE
+                OperationResultCelValue.CEL_TYPE,
+                SimulationMetricCelValue.CEL_TYPE,
+                SimulationItemDeltaCelValue.CEL_TYPE,
+                SimulationValueWithStateCelValue.CEL_TYPE,
+                OpaqueJavaCelValue.CEL_TYPE
         );
     }
 
@@ -415,6 +420,15 @@ public class CelTypeMapper implements CelTypeProvider  {
                     "number", toCelValue(escalationLevel.getNumber()),
                     "name", toCelValue(escalationLevel.getName()),
                     "displayName", toCelValue(escalationLevel.getDisplayName()));
+        }
+        if (javaValue instanceof ProcessedObject.Metric metric) {
+            return SimulationMetricCelValue.create(metric);
+        }
+        if (javaValue instanceof ProcessedObject.ProcessedObjectItemDelta<?, ?> itemDelta) {
+            return SimulationItemDeltaCelValue.create(itemDelta);
+        }
+        if (javaValue instanceof ProcessedObject.ValueWithState valueWithState) {
+            return SimulationValueWithStateCelValue.create(valueWithState);
         }
         if (javaValue instanceof PrismObject<?> o) {
             return ObjectCelValue.create(o);

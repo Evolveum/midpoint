@@ -198,6 +198,37 @@ public class TestMelExpressions extends AbstractScriptTest {
     }
 
     @Test
+    public void testEffectiveMarkRefs() throws Exception {
+        var user = new UserType();
+        user.getEffectiveMarkRef().addAll(List.of(
+                new ObjectReferenceType()
+                        .oid("mark-first")
+                        .type(MarkType.COMPLEX_TYPE)
+                        .relation(SchemaConstants.ORG_DEFAULT),
+                new ObjectReferenceType()
+                        .oid("mark-inactive")
+                        .type(MarkType.COMPLEX_TYPE)
+                        .relation(SchemaConstants.ORG_RELATED),
+                new ObjectReferenceType()
+                        .oid("mark-second")
+                        .type(MarkType.COMPLEX_TYPE)
+                        .relation(SchemaConstants.ORG_DEFAULT)));
+        var processedObject = new SimulationResultProcessedObjectType().before(user);
+        PrismContainer<ObjectType> before = processedObject.asPrismContainerValue()
+                .findContainer(SimulationResultProcessedObjectType.F_BEFORE);
+
+        List<PrismPropertyValue<String>> result = executeScript(
+                "expression-effective-mark-refs.xml",
+                DOMUtil.XSD_STRING,
+                false,
+                createVariables("input", before.getValue(), before.getDefinition()));
+
+        assertEquals(
+                List.of("mark-first", "mark-second"),
+                new ArrayList<>(getPropertyValues(result)));
+    }
+
+    @Test
     public void testWorkItemEscalationLevelNumber() throws Exception {
         var definition = prismContext.getSchemaRegistry()
                 .findContainerDefinitionByType(AccessCertificationWorkItemType.COMPLEX_TYPE);
@@ -210,6 +241,19 @@ public class TestMelExpressions extends AbstractScriptTest {
                 "expression-work-item-escalation-level-number.xml",
                 createVariables("workItems", workItem.asPrismContainerValue(), definition),
                 2);
+    }
+
+    @Test
+    public void testContainerId() throws Exception {
+        var definition = prismContext.getSchemaRegistry()
+                .findContainerDefinitionByType(AssignmentType.COMPLEX_TYPE);
+        var assignment = new AssignmentType();
+        assignment.setId(123L);
+
+        evaluateAndAssertLongScalarExpression(
+                "expression-container-id.xml",
+                createVariables("input", assignment, definition),
+                123L);
     }
 
     @Test

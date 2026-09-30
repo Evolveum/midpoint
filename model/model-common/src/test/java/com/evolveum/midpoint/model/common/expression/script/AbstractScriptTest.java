@@ -46,13 +46,17 @@ import com.evolveum.midpoint.model.common.expression.functions.FunctionLibraryBi
 import com.evolveum.midpoint.model.common.expression.functions.FunctionLibraryUtil;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.crypto.Protector;
+import com.evolveum.midpoint.prism.impl.match.MatchingRuleRegistryFactory;
+import com.evolveum.midpoint.prism.impl.polystring.NormalizerRegistryFactory;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.repo.common.DirectoryFileObjectResolver;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.schema.AccessDecision;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
+import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
+import com.evolveum.midpoint.schema.relation.RelationRegistryImpl;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.test.util.InfraTestMixin;
@@ -97,6 +101,11 @@ public abstract class AbstractScriptTest extends AbstractUnitTest
     public void setup() throws SchemaException, SAXException, IOException {
         SchemaDebugUtil.initializePrettyPrinter();
         PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
+        SchemaService.init(
+                PrismTestUtil.getPrismContext(),
+                new RelationRegistryImpl(),
+                MatchingRuleRegistryFactory.createRegistry(),
+                NormalizerRegistryFactory.createRegistry());
     }
 
     @BeforeClass

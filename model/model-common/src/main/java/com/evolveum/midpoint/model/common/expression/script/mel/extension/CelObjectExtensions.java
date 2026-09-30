@@ -139,6 +139,19 @@ public class CelObjectExtensions extends AbstractMidPointCelExtensions {
                             CelObjectExtensions::containingObject,
                             NullabilityProperties.NULLABLE_NULL)),
 
+            // object.effectiveMarkRefs()
+            new Function(
+                    CelFunctionDecl.newFunctionDeclaration(
+                            "effectiveMarkRefs",
+                            CelOverloadDecl.newMemberOverload(
+                                    "prism-container-effectiveMarkRefs",
+                                    "Returns the effective mark references of an object.",
+                                    ListType.create(ReferenceCelValue.CEL_TYPE),
+                                    ContainerValueCelValue.CEL_TYPE)),
+                    CelFunctionBinding.from("prism-container-effectiveMarkRefs",
+                            ContainerValueCelValue.class,
+                            CelObjectExtensions::effectiveMarkRefs)),
+
             // resource.connectorConfiguration(propertyName)
             new Function(
                     CelFunctionDecl.newFunctionDeclaration(
@@ -475,6 +488,16 @@ public class CelObjectExtensions extends AbstractMidPointCelExtensions {
         Objectable containingObject = ObjectTypeUtil.getParentObject(value.getContainerValue().asContainerable());
         return containingObject != null
                 ? ObjectCelValue.create(containingObject.asPrismObject()) : null;
+    }
+
+    private static List<ReferenceCelValue> effectiveMarkRefs(ContainerValueCelValue<?> value) {
+        Containerable containerable = value.getContainerValue().asContainerable();
+        if (!(containerable instanceof ObjectType object)) {
+            throw new IllegalArgumentException("Expected an object, got " + containerable);
+        }
+        return ObjectTypeUtil.getReallyEffectiveMarkRefs(object).stream()
+                .map(ref -> ReferenceCelValue.create(ref.asReferenceValue()))
+                .toList();
     }
 
     private static Object estimateAddedValuesFor(ObjectDeltaCelValue<?> objectDeltaCelValue, Object path) {

@@ -87,6 +87,7 @@ public class TestExpression extends AbstractModelCommonTest {
     private static final File EXPRESSION_JAVA_METHOD_REFERENCE_NON_EXISTING_VARIABLE_FILE = new File(TEST_DIR, "expression-java-method-reference-non-existing-variable.xml");
     private static final File EXPRESSION_JAVA_METHOD_REFERENCE_UNKNOWN_CLASS_FILE = new File(TEST_DIR, "expression-java-method-reference-unknown-class.xml");
     private static final File EXPRESSION_JAVA_METHOD_REFERENCE_UNKNOWN_METHOD_FILE = new File(TEST_DIR, "expression-java-method-reference-unknown-method.xml");
+    private static final File EXPRESSION_JAVA_METHOD_REFERENCE_PRISM_REFERENCE_FILE = new File(TEST_DIR, "expression-java-method-reference-prism-reference.xml");
 
     protected static final String VAR_FOO_NAME = "foo";
     protected static final String VAR_FOO_VALUE = "F00";
@@ -519,6 +520,25 @@ public class TestExpression extends AbstractModelCommonTest {
                 .assertEmptyPlus()
                 .zeroSet()
                 .assertSinglePropertyValue(new QName(VAR_FOO_VALUE + VAR_BAR_VALUE));
+    }
+
+    @Test
+    public void test176JavaMethodReferenceReturningPrismValueWithoutDefinition() throws Exception {
+        given();
+        OperationResult result = createOperationResult();
+
+        var expressionBean = parseExpression(EXPRESSION_JAVA_METHOD_REFERENCE_PRISM_REFERENCE_FILE);
+        var expressionContext = new ExpressionEvaluationContext(
+                null, new VariablesMap(), getTestNameShort(), createTask());
+
+        when();
+        PrismValueDeltaSetTriple<PrismReferenceValue> outputTriple =
+                evaluateExpression(expressionBean, null, expressionContext, result);
+
+        then();
+        assertEquals(1, outputTriple.getZeroSet().size());
+        PrismReferenceValue outputValue = outputTriple.getZeroSet().iterator().next();
+        assertEquals("reference-from-java-method", outputValue.getOid());
     }
 
     @Test

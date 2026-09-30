@@ -41,6 +41,7 @@ import com.evolveum.midpoint.model.api.context.Mapping;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.ModelElementContext;
 import com.evolveum.midpoint.model.api.context.ModelProjectionContext;
+import com.evolveum.midpoint.model.api.simulation.ProcessedObject;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -1095,6 +1096,10 @@ public interface MidpointFunctions {
     OperationResult getCurrentResult();
 
     OperationResult getCurrentResult(String operationName);
+
+    /** Parses a persisted simulation processed object. */
+    ProcessedObject<?> parseSimulationProcessedObject(
+            SimulationResultProcessedObjectType object) throws SchemaException;
 
     ModelContext<?> unwrapModelContext(LensContextType lensContextType)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,

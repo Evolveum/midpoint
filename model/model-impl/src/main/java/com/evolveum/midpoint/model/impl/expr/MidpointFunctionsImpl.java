@@ -38,6 +38,7 @@ import javax.xml.stream.events.XMLEvent;
 
 import com.evolveum.midpoint.cases.api.CorrelationCaseManager;
 import com.evolveum.midpoint.model.api.*;
+import com.evolveum.midpoint.model.api.simulation.ProcessedObject;
 import com.evolveum.midpoint.common.AvailableLocale;
 import com.evolveum.midpoint.model.common.expression.script.ScriptExecutionContext;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
@@ -971,6 +972,15 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
             LOGGER.warn("No operation result for {}, creating a new one", operationName);
             return new OperationResult(operationName);
         }
+    }
+
+    @Override
+    public ProcessedObject<?> parseSimulationProcessedObject(
+            SimulationResultProcessedObjectType object) throws SchemaException {
+        return modelService.parseProcessedObject(
+                object,
+                getCurrentTaskRequired(),
+                getCurrentResult(CLASS_DOT + "parseSimulationProcessedObject"));
     }
 
     // functions working with ModelContext

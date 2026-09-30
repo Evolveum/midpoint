@@ -20,7 +20,15 @@
         <collection>
             <!-- Type is declared in the view element. -->
             <filter>
-                <q:text>. ownedByOid `simulationResultRef?.oid`</q:text>
+                <q:text>
+                    . ownedByOid yaml```
+                        queryInterpretationOfNoValue: filterAll
+                        script:
+                            language: http://midpoint.evolveum.com/xml/ns/public/expression/language#mel
+                            objectVariableMode: referencableWithoutResolution
+                            code: 'isPresent(simulationResultRef) ? simulationResultRef.oid : nil'
+                    ```
+                </q:text>
             </filter>
         </collection>
         <view>
@@ -37,6 +45,7 @@
                 <export>
                     <expression>
                         <script>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                             <code>object.id</code>
                         </script>
                     </expression>
@@ -104,7 +113,13 @@
                 <export>
                     <expression>
                         <script>
-                            <code>objectMarks</code>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
+                            <code>
+                                isPresent(objectMarks) ? objectMarks.map(ref,
+                                    isPresent(ref.targetName) &amp;&amp; isPresent(ref.targetName.orig)
+                                        ? ref.targetName.orig : ref.oid)
+                                : nil
+                            </code>
                         </script>
                     </expression>
                 </export>
@@ -138,7 +153,10 @@
                 <export>
                     <expression>
                         <script>
-                            <code>object?.result?.message</code>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
+                            <code>
+                                isPresent(object.result) ? object.result.message : nil
+                            </code>
                         </script>
                     </expression>
                 </export>
@@ -163,10 +181,11 @@
             <type>c:ObjectReferenceType</type>
             <expression>
                 <script>
+                    <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                     <code>
-                        import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationResultProcessedObjectType
-
-                        report.getObjectMarks(object as SimulationResultProcessedObjectType)
+                        cel.bind(markedObject,
+                            isPresent(object.before) ? object.before : object.after,
+                            markedObject.effectiveMarkRefs())
                     </code>
                 </script>
             </expression>
