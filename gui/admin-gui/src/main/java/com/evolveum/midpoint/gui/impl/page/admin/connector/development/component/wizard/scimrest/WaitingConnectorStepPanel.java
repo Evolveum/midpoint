@@ -214,8 +214,16 @@ public abstract class WaitingConnectorStepPanel extends AbstractWizardStepPanel<
                     };
                 }
 
-                PrismObject<TaskType> taskTypePrismObject = WebModelServiceUtils.loadObject(TaskType.class, tokenModel.getObject(), getDetailsModel().getPageAssignmentHolder(), task, result);
-                return new SmartGeneratingDto(statusInfoModel, () -> taskTypePrismObject){
+                LoadableModel<PrismObject<TaskType>> taskModel = new LoadableModel<>() {
+                    @Override
+                    protected PrismObject<TaskType> load() {
+                        Task freshTask = getDetailsModel().getPageAssignmentHolder().createSimpleTask(OP_DETERMINE_STATUS);
+                        return WebModelServiceUtils.loadObject(
+                                TaskType.class, tokenModel.getObject(), getDetailsModel().getPageAssignmentHolder(),
+                                freshTask, freshTask.getResult());
+                    }
+                };
+                return new SmartGeneratingDto(statusInfoModel, taskModel){
                     @Override
                     protected boolean rejectEmptyProgress() {
                         return false;

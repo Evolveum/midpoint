@@ -90,7 +90,14 @@ public class RoleAnalysisWidgetsPanel extends BasePanel<List<WidgetItemModel>> {
                 if (data.isVisible() != null) {
                     item.add(data.isVisible());
                 }
-                item.add(AttributeModifier.replace(CLASS_CSS, replaceWidgetCssClass()));
+
+                String cssClass = replaceWidgetCssClass();
+
+                if (item.getIndex() < getModelObject().size() - 1) {
+                    cssClass += " pe-2";
+                }
+
+                item.add(AttributeModifier.replace(CLASS_CSS, cssClass));
             }
         };
         details.setOutputMarkupId(true);

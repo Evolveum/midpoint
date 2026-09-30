@@ -72,6 +72,10 @@ public class RoleAnalysisDetectedAnomalyTable extends BasePanel<AnomalyObjectDto
 
     private void createTable() {
         MainObjectListPanel<RoleType> table = new MainObjectListPanel<>(ID_DATATABLE, RoleType.class, null) {
+            @Override
+            protected boolean showTableAsCard() {
+                return RoleAnalysisDetectedAnomalyTable.this.showTableAsCard();
+            }
 
             @Contract(pure = true)
             @Override
@@ -514,6 +518,10 @@ public class RoleAnalysisDetectedAnomalyTable extends BasePanel<AnomalyObjectDto
 
         }
         return Model.of(false);
+    }
+
+    protected boolean showTableAsCard() {
+        return true;
     }
 
     public String getAdditionalBoxCssClasses() {
