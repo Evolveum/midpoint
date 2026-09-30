@@ -713,6 +713,7 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
 
          File[] dirEntries = dir.listFiles();
          if (dirEntries == null) {
+             LOGGER.debug("No bundles found in directory {}", dir.getAbsolutePath());
              return;
          }
 
@@ -732,7 +733,7 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
                      scanDirectoryNow(bundleUris, dirEntry);
                  }
              } else if (isThisJarFileBundle(dirEntry)) {
-                 bundleUris.add(dirEntry.toURI());
+                 addBundleIfEligible(bundleUris, dirEntry);
              }
          }
     }

@@ -1,3 +1,11 @@
+/*
+ *
+ *  Copyright (C) 2010- 2026 Evolveum and contributors
+ *
+ *   Licensed under the EUPL-1.2 or later.
+ *
+ */
+
 package com.evolveum.midpoint.provisioning.ucf.impl.connid;
 
 import static org.testng.Assert.assertEquals;
@@ -74,7 +82,6 @@ public class TestConnectorFactoryConnIdImpl  {
         assertEquals(bundleUris.size(), 2, "Expected exactly 2 JAR connectors.");
         assertTrue(bundleUris.contains(rootJarFile.toURI()), "JAR in root was not found");
         assertTrue(bundleUris.contains(subDirJarFile.toURI()), "JAR in subdirectory was not  found during recursive scan");
-        System.out.println("Nájdené URI:");
         bundleUris.forEach(System.out::println);
     }
 
