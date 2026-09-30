@@ -248,6 +248,7 @@
         <rabbit-amqp-client.version>5.34.0</rabbit-amqp-client.version>
         <jackson-bom.version>3.1.6</jackson-bom.version>
         <jackson-2-bom.version>2.21.6</jackson-2-bom.version>
+        <freemarker.version>2.3.35</freemarker.version>
         <!-- END of Spring Boot dependencies overrides -->
 
         <!-- security fix for CVE-2025-48976 -->
