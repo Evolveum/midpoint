@@ -8,6 +8,8 @@ package com.evolveum.midpoint.model.common.expression;
 
 import static org.testng.AssertJUnit.assertTrue;
 import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertNull;
+import static org.testng.AssertJUnit.assertSame;
 
 import com.evolveum.midpoint.prism.impl.marshaller.ItemPathParserTemp;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -33,11 +35,13 @@ import org.xml.sax.SAXException;
 
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
+import com.evolveum.midpoint.schema.expression.TypedValue;
 import com.evolveum.midpoint.model.common.AbstractModelCommonTest;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
@@ -49,7 +53,10 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectVariableModeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ValueVariableModeType;
 
 /**
  * @author semancik
@@ -160,6 +167,39 @@ public class TestExpressionUtil extends AbstractModelCommonTest {
 
         PrismAsserts.assertPathEquivalent("Wrong residual path", PolyString.F_NORM, idi.getResidualPath());
 
+    }
+
+    @Test
+    public void testPrismReferenceConversionPreservesSuppliedType() throws Exception {
+        var definition = PrismTestUtil.getPrismContext().getSchemaRegistry()
+                .findObjectDefinitionByCompileTimeClass(UserType.class)
+                .findReferenceDefinition(UserType.F_PERSONA_REF);
+        var reference = new ObjectReferenceType()
+                .oid(USER_JACK_OID)
+                .type(UserType.COMPLEX_TYPE);
+        assertNull("The test requires a detached reference without an intrinsic definition",
+                reference.asReferenceValue().getDefinition());
+
+        var original = new TypedValue<>(reference, definition, ObjectReferenceType.class);
+        var result = createOperationResult();
+
+        TypedValue<?> converted = ExpressionUtil.convertVariableValue(
+                original,
+                "ref",
+                new DirectoryFileObjectResolver(MidPointTestConstants.OBJECTS_DIR),
+                getTestNameShort(),
+                ObjectVariableModeType.PRISM_REFERENCE,
+                ValueVariableModeType.PRISM_VALUE,
+                PrismTestUtil.getPrismContext(),
+                new NullTaskImpl(),
+                result);
+
+        assertTrue("Converted value is not a Prism reference value",
+                converted.getValue() instanceof PrismReferenceValue);
+        assertSame("The supplied reference definition was not preserved",
+                definition, converted.getDefinition());
+        assertSame("The supplied reference type class was not preserved",
+                ObjectReferenceType.class, converted.getTypeClass());
     }
 
     private <T> T resolvePath(String path, final String exprShortDesc)

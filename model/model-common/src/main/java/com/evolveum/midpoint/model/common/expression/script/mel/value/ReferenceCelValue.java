@@ -16,6 +16,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
 import com.google.common.collect.ImmutableSet;
 import dev.cel.common.types.CelType;
+import dev.cel.common.types.NullableType;
 import dev.cel.common.types.SimpleType;
 import dev.cel.common.types.StructType;
 import dev.cel.common.values.CelValue;
@@ -144,6 +145,8 @@ public class ReferenceCelValue extends CelValue implements Map<String,Object>, M
         StructType.FieldResolver fieldResolver = fieldName -> {
             if (F_OID.equals(fieldName)) {
                 return Optional.of(SimpleType.STRING);
+            } else if (F_RELATION.equals(fieldName)) {
+                return Optional.of(NullableType.create(QNameCelValue.CEL_TYPE));
                 // TODO
 //            }
 //                    || OBJECT_REFERENCE_NORM.equals(fieldName)) {

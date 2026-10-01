@@ -499,9 +499,10 @@ public class CelMidPointExtensions extends AbstractMidPointCelExtensions {
                                         "Resolves specified reference, returning an object that the reference references. "
                                                 + "If the referenced object does not exist, null is returned.",
                                         NullableType.create(ObjectCelValue.CEL_TYPE),
-                                        ReferenceCelValue.CEL_TYPE)),
-                        CelFunctionBinding.from(FUNCTION_NAME_PREFIX_DASH + "resolveReferenceIfExists", ReferenceCelValue.class,
-                                this::resolveReferenceIfExists)
+                                        NullableType.create(ReferenceCelValue.CEL_TYPE))),
+                        CelFunctionBinding.from(FUNCTION_NAME_PREFIX_DASH + "resolveReferenceIfExists", Object.class,
+                                this::resolveReferenceIfExists,
+                                NullabilityProperties.NULLABLE)
 
                 ),
 
@@ -846,7 +847,11 @@ public class CelMidPointExtensions extends AbstractMidPointCelExtensions {
         }
     }
 
-    private <O extends ObjectType> CelValue resolveReferenceIfExists(ReferenceCelValue referenceCelValue) {
+    private CelValue resolveReferenceIfExists(Object reference) {
+        if (isCelNull(reference)) {
+            return NullValue.NULL_VALUE;
+        }
+        var referenceCelValue = (ReferenceCelValue) reference;
         try {
             return toCelObject(midpointExpressionFunctions.resolveReferenceIfExists((ObjectReferenceType)referenceCelValue.getObjectReferenceValue().asReferencable()));
         } catch (CommonException e) {

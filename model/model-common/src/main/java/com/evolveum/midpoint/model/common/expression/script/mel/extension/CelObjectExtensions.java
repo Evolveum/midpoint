@@ -152,6 +152,34 @@ public class CelObjectExtensions extends AbstractMidPointCelExtensions {
                             ContainerValueCelValue.class,
                             CelObjectExtensions::effectiveMarkRefs)),
 
+            // reference.valueMetadata()
+            new Function(
+                    CelFunctionDecl.newFunctionDeclaration(
+                            "valueMetadata",
+                            CelOverloadDecl.newMemberOverload(
+                                    "prism-reference-valueMetadata",
+                                    "Returns value metadata attached to a reference.",
+                                    ListType.create(ContainerValueCelValue.CEL_TYPE),
+                                    NullableType.create(ReferenceCelValue.CEL_TYPE))),
+                    CelFunctionBinding.from("prism-reference-valueMetadata",
+                            ReferenceCelValue.class,
+                            CelObjectExtensions::valueMetadata,
+                            NullabilityProperties.NULLABLE_EMPTY_LIST)),
+
+            // object.structuralArchetype()
+            new Function(
+                    CelFunctionDecl.newFunctionDeclaration(
+                            "structuralArchetype",
+                            CelOverloadDecl.newMemberOverload(
+                                    "prism-object-structuralArchetype",
+                                    "Returns the structural archetype of an assignment holder.",
+                                    NullableType.create(ObjectCelValue.CEL_TYPE),
+                                    ObjectCelValue.CEL_TYPE)),
+                    CelFunctionBinding.from("prism-object-structuralArchetype",
+                            ObjectCelValue.class,
+                            this::structuralArchetype,
+                            NullabilityProperties.NULLABLE_NULL)),
+
             // resource.connectorConfiguration(propertyName)
             new Function(
                     CelFunctionDecl.newFunctionDeclaration(
@@ -498,6 +526,28 @@ public class CelObjectExtensions extends AbstractMidPointCelExtensions {
         return ObjectTypeUtil.getReallyEffectiveMarkRefs(object).stream()
                 .map(ref -> ReferenceCelValue.create(ref.asReferenceValue()))
                 .toList();
+    }
+
+    private static List<?> valueMetadata(ReferenceCelValue reference) {
+        return reference.getObjectReferenceValue()
+                .getValueMetadata()
+                .getRealValues()
+                .stream()
+                .map(metadata -> ContainerValueCelValue.create(metadata.asPrismContainerValue()))
+                .toList();
+    }
+
+    private Object structuralArchetype(ObjectCelValue<?> object) {
+        Objectable objectable = object.getObject().asObjectable();
+        if (!(objectable instanceof AssignmentHolderType assignmentHolder)) {
+            return NullValue.NULL_VALUE;
+        }
+        try {
+            ArchetypeType archetype = midpointExpressionFunctions.getStructuralArchetype(assignmentHolder);
+            return archetype != null ? ObjectCelValue.create(archetype.asPrismObject()) : NullValue.NULL_VALUE;
+        } catch (SchemaException e) {
+            throw createException(e);
+        }
     }
 
     private static Object estimateAddedValuesFor(ObjectDeltaCelValue<?> objectDeltaCelValue, Object path) {

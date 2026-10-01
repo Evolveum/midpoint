@@ -221,6 +221,128 @@ public class TestMelExpressions extends AbstractScriptTest {
     }
 
     @Test
+    public void testReferenceValueMetadata() throws Exception {
+        var definition = prismContext.getSchemaRegistry()
+                .findObjectDefinitionByCompileTimeClass(UserType.class)
+                .findReferenceDefinition(UserType.F_ROLE_MEMBERSHIP_REF);
+        var referenceValue = new ObjectReferenceType()
+                .oid("00000000-0000-0000-0000-000000000001")
+                .type(RoleType.COMPLEX_TYPE)
+                .asReferenceValue();
+        var reference = definition.instantiate();
+        reference.add(referenceValue);
+        referenceValue.getValueMetadata().addMetadataValue(
+                new ValueMetadataType()
+                        .storage(new StorageMetadataType().createChannel("first"))
+                        .asPrismContainerValue());
+        referenceValue.getValueMetadata().addMetadataValue(
+                new ValueMetadataType()
+                        .storage(new StorageMetadataType().createChannel("second"))
+                        .asPrismContainerValue());
+
+        switchToRestrictedMode();
+        try {
+            executeAndAssertStringScalarExpression(
+                    "expression-reference-value-metadata.xml",
+                    createVariables("input", referenceValue, definition),
+                    "first,second");
+            executeAndAssertStringScalarExpression(
+                    "expression-reference-value-metadata.xml",
+                    createVariables("input", null, definition),
+                    "");
+        } finally {
+            switchToUnrestrictedMode();
+        }
+    }
+
+    @Test
+    public void testStructuralArchetype() throws Exception {
+        var role = new RoleType()
+                .oid("00000000-0000-0000-0000-000000000001")
+                .name("Role");
+        var archetype = new ArchetypeType().name("Application");
+        var midpointFunctions = (MidpointFunctions) Proxy.newProxyInstance(
+                MidpointFunctions.class.getClassLoader(),
+                new Class<?>[] { MidpointFunctions.class },
+                (proxy, method, args) -> {
+                    if (method.getName().equals("getStructuralArchetype")
+                            && method.getParameterCount() == 1) {
+                        assertTrue("Wrong object type passed to getStructuralArchetype", args[0] instanceof RoleType);
+                        var suppliedRole = (RoleType) args[0];
+                        assertEquals("Wrong role OID", role.getOid(), suppliedRole.getOid());
+                        assertEquals("Wrong role name", role.getName(), suppliedRole.getName());
+                        return archetype;
+                    }
+                    if (method.getDeclaringClass() == Object.class) {
+                        return switch (method.getName()) {
+                            case "toString" -> "MidpointFunctions structural-archetype test proxy";
+                            case "hashCode" -> System.identityHashCode(proxy);
+                            case "equals" -> proxy == args[0];
+                            default -> throw new AssertionError("Unexpected Object method: " + method);
+                        };
+                    }
+                    throw new AssertionError("Unexpected MidpointFunctions call: " + method);
+                });
+
+        scriptFactory.replaceExecutor(
+                createExecutor(prismContext, protector, clock, true, midpointFunctions));
+        try {
+            executeAndAssertStringScalarExpression(
+                    "expression-structural-archetype.xml",
+                    createVariables("input", role, RoleType.class),
+                    "Application");
+        } finally {
+            switchToUnrestrictedMode();
+        }
+    }
+
+    @Test
+    public void testResolveNullableReferenceIfExists() throws Exception {
+        var definition = prismContext.getSchemaRegistry()
+                .findObjectDefinitionByCompileTimeClass(UserType.class)
+                .findReferenceDefinition(UserType.F_PERSONA_REF);
+        var reference = new ObjectReferenceType()
+                .oid(USER_JACK_OID)
+                .type(UserType.COMPLEX_TYPE);
+        var resolved = new UserType().name("Resolved user");
+        var midpointFunctions = (MidpointFunctions) Proxy.newProxyInstance(
+                MidpointFunctions.class.getClassLoader(),
+                new Class<?>[] { MidpointFunctions.class },
+                (proxy, method, args) -> {
+                    if (method.getName().equals("resolveReferenceIfExists")
+                            && method.getParameterCount() == 1) {
+                        var suppliedReference = (ObjectReferenceType) args[0];
+                        assertEquals("Wrong reference OID", USER_JACK_OID, suppliedReference.getOid());
+                        return resolved;
+                    }
+                    if (method.getDeclaringClass() == Object.class) {
+                        return switch (method.getName()) {
+                            case "toString" -> "MidpointFunctions reference-resolution test proxy";
+                            case "hashCode" -> System.identityHashCode(proxy);
+                            case "equals" -> proxy == args[0];
+                            default -> throw new AssertionError("Unexpected Object method: " + method);
+                        };
+                    }
+                    throw new AssertionError("Unexpected MidpointFunctions call: " + method);
+                });
+
+        scriptFactory.replaceExecutor(
+                createExecutor(prismContext, protector, clock, true, midpointFunctions));
+        try {
+            executeAndAssertStringScalarExpression(
+                    "expression-resolve-reference-if-exists.xml",
+                    createVariables("ref", reference, definition),
+                    "Resolved user");
+            executeAndAssertStringScalarExpression(
+                    "expression-resolve-reference-if-exists.xml",
+                    createVariables("ref", null, definition),
+                    "missing");
+        } finally {
+            switchToUnrestrictedMode();
+        }
+    }
+
+    @Test
     public void testTracingAccountCondition() throws Exception {
         var accountName = "O'Brien\\operations\nnight";
         var item = new ShadowType().name(accountName);
