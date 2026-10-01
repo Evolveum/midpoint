@@ -34,6 +34,7 @@ public class AceEditor extends TextArea<String> {
         MEL(ExpressionUtil.Language.MEL.getLanguage(), "ace/mode/groovy"), //TBD cel not supported yet
         PYTHON(ExpressionUtil.Language.PYTHON.getLanguage(), "ace/mode/python"),
         VELOCITY(ExpressionUtil.Language.VELOCITY.getLanguage(), "ace/mode/velocity"),
+        SAFE_VELOCITY(ExpressionUtil.Language.SAFE_VELOCITY.getLanguage(), "ace/mode/velocity"),
         JAVASCRIPT(ExpressionUtil.Language.JAVASCRIPT.getLanguage(), "ace/mode/javascript");
 
         public String language;

@@ -61,17 +61,19 @@ public class ExpressionUtil {
     }
 
     public enum Language {
-        GROOVY("http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy"),
-        PYTHON("http://midpoint.evolveum.com/xml/ns/public/expression/language#python"),
-        MEL("http://midpoint.evolveum.com/xml/ns/public/expression/language#mel"),
-        VELOCITY("http://midpoint.evolveum.com/xml/ns/public/expression/language#safe-velocity"),
-        SAFE_VELOCITY("http://midpoint.evolveum.com/xml/ns/public/expression/language#safe-velocity"),
-        JAVASCRIPT("http://midpoint.evolveum.com/xml/ns/public/expression/language#ECMAScript");
+        GROOVY("http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy", false),
+        PYTHON("http://midpoint.evolveum.com/xml/ns/public/expression/language#python", false),
+        MEL("http://midpoint.evolveum.com/xml/ns/public/expression/language#mel", true),
+        VELOCITY("http://midpoint.evolveum.com/xml/ns/public/expression/language#safe-velocity", false),
+        SAFE_VELOCITY("http://midpoint.evolveum.com/xml/ns/public/expression/language#safe-velocity", true),
+        JAVASCRIPT("http://midpoint.evolveum.com/xml/ns/public/expression/language#ECMAScript", false);
 
         private final String language;
+        private final boolean safeLanguage;
 
-        Language(String language) {
+        Language(String language, boolean safeLanguage) {
             this.language = language;
+            this.safeLanguage = safeLanguage;
         }
 
         public String getLanguage() {
@@ -81,6 +83,10 @@ public class ExpressionUtil {
         public String getShortForm() {
             int hashIndex = language.indexOf('#');
             return hashIndex >= 0 ? language.substring(hashIndex + 1) : language;
+        }
+
+        public boolean isSafeLanguage() {
+            return safeLanguage;
         }
     }
 
