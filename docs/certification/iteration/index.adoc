@@ -10,7 +10,7 @@ doc-type: intro
 :page-wiki-metadata-create-date: 2018-06-15T09:55:43.162+02:00
 :page-wiki-metadata-modify-user: mederly
 :page-wiki-metadata-modify-date: 2018-09-17T13:32:56.839+02:00
-:page-upkeep-status: yellow
+:page-upkeep-status: green
 :page-moved-from: /midpoint/reference/roles-policies/certification/iteration/
 :page-display-order: 700
 :page-description: This article describes how certification campaigns can be reiterated (re-run) in midPoint, and how iterations can be configured.

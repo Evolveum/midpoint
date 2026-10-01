@@ -23,7 +23,6 @@ import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.repeater.Item;
@@ -246,6 +245,11 @@ public abstract class SmartCorrelationTable
                     return;
                 }
 
+                if (wrapper.getRealValue().getName() == null) {
+                    cellItem.add(new Label(componentId, createStringResource("SmartCorrelation.unnamed")));
+                    return;
+                }
+
                 super.populateItem(cellItem, componentId, rowModel);
             }
         });
@@ -279,7 +283,18 @@ public abstract class SmartCorrelationTable
                         ItemsSubCorrelatorType.F_COMPOSITION,
                         CorrelatorCompositionDefinitionType.F_WEIGHT),
                 AbstractItemWrapperColumn.ColumnType.STRING,
-                getPageBase()));
+                getPageBase()) {
+            @Override
+            public void populateItem(Item<ICellPopulator<PrismContainerValueWrapper<ItemsSubCorrelatorType>>> cellItem,
+                    String componentId, IModel<PrismContainerValueWrapper<ItemsSubCorrelatorType>> rowModel) {
+                CorrelatorCompositionDefinitionType composition = rowModel.getObject().getRealValue().getComposition();
+                if (composition == null || composition.getWeight() == null) {
+                    cellItem.add(new Label(componentId, createStringResource("SmartCorrelation.notSet")));
+                    return;
+                }
+                super.populateItem(cellItem, componentId, rowModel);
+            }
+        });
 
         columns.add(new PrismPropertyWrapperColumn<ItemsSubCorrelatorType, String>(
                 reactionDef,
@@ -287,16 +302,16 @@ public abstract class SmartCorrelationTable
                         ItemsSubCorrelatorType.F_COMPOSITION,
                         CorrelatorCompositionDefinitionType.F_TIER),
                 AbstractItemWrapperColumn.ColumnType.STRING,
-                getPageBase()));
-
-        columns.add(new AbstractColumn<>(createStringResource("ItemsSubCorrelatorType.efficiency")) {
+                getPageBase()) {
             @Override
-            public void populateItem(Item<ICellPopulator<PrismContainerValueWrapper<ItemsSubCorrelatorType>>> item, String s,
-                    IModel<PrismContainerValueWrapper<ItemsSubCorrelatorType>> iModel) {
-                @NotNull String efficiency = extractEfficiencyFromSuggestedCorrelationItemWrapper(iModel.getObject());
-                Label label = new Label(s, () -> efficiency);
-                label.setOutputMarkupId(true);
-                item.add(label);
+            public void populateItem(Item<ICellPopulator<PrismContainerValueWrapper<ItemsSubCorrelatorType>>> cellItem,
+                    String componentId, IModel<PrismContainerValueWrapper<ItemsSubCorrelatorType>> rowModel) {
+                CorrelatorCompositionDefinitionType composition = rowModel.getObject().getRealValue().getComposition();
+                if (composition == null || composition.getTier() == null) {
+                    cellItem.add(new Label(componentId, createStringResource("SmartCorrelation.notSet")));
+                    return;
+                }
+                super.populateItem(cellItem, componentId, rowModel);
             }
         });
 
@@ -336,7 +351,12 @@ public abstract class SmartCorrelationTable
             @Override
             protected String load() {
                 if (status.equals(OperationResultStatusType.SUCCESS)) {
-                    return realValue != null ? realValue.getName() : " - ";
+                    String name = realValue != null && realValue.getName() != null
+                            ? realValue.getName() : createStringResource("SmartCorrelation.unnamed").getString();
+                    String efficiency = extractEfficiencyFromSuggestedCorrelationItemWrapper(wrapper);
+                    return efficiency != null
+                            ? createStringResource("SmartCorrelation.nameWithEfficiency", name, efficiency).getString()
+                            : name;
                 }
 
                 String textKey = SmartIntegrationUtils.SuggestionUiStyle.from(statusInfo, wrapper).textKey;
