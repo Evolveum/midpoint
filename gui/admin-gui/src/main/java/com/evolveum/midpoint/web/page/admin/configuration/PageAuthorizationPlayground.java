@@ -134,7 +134,7 @@ public class PageAuthorizationPlayground extends PageAdminConfiguration {
         mainForm.add(new DropDownChoicePanel<>(
                 ID_TYPE,
                 typeModel,
-                ObjectTypeListUtil::createSearchableTypeList,
+                () -> ObjectTypeListUtil.createSearchableTypeList(PageAuthorizationPlayground.this),
                 new QNameObjectTypeChoiceRenderer()));
 
         var filterEditor = new AceEditor(ID_OBJECT_FILTER, filterModel);

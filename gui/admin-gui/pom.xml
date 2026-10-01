@@ -186,6 +186,11 @@
             <artifactId>smart-api</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <!-- ConnDev: structured connector log parsing (devtools-base) for the wizard log viewer -->
+        <dependency>
+            <groupId>com.evolveum.polygon.conndev</groupId>
+            <artifactId>devtools-base</artifactId>
+        </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.provisioning</groupId>
             <artifactId>provisioning-api</artifactId>

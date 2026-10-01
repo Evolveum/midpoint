@@ -8,6 +8,8 @@ package com.evolveum.midpoint.notifications.impl;
 
 import com.evolveum.midpoint.notifications.impl.util.ApplicationContextHolder;
 
+import com.evolveum.midpoint.prism.Safe;
+
 import org.apache.commons.lang3.Validate;
 
 import com.evolveum.midpoint.notifications.api.events.SimpleObjectRef;
@@ -43,6 +45,7 @@ public class SimpleObjectRefImpl implements SimpleObjectRef {
         }
     }
 
+    @Safe
     public String getOid() {
         return oid;
     }
@@ -51,6 +54,7 @@ public class SimpleObjectRefImpl implements SimpleObjectRef {
         this.oid = oid;
     }
 
+    @Safe
     public ObjectType getObjectType() {
         return objectType;
     }

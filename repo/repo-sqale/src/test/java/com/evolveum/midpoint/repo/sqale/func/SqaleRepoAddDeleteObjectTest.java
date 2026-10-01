@@ -11,7 +11,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import static com.evolveum.midpoint.repo.api.RepoAddOptions.createOverwrite;
-import static com.evolveum.midpoint.schema.util.SimpleExpressionUtil.velocityExpression;
+import static com.evolveum.midpoint.schema.util.SimpleExpressionUtil.safeVelocityExpression;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -499,6 +499,83 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         assertCount(QObject.CLASS, baseCount); // no new object was created
         MUser row = selectObjectByOid(QUser.class, providedOid);
         assertThat(row.version).isEqualTo(SqaleRepositoryService.INITIAL_VERSION_NUMBER); // no change
+    }
+
+    /**
+     * Issue 12169
+     */
+    @Test
+    public void test123AddObjectWithTooLongValue() {
+        OperationResult result = createOperationResult();
+
+        given("user with subtype exceeding the limit");
+        long baseCount = count(QUser.class);
+        UserType user = new UserType()
+                .name("user" + getTestNumber())
+                .subtype(incompressibleString(40000));
+
+        expect("addObject throws exception with user-friendly message");
+        assertThatThrownBy(() -> repositoryService.addObject(user.asPrismObject(), null, result))
+                .isInstanceOf(SchemaException.class)
+                .satisfies(e -> assertUserFriendlyMessageKey(e, "limitationValueSize.exceptionMessage"));
+
+        and("operation is fatal error and no new user row is created");
+        assertThatOperationResult(result).isFatalError();
+        assertCount(QUser.class, baseCount);
+    }
+
+    /**
+     * Issue 12169
+     */
+    @Test
+    public void test124OverwriteObjectWithTooLongValue() throws ObjectAlreadyExistsException, SchemaException {
+        given("existing user");
+        String name = "user" + getTestNumber();
+        String oid = repositoryService.addObject(
+                new UserType().name(name).asPrismObject(), null, createOperationResult());
+
+        expect("overwrite with subtype exceeding the limit throws exception with user-friendly message");
+        OperationResult result = createOperationResult();
+        UserType user = new UserType()
+                .oid(oid)
+                .name(name)
+                .subtype(incompressibleString(40000));
+        assertThatThrownBy(() -> repositoryService.addObject(user.asPrismObject(), createOverwrite(), result))
+                .isInstanceOf(SchemaException.class)
+                .satisfies(e -> assertUserFriendlyMessageKey(e, "limitationValueSize.exceptionMessage"));
+
+        and("operation is fatal error and original object is preserved");
+        assertThatOperationResult(result).isFatalError();
+        MUser row = selectObjectByOid(QUser.class, oid);
+        assertThat(row.version).isEqualTo(SqaleRepositoryService.INITIAL_VERSION_NUMBER);
+        assertThat(row.subtypes).isNull();
+    }
+
+    /**
+     * Issue 12169 check whether add with conflicting name is still handled correctly
+     */
+    @Test
+    public void test125OverwriteObjectWithConflictingName() throws ObjectAlreadyExistsException, SchemaException {
+        given("two existing users");
+        String name1 = "user" + getTestNumber() + "-1";
+        String name2 = "user" + getTestNumber() + "-2";
+
+        repositoryService.addObject(new UserType().name(name1).asPrismObject(), null, createOperationResult());
+
+        String oid2 = repositoryService.addObject(
+                new UserType().name(name2).asPrismObject(), null, createOperationResult());
+
+        expect("overwrite of the second user with the name of the first one fails");
+        OperationResult result = createOperationResult();
+        UserType user = new UserType()
+                .oid(oid2)
+                .name(name1);
+        assertThatThrownBy(() -> repositoryService.addObject(user.asPrismObject(), createOverwrite(), result))
+                .isInstanceOf(ObjectAlreadyExistsException.class);
+
+        and("operation is fatal error and original object is preserved");
+        assertThatOperationResult(result).isFatalError();
+        assertThat(selectObjectByOid(QUser.class, oid2).nameOrig).isEqualTo(name2);
     }
 
     @Test
@@ -2807,7 +2884,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         var messageTemplate = new MessageTemplateType()
                 .name(objectName)
                 .defaultContent(new MessageTemplateContentType()
-                        .subjectExpression(velocityExpression("subject", null)));
+                        .subjectExpression(safeVelocityExpression("subject", null)));
 
         when("adding it to the repository");
         repositoryService.addObject(messageTemplate.asPrismObject(), null, result);

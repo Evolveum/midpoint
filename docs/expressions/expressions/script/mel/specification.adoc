@@ -3430,7 +3430,7 @@ This is optional, as some statuses do not need a message (e.g. success).
 // TODO: later, when implemented
 
 
-== Null and Optional Values
+== Null Values
 
 MEL data structures and functions are generally null-safe.
 I.e. expression authors do not need to worry about passing `null` values into functions, or even invoking member functions on `null` values.
@@ -3438,7 +3438,6 @@ MEL interpreter substitutes a reasonable return value in such a case, which is u
 However, some functions may return empty string (`''`), zero (`0`) or appropriate boolean value instead.
 
 Navigation of structured data is also null-safe.
-See section xref:#optional-values-in-structured-data[Optional Values in Structured Data] for more details.
 
 However, there is one unpleasant detail regarding `null` literal.
 CEL interpreter is regarding `null` as a special data type.

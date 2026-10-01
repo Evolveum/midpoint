@@ -79,7 +79,7 @@ class PrismComplexTypeDefinitionSerializer extends SchemaSerializer {
 
     private SiObjectSchemaType createSchema() {
         return new SiObjectSchemaType()
-                .name(this.complexTypeDefinition.getTypeName())
+                .name(serializeTypeName(this.complexTypeDefinition.getTypeName()))
                 .description(this.complexTypeDefinition.getDocumentation());
     }
 

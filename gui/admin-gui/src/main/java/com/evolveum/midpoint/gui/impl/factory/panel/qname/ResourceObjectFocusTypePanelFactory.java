@@ -67,7 +67,7 @@ public class ResourceObjectFocusTypePanelFactory extends AbstractInputGuiCompone
     }
 
     protected List<QName> getTypesList(PrismPropertyPanelContext<QName> panelCtx) {
-        return ObjectTypeListUtil.createFocusTypeList();
+        return ObjectTypeListUtil.createFocusTypeList(panelCtx.getPageBase());
     }
 
     @Override

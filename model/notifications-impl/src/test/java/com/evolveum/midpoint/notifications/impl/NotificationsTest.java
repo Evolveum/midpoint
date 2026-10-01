@@ -219,7 +219,7 @@ public class NotificationsTest extends AbstractIntegrationTest {
                 .replace(new NotificationConfigurationType()
                         .handler(new EventHandlerType()
                                 .generalNotifier(new GeneralNotifierType()
-                                        .bodyExpression(velocityExpression(messageBody))
+                                        .bodyExpression(safeVelocityExpression(messageBody))
                                         .transport("test"))))
                 .asItemDeltas();
         repositoryService.modifyObject(
@@ -251,8 +251,8 @@ public class NotificationsTest extends AbstractIntegrationTest {
                 new MessageTemplateType()
                         .name(objectName)
                         .defaultContent(new MessageTemplateContentType()
-                                .subjectExpression(velocityExpression("template-subject"))
-                                .bodyExpression(velocityExpression("Hi $requestee.name, channel: $!event.channel"))
+                                .subjectExpression(safeVelocityExpression("template-subject"))
+                                .bodyExpression(safeVelocityExpression("Hi $requestee.name, channel: $!event.channel"))
                                 .attachment(new NotificationMessageAttachmentType()
                                         .contentType("text/plain")
                                         .content("some-text")))
@@ -299,8 +299,8 @@ public class NotificationsTest extends AbstractIntegrationTest {
                 new MessageTemplateType()
                         .name(objectName)
                         .defaultContent(new MessageTemplateContentType()
-                                .subjectExpression(velocityExpression("template-subject"))
-                                .bodyExpression(velocityExpression("template-body"))
+                                .subjectExpression(safeVelocityExpression("template-subject"))
+                                .bodyExpression(safeVelocityExpression("template-body"))
                                 .contentType("text/plain")
                                 .attachment(new NotificationMessageAttachmentType()
                                         .contentType("text/plain")
@@ -317,8 +317,8 @@ public class NotificationsTest extends AbstractIntegrationTest {
                                         .messageTemplateRef(createObjectReference(
                                                 templateOid, MessageTemplateType.COMPLEX_TYPE, null))
                                         // overrides content from the template
-                                        .subjectExpression(velocityExpression("notifier-subject"))
-                                        .bodyExpression(velocityExpression("notifier-body"))
+                                        .subjectExpression(safeVelocityExpression("notifier-subject"))
+                                        .bodyExpression(safeVelocityExpression("notifier-body"))
                                         .attachment(new NotificationMessageAttachmentType()
                                                 .contentType("text/plain")
                                                 .content("attachment2"))
@@ -356,10 +356,10 @@ public class NotificationsTest extends AbstractIntegrationTest {
                 new MessageTemplateType()
                         .name(objectName)
                         .defaultContent(new MessageTemplateContentType()
-                                .bodyExpression(velocityExpression("template-body-default")))
+                                .bodyExpression(safeVelocityExpression("template-body-default")))
                         .localizedContent(new LocalizedMessageTemplateContentType()
                                 .language("sk")
-                                .bodyExpression(velocityExpression("template-body-sk")))
+                                .bodyExpression(safeVelocityExpression("template-body-sk")))
                         .asPrismObject(),
                 null, result);
 
@@ -428,7 +428,7 @@ public class NotificationsTest extends AbstractIntegrationTest {
                 new MessageTemplateType()
                         .name(objectName)
                         .defaultContent(new MessageTemplateContentType()
-                                .bodyExpression(velocityExpression("template-body-default"))
+                                .bodyExpression(safeVelocityExpression("template-body-default"))
                                 .attachmentExpression(groovyExpression("def a = new com.evolveum.midpoint.xml.ns._public.common.common_3.NotificationMessageAttachmentType();\n"
                                         + "a.setContentType(\"text/plain\");\n"
                                         + "a.setContent(\"default-content1\");\n"
@@ -439,14 +439,14 @@ public class NotificationsTest extends AbstractIntegrationTest {
                         // this will use its own attachment element and inherit attachmentExpression from default
                         .localizedContent(new LocalizedMessageTemplateContentType()
                                 .language("sk")
-                                .bodyExpression(velocityExpression("template-body-sk"))
+                                .bodyExpression(safeVelocityExpression("template-body-sk"))
                                 .attachment(new NotificationMessageAttachmentType()
                                         .contentType("text/plain")
                                         .content("sk-content2")))
                         // this will use its own attachmentExpression element and inherit attachment from default
                         .localizedContent(new LocalizedMessageTemplateContentType()
                                 .language("cz")
-                                .bodyExpression(velocityExpression("template-body-cz"))
+                                .bodyExpression(safeVelocityExpression("template-body-cz"))
                                 .attachmentExpression(groovyExpression("def a = new com.evolveum.midpoint.xml.ns._public.common.common_3.NotificationMessageAttachmentType();\n"
                                         + "a.setContentType(\"text/plain\");\n"
                                         + "a.setContent(\"cz-content1\");\n"
@@ -524,7 +524,7 @@ public class NotificationsTest extends AbstractIntegrationTest {
                                 .generalNotifier(new GeneralNotifierType()
                                         // requestee provided with the event below
                                         .recipientExpression(groovyExpression("return requestee"))
-                                        .bodyExpression(velocityExpression(messageBody))
+                                        .bodyExpression(safeVelocityExpression(messageBody))
                                         .transport("test"))))
                 .asItemDeltas();
         repositoryService.modifyObject(
@@ -560,7 +560,7 @@ public class NotificationsTest extends AbstractIntegrationTest {
                         .handler(new EventHandlerType()
                                 .generalNotifier(new GeneralNotifierType()
                                         .recipientExpression(literalExpression("literal@example.com"))
-                                        .bodyExpression(velocityExpression(messageBody))
+                                        .bodyExpression(safeVelocityExpression(messageBody))
                                         .transport("test"))))
                 .asItemDeltas();
         repositoryService.modifyObject(
@@ -599,7 +599,7 @@ public class NotificationsTest extends AbstractIntegrationTest {
                                 .generalNotifier(new GeneralNotifierType()
                                         // requestee provided with the event below
                                         .recipientExpression(groovyExpression("return requestee"))
-                                        .bodyExpression(velocityExpression(messageBody))
+                                        .bodyExpression(safeVelocityExpression(messageBody))
                                         .transport("test"))))
                 .asItemDeltas();
         repositoryService.modifyObject(
@@ -840,8 +840,8 @@ public class NotificationsTest extends AbstractIntegrationTest {
         return SimpleExpressionUtil.groovyExpression(groovyCode, IntegrationTestTools.trustedForTests());
     }
 
-    private static ExpressionType velocityExpression(String velocityTemplate) {
-        return SimpleExpressionUtil.velocityExpression(velocityTemplate, IntegrationTestTools.trustedForTests());
+    private static ExpressionType safeVelocityExpression(String velocityTemplate) {
+        return SimpleExpressionUtil.safeVelocityExpression(velocityTemplate, IntegrationTestTools.trustedForTests());
     }
 
     @SuppressWarnings("SameParameterValue")

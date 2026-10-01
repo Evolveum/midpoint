@@ -27,6 +27,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FunctionLibraryType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
+import org.jetbrains.annotations.Nullable;
+
 import static com.evolveum.midpoint.util.MiscUtil.argNonNull;
 
 /**
@@ -84,9 +86,12 @@ public class FunctionLibrary {
      *
      * In the case of ambiguity (and only in that case), checks also the argument vs parameter names - they must match exactly
      * and uniquely. Parameter types are ignored.
+     *
+     * @param parameterNames if present, we use it to disambiguate between multiple functions with the same name.
+     * If absent, we expect there is exactly one function with the given name.
      */
     @NotNull FunctionConfigItem findFunction(
-            @NotNull String functionName, @NotNull Collection<String> argumentNames, @NotNull String contextDesc)
+            @NotNull String functionName, @Nullable Collection<String> parameterNames, @NotNull String contextDesc)
             throws ConfigurationException {
 
         Collection<FunctionConfigItem> withMatchingName = functionsByName.get(functionName);
@@ -97,11 +102,17 @@ public class FunctionLibrary {
         }
 
         if (withMatchingName.size() == 1) {
-            return withMatchingName.iterator().next(); // Not checking parameters here.
+            return withMatchingName.iterator().next(); // Not checking parameters here. Maybe we'll implement that in the future.
+        }
+
+        if (parameterNames == null) {
+            throw new ConfigurationException(
+                    "Multiple functions with name '%s' found in %s but no parameter names provided to disambiguate. In %s"
+                            .formatted(functionName, libraryBean, contextDesc));
         }
 
         List<FunctionConfigItem> withMatchingNameAndParams = withMatchingName.stream()
-                .filter(consideredFunction -> consideredFunction.doesMatchArguments(argumentNames))
+                .filter(consideredFunction -> consideredFunction.doesMatchArguments(parameterNames))
                 .toList();
 
         if (withMatchingNameAndParams.size() == 1) {
@@ -112,11 +123,11 @@ public class FunctionLibrary {
             throw new ConfigurationException(
                     ("No matching function with name '%s' found in %s. "
                             + "%d functions with this name found but none matches the parameters %s. In %s").formatted(
-                            functionName, libraryBean, functionsByName.size(), argumentNames, contextDesc));
+                            functionName, libraryBean, functionsByName.size(), parameterNames, contextDesc));
         } else {
             throw new ConfigurationException(
                     ("Ambiguous function invocation: %d matching functions with name '%s' and parameters %s found in %s.")
-                            .formatted(withMatchingNameAndParams.size(), functionName, argumentNames, contextDesc));
+                            .formatted(withMatchingNameAndParams.size(), functionName, parameterNames, contextDesc));
         }
     }
 

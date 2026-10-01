@@ -24,7 +24,7 @@
                 </translation>
             </pluralLabel>
             <icon>
-                <cssClass>fa fa-tags</cssClass>
+                <cssClass>fa fa-layer-group</cssClass>
                 <color>green</color>
             </icon>
         </display>

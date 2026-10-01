@@ -115,10 +115,10 @@ public class MappingsSuggestionStatisticsComputationActivityRun
         return true;
     }
 
-    private @Nullable String findLatestStatisticsObjectOid(OperationResult result) throws SchemaException {
+    private @Nullable String findLatestStatisticsObjectOid(OperationResult result) throws CommonException {
         var def = getWorkDefinition();
         var lastStatisticsObject = smartIntegrationService
-                .getLatestObjectTypeStatistics(def.getResourceOid(), def.getTypeIdentification(), result);
+                .getLatestObjectTypeStatistics(def.getResourceOid(), def.getTypeIdentification(), getRunningTask(), result);
         return lastStatisticsObject != null ? lastStatisticsObject.getOid() : null;
     }
 

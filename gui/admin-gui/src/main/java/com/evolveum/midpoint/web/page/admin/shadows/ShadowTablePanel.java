@@ -277,7 +277,7 @@ public abstract class ShadowTablePanel extends MainObjectListPanel<ShadowType> {
                     public void onSubmit(AjaxRequestTarget target) {
                         ObjectBrowserPanel<FocusType> browser = new ObjectBrowserPanel<>(
                                 getPageBase().getMainPopupBodyId(), UserType.class,
-                                ObjectTypeListUtil.createFocusTypeList(), false, getPageBase()) {
+                                ObjectTypeListUtil.createFocusTypeList(getPageBase()), false, getPageBase()) {
 
                             @Override
                             protected void onSelectPerformed(AjaxRequestTarget target, FocusType focus) {

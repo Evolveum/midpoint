@@ -12,7 +12,10 @@ import java.util.List;
 import java.util.Map;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.impl.marshaller.ItemPathSerialization;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.UniformItemPath;
 
 import com.evolveum.midpoint.util.MiscUtil;
 
@@ -51,6 +54,21 @@ class SchemaSerializer {
 
     void registerPathMapping(String descriptivePathString, ItemPath itemPath) {
         descriptiveToItemPath.put(descriptivePathString, itemPath);
+    }
+
+    /**
+     * Serializes a type/object-class name for the service request. The common midPoint ("c:") namespace
+     * being the default one, is omitted, so e.g. `UserType` is sent instead of `c:UserType`. Other
+     * prefixes (`ri:`, `icfs:`, extension ones) are kept.
+     */
+    static String serializeTypeName(QName name) {
+        if (name == null) {
+            return null;
+        }
+        var ctx = PrismContext.get().getSchemaRegistry().staticNamespaceContext();
+        return ItemPathSerialization.serialize(
+                        UniformItemPath.from(ItemPath.create(name)), ctx, true, true)
+                .getXPathWithoutDeclarations();
     }
 
     /** Throws an exception if the path is unknown. */

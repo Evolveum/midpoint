@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.notifications.impl.events;
 
 import com.evolveum.midpoint.notifications.api.events.CertCampaignEvent;
+import com.evolveum.midpoint.prism.Safe;
 import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
@@ -26,12 +27,14 @@ public class CertCampaignEventImpl extends AccessCertificationEventImpl implemen
     }
 
     @Override
+    @Safe
     public boolean isCategoryType(EventCategoryType eventCategory) {
         return super.isCategoryType(eventCategory) ||
                 EventCategoryType.CERT_CAMPAIGN_EVENT.equals(eventCategory);
     }
 
     @Override
+    @Safe
     public String debugDump(int indent) {
         StringBuilder sb = DebugUtil.createTitleStringBuilderLn(this.getClass(), indent);
         debugDumpCommon(sb, indent);

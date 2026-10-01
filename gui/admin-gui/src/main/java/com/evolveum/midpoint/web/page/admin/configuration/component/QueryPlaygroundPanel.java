@@ -174,7 +174,7 @@ public class QueryPlaygroundPanel extends BasePanel<RepoQueryDto> {
 
         DropDownChoicePanel<QName> objectTypeChoice = new DropDownChoicePanel<>(ID_OBJECT_TYPE,
                 new PropertyModel<>(getModel(), RepoQueryDto.F_OBJECT_TYPE),
-                new ListModel<>(ObjectTypeListUtil.createSearchableTypeList()),
+                new ListModel<>(ObjectTypeListUtil.createSearchableTypeList(getPageBase())),
                 new QNameObjectTypeChoiceRenderer());
         objectTypeChoice.setOutputMarkupId(true);
         objectTypeChoice.getBaseFormComponent().setNullValid(true);
@@ -211,7 +211,7 @@ public class QueryPlaygroundPanel extends BasePanel<RepoQueryDto> {
         mainForm.add(scriptCheck);
 
         ScriptExpressionPanel scriptExpressionPanel = new ScriptExpressionPanel(ID_EDITOR_MIDPOINT_SCRIPT,
-                new PropertyModel<>(getModel(), RepoQueryDto.F_MIDPOINT_QUERY_SCRIPT));
+                new PropertyModel<>(getModel(), RepoQueryDto.F_MIDPOINT_QUERY_SCRIPT), null);
         scriptExpressionPanel.setOutputMarkupId(true);
         scriptExpressionPanel.setOutputMarkupPlaceholderTag(true);
         scriptExpressionPanel.add(new VisibleBehaviour(() -> getModel().getObject().isScriptEnabled()));

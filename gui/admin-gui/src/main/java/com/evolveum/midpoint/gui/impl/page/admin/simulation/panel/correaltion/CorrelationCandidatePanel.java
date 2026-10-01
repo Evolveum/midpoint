@@ -14,6 +14,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.prism.xml.ns._public.types_3.RawType;
+
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -38,11 +41,15 @@ import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.util.cases.OwnerOptionIdentifier;
 import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 public class CorrelationCandidatePanel extends BasePanel<ProcessedObject<?>> {
+
+    private static final Trace LOGGER = TraceManager.getTrace(CorrelationCandidatePanel.class);
 
     private static final String ID_CANDIDATE_PANEL_CONTAINER = "candidatePanelContainer";
     private static final String ID_CANDIDATE_HEADER_TITLE = "candidateHeaderTitle";
@@ -117,10 +124,10 @@ public class CorrelationCandidatePanel extends BasePanel<ProcessedObject<?>> {
                 ItemPathType itemPath = correlationItem.getRef();
                 String displayName = CorrelationUtil.getItemDisplayName(itemPath, UserType.class);
 
-                Object realValue = "N/A";
+                String realValue = "N/A";
                 ItemPath shadowPath = shadowCorrelationPathMap.get(itemPath.getItemPath());
                 if (shadowPath != null) {
-                    realValue = getPropertyRealValue(shadowPrismObject,
+                    realValue = getPropertyDisplayValue(shadowPrismObject,
                             ItemPath.create(ShadowType.F_ATTRIBUTES.getLocalPart(), shadowPath));
                 }
                 correlationRuleDetailsList.add(
@@ -131,19 +138,24 @@ public class CorrelationCandidatePanel extends BasePanel<ProcessedObject<?>> {
     }
 
     /**
-     * Retrieves the real value of a property using the given item path.
+     * Returns the property value as display text, or "N/A" when missing.
      */
-    private Object getPropertyRealValue(PrismObject<ShadowType> shadow, ItemPath itemPath) {
+    private String getPropertyDisplayValue(PrismObject<ShadowType> shadow, ItemPath itemPath) {
         if (shadow == null || itemPath == null) {
             return "N/A";
         }
 
-        PrismProperty<Object> property = shadow.findProperty(itemPath);
-        if (property == null || property.getRealValue() == null) {
-            return "N/A";
+        PrismProperty<?> property = shadow.findProperty(itemPath);
+        Object value = property != null ? property.getRealValue() : null;
+        if (value instanceof RawType rawValue) {
+            try {
+                value = rawValue.getValue();
+            } catch (SchemaException e) {
+                LOGGER.warn("Couldn't read property value at {}", itemPath, e);
+                return "N/A";
+            }
         }
-
-        return property.getRealValue();
+        return value != null ? value.toString() : "N/A";
     }
 
     private void initCorrelationRuleListView() {
@@ -226,6 +238,7 @@ public class CorrelationCandidatePanel extends BasePanel<ProcessedObject<?>> {
                     protected boolean isReadOnly() {
                         return true;
                     }
+
                 };
 
                 getPageBase().showMainPopup(rulePanel, target);

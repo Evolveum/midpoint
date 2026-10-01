@@ -59,7 +59,7 @@ public class AutoCompleteReferencePanelFactory
         ReferenceAutocompletePanel<ObjectReferenceType> panel = new ReferenceAutocompletePanel<>(panelCtx.getComponentId(), panelCtx.getRealValueModel()) {
             @Override
             public List<QName> getSupportedTypes() {
-                List<QName> targetTypeList = panelCtx.getItemWrapperModel().getObject().getTargetTypes();
+                List<QName> targetTypeList = panelCtx.getItemWrapperModel().getObject().getTargetTypes(panelCtx.getPageBase());
                 if (targetTypeList == null || WebComponentUtil.isAllNulls(targetTypeList)) {
                     return super.getSupportedTypes();
                 }

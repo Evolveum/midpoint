@@ -17,6 +17,7 @@ import java.util.Set;
 
 import com.evolveum.midpoint.gui.impl.component.data.provider.BaseSortableDataProvider;
 import com.evolveum.midpoint.gui.impl.component.data.provider.MultivalueContainerListDataProvider;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.util.SerializableFunction;
@@ -691,7 +692,7 @@ public abstract class SmartMappingTable<P extends Containerable> extends BasePan
     }
 
     protected boolean isSuggestionSwitchSupported() {
-        return true;
+        return SmartIntegrationUtils.isSmartIntegrationAuthorized(getPageBase());
     }
 
     protected boolean isSimulationSupported() {

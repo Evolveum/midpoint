@@ -4696,11 +4696,15 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         AssertJUnit.fail("Should fail in repository service modify, since oid in targetRef is invalid");
     }
 
+    /**
+     * Issue 12169
+     */
     @Test
     public void test993UserSubtypeLengthLimit() throws Exception {
         given("delta to replace subtype with a value exceeding the limit");
 
-        String tooLongValue = "a".repeat(400000);
+        MUser originalRow = selectObjectByOid(QUser.class, user1Oid);
+        String tooLongValue = incompressibleString(40000);
 
         ObjectDelta<UserType> tooLongDelta = prismContext.deltaFor(UserType.class)
                 .item(UserType.F_SUBTYPE)
@@ -4716,13 +4720,16 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
                         user1Oid,
                         tooLongDelta.getModifications(),
                         failingResult))
-                .isInstanceOf(SchemaException.class);
+                .isInstanceOf(SchemaException.class)
+                .satisfies(e -> assertUserFriendlyMessageKey(e, "limitationValueSize.exceptionMessage"));
 
-        then("SchemaException is thrown");
+        then("operation is fatal error and object is not changed");
+        assertThatOperationResult(failingResult).isFatalError();
+        assertThat(selectObjectByOid(QUser.class, user1Oid).version).isEqualTo(originalRow.version);
 
         given("delta to replace subtype with a value within the limit");
 
-        String validValue = "a".repeat(2000);
+        String validValue = incompressibleString(2000);
 
         ObjectDelta<UserType> validDelta = prismContext.deltaFor(UserType.class)
                 .item(UserType.F_SUBTYPE)
@@ -4747,5 +4754,51 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
                 .asObjectable();
 
         assertThat(user.getSubtype()).contains(validValue);
+    }
+
+    /**
+     * Issue 12169
+     */
+    @Test
+    public void test994TooLongValueInDynamicModification() throws Exception {
+        OperationResult result = createOperationResult();
+
+        given("delta to replace subtype with a value exceeding the limit");
+        ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
+                .item(UserType.F_SUBTYPE).replace(incompressibleString(40000))
+                .asObjectDelta(user1Oid);
+
+        expect("modifyObjectDynamically throws exception with user-friendly message");
+        assertThatThrownBy(() ->
+                repositoryService.modifyObjectDynamically(UserType.class, user1Oid, null,
+                        user -> delta.getModifications(), null, result))
+                .isInstanceOf(SchemaException.class)
+                .satisfies(e -> assertUserFriendlyMessageKey(e, "limitationValueSize.exceptionMessage"));
+
+        and("operation is fatal error");
+        assertThatOperationResult(result).isFatalError();
+    }
+
+    /**
+     * Issue 12169 related -> to confirm that AlreadyExistsException is still handled correctly.
+     */
+    @Test
+    public void test995RenameToConflictingName() throws Exception {
+        OperationResult result = createOperationResult();
+
+        given("another user and delta renaming user 1 to its name");
+        String name = "user" + getTestNumber();
+        repositoryService.addObject(new UserType().name(name).asPrismObject(), null, createOperationResult());
+        ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
+                .item(UserType.F_NAME).replace(new PolyString(name))
+                .asObjectDelta(user1Oid);
+
+        expect("modifyObject throws exception");
+        assertThatThrownBy(() ->
+                repositoryService.modifyObject(UserType.class, user1Oid, delta.getModifications(), result))
+                .isInstanceOf(ObjectAlreadyExistsException.class);
+
+        and("operation is fatal error");
+        assertThatOperationResult(result).isFatalError();
     }
 }

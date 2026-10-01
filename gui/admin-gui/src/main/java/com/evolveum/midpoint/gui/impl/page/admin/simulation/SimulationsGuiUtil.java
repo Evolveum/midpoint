@@ -143,17 +143,12 @@ public class SimulationsGuiUtil {
             return null;
         }
 
-        switch (state) {
-            case ADDED:
-                return Badge.State.SUCCESS.getCss();
-            case DELETED:
-                return Badge.State.DANGER.getCss();
-            case MODIFIED:
-                return Badge.State.INFO.getCss();
-            case UNMODIFIED:
-            default:
-                return Badge.State.SECONDARY.getCss();
-        }
+        return switch (state) {
+            case ADDED -> Badge.State.SUCCESS.getCss();
+            case DELETED -> Badge.State.DANGER.getCss();
+            case MODIFIED -> Badge.State.INFO.getCss();
+            default -> Badge.State.SECONDARY.getCss();
+        };
     }
 
     public static String getProcessedObjectType(@NotNull IModel<SimulationResultProcessedObjectType> model) {
@@ -276,31 +271,25 @@ public class SimulationsGuiUtil {
         return name + " (" + displayName + ")";
     }
 
-    @Nullable
-    public static String getShadowNameFromAttribute(ProcessedObject<?> object) {
+    @NotNull
+    public static String getShadowDisplayNameFromAttribute(ProcessedObject<?> object) {
+        ObjectType obj = object == null ? null
+                : ObjectProcessingStateType.DELETED.equals(object.getState())
+                ? object.getBefore() : object.getAfter();
 
-        if (object == null) {
-            return null;
+        if (obj instanceof ShadowType shadow) {
+            try {
+                ShadowSimpleAttribute<?> namingAttribute = ShadowUtil.getNamingAttribute(shadow);
+                Object realName = namingAttribute != null ? namingAttribute.getRealValue() : null;
+                if (realName != null) {
+                    return realName.toString();
+                }
+            } catch (SystemException | IllegalStateException ex) {
+                LOGGER.debug("Couldn't create processed shadow name; shadow data is probably incomplete or unavailable", ex);
+            }
         }
 
-        ObjectType obj = ObjectProcessingStateType.DELETED.equals(object.getState()) ? object.getBefore() : object.getAfter();
-        if (obj == null) {
-            return null;
-        }
-
-        if (!(obj instanceof ShadowType)) {
-            return null;
-        }
-
-        String name = null;
-        try {
-            ShadowSimpleAttribute<?> namingAttribute = ShadowUtil.getNamingAttribute((ShadowType) obj);
-            Object realName = namingAttribute != null ? namingAttribute.getRealValue() : null;
-            name = realName != null ? realName.toString() : null;
-        } catch (SystemException e) {
-            LOGGER.debug("Couldn't create processed shadow name", e);
-        }
-        return name;
+        return translate("ProcessedObjectsPanel.unknown.or.unavailable");
     }
 
     private static String getProcessedShadowName(ShadowType shadow, PageBase page) {
@@ -348,8 +337,9 @@ public class SimulationsGuiUtil {
 
     public static Map<BuiltInSimulationMetricType, Integer> getBuiltInMetrics(SimulationResultType result) {
         List<SimulationMetricValuesType> metrics = result.getMetric();
-        List<SimulationMetricValuesType> builtIn = metrics.stream().filter(m -> m.getRef() != null && m.getRef().getBuiltIn() != null)
-                .collect(Collectors.toList());
+        List<SimulationMetricValuesType> builtIn = metrics.stream()
+                .filter(m -> m.getRef() != null && m.getRef().getBuiltIn() != null)
+                .toList();
 
         Map<BuiltInSimulationMetricType, Integer> map = new HashMap<>();
 
@@ -387,16 +377,12 @@ public class SimulationsGuiUtil {
             return null;
         }
 
-        switch (identifier) {
-            case ADDED:
-                return ObjectProcessingStateType.ADDED;
-            case MODIFIED:
-                return ObjectProcessingStateType.MODIFIED;
-            case DELETED:
-                return ObjectProcessingStateType.DELETED;
-            default:
-                return null;
-        }
+        return switch (identifier) {
+            case ADDED -> ObjectProcessingStateType.ADDED;
+            case MODIFIED -> ObjectProcessingStateType.MODIFIED;
+            case DELETED -> ObjectProcessingStateType.DELETED;
+            default -> null;
+        };
     }
 
     public static @Nullable String createResultDurationText(@NotNull SimulationResultType result, Component panel) {

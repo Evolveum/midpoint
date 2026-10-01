@@ -13,6 +13,8 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.component.tile.TemplateTile;
+import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.ConnectorDevelopmentWizardUtil;
+import com.evolveum.midpoint.smart.api.conndev.ConnectorDevelopmentArtifacts;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
@@ -49,9 +51,22 @@ public abstract class ConnectorObjectClassTilePanel extends BasePanel<TemplateTi
     private static final String ID_CAPABILITY = "capability";
     private static final String ID_CAPABILITY_LABEL = "capabilityLabel";
 
+    private static final List<ConnectorDevelopmentArtifacts.KnownArtifactType> OBJECT_CLASS_CAPABILITIES = List.of(
+            ConnectorDevelopmentArtifacts.KnownArtifactType.NATIVE_SCHEMA_DEFINITION,
+            ConnectorDevelopmentArtifacts.KnownArtifactType.SEARCH_ALL_DEFINITION,
+            ConnectorDevelopmentArtifacts.KnownArtifactType.SEARCH_BY_ID_DEFINITION,
+            ConnectorDevelopmentArtifacts.KnownArtifactType.SEARCH_FILTER_DEFINITION,
+            ConnectorDevelopmentArtifacts.KnownArtifactType.CREATE,
+            ConnectorDevelopmentArtifacts.KnownArtifactType.UPDATE,
+            ConnectorDevelopmentArtifacts.KnownArtifactType.DELETE);
+
     public ConnectorObjectClassTilePanel(String id, IModel<TemplateTile<PrismContainerValueWrapper<ConnDevObjectClassInfoType>>> model) {
         super(id, model);
+    }
 
+    @Override
+    protected void onInitialize() {
+        super.onInitialize();
         initLayout();
     }
 
@@ -273,8 +288,35 @@ public abstract class ConnectorObjectClassTilePanel extends BasePanel<TemplateTi
     }
 
     private void deleteCapabilitiesPerformed(AjaxRequestTarget target) {
+        List<ConnectorDevelopmentArtifacts.KnownArtifactType> availableCapabilities = getAvailableCapabilities();
 
+        ClearCapabilityPopup popup = new ClearCapabilityPopup(getPageBase().getMainPopupBodyId(), availableCapabilities) {
+            @Override
+            protected void confirmPerformed(List<ConnectorDevelopmentArtifacts.KnownArtifactType> selected, AjaxRequestTarget target) {
+                clearCapabilitiesPerformed(selected, target);
+                getPageBase().hideMainPopup(target);
+            }
+        };
+        getPageBase().showMainPopup(popup, target);
     }
+
+    private List<ConnectorDevelopmentArtifacts.KnownArtifactType> getAvailableCapabilities() {
+        return getAvailableCapabilities(getModelObject().getValue());
+    }
+
+    static List<ConnectorDevelopmentArtifacts.KnownArtifactType> getAvailableCapabilities(
+            PrismContainerValueWrapper<ConnDevObjectClassInfoType> value) {
+        List<ConnectorDevelopmentArtifacts.KnownArtifactType> capabilities = new ArrayList<>();
+        for (ConnectorDevelopmentArtifacts.KnownArtifactType type : OBJECT_CLASS_CAPABILITIES) {
+            if (ConnectorDevelopmentWizardUtil.existContainerValue(value, type.itemName)) {
+                capabilities.add(type);
+            }
+        }
+        return capabilities;
+    }
+
+    protected abstract void clearCapabilitiesPerformed(
+            List<ConnectorDevelopmentArtifacts.KnownArtifactType> selected, AjaxRequestTarget target);
 
 //    protected abstract void editSearchFilterPerformed(AjaxRequestTarget target);
 //

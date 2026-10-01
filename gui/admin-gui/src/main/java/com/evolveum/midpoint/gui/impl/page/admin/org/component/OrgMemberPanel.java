@@ -79,7 +79,7 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 
     @Override
     protected List<QName> getNewMemberObjectTypes() {
-        List<QName> objectTypes = ObjectTypeListUtil.createFocusTypeList();
+        List<QName> objectTypes = ObjectTypeListUtil.createFocusTypeList(getPageBase());
         objectTypes.add(ResourceType.COMPLEX_TYPE);
         return objectTypes;
     }

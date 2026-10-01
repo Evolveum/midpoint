@@ -32,8 +32,9 @@
         </small>
     </div>
 
-    <div wicket:id="body" class="card-body p-0">
-        <div wicket:id="visualization"/>
+    <!--     do not use p-0 it breaks the visualization/table layout when rowspan is e.g. 2-->
+    <div wicket:id="body" class="card-body" style="padding: 0;">
+        <div wicket:id="visualization"></div>
     </div>
 </wicket:panel>
 </html>

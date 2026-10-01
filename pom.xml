@@ -241,6 +241,8 @@
         <maven-javadoc-plugin.version>3.11.2</maven-javadoc-plugin.version>
         <log4j2.version>2.26.1</log4j2.version>
         <rabbit-amqp-client.version>5.34.0</rabbit-amqp-client.version>
+        <jackson-bom.version>3.1.6</jackson-bom.version>
+        <jackson-2-bom.version>2.21.6</jackson-2-bom.version>
         <!-- END of Spring Boot dependencies overrides -->
 
         <!-- security fix for CVE-2025-48976 -->
@@ -1295,6 +1297,12 @@
             <dependency>
                 <groupId>org.apache.velocity</groupId>
                 <artifactId>velocity-engine-core</artifactId>
+                <!--
+                BEWARE! When updating Velocity engine, please make sure that SafeUberspectorImpl and SafeIntrospectorImpl
+                still work as designed. They depend on internal workings of the Velocity engine. Although there are some tests
+                that prevent execution of unsafe scripts (in safe Velocity mode), their coverage cannot be complete, and manual
+                inspection of the code is necessary.
+                -->
                 <version>2.4.1</version>
             </dependency>
             <dependency>

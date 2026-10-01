@@ -190,7 +190,7 @@ public class ResourceUncategorizedPanel extends AbstractResourceObjectPanel {
         var objectTypes = new DropDownChoicePanel<>(ID_OBJECT_TYPE,
                 Model.of(defaultObjectClass),
                 () -> {
-                    List<QName> resourceObjectClassesDefinitions = getObjectDetailsModels().getResourceObjectClassesDefinitions();
+                    List<QName> resourceObjectClassesDefinitions = getObjectDetailsModels().getResourceObjectClassesDefinitions(false);
                     return Objects.requireNonNullElseGet(resourceObjectClassesDefinitions, ArrayList::new);
                 },
                 new ResourceObjectClassChoiceRenderer(), templateCategory);
@@ -270,6 +270,7 @@ public class ResourceUncategorizedPanel extends AbstractResourceObjectPanel {
                 provider.setSort(null);
                 provider.setDefaultCountIfNull(Integer.MAX_VALUE);
                 provider.setTaskConsumer(createProviderSearchTaskCustomizer());
+                provider.setAlwaysProvideResult(allwaysProvideResult());
                 return provider;
 //                return ResourceUncategorizedPanel.this.createProvider(getSearchModel(), (CompiledShadowCollectionView) getObjectCollectionView());
             }
@@ -333,6 +334,10 @@ public class ResourceUncategorizedPanel extends AbstractResourceObjectPanel {
         };
         shadowTablePanel.setOutputMarkupId(true);
         add(shadowTablePanel);
+    }
+
+    protected boolean allwaysProvideResult() {
+        return false;
     }
 
     protected void processResult(OperationResult result) {

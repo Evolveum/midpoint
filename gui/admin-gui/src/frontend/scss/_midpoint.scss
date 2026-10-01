@@ -2519,6 +2519,26 @@ footer.app-footer a {
   }
 }
 
+.input-group > .select2-container--default {
+  .select2-selection--multiple {
+    min-height: 2.375rem;
+    border-color: var(--bs-border-color);
+  }
+
+  &:has(~ .btn, ~ .input-group-text) .select2-selection--multiple {
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+  }
+}
+
+.input-group > .input-group-text ~ .select2-container--default,
+.input-group > .btn ~ .select2-container--default {
+  .select2-selection--multiple {
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+  }
+}
+
 .input-group.select2-prepend {
   flex-wrap: nowrap;
 
@@ -2714,6 +2734,11 @@ footer.app-footer a {
   line-height: 1.5;
   font-family: var(--bs-body-font-family);
   font-size: 14px;
+
+  // needed for read-only reference panel (LinkedReferencePanel)
+  a {
+    white-space: normal;
+  }
 }
 
 .info-box-progress-bar {

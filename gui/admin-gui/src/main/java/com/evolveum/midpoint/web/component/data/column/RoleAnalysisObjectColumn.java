@@ -73,6 +73,11 @@ public abstract class RoleAnalysisObjectColumn<A extends MiningBaseTypeChunk> ex
             @Serial private static final long serialVersionUID = 1L;
 
             @Override
+            protected String getMarginCssClass() {
+                return "";
+            }
+
+            @Override
             public CompositedIcon getIcon() {
 
                 String icon;

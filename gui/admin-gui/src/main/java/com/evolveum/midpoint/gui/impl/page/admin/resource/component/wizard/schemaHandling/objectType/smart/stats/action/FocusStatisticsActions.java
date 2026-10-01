@@ -59,7 +59,7 @@ public final class FocusStatisticsActions {
             if (!forceRegeneration) {
                 var latestStatistics =
                         smartIntegrationService.getLatestFocusObjectStatistics(
-                                focusObjectTypeName, resourceOid, typeIdentification, task.getResult());
+                                focusObjectTypeName, resourceOid, typeIdentification, task, task.getResult());
 
                 if (latestStatistics != null) {
                     showStatisticsPopup(target, pageBase, latestStatistics, preSelectedAttribute,
@@ -165,7 +165,7 @@ public final class FocusStatisticsActions {
             var typeIdentification = ResourceObjectTypeIdentification.of(kind, intent);
             var latestStatistics =
                     smartIntegrationService.getLatestFocusObjectStatistics(
-                            focusObjectTypeName, resourceOid, typeIdentification, task.getResult());
+                            focusObjectTypeName, resourceOid, typeIdentification, task, task.getResult());
 
             if (latestStatistics == null) {
                 pageBase.warn("Statistics computation finished, but no statistics object was found.");

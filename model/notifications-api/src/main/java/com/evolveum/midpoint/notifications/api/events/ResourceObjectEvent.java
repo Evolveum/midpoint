@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.notifications.api.events;
 
 import com.evolveum.midpoint.notifications.api.OperationStatus;
+import com.evolveum.midpoint.prism.Safe;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.provisioning.api.ResourceOperationDescription;
@@ -34,6 +35,11 @@ public interface ResourceObjectEvent extends Event {
 
     @NotNull
     OperationStatus getOperationStatus();
+
+    @Safe
+    default boolean isAccount() {
+        return isShadowKind(ShadowKindType.ACCOUNT);
+    }
 
     boolean isShadowKind(ShadowKindType shadowKindType);
 
