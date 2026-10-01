@@ -30,14 +30,9 @@ oid="00000000-0000-0000-0000-000000000380">
                 E.g. iterationToken can be created as '02' instead of just '2'. Or a random number instead of a sequential iterator can be used.
             </documentation>
             <script>
+                <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                 <code>
-                    if (iteration == 0) {
-                        return ""
-                    } else {
-                        // for 8+2 naming convention, we might want to use %02d instead
-                        //return sprintf("%02d", iteration+1)
-                        return iteration + 1
-                    }
+                    iteration == 0 ? '' : stringify(iteration + 1)
                 </code>
             </script>
         </tokenExpression>
@@ -68,11 +63,15 @@ oid="00000000-0000-0000-0000-000000000380">
         </source>
         <expression>
             <script>
+                <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                 <code>
-                    tmpGivenName = basic.trim(basic.norm(basic.stringify(givenName)))
-                    tmpFamilyName  = basic.trim(basic.norm(basic.stringify(familyName)))
-                    tmpGivenNameInitial = tmpGivenName?.take(1) // safe even with empty firstName (but not null)
-                    return (tmpGivenNameInitial + tmpFamilyName?.replaceAll(" ", ""))?.take(8) + iterationToken // no spaces
+                    cel.bind(tmpGivenName, trim(norm(stringify(givenName))),
+                    cel.bind(tmpFamilyName, trim(norm(stringify(familyName))),
+                    cel.bind(tmpGivenNameInitial, tmpGivenName.size() == 0
+                        ? '' : tmpGivenName.substring(0, 1),
+                    cel.bind(baseName, tmpGivenNameInitial + tmpFamilyName.replace(' ', ''),
+                    (baseName.size() > 8 ? baseName.substring(0, 8) : baseName)
+                    + iterationToken))))
                 </code>
             </script>
         </expression>
@@ -92,8 +91,9 @@ oid="00000000-0000-0000-0000-000000000380">
         </source>
         <expression>
             <script>
+                <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                 <code>
-                    basic.concatName(givenName, familyName)
+                    format.concatName([givenName, familyName])
                 </code>
             </script>
         </expression>
@@ -113,12 +113,10 @@ oid="00000000-0000-0000-0000-000000000380">
         </source>
         <expression>
             <script>
+                <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                 <code>
-                    preferredNameString = basic.trim(basic.stringify(preferredName))
-                    if (preferredNameString) {
-                        return preferredName
-                    }
-                    return fullName
+                    cel.bind(preferredNameString, trim(stringify(preferredName)), preferredNameString != ''
+                    ? preferredName : fullName)
                 </code>
             </script>
         </expression>

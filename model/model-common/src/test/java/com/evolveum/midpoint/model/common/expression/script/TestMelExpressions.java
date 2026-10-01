@@ -2383,6 +2383,22 @@ public class TestMelExpressions extends AbstractScriptTest {
                 "nullnull");
     }
 
+    @Test
+    public void testPersonTemplateUsernameGeneratorInRestrictedMode() throws Exception {
+        switchToRestrictedMode();
+        try {
+            var expression = "expression-username-generator-jsmith.xml";
+            usernameGenerator(expression, "John", "Smith", "", "jsmith");
+            usernameGenerator(expression, "John", "De La", "", "jdela");
+            usernameGenerator(expression, "Alexander", "Longlastname", "", "alonglas");
+            usernameGenerator(expression, "Alexander", "Longlastname", "2", "alonglas2");
+            usernameGenerator(expression, null, "Smith", "", "smith");
+            usernameGenerator(expression, "", "Smith", "", "smith");
+        } finally {
+            switchToUnrestrictedMode();
+        }
+    }
+
     @SuppressWarnings("SameParameterValue")
     private void usernameGenerator(
             String scriptName,
