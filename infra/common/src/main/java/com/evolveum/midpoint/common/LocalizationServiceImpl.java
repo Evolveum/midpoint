@@ -60,8 +60,9 @@ public class LocalizationServiceImpl implements LocalizationService {
         sources.add(buildSource(MidpointConfiguration.MIDPOINT_SYSTEM_PROPERTIES_BASE_PATH, null));
 
         // model security messages as fallback
-        ResourceBundleMessageSource modelSecurity = new CachedResourceBundleMessageSource();
+        CachedResourceBundleMessageSource modelSecurity = new CachedResourceBundleMessageSource();
         modelSecurity.setBasename("com.evolveum.midpoint.security");
+        modelSecurity.setEscapeSingleQuotes(true);
         sources.add(modelSecurity);
 
         // spring security messages as a fallback
@@ -147,10 +148,12 @@ public class LocalizationServiceImpl implements LocalizationService {
     }
 
     private ResourceBundleMessageSource buildSource(String basename, ClassLoader classLoader) {
-        ResourceBundleMessageSource source = new CachedResourceBundleMessageSource();
+        CachedResourceBundleMessageSource source = new CachedResourceBundleMessageSource();
         source.setDefaultEncoding(StandardCharsets.UTF_8.name());
         source.setFallbackToSystemLocale(false);
         source.setBasename(basename);
+        // single quotes there are plain characters
+        source.setEscapeSingleQuotes(true);
 
         if (classLoader == null) {
             classLoader = LocalizationServiceImpl.class.getClassLoader();
