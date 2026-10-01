@@ -6,9 +6,13 @@
 
 package com.evolveum.midpoint.model.common.expression.evaluator;
 
+import java.lang.reflect.InvocationTargetException;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.DeltaConvertor;
+import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.util.annotation.Experimental;
+import com.evolveum.midpoint.util.exception.SchemaException;
 
 import org.jetbrains.annotations.Nullable;
 import org.jspecify.annotations.NullMarked;
@@ -16,6 +20,7 @@ import org.jspecify.annotations.NullMarked;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectDeltaOperationType;
 
 /**
  * Temporary class to hold the default Java method reference library.
@@ -32,6 +37,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationC
 @Deprecated
 public class DefaultJavaMethodReferenceLibrary {
 
+    private static final String REPORT_UTILS_CLASS_NAME = "com.evolveum.midpoint.report.impl.ReportUtils";
+
     /**
      * Used by {@code 100-report-reconciliation}.
      */
@@ -44,5 +51,30 @@ public class DefaultJavaMethodReferenceLibrary {
      */
     public static String certificationCasesDecidedPercentageAllStagesAllIterations(AccessCertificationCampaignType input) {
         return CertCampaignTypeUtil.getCasesDecidedPercentageAllStagesAllIterations(input) + " %";
+    }
+
+    /**
+     * Formats an audit delta for report output, preserving support for unknown item types.
+     *
+     * Used by {@code 270-object-collection-audit}.
+     */
+    public static String formatAuditDelta(ObjectDeltaOperationType input) throws SchemaException {
+        ObjectDeltaOperation<?> delta = DeltaConvertor.createObjectDeltaOperation(input, true);
+        try {
+            Class<?> reportUtils = Class.forName(REPORT_UTILS_CLASS_NAME);
+            return (String) reportUtils
+                    .getMethod("printDelta", ObjectDeltaOperation.class)
+                    .invoke(null, delta);
+        } catch (InvocationTargetException e) {
+            Throwable cause = e.getCause();
+            if (cause instanceof RuntimeException runtimeException) {
+                throw runtimeException;
+            } else if (cause instanceof Error error) {
+                throw error;
+            }
+            throw new IllegalStateException("Couldn't format audit delta", cause);
+        } catch (ReflectiveOperationException e) {
+            throw new IllegalStateException("Couldn't access the report delta formatter", e);
+        }
     }
 }

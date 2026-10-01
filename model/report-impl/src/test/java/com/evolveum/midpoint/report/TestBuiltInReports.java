@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.UUID;
 
 import com.evolveum.midpoint.test.TestObject;
+import com.evolveum.midpoint.test.TestReport;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -26,6 +27,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyTestResource;
 import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectCollectionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
@@ -34,6 +36,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
  * This is to test built-in midPoint reports (mentioned in {@link CommonInitialObjects}) and their export to CSV.
  *
  * . `test10x` - {@link CommonInitialObjects#REPORT_RECONCILIATION}
+ * . `test108` - all audit records report
  * . `test110` - {@link CommonInitialObjects#REPORT_USER_LIST}
  */
 @ContextConfiguration(locations = { "classpath:ctx-report-test-main.xml" })
@@ -52,11 +55,24 @@ public class TestBuiltInReports extends TestCsvReport {
     private static final DummyTestResource RESOURCE_DUMMY_TARGET = new DummyTestResource(
             TEST_DIR, "resource-dummy-target.xml", "20797685-10d3-4250-9648-8a004a7ee624", "target");
 
+    private static final TestObject<ObjectCollectionType> OBJECT_COLLECTION_AUDIT = TestObject.classPath(
+            OBJECT_COLLECTION,
+            "270-object-collection-audit.xml",
+            "00000000-0000-0000-0001-000000000284");
+    private static final TestReport REPORT_AUDIT = TestReport.classPath(
+            REPORTS,
+            "090-report-audit.xml",
+            "00000000-0000-0000-0000-000000000080");
+
     // data for reconciliation report
     private static final int RECONCILIATION_COLUMNS = 5; // shadow name
     private static final int C_RECONCILIATION_NAME = 0; // shadow name
     private static final int C_RECONCILIATION_SITUATION = 2;
     private static final int C_RECONCILIATION_OWNER = 3;
+
+    // data for audit report
+    private static final int AUDIT_COLUMNS = 8;
+    private static final int C_AUDIT_DELTA = 7;
 
     // data for user list report
     private static final int USER_LIST_COLUMNS = 7;
@@ -77,7 +93,9 @@ public class TestBuiltInReports extends TestCsvReport {
                 ARCHETYPE_REPORT,
                 ARCHETYPE_COLLECTION_REPORT,
                 OBJECT_COLLECTION_SHADOW_ALL,
+                OBJECT_COLLECTION_AUDIT,
                 REPORT_RECONCILIATION,
+                REPORT_AUDIT,
                 CommonInitialObjects.REPORT_USER_LIST);
 
         RESOURCE_DUMMY_TARGET.initAndTest(this, initTask, initResult);
@@ -186,6 +204,27 @@ public class TestBuiltInReports extends TestCsvReport {
                 .display()
                 .assertRecords(0)
                 .assertColumns(RECONCILIATION_COLUMNS);
+    }
+
+    @Test
+    public void test108AuditReport() throws CommonException, IOException {
+        var task = getTestTask();
+        var result = task.getResult();
+
+        when("audit report is created for Jack");
+        var lines = REPORT_AUDIT.export()
+                .withParameter("targetRef", USER_JACK.ref())
+                .execute(result);
+
+        then("the delta is formatted by the built-in report helper");
+        assertCsv(lines, "after")
+                .assertColumns(AUDIT_COLUMNS)
+                .forRecords(
+                        1,
+                        record -> record.get(C_AUDIT_DELTA).contains("Modify"),
+                        record -> record.assertValue(
+                                C_AUDIT_DELTA,
+                                value -> value.contains("assignment")));
     }
 
     @Test
