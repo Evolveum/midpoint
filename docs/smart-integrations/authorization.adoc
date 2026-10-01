@@ -1,0 +1,104 @@
+= Smart Integration Authorization
+:page-toc: top
+:page-since: "4.11"
+:page-upkeep-status: green
+
+== Overview
+
+Smart Integration suggestion operations send resource and midPoint data to the external Smart Integration microservice (which may use an LLM) and create background tasks.
+Access to them is controlled by a dedicated authorization, enforced on the backend service, the REST API, and in the GUI.
+
+Statistics are not covered by this authorization; they are protected by regular object-scoped model authorizations.
+
+== Authorizations
+
+NOTE: For brevity, this page uses abbreviated action URIs, e.g. `authorization-ui-3#smartIntegration`.
+They stand for the full URIs starting with `+http://midpoint.evolveum.com/xml/ns/public/security/+`, e.g. `+http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#smartIntegration+`.
+
+[%autowidth]
+|===
+| Action | Scope | Note
+
+| `+authorization-ui-3#smartIntegration+`
+| Smart Integration service operations: submitting AI suggestion operations and reading their status and results (object types, focus type, correlations, mappings, associations), listing suggestion tasks, schema matching, and AI service information.
+| Enforced by the backend service regardless of the channel (GUI, REST, tasks).
+Without it, the related GUI actions are hidden.
+
+| `+authorization-rest-3#smartIntegration+`
+| All Smart Integration REST endpoints (submit, status and AI info operations).
+| REST clients need `authorization-ui-3#smartIntegration` as well, because the endpoints call the backend service, which enforces it.
+
+|===
+
+Superuser has both authorizations via `+http://midpoint.evolveum.com/xml/ns/public/security/authorization-3#all+`.
+No other out-of-the-box role grants them.
+Grant them explicitly to custom roles that should use Smart Integration, e.g. resource administrators.
+
+== Enforcement
+
+=== Backend Service
+
+`SmartIntegrationService` checks `authorization-ui-3#smartIntegration` at the start of each suggestion-related operation.
+This also applies to the suggestion activities, which run under the identity of the task owner.
+The task owner therefore needs the authorization, too.
+
+=== REST API
+
+Each Smart Integration REST endpoint requires `authorization-rest-3#smartIntegration`.
+The backend service check then applies as well.
+This also covers clients that call the REST API directly, e.g. midPoint Studio.
+
+=== GUI
+
+Users without `authorization-ui-3#smartIntegration` don't see Smart Integration suggestion features in the resource wizard: suggestion buttons, suggestion toggles, and AI progress/alert panels for object types, associations, mappings and correlations.
+
+== Statistics and Smart Integration Artifacts
+
+Object type and object class statistics, as well as schema match results, are stored as `SmartIntegrationArtifactType` objects.
+They are read, created and deleted through the model layer, so regular object-scoped authorizations apply (`read`, `add`, `delete` on `SmartIntegrationArtifactType`).
+
+Computing, regenerating and viewing statistics does *not* require the `#smartIntegration` authorization.
+Statistics entry points in the GUI are not hidden by the `#smartIntegration` authorization.
+The operations themselves fail without the object-scoped authorizations.
+
+Schema matching requires both the `#smartIntegration` authorization and the object-scoped authorizations.
+
+== Example
+
+Authorizations specific to Smart Integration:
+
+[source,xml]
+----
+<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <name>Smart Integration User</name>
+    <authorization>
+        <name>smart-integration</name>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#smartIntegration</action>
+    </authorization>
+    <authorization>
+        <name>smart-integration-tasks</name>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#add</action>
+        <object>
+            <type>TaskType</type>
+            <owner>
+                <special>self</special>
+            </owner>
+        </object>
+    </authorization>
+    <authorization>
+        <name>smart-integration-artifacts</name>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#add</action>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#delete</action>
+        <object>
+            <type>SmartIntegrationArtifactType</type>
+        </object>
+    </authorization>
+</role>
+----
+
+For REST access, add `+http://midpoint.evolveum.com/xml/ns/public/security/authorization-rest-3#smartIntegration+`.
+
+Suggestion operations are submitted as tasks owned by the user, hence `smart-integration-tasks`.
+
+The user also needs the usual authorizations for working with resources in the GUI (resource pages and wizard, reading and modifying the resource).

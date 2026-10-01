@@ -49,6 +49,7 @@ Overall, midPoint 4.10 opens up the world of identity management and governance 
 ** Object Type / Object Class statistics.
 ** Correlators simulation.
 ** Inbound mappings simulation.
+** Dedicated `#smartIntegration` authorization for suggestion operations.
 * UI/UX improvements:
 ** Improved Object Type wizard.
 ** Improved Mappings page.
