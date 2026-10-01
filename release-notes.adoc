@@ -479,6 +479,11 @@ The default of `0` when `maxIterations` is present preserves backward compatibil
 This can potentially break existing configurations that use a custom token expression and expect it to be evaluated on the first (non conflicting) attempt.
 In that case, set `useTokenOnlyOnConflict` to `false` explicitly.
 
+* The deprecated configuration attributes `realm`, `issuerUri`, `jwkSetUri`, `nameOfUsernameClaim`, `singleSymmetricKey`,
+`trustedAlgorithm`, `trustingAsymmetricCertificate` and `keyStoreTrustingAsymmetricKey`
+have been removed from  `OidcResourceServerAuthenticationModuleType`.
+These attributes can be used in the token definition instead (see attributes `jwt` and `opaqueToken`).
+
 === Changes In Initial Objects Since 4.10
 
 NOTE: This section is relevant to the majority of midPoint deployments.
