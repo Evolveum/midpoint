@@ -520,6 +520,7 @@ New initial objects:
 
 Modified:
 
+* 062-archetype-classification.xml - Change display icon.
 * 029-archetype-application.xml - Poly-string translation keys added.
 * 501-archetype-task-reconciliation.xml - Poly-string translation keys added.
 * 502-archetype-task-recomputation.xml - Poly-string translation keys added.
