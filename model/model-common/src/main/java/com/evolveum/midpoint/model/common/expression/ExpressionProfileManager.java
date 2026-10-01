@@ -54,7 +54,7 @@ public class ExpressionProfileManager {
      *
      * @see #determineBulkActionsProfile(MidPointTrustDescriptor, Task, OperationResult)
      */
-    private ExpressionProfile determineExpressionProfile(
+    public ExpressionProfile determineExpressionProfile(
             MidPointTrustDescriptor trustDescriptor, Task task, OperationResult result)
             throws SecurityViolationException {
 

@@ -12,6 +12,7 @@ import java.util.List;
 import com.evolveum.midpoint.gui.api.model.NonEmptyLoadableModel;
 import com.evolveum.midpoint.gui.api.model.NonEmptyModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
 import com.evolveum.midpoint.prism.PrismContext;
 
 import com.evolveum.midpoint.web.component.form.multivalue.MultiValueTextPanel;
@@ -48,10 +49,14 @@ public class SimpleValueExpressionPanel extends EvaluatorExpressionPanel {
     private static final String ID_REMOVE_BUTTON = "remove";
 
     public SimpleValueExpressionPanel(String id, IModel<ExpressionType> model) {
-        this(id, model, null);
+        this(id, model, null, null);
     }
 
-    public SimpleValueExpressionPanel(String id, IModel<ExpressionType> model, IModel<QName> expressionTargetTypeModel) {
+    public SimpleValueExpressionPanel(
+            String id,
+            IModel<ExpressionType> model,
+            IModel<PrismPropertyWrapper<ExpressionType>> property,
+            IModel<QName> expressionTargetTypeModel) {
         super(id, model, expressionTargetTypeModel);
         if (getEvaluatorValues().isEmpty()) {
             updateEvaluatorValue(List.of());
