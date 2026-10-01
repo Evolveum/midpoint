@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -36,6 +37,8 @@ import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.smart.api.conndev.ConnectorDevelopmentArtifacts;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
@@ -171,6 +174,16 @@ public class ObjectClassesConnectorStepPanel extends AbstractWizardStepPanel<Con
                             return;
                         }
 
+                        List<String> filenamesToDelete = new ArrayList<>();
+                        for (ConnectorDevelopmentArtifacts.KnownArtifactType type : selected) {
+                            PrismContainerValueWrapper<ConnDevArtifactType> scriptValue =
+                                    ConnectorDevelopmentWizardUtil.getScript(getDetailsModel(), type, objectClassName);
+                            if (scriptValue != null && scriptValue.getRealValue() != null
+                                    && scriptValue.getRealValue().getFilename() != null) {
+                                filenamesToDelete.add(scriptValue.getRealValue().getFilename());
+                            }
+                        }
+
                         List<ConnectorDevelopmentArtifacts.KnownArtifactType> remaining =
                                 new ArrayList<>(ConnectorObjectClassTilePanel.getAvailableCapabilities(objectClassValue));
                         remaining.removeAll(selected);
@@ -200,6 +213,24 @@ public class ObjectClassesConnectorStepPanel extends AbstractWizardStepPanel<Con
                         getDetailsModel().getConnectorDevelopmentOperation();
                         if (result == null || result.isError()) {
                             target.add(getFeedback());
+                        } else {
+                            Task task = getPageBase().createSimpleTask(
+                                    ObjectClassesConnectorStepPanel.class.getName() + ".deleteArtifactFile");
+                            for (String filename : filenamesToDelete) {
+                                try {
+                                    getDetailsModel().getConnectorDevelopmentOperation()
+                                            .deleteArtifactFile(filename, task, task.getResult());
+                                } catch (IOException | CommonException e) {
+                                    getPageBase().error("Couldn't delete " + filename + ": " + e.getMessage());
+                                    target.add(getFeedback());
+                                }
+                            }
+                            try {
+                                getDetailsModel().getConnectorDevelopmentOperation().recomputeConnectorManifest(task, task.getResult());
+                            } catch (IOException | CommonException e) {
+                                getPageBase().error("Couldn't update the connector manifest: " + e.getMessage());
+                                target.add(getFeedback());
+                            }
                         }
 
                         ((BaseSortableDataProvider<?>) table.getProvider()).clearCache();

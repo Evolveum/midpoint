@@ -62,7 +62,11 @@ public abstract class ConnectorObjectClassTilePanel extends BasePanel<TemplateTi
 
     public ConnectorObjectClassTilePanel(String id, IModel<TemplateTile<PrismContainerValueWrapper<ConnDevObjectClassInfoType>>> model) {
         super(id, model);
+    }
 
+    @Override
+    protected void onInitialize() {
+        super.onInitialize();
         initLayout();
     }
 

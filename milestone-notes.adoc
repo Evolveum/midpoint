@@ -10,6 +10,29 @@ The upgrade instructions between releases are in the https://docs.evolveum.com/m
 
 == 4.11-RC2
 
+=== 2026-09-25 Smart Integration: common "c:" namespace prefix removed from service requests
+
+Task: https://support.evolveum.com/wp/12098[12098]
+Description:
+
+Item paths and type names sent to the Smart Integration microservice no longer contain the common midPoint (`c:`) namespace prefix.
+For example, `c:attributes/ri:login` is now sent as `attributes/ri:login`, and `c:UserType` as `UserType`.
+Other prefixes (`ri:`, `icfs:`, extension ones) are kept.
+This applies to schema attribute names, schema type names, and attribute/attribute-tuple references in the statistics.
+Statistics stored in midPoint keep fully-qualified paths; only the copy sent to the service is simplified.
+
+`SiObjectSchemaType/name` in `common-smart-integration-3.xsd` changed its type from `xsd:QName` to `xsd:string`.
+
+Required Upgrade Steps:
+
+- Use a Smart Integration microservice version that accepts item paths without the `c:` prefix.
+- If you have custom tooling or prompts that parse the service requests, adapt them to the new path format.
+
+Notes & References:
+
+* Related commits: https://github.com/Evolveum/midpoint/commit/e7b95080a87c06110a8c47491b27a84598af8d73[e7b95080]
+* Docs: xref:/midpoint/reference/smart-integrations/service-item-paths/[Item Paths and Type Names in Smart Integration Service Requests]
+
 === 2026-09-24 Safe Velocity mode introduced
 
 Task: https://support.evolveum.com/wp/12389[12389]
