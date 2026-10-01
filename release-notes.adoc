@@ -82,6 +82,7 @@ The ticket is managed as a projection (a shadow of the `work` kind) of the midPo
 * bug:MID-9476[] Improved Search Box in Object Collection View.
 * bug:MID-10867[] Added support for java 25.
 * bug:MID-10875[] Added Order constraints tab for Assignments panel.
+* Fixed inconsistency in help  for ninja export command
 * Improved handling of clockwork collisions in multi-thread setup, problem was reflected in duplication of assignments. See bug:MID-10714[].
 * Improved patch management of docker images, updated tagging of docker images.
     See xref:/midpoint/get-started/install/containers/container-image-naming/[].

@@ -34,8 +34,7 @@ public class ExportOptions extends BaseImportExportOptions implements BasicExpor
     public static final String P_EXCLUDE_ITEMS = "-ei";
     public static final String P_EXCLUDE_ITEMS_LONG = "--exclude-item";
 
-    public static final String P_SPLIT_FILES = "-sf";
-    public static final String P_SPLIT_FILES_LONG = "--split-files";
+
 
     @Parameter(names = { P_OUTPUT, P_OUTPUT_LONG }, descriptionKey = "export.output")
     private File output;
@@ -50,8 +49,7 @@ public class ExportOptions extends BaseImportExportOptions implements BasicExpor
             validateWith = ItemPathConverter.class, converter = ItemPathConverter.class)
     private List<ItemPath> excludeItems = new ArrayList<>();
 
-    @Parameter(names = { P_SPLIT_FILES, P_SPLIT_FILES_LONG }, descriptionKey = "split.files")
-    private boolean splitFiles;
+
 
     @Override
     public File getOutput() {
@@ -67,7 +65,7 @@ public class ExportOptions extends BaseImportExportOptions implements BasicExpor
         return skipIds;
     }
 
-    public boolean isSplitFiles() { return splitFiles; }
+
 
     public ExportOptions setOutput(File output) {
         this.output = output;
@@ -92,8 +90,5 @@ public class ExportOptions extends BaseImportExportOptions implements BasicExpor
         this.excludeItems = excludeItems;
     }
 
-    public ExportOptions setSplitFiles(boolean splitFiles) {
-        this.splitFiles = splitFiles;
-        return this;
-    }
+
 }
