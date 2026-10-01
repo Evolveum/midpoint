@@ -87,8 +87,6 @@ public class OidcResourceServerModuleWebSecurityConfigurer<C extends RemoteModul
         JwtAuthenticationConverter jwtAuthenticationConverter = new JwtAuthenticationConverter();
         if (resourceServer.getJwt() != null && resourceServer.getJwt().getNameOfUsernameClaim() != null) {
             jwtAuthenticationConverter.setPrincipalClaimName(resourceServer.getJwt().getNameOfUsernameClaim());
-        } else if (resourceServer.getNameOfUsernameClaim() != null) {
-            jwtAuthenticationConverter.setPrincipalClaimName(resourceServer.getNameOfUsernameClaim());
         }
         configuration.addAuthenticationProvider(getObjectPostProcessor().postProcess(
                 new OidcResourceServerProvider(configuration.getDecoder(), jwtAuthenticationConverter)));
