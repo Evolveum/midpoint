@@ -289,6 +289,18 @@ public class ConnectorDevelopmentServiceImpl implements ConnectorDevelopmentServ
         }
 
         @Override
+        public void deleteArtifactFile(String filename, Task task, OperationResult result) throws IOException, CommonException {
+            ConnectorDevelopmentBackend.backendFor(stateObject, task, result)
+                    .deleteArtifactFile(filename);
+        }
+
+        @Override
+        public void recomputeConnectorManifest(Task task, OperationResult result) throws IOException, CommonException {
+            ConnectorDevelopmentBackend.backendFor(stateObject, task, result)
+                    .recomputeConnectorManifest();
+        }
+
+        @Override
         public ConnDevArtifactValidationResult validateArtifact(ConnDevArtifactType artifact, Task task, OperationResult result) {
             return ConnectorDevelopmentBackend.backendFor(stateObject, task, result)
                     .validateArtifact(artifact);
