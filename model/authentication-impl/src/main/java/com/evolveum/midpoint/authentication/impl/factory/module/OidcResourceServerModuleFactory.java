@@ -70,7 +70,7 @@ public class OidcResourceServerModuleFactory<C extends RemoteModuleWebSecurityCo
             return resourceServer.getOpaqueToken().getRealm();
         }
 
-        return resourceServer.getRealm();
+        return null;
     }
 
     protected void isSupportedChannel(AuthenticationChannel authenticationChannel) {

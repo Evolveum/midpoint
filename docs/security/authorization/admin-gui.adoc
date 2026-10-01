@@ -99,6 +99,11 @@ Involves generating and running arbitrary connector code, so it is not granted b
 Grant it explicitly, only to administrators who need to generate connectors.
 | Since 4.11
 
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#smartIntegration
+| Smart Integration suggestion operations - GUI suggestion actions, REST API (together with `authorization-rest-3#smartIntegration`) and the backend service.
+Statistics are not covered; they are protected by object-scoped authorizations on `SmartIntegrationArtifactType`.
+| Since 4.11
+
 |===
 
 == Self-service Actions
