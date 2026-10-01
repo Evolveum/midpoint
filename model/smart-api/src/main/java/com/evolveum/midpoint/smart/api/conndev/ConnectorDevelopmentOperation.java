@@ -222,6 +222,25 @@ public interface ConnectorDevelopmentOperation {
      */
     void disableArtifact(String filename, Task task, OperationResult result) throws IOException, CommonException;
 
+    /**
+     * Deletes the generated file backing an artifact whose model entry has already been (or is
+     * about to be) removed - e.g. by "Clear capability" removing the {@link ConnDevArtifactType}
+     * container itself. Unlike {@link #disableArtifact}, which keeps the file and only marks it
+     * disabled, this is for when the artifact's model reference is gone entirely: without also
+     * deleting the file, it survives on disk and gets picked back up by filename if the same
+     * capability is generated again later, silently reusing stale content instead of regenerating.
+     */
+    void deleteArtifactFile(String filename, Task task, OperationResult result) throws IOException, CommonException;
+
+    /**
+     * Rewrites the connector's manifest file from its current model state. {@link #saveArtifact}
+     * and {@link #disableArtifact} already do this themselves - call this directly only after a
+     * plain object save (e.g. removing an artifact's container value outside those two methods,
+     * as "Clear capability" does) that doesn't go through either and so wouldn't otherwise be
+     * reflected in the manifest.
+     */
+    void recomputeConnectorManifest(Task task, OperationResult result) throws IOException, CommonException;
+
     ConnDevArtifactValidationResult validateArtifact(ConnDevArtifactType artifact, Task task, OperationResult result);
 
 

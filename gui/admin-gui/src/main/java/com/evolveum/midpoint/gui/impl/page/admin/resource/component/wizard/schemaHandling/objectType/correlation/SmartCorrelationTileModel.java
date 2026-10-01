@@ -25,6 +25,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.evolveum.midpoint.gui.api.util.LocalizationUtil.translate;
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationStatusInfoUtils.extractEfficiencyFromSuggestedCorrelationItemWrapper;
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationWrapperUtils.extractCorrelationItemListWrapper;
 
@@ -60,13 +61,13 @@ public class SmartCorrelationTileModel<T extends PrismContainerValueWrapper<Item
         setValue(valueWrapper);
 
         ItemsSubCorrelatorType realValue = valueWrapper.getRealValue();
-        this.name = realValue.getName() != null ? realValue.getName() : "-";
-        this.description = realValue.getDescription() != null ? realValue.getDescription() : "-";
+        this.name = realValue.getName();
+        this.description = realValue.getDescription();
         this.enabled = realValue.getEnabled() == null || realValue.getEnabled();
 
         CorrelatorCompositionDefinitionType composition = realValue.getComposition();
-        this.weight = composition.getWeight();
-        this.tier = composition.getTier();
+        this.weight = composition != null ? composition.getWeight() : null;
+        this.tier = composition != null ? composition.getTier() : null;
 
         this.resourceOid = resourceOid;
         this.statusInfoToken = statusInfoToken;
@@ -89,12 +90,14 @@ public class SmartCorrelationTileModel<T extends PrismContainerValueWrapper<Item
     }
 
     private void buildStateRecordList() {
-        String weightLabel = (weight != null) ? weight.toString() : "-";
-        String tierLabel = (tier != null) ? tier.toString() : "-";
-        statesRecordList.add(new StateRecord(weightLabel, "Weight"));
-        statesRecordList.add(new StateRecord(tierLabel, "Tier"));
+        String weightLabel = (weight != null) ? weight.toString() : null;
+        String tierLabel = (tier != null) ? tier.toString() : null;
+        statesRecordList.add(new StateRecord(weightLabel, translate("CorrelationItemRulePanel.weight")));
+        statesRecordList.add(new StateRecord(tierLabel, translate("CorrelationItemRulePanel.tier")));
 
-        statesRecordList.add(new StateRecord(efficiency, "Efficiency"));
+        if(efficiency != null) {
+            statesRecordList.add(new StateRecord(efficiency, translate("CorrelationItemRulePanel.efficiency")));
+        }
     }
 
     @Override
@@ -147,11 +150,11 @@ public class SmartCorrelationTileModel<T extends PrismContainerValueWrapper<Item
         this.enabled = enabled;
     }
 
-    public @NotNull String getEfficiency() {
+    public @Nullable String getEfficiency() {
         return efficiency;
     }
 
-    public void setEfficiency(@NotNull String efficiency) {
+    public void setEfficiency(@Nullable String efficiency) {
         this.efficiency = efficiency;
     }
 

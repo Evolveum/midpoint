@@ -14,6 +14,7 @@ import com.evolveum.midpoint.schema.util.Resource;
 import com.evolveum.midpoint.smart.api.conndev.ConnDevArtifactValidationResult;
 import com.evolveum.midpoint.smart.api.conndev.ConnDevScriptFormat;
 import com.evolveum.midpoint.smart.api.conndev.ConnectorDevelopmentArtifacts;
+import com.evolveum.midpoint.smart.api.conndev.ConnectorDevelopmentOperation;
 import com.evolveum.midpoint.smart.api.conndev.SupportedAuthorization;
 import com.evolveum.midpoint.smart.impl.conndev.activity.ConnDevBeans;
 import com.evolveum.midpoint.smart.impl.mappings.ConnDevJsonMapper;
@@ -267,6 +268,18 @@ public abstract class ConnectorDevelopmentBackend {
         beans.modelService.executeChanges(List.of(delta), null, task, result);
         reload();
         recomputeConnectorManifest();
+        invalidateConnector();
+    }
+
+    /**
+     * Deletes the generated file backing an artifact whose model entry is already gone (see
+     * {@link ConnectorDevelopmentOperation#deleteArtifactFile}) - a no-op if no such file exists.
+     */
+    public void deleteArtifactFile(String filename) throws IOException {
+        if (filename == null) {
+            return;
+        }
+        editableConnector().deleteFileIfExists(filename);
         invalidateConnector();
     }
 

@@ -80,57 +80,6 @@ NOTE: While neither of `jwt` or `opaqueToken` is mandatory, at least one of them
 
 |===
 
-.Deprecated fields in `resourceServer` section
-[%collapsible]
-====
-[cols="1,1,1,1", options="header"]
-|===
-
-|Name | Description | Required | Type
-
-|`realm`
-|Deprecated. This configuration now resides inside th token of your choosing.
-|false
-|String
-
-|`issuerUri`
-|Deprecated. This configuration now resides inside th token of your choosing.
-|false
-|String
-
-|`jwkSetUri`
-|Deprecated. This configuration now resides inside th token of your choosing.
-|false
-|String
-
-|`nameOfUsernameClaim`
-|Deprecated. This configuration now resides inside th token of your choosing.
-|false
-|String
-
-|`singleSymmetricKey`
-|Deprecated. This configuration now resides inside th token of your choosing.
-|false
-|String
-
-|`trustedAlgorithm`
-|Deprecated. This configuration now resides inside th token of your choosing.
-|false
-|String
-
-|`trustingAsymmetricCertificate`
-|Deprecated. This configuration now resides inside th token of your choosing.
-|false
-|String
-
-|`keyStoreTrustingAsymmetricKey`
-|Deprecated. This configuration now resides inside th token of your choosing.
-|false
-|String
-
-|===
-====
-
 //#TODO: Token configuration and Token configuration2 below displays the same information differently. Evaluate which one is better.#
 
 [[tokenConfiguration]]
@@ -572,7 +521,7 @@ This is a simple example of OIDC module configuration, using sample values.
                 <necessity>sufficient</necessity>
             </module>
         </sequence>
-        
+
         ...
     </authentication>
 </securityPolicy>
