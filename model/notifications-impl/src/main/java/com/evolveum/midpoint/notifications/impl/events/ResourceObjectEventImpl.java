@@ -9,6 +9,9 @@ package com.evolveum.midpoint.notifications.impl.events;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
+
+import com.evolveum.midpoint.prism.Safe;
 
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -57,68 +60,85 @@ public class ResourceObjectEventImpl extends BaseEventImpl implements ResourceOb
 
     @NotNull
     @Override
+    @Safe
     public OperationStatus getOperationStatus() {
         return operationStatus;
     }
 
     @Override
+    @Safe
     public boolean isStatusType(EventStatusType eventStatus) {
         return operationStatus.matchesEventStatusType(eventStatus);
     }
 
     @NotNull
     @Override
+    @Safe
     public ChangeType getChangeType() {
         return changeType;
     }
 
     @Override
+    @Safe
     public boolean isOperationType(EventOperationType eventOperation) {
         return changeTypeMatchesOperationType(changeType, eventOperation);
     }
 
     @Override
+    @Safe
     public boolean isCategoryType(EventCategoryType eventCategory) {
         return eventCategory == EventCategoryType.RESOURCE_OBJECT_EVENT;
     }
 
     @Override
-    public boolean isShadowKind(ShadowKindType shadowKindType) {
-        ShadowKindType actualKind = operationDescription.getCurrentShadow().asObjectable().getKind();
-        if (actualKind != null) {
-            return actualKind.equals(shadowKindType);
-        } else {
-            return ShadowKindType.ACCOUNT.equals(shadowKindType);
+    @Safe
+    public boolean isShadowKind(ShadowKindType expectedKind) {
+        var shadow = getShadow();
+        if (shadow == null) {
+            return false; // just a safety check
         }
+        ShadowKindType actualKind = shadow.getKind();
+        return Objects.requireNonNullElse(actualKind, ShadowKindType.ACCOUNT)
+                .equals(expectedKind);
     }
 
     @Override
+    @Safe
     public ShadowType getShadow() {
         PrismObject<? extends ShadowType> shadow = operationDescription.getCurrentShadow();
         return shadow != null ? shadow.asObjectable() : null;
     }
 
     @Override
-    public boolean isShadowIntent(String intent) {
-        if (StringUtils.isNotEmpty(intent)) {
-            return intent.equals(operationDescription.getCurrentShadow().asObjectable().getIntent());
+    @Safe
+    public boolean isShadowIntent(String expectedIntent) {
+        var shadow = getShadow();
+        if (shadow == null) {
+            return false; // just a safety check
+        }
+        // TODO clarify! e.g. what is the expected behavior when expectedIntent is null/empty
+        if (StringUtils.isNotEmpty(expectedIntent)) {
+            return expectedIntent.equals(shadow.getIntent());
         } else {
-            return StringUtils.isEmpty(operationDescription.getCurrentShadow().asObjectable().getIntent());
+            return StringUtils.isEmpty(shadow.getIntent());
         }
     }
 
     @Override
+    @Safe
     public ObjectDelta<ShadowType> getShadowDelta() {
         //noinspection unchecked
         return (ObjectDelta<ShadowType>) operationDescription.getObjectDelta();
     }
 
     @Override
+    @Safe
     public boolean isRelatedToItem(ItemPath itemPath) {
         return containsItem(getShadowDelta(), itemPath);
     }
 
     @Override
+    @Safe
     public String getShadowName() {
         PrismObject<? extends ShadowType> shadow = operationDescription.getCurrentShadow();
         if (shadow == null) {
@@ -146,16 +166,19 @@ public class ResourceObjectEventImpl extends BaseEventImpl implements ResourceOb
     }
 
     @Override
+    @Safe
     public PolyStringType getResourceName() {
         return operationDescription.getResource().asObjectable().getName();
     }
 
     @Override
+    @Safe
     public String getResourceOid() {
         return operationDescription.getResource().getOid();
     }
 
     @Override
+    @Safe // needed for password notifications
     public String getPlaintextPassword() {
         ObjectDelta<? extends ShadowType> delta = operationDescription.getObjectDelta();
         if (delta != null) {
@@ -171,11 +194,13 @@ public class ResourceObjectEventImpl extends BaseEventImpl implements ResourceOb
     }
 
     @Override
+    @Safe
     public boolean hasContentToShow() {
         return hasContentToShow(false, false);
     }
 
     @Override
+    @Safe
     public boolean hasContentToShow(boolean watchSynchronizationAttributes, boolean watchAuxiliaryAttributes) {
         ObjectDelta<ShadowType> delta = getShadowDelta();
         if (!delta.isModify()) {
@@ -190,16 +215,19 @@ public class ResourceObjectEventImpl extends BaseEventImpl implements ResourceOb
         }
     }
 
+    @Safe
     public String getContentAsFormattedList() {
         return getContentAsFormattedList(false, false, null, null);
     }
 
     @Override
+    @Safe
     public String getContentAsFormattedList(Task task, OperationResult result) {
         return getContentAsFormattedList(false, false, task, result);
     }
 
     @Override
+    @Safe
     public String getContentAsFormattedList(boolean showSynchronizationItems, boolean showAuxiliaryAttributes,
             Task task, OperationResult result) {
         final ObjectDelta<ShadowType> shadowDelta = getShadowDelta();
@@ -228,6 +256,7 @@ public class ResourceObjectEventImpl extends BaseEventImpl implements ResourceOb
     }
 
     @Override
+    @Safe
     public String debugDump(int indent) {
         StringBuilder sb = DebugUtil.createTitleStringBuilderLn(this.getClass(), indent);
         debugDumpCommon(sb, indent);

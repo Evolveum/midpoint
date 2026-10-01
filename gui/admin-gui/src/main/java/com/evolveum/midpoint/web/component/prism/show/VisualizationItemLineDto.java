@@ -57,6 +57,10 @@ public class VisualizationItemLineDto implements Serializable {
         return visualizationItemDto.isDescriptive();
     }
 
+    public boolean shouldSuppressNewValueIcon() {
+        return isDescriptive() || visualizationItemDto.isItemForAddedOrDeletedContainer();
+    }
+
     public boolean isDeltaVisualization() {
         return visualizationItemDto.isDeltaVisualization();
     }

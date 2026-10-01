@@ -182,8 +182,8 @@
                 </subjectExpression>
                 <bodyExpression>
                     <script>
-                        <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#velocity</language>
-                        <code>$event.object.get(0).value</code>
+                        <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#safe-velocity</language>
+                        <code>$testingVelocityExtension.getValueAt($event, 0) / $testingFunctionLibrary.executeSimple("getValueAt", $event, 0) / $testingFunctionLibrary.execute("getValueAt", { "event" : $event, "index" : 0 })</code>
                     </script>
                 </bodyExpression>
                 <transport>dummy:CustomType2</transport>
@@ -350,7 +350,8 @@
     </globalPolicyRule>
 
     <internals>
-        <maxModelClicks>30</maxModelClicks>     <!-- especially for TestIteration.test235 to prevent long test run in case of failure -->
+        <enableExperimentalCode>true</enableExperimentalCode> <!-- for custom velocity extension -->
+        <maxModelClicks>30</maxModelClicks> <!-- especially for TestIteration.test235 to prevent long test run in case of failure -->
     </internals>
 
     <adminGuiConfiguration>

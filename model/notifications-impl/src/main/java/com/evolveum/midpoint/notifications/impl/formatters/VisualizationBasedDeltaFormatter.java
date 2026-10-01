@@ -88,17 +88,13 @@ public final class VisualizationBasedDeltaFormatter implements DeltaFormatter {
                 final List<VisualizationItem> items = new ArrayList<>();
                 final List<VisualizationDeltaItem> deltaItems = new ArrayList<>();
                 for (final VisualizationItem item : visualization.getItems()) {
-                    // FIXME This is a workaround to handle additional identification properties. Simply speaking, we
-                    //  can not currently rely on the isDescriptive method in the item, because there is a bug
-                    //  MID-10620. This workaround does not cover all cases of "additional identification" properties.
-                    if (item instanceof VisualizationDeltaItem deltaItem) {
-                        deltaItems.add(deltaItem);
-                    } else {
+                    if (item.isDescriptive()) {
                         items.add(item);
+                    } else {
+                        // Non-descriptive items in MODIFY visualizations represent actual delta items.
+                        deltaItems.add((VisualizationDeltaItem) item);
                     }
                 }
-                // Items, which in the "MODIFY" case are not "delta" items, are most likely additional identification
-                // (akka descriptive) properties.
                 final String additionalIdentification = this.additionalIdentificationFormatter.formatProperties(items,
                         nestingLevel);
                 final String containerProperties = this.containerPropertiesModificationFormatter.formatProperties(

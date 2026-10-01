@@ -23,6 +23,9 @@ import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Objects;
+import java.util.stream.Collectors;
+
 /**
  * UI panel rendering a card-style preview of a mapping, showing its
  * strength, source and target values, and related icons.
@@ -79,7 +82,7 @@ public class MappingPreviewCardPanel extends BasePanel<PrismContainerValueWrappe
             return itemPathToString(getRefPath(mappingWrapper));
         }
 
-        return getTargetPath(mappingWrapper);
+        return getSourcePath(mappingWrapper);
     }
 
     private String getTargetValue(@Nullable PrismContainerValueWrapper<MappingType> mappingWrapper) {
@@ -96,13 +99,25 @@ public class MappingPreviewCardPanel extends BasePanel<PrismContainerValueWrappe
 
     private String getTargetPath(@NotNull PrismContainerValueWrapper<MappingType> mappingWrapper) {
         MappingType mapping = mappingWrapper.getRealValue();
-        if (mapping == null || mapping.getTarget() == null || mapping.getTarget().getPath() == null) {
+        if (mapping == null || mapping.getTarget() == null) {
             return "";
-        } else {
-            mapping.getTarget();
         }
 
-        return String.valueOf(mapping.getTarget().getPath().getItemPath());
+        return itemPathToString(mapping.getTarget().getPath());
+    }
+
+    private String getSourcePath(@NotNull PrismContainerValueWrapper<MappingType> mappingWrapper) {
+        MappingType mapping = mappingWrapper.getRealValue();
+        if (mapping == null) {
+            return "";
+        }
+
+        return mapping.getSource().stream()
+                .filter(Objects::nonNull)
+                .map(VariableBindingDefinitionType::getPath)
+                .filter(Objects::nonNull)
+                .map(this::itemPathToString)
+                .collect(Collectors.joining(", "));
     }
 
     private String itemPathToString(@Nullable ItemPathType itemPath) {

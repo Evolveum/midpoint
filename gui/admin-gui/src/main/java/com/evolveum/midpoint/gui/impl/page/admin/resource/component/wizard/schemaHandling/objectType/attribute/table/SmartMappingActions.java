@@ -104,7 +104,19 @@ import com.evolveum.midpoint.gui.api.util.MappingDirection;
  *
  * <p>Delegates state changes and refresh logic back to the table.
  */
-record SmartMappingActions<P extends Containerable>(SmartMappingTable<P> table) implements Serializable {
+final class SmartMappingActions<P extends Containerable> implements Serializable {
+
+    @Serial private static final long serialVersionUID = 1L;
+
+    private final SmartMappingTable<P> table;
+
+    SmartMappingActions(SmartMappingTable<P> table) {
+        this.table = table;
+    }
+
+    SmartMappingTable<P> table() {
+        return table;
+    }
 
     private static final Trace LOGGER = TraceManager.getTrace(SmartMappingActions.class);
     private static final String CLASS_DOT = SmartMappingTable.class.getName() + ".";
@@ -961,6 +973,7 @@ record SmartMappingActions<P extends Containerable>(SmartMappingTable<P> table) 
                 iterationValueWrapper = iterationWrapper.getValue();
                 WebPrismUtil.setReadOnlyRecursively(iterationValueWrapper);
             }
+
         } catch (SchemaException e) {
             throw new SystemException("Couldn't create iteration wrapper: " + e.getMessage(), e);
         }

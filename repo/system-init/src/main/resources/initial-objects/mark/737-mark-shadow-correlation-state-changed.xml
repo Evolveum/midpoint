@@ -5,7 +5,7 @@
   -->
 
 <mark xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-    oid="00000000-0000-0000-0000-000000000737">
+        oid="00000000-0000-0000-0000-000000000737">
     <name>Shadow correlation state changed</name>
     <description>Correlation state of a shadow was changed</description>
     <assignment id="1">
@@ -13,5 +13,19 @@
         <targetRef oid="00000000-0000-0000-0000-000000000700" type="ArchetypeType"/>
     </assignment>
     <displayOrder>510</displayOrder>
+    <display>
+        <label>
+            <orig>Shadow correlation state changed</orig>
+            <translation>
+                <key>ShadowCorrelationStateChangedMark.label</key>
+            </translation>
+        </label>
+        <help>
+            <orig>Number of shadows whose correlation state changed.</orig>
+            <translation>
+                <key>ShadowCorrelationStateChangedMark.help</key>
+            </translation>
+        </help>
+    </display>
     <!-- No policy rule. This is set explicitly by the synchronization service. -->
 </mark>

@@ -181,4 +181,9 @@ public class ApprovalUtils {
         return new AbstractWorkItemOutputType()
                 .outcome(SchemaConstants.MODEL_APPROVAL_OUTCOME_APPROVE);
     }
+
+    public static AbstractWorkItemOutputType createRejectOutput() {
+        return new AbstractWorkItemOutputType()
+                .outcome(SchemaConstants.MODEL_APPROVAL_OUTCOME_REJECT);
+    }
 }

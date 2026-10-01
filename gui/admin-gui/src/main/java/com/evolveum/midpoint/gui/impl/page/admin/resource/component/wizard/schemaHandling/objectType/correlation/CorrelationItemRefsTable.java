@@ -84,11 +84,18 @@ public abstract class CorrelationItemRefsTable<P extends Containerable> extends 
     @Override
     protected List<InlineMenuItem> createInlineMenu() {
         List<InlineMenuItem> menu = new ArrayList<>();
-        menu.add(createViewMappingsItemMenu());
+        if(isViewMappingsItemMenuVisible()) {
+            menu.add(createViewMappingsItemMenu());
+        }
+
         if (!isReadOnlyTable()) {
             menu.add(createDeleteItemMenu());
         }
         return menu;
+    }
+
+    protected boolean isViewMappingsItemMenuVisible() {
+        return true;
     }
 
     protected InlineMenuItem createDeleteItemMenu() {
@@ -298,7 +305,7 @@ public abstract class CorrelationItemRefsTable<P extends Containerable> extends 
                         return excludeMapping;
                     }
                 };
-                getPageBase().showMainPopup(correlationExistingMappingTable, target);
+                getPageBase().replaceMainPopup(correlationExistingMappingTable, target);
 
             }
         };

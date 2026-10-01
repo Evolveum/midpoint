@@ -100,7 +100,7 @@ public class VisualizationItemLinePanel extends BasePanel<VisualizationItemLineD
                 newValueTitleModel = Model.of((String) null);
             }
         } else {
-            if (getModelObject().isDescriptive()) {
+            if (getModelObject().shouldSuppressNewValueIcon()) {
                 newValueIconModel = Model.of((String) null);
                 newValueTitleModel = Model.of((String) null);
             } else {

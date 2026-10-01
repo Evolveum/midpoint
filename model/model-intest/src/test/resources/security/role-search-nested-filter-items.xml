@@ -1,0 +1,44 @@
+<!--
+  ~ Copyright (C) 2010-2026 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        oid="1ae51d46-93d6-4b3f-812e-b265769a841d">
+    <name>search-nested-filter-items</name>
+    <authorization>
+        <name>read roles</name>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+        <object>
+            <type>RoleType</type>
+        </object>
+    </authorization>
+    <authorization>
+        <name>read assignments</name>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+        <object>
+            <type>AssignmentType</type>
+            <parent>
+                <type>UserType</type>
+                <path>assignment</path>
+            </parent>
+        </object>
+    </authorization>
+    <authorization>
+        <name>read users</name>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+        <object>
+            <type>UserType</type>
+        </object>
+    </authorization>
+    <authorization>
+        <name>deny user locality</name>
+        <decision>deny</decision>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+        <object>
+            <type>UserType</type>
+        </object>
+        <item>locality</item>
+    </authorization>
+</role>

@@ -8,6 +8,7 @@ package com.evolveum.midpoint.schema.util;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
@@ -523,13 +524,13 @@ public class ShadowUtil {
         }
         ItemName firstName = ItemPath.toName(firstPathSegment);
         if (!QNameUtil.match(ShadowType.F_ATTRIBUTES, firstName)) {
-            throw new SchemaException(message + ": first path segment is not "+ShadowType.F_ATTRIBUTES);
+            throw new SchemaException(message + ": first path segment is not " + ShadowType.F_ATTRIBUTES);
         }
         if (attributePath.isEmpty()) {
-            throw new SchemaException(message + ": path too short ("+attributePath.size()+" segments)");
+            throw new SchemaException(message + ": path too short (" + attributePath.size() + " segments)");
         }
         if (attributePath.size() > 2) {
-            throw new SchemaException(message + ": path too long ("+attributePath.size()+" segments)");
+            throw new SchemaException(message + ": path too long (" + attributePath.size() + " segments)");
         }
         Object secondPathSegment = attributePath.rest().first();
         if (!ItemPath.isName(secondPathSegment)) {
@@ -541,36 +542,36 @@ public class ShadowUtil {
     public static void checkConsistence(PrismObject<? extends ShadowType> shadow, String desc) {
         PrismReference resourceRef = shadow.findReference(ShadowType.F_RESOURCE_REF);
         if (resourceRef == null) {
-            throw new IllegalStateException("No resourceRef in "+shadow+" in "+desc);
+            throw new IllegalStateException("No resourceRef in " + shadow + " in " + desc);
         }
         if (StringUtils.isBlank(resourceRef.getOid())) {
-            throw new IllegalStateException("Null or empty OID in resourceRef in "+desc);
+            throw new IllegalStateException("Null or empty OID in resourceRef in " + desc);
         }
         ShadowType shadowType = shadow.asObjectable();
         if (shadowType.getObjectClass() == null) {
-            throw new IllegalStateException("Null objectClass in "+desc);
+            throw new IllegalStateException("Null objectClass in " + desc);
         }
         PrismContainer<ShadowAttributesType> attributesContainer = shadow.findContainer(ShadowType.F_ATTRIBUTES);
         if (attributesContainer != null) {
             if (!(attributesContainer instanceof ShadowAttributesContainer)) {
                 throw new IllegalStateException("The attributes element expected to be ResourceAttributeContainer but it is "
-                        +attributesContainer.getClass()+" instead in "+desc);
+                        + attributesContainer.getClass() + " instead in " + desc);
             }
-            checkConsistency(attributesContainer.getDefinition(), " container definition in "+desc);
+            checkConsistency(attributesContainer.getDefinition(), " container definition in " + desc);
         }
 
         PrismContainerDefinition<ShadowAttributesType> attributesDefinition =
                 shadow.getDefinition().findContainerDefinition(ShadowType.F_ATTRIBUTES);
-        checkConsistency(attributesDefinition, " object definition in "+desc);
+        checkConsistency(attributesDefinition, " object definition in " + desc);
     }
 
     public static void checkConsistency(PrismContainerDefinition<ShadowAttributesType> attributesDefinition, String desc) {
         if (attributesDefinition == null) {
-            throw new IllegalStateException("No definition for <attributes> in "+desc);
+            throw new IllegalStateException("No definition for <attributes> in " + desc);
         }
         if (!(attributesDefinition instanceof ShadowAttributesContainerDefinition)) {
             throw new IllegalStateException("The attributes element definition expected to be ResourceAttributeContainerDefinition but it is "
-                    +attributesDefinition.getClass()+" instead in "+desc);
+                    + attributesDefinition.getClass() + " instead in " + desc);
         }
     }
 
@@ -748,7 +749,7 @@ public class ShadowUtil {
         for (ShadowSimpleAttribute<?> iattr : emptyIfNull(getPrimaryIdentifiers(shadow))) {
             if (first) {
                 sb.append("[");
-                first  = false;
+                first = false;
             } else {
                 sb.append(",");
             }
@@ -865,7 +866,7 @@ public class ShadowUtil {
     public static void validateAttributeSchema(ShadowType shadow, ResourceObjectDefinition objectDefinition)
             throws SchemaException {
         ShadowAttributesContainer attributesContainer = getAttributesContainer(shadow);
-        for (ShadowSimpleAttribute<?> attribute: attributesContainer.getSimpleAttributes()) {
+        for (ShadowSimpleAttribute<?> attribute : attributesContainer.getSimpleAttributes()) {
             validateAttribute(attribute, objectDefinition);
         }
     }
@@ -876,27 +877,27 @@ public class ShadowUtil {
         QName attrName = attribute.getElementName();
         ShadowSimpleAttributeDefinition<?> attrDef = objectDefinition.findSimpleAttributeDefinition(attrName);
         if (attrDef == null) {
-            throw new SchemaException("No definition for attribute "+attrName+" in object class "+objectDefinition);
+            throw new SchemaException("No definition for attribute " + attrName + " in object class " + objectDefinition);
         }
         List<PrismPropertyValue<T>> pvals = attribute.getValues();
         if (pvals.isEmpty()) {
             if (attrDef.isMandatory()) {
-                throw new SchemaException("Mandatory attribute "+attrName+" has no value");
+                throw new SchemaException("Mandatory attribute " + attrName + " has no value");
             } else {
                 return;
             }
         }
         if (pvals.size() > 1 && attrDef.isSingleValue()) {
-            throw new SchemaException("Single-value attribute "+attrName+" has "+pvals.size()+" values");
+            throw new SchemaException("Single-value attribute " + attrName + " has " + pvals.size() + " values");
         }
         Class<?> expectedClass = attrDef.getTypeClass();
-        for (PrismPropertyValue<T> pval: pvals) {
+        for (PrismPropertyValue<T> pval : pvals) {
             T val = pval.getValue();
             if (val == null) {
-                throw new SchemaException("Null value in attribute "+attrName);
+                throw new SchemaException("Null value in attribute " + attrName);
             }
             if (!XmlTypeConverter.isMatchingType(expectedClass, val.getClass())) {
-                throw new SchemaException("Wrong value in attribute "+attrName+"; expected class "+attrDef.getTypeClass().getSimpleName()+", but was "+val.getClass());
+                throw new SchemaException("Wrong value in attribute " + attrName + "; expected class " + attrDef.getTypeClass().getSimpleName() + ", but was " + val.getClass());
             }
         }
     }
@@ -1047,6 +1048,7 @@ public class ShadowUtil {
                 () -> new IllegalStateException("No correlation state in shadow " + shadow));
 
     }
+
     public static <T extends AbstractCorrelatorStateType> T getCorrelatorStateRequired(@NotNull ShadowType shadow, Class<T> clazz)
             throws SchemaException {
         return MiscUtil.requireNonNull(
@@ -1087,6 +1089,20 @@ public class ShadowUtil {
                 .anyMatch(ShadowUtil::isResourceModification);
     }
 
+    /** Returns true if there is a non-operational modification of a resource object item. */
+    public static boolean hasNonOperationalResourceModifications(
+            @NotNull Collection<? extends ItemDelta<?, ?>> modifications) {
+        return modifications.stream()
+                .anyMatch(modification -> !modification.isOperational() && isResourceModification(modification));
+    }
+
+    /** Returns true if the MODIFY summary delta contains at least one modification and all of them are operational. */
+    public static boolean hasOnlyOperationalModifications(@NotNull ObjectDelta<?> summaryDelta) {
+        return summaryDelta.isModify()
+                && !summaryDelta.getModifications().isEmpty()
+                && summaryDelta.getModifications().stream().allMatch(ItemDelta::isOperational);
+    }
+
     public static boolean hasAttributeModifications(
             @NotNull Collection<? extends ItemDelta<?, ?>> modifications) {
         return modifications.stream()
@@ -1114,6 +1130,14 @@ public class ShadowUtil {
 
     public static boolean isAttributeModification(QName firstPathName) {
         return QNameUtil.match(firstPathName, ShadowType.F_ATTRIBUTES);
+    }
+
+    public static boolean isNonAttributeResourceModification(ItemDelta<?, ?> modification) {
+        QName firstPathName = modification.getPath().firstName();
+        return QNameUtil.match(firstPathName, ShadowType.F_ACTIVATION)
+                || QNameUtil.match(firstPathName, ShadowType.F_CREDENTIALS)
+                || QNameUtil.match(firstPathName, ShadowType.F_ASSOCIATIONS)
+                || QNameUtil.match(firstPathName, ShadowType.F_AUXILIARY_OBJECT_CLASS);
     }
 
     public static boolean isNonAttributeResourceModification(QName firstPathName) {

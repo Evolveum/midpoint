@@ -23,7 +23,6 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
-import org.apache.wicket.Component;
 import org.apache.wicket.Page;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
@@ -182,11 +181,6 @@ public class LeftMenuPanel extends BasePanel<Void> {
         initLayout();
     }
 
-    public String getLogoMarkupId() {
-        Component logoComponent = isCustomLogoVisible() ? get(ID_CUSTOM_LOGO) : get(ID_LOGO);
-        return logoComponent != null ? logoComponent.getMarkupId() : "";
-    }
-
     private void initLayout() {
         AjaxLink<String> logo = new AjaxLink<>(ID_LOGO) {
 
@@ -321,7 +315,9 @@ public class LeftMenuPanel extends BasePanel<Void> {
         SideBarMenuItem menu = new SideBarMenuItem("PageAdmin.menu.mainNavigation", experimentalFeaturesEnabled);
         menu.addMainMenuItem(createHomeItems());
         menu.addMainMenuItem(createUsersItems());
-        menu.addMainMenuItem(createApplicationsItems());
+        if (experimentalFeaturesEnabled) {
+            menu.addMainMenuItem(createApplicationsItems());
+        }
         menu.addMainMenuItem(createOrganizationsMenu());
         menu.addMainMenuItem(createRolesMenu());
         menu.addMainMenuItem(createServicesItems());    // TODO get rid of applications (object collection view in sys config)

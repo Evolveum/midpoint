@@ -14,6 +14,7 @@ import com.evolveum.midpoint.model.api.util.ResourceUtils;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.repo.common.activity.run.state.ActivityState;
 import com.evolveum.midpoint.provisioning.ucf.api.EditableConnector;
 import com.evolveum.midpoint.repo.common.reports.ReportSupportUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -21,6 +22,7 @@ import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.processor.BareResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 import com.evolveum.midpoint.smart.api.conndev.ConnDevArtifactValidationResult;
@@ -57,12 +59,11 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Consumer;
 
 @Component
 public class ConnectorDevelopmentServiceImpl implements ConnectorDevelopmentService {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(ConnectorDevelopmentServiceImpl.class);
 
     /** Auto cleanup time for background tasks created by the service. Will be shorter, probably. */
     private static final Duration AUTO_CLEANUP_TIME = XmlTypeConverter.createDuration("P1D");
@@ -685,6 +686,33 @@ public class ConnectorDevelopmentServiceImpl implements ConnectorDevelopmentServ
                 ConnDevCreateConnectorWorkStateType.F_RESULT,
                 ConnDevDiscoverDocumentationResultType.class
         );
+    }
+
+    @Override
+    public void removeDiscoveredDocumentation(String token, String name, Task task, OperationResult result) throws CommonException {
+        securityEnforcer.authorize(AuthorizationConstants.AUTZ_UI_CONNECTOR_WIZARD_URL, task, result);
+        Task targetTask = taskManager.getTaskPlain(token, result);
+
+        ActivityState state = ActivityState.getActivityStateUpwards(
+                ActivityPath.empty(), targetTask, ConnDevDiscoverDocumentationWorkStateType.COMPLEX_TYPE, result);
+        ConnDevDiscoverDocumentationResultType documentationResult =
+                state.getWorkStateItemRealValueClone(ConnDevCreateConnectorWorkStateType.F_RESULT, ConnDevDiscoverDocumentationResultType.class);
+        if (documentationResult == null) {
+            return;
+        }
+        PrismContainer<ConnDevDocumentationSourceType> documentation = documentationResult.asPrismContainerValue()
+                .findContainer(ConnDevDiscoverDocumentationResultType.F_DOCUMENTATION);
+        if (documentation == null) {
+            return;
+        }
+        boolean removed = documentation.getValues()
+                .removeIf(value -> Objects.equals(name, value.asContainerable().getName()));
+        if (!removed) {
+            return;
+        }
+        documentationResult.asPrismContainerValue().setParent(null);
+        state.setWorkStateItemRealValues(ConnDevCreateConnectorWorkStateType.F_RESULT, documentationResult);
+        state.flushPendingTaskModifications(result);
     }
 
     @Override

@@ -6,6 +6,8 @@
 
 package com.evolveum.midpoint.gui.api.component;
 
+import com.evolveum.midpoint.web.util.TooltipBehavior;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -21,7 +23,7 @@ import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
 public class LabelWithHelpPanel extends BasePanel<String> {
 
-    private static final String ID_NAME = "name";
+    private static final String ID_LABEL = "label";
     private static final String ID_HELP = "help";
     private static final String ID_BUTTON_CONTAINER = "btnContainer";
 
@@ -36,9 +38,15 @@ public class LabelWithHelpPanel extends BasePanel<String> {
     }
 
     private void initLayout() {
-        Label name = new Label(ID_NAME, getModel());
-        name.setOutputMarkupId(true);
-        add(name);
+        Label label = new Label(ID_LABEL, getModel());
+        label.setOutputMarkupId(true);
+        label.add(AttributeModifier.append("class", getLabelAdditionalCssClass()));
+
+        if (isTooltipEnabled()) {
+            label.add(new TooltipBehavior());
+            label.add(AttributeModifier.append("title", getModel()));
+        }
+        add(label);
 
         WebMarkupContainer btnContainer = new WebMarkupContainer(ID_BUTTON_CONTAINER);
         btnContainer.setOutputMarkupId(true);
@@ -61,6 +69,10 @@ public class LabelWithHelpPanel extends BasePanel<String> {
         btnContainer.add(help);
     }
 
+    protected boolean isTooltipEnabled() {
+        return false;
+    }
+
     protected IModel<String> getHelpModel() {
         return Model.of("");
     }
@@ -70,6 +82,10 @@ public class LabelWithHelpPanel extends BasePanel<String> {
     }
 
     protected String getButtonContainerAdditionalCssClass() {
+        return null;
+    }
+
+    protected String getLabelAdditionalCssClass() {
         return null;
     }
 

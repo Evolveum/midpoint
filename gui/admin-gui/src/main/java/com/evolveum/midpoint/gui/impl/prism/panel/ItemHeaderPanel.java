@@ -298,7 +298,9 @@ public abstract class ItemHeaderPanel<V extends PrismValue, I extends Item<V, ID
     protected abstract void refreshPanel(AjaxRequestTarget target);
 
     protected boolean isAddButtonVisible() {
-        return getModelObject() != null && getModelObject().isMultiValue();
+        return getModelObject() != null
+                && !getModelObject().isReadOnly()
+                && getModelObject().isMultiValue();
     }
 
     protected boolean isButtonEnabled() {

@@ -8,6 +8,7 @@ package com.evolveum.midpoint.report.impl.controller;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.function.Predicate;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.api.BulkActionExecutionOptions;
@@ -389,11 +390,22 @@ public class ImportController {
     }
 
     /**
-     * Reads the input file into rows of named values. The file format is determined by
-     * {@link ReportUtils#createDataReader(ReportType, ReportDataType)}.
+     * Counts the data rows of the input file. As the whole file is read, this also checks that it can be parsed.
      */
-    public List<VariablesMap> parseColumnsAsVariablesFromFile(ReportDataType reportData)
+    public int countRowsInFile(ReportDataType reportData) throws IOException, ConfigurationException {
+        return ReportUtils.createDataReader(report, reportData).countRows(reportData, getViewHeaders());
+    }
+
+    /**
+     * Reads the rows of the input file one by one as named values, passing them to the handler,
+     * until it returns false.
+     */
+    public void readRowsInFile(ReportDataType reportData, Predicate<VariablesMap> rowHandler)
             throws IOException, ConfigurationException {
+        ReportUtils.createDataReader(report, reportData).read(reportData, getViewHeaders(), rowHandler);
+    }
+
+    private List<String> getViewHeaders() {
         List<String> headers = new ArrayList<>();
         if (compiledCollection != null) {
             Class<ObjectType> type = compiledCollection.getTargetClass();
@@ -407,6 +419,6 @@ public class ImportController {
                 headers.add(GenericSupport.getLabel(column, def, localizationService));
             }
         }
-        return ReportUtils.createDataReader(report, reportData).read(reportData, headers);
+        return headers;
     }
 }

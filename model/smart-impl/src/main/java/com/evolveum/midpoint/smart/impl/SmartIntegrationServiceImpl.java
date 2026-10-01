@@ -51,6 +51,8 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.Resource;
+import com.evolveum.midpoint.security.api.AuthorizationConstants;
+import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 import com.evolveum.midpoint.smart.api.InsufficientPermissionsException;
 import com.evolveum.midpoint.smart.api.RegenerateMode;
 import com.evolveum.midpoint.smart.api.ServiceClientFactory;
@@ -122,6 +124,7 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
     private final SchemaMatchService schemaMatchService;
     private final SystemObjectCache systemObjectCache;
     private final ObjectsSamplerProvider samplerProvider;
+    private final SecurityEnforcer securityEnforcer;
 
     public SmartIntegrationServiceImpl(ModelService modelService,
             TaskService taskService, ModelInteractionServiceImpl modelInteractionService, TaskManager taskManager,
@@ -129,7 +132,8 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
             ServiceClientFactory clientFactory, MappingSuggestionOperationFactory mappingSuggestionOperationFactory,
             ObjectTypesSuggestionOperationFactory objectTypesSuggestionOperationFactory,
             StatisticsService statisticsService, SchemaMatchService schemaMatchService,
-            SystemObjectCache systemObjectCache, ObjectsSamplerProvider samplerProvider) {
+            SystemObjectCache systemObjectCache, ObjectsSamplerProvider samplerProvider,
+            @Qualifier("securityEnforcer") SecurityEnforcer securityEnforcer) {
         this.modelService = modelService;
         this.taskService = taskService;
         this.modelInteractionService = modelInteractionService;
@@ -142,11 +146,24 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
         this.schemaMatchService = schemaMatchService;
         this.systemObjectCache = systemObjectCache;
         this.samplerProvider = samplerProvider;
+        this.securityEnforcer = securityEnforcer;
+    }
+
+    /**
+     * Enforces the dedicated #smartIntegration authorization. All operations that invoke the
+     * Smart integration functionality require this authorization - or #all.
+     */
+    private void authorizeSmartIntegration(Task task, OperationResult result)
+            throws SecurityViolationException, SchemaException, ObjectNotFoundException,
+            ExpressionEvaluationException, CommunicationException, ConfigurationException,
+            SubscriptionComplianceException {
+        securityEnforcer.authorize(AuthorizationConstants.AUTZ_UI_SMART_INTEGRATION_URL, task, result);
     }
 
     @Override
-    public Optional<AiInfo> getAiInfo() {
-        try (var client = clientFactory.getServiceClient(new OperationResult("getAiInfo"))) {
+    public Optional<AiInfo> getAiInfo(Task task, OperationResult result) {
+        try (var client = clientFactory.getServiceClient(result)) {
+            authorizeSmartIntegration(task, result);
             return client.getAiInfo();
         } catch (Exception e) {
             throw new SystemException("Failed to retrieve AI info: " + e.getMessage(), e);
@@ -177,9 +194,6 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
             modelService.importObject(resource.asPrismObject(), options, task, result);
 
             return resource.getOid();
-        } catch (Throwable t) {
-            result.recordException(t);
-            throw t;
         } finally {
             result.close();
         }
@@ -213,6 +227,7 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
             OperationResult parentResult)
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
             ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
+        authorizeSmartIntegration(task, parentResult);
         return schemaMatchService.computeSchemaMatch(resourceOid, typeIdentification, useAiService, task, parentResult);
     }
 
@@ -283,9 +298,9 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
                         .value(found)
                         .precision(ObjectClassSizeEstimationPrecisionType.AT_LEAST);
             }
-        } catch (Throwable t) {
-            result.recordException(t);
-            throw t;
+        } catch (CommonException e) {
+            result.recordException(e);
+            throw e;
         } finally {
             result.close();
         }
@@ -293,22 +308,22 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
 
     @Override
     public SmartIntegrationArtifactType getLatestObjectTypeStatistics(
-            String resourceOid, ResourceObjectTypeIdentification typeIdentification, OperationResult parentResult)
-            throws SchemaException {
-        return statisticsService.getLatestObjectTypeStatistics(resourceOid, typeIdentification, parentResult);
+            String resourceOid, ResourceObjectTypeIdentification typeIdentification, Task task, OperationResult parentResult)
+            throws CommonException {
+        return statisticsService.getLatestObjectTypeStatistics(resourceOid, typeIdentification, task, parentResult);
     }
 
     @Override
     public void deleteObjectTypeStatistics(
-            String resourceOid, ResourceObjectTypeIdentification typeIdentification, OperationResult result)
-            throws SchemaException {
-        statisticsService.deleteObjectTypeStatistics(resourceOid, typeIdentification, result);
+            String resourceOid, ResourceObjectTypeIdentification typeIdentification, Task task, OperationResult result)
+            throws CommonException {
+        statisticsService.deleteObjectTypeStatistics(resourceOid, typeIdentification, task, result);
     }
 
     @Override
-    public SmartIntegrationArtifactType getLatestObjectClassStatistics(String resourceOid, QName objectClassName, OperationResult parentResult)
-            throws SchemaException {
-        return statisticsService.getLatestObjectClassStatistics(resourceOid, objectClassName, parentResult);
+    public SmartIntegrationArtifactType getLatestObjectClassStatistics(String resourceOid, QName objectClassName, Task task, OperationResult parentResult)
+            throws CommonException {
+        return statisticsService.getLatestObjectClassStatistics(resourceOid, objectClassName, task, parentResult);
     }
 
     @Override
@@ -331,9 +346,9 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
     }
 
     @Override
-    public void deleteStatisticsForResource(String resourceOid, QName objectClassName, OperationResult result)
-            throws SchemaException {
-        statisticsService.deleteStatisticsForResource(resourceOid, objectClassName, result);
+    public void deleteStatisticsForResource(String resourceOid, QName objectClassName, Task task, OperationResult result)
+            throws CommonException {
+        statisticsService.deleteStatisticsForResource(resourceOid, objectClassName, task, result);
     }
 
     @Override
@@ -341,9 +356,10 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
             QName objectTypeName,
             String resourceOid,
             ResourceObjectTypeIdentification typeIdentification,
+            Task task,
             OperationResult parentResult)
-            throws SchemaException {
-        return statisticsService.getLatestFocusObjectStatistics(objectTypeName, resourceOid, typeIdentification, parentResult);
+            throws CommonException {
+        return statisticsService.getLatestFocusObjectStatistics(objectTypeName, resourceOid, typeIdentification, task, parentResult);
     }
 
     @Override
@@ -351,9 +367,10 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
             QName objectTypeName,
             String resourceOid,
             ResourceObjectTypeIdentification typeIdentification,
+            Task task,
             OperationResult result)
-            throws SchemaException {
-        statisticsService.deleteFocusObjectStatistics(objectTypeName, resourceOid, typeIdentification, result);
+            throws CommonException {
+        statisticsService.deleteFocusObjectStatistics(objectTypeName, resourceOid, typeIdentification, task, result);
     }
 
     @Override
@@ -369,9 +386,10 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
 
     @Override
     public SmartIntegrationArtifactType getLatestObjectTypeSchemaMatch(
-            String resourceOid, ResourceObjectTypeIdentification typeIdentification, OperationResult parentResult)
-            throws SchemaException {
-        return schemaMatchService.getLatestObjectTypeSchemaMatch(resourceOid, typeIdentification, parentResult);
+            String resourceOid, ResourceObjectTypeIdentification typeIdentification, Task task, OperationResult parentResult)
+            throws CommonException {
+        authorizeSmartIntegration(task, parentResult);
+        return schemaMatchService.getLatestObjectTypeSchemaMatch(resourceOid, typeIdentification, task, parentResult);
     }
 
     @Override
@@ -391,6 +409,7 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
                 .build();
 
         try {
+            authorizeSmartIntegration(task, result);
             var workDef = new ObjectTypesSuggestionWorkDefinitionType()
                     .resourceRef(resourceOid, ResourceType.COMPLEX_TYPE)
                     .objectclass(objectClassName);
@@ -427,9 +446,9 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
                     resourceOid, objectClassName, permissions, regenerateMode, oid);
 
             return oid;
-        } catch (Throwable t) {
-            result.recordException(t);
-            throw t;
+        } catch (CommonException e) {
+            result.recordException(e);
+            throw e;
         } finally {
             result.close();
         }
@@ -444,6 +463,7 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
                 .addParam("objectClassName", objectClassName)
                 .build();
         try {
+            authorizeSmartIntegration(task, result);
             var workDef = new SchemaMatchPreloadWorkDefinitionType()
                     .resourceRef(resourceOid, ResourceType.COMPLEX_TYPE)
                     .objectclass(objectClassName)
@@ -459,9 +479,9 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
                     task, result);
             LOGGER.debug("Submitted schema match preload for resourceOid {}, objectClassName {}: {}",
                     resourceOid, objectClassName, oid);
-        } catch (Throwable t) {
-            result.recordException(t);
-            throw t;
+        } catch (CommonException e) {
+            result.recordException(e);
+            throw e;
         } finally {
             result.close();
         }
@@ -473,7 +493,7 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
             @Nullable ResourceObjectTypeIdentification objectTypeIdentification,
             @Nullable QName objectClass,
             Task task, OperationResult parentResult)
-            throws SchemaException {
+            throws CommonException {
 
         var result = parentResult.subresult(OP_LIST_SUGGEST_OBJECT_TYPES_OPERATION_STATUSES)
                 .addParam("resourceOid", resourceOid)
@@ -482,11 +502,13 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
                 .build();
 
         try {
+            authorizeSmartIntegration(task, result);
             var tasks = listObjectTypeRelatedSuggestionTasks(
                     objectTypeIdentification,
                     resourceOid,
                     objectClass,
                     List.of(SchemaConstantsGenerated.C_OBJECT_TYPES_SUGGESTION),
+                    task,
                     result);
 
             var resultingList = new ArrayList<StatusInfo<ObjectTypesSuggestionType>>();
@@ -499,9 +521,9 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
 
             sortByFinishAndStartTime(resultingList);
             return resultingList;
-        } catch (Throwable t) {
-            result.recordException(t);
-            throw t;
+        } catch (CommonException e) {
+            result.recordException(e);
+            throw e;
         } finally {
             result.close();
         }
@@ -518,24 +540,25 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
     @Override
     public StatusInfo<ObjectTypesSuggestionType> getSuggestObjectTypesOperationStatus(
             String token, Task task, OperationResult parentResult)
-            throws SchemaException, ObjectNotFoundException {
+            throws CommonException {
         var result = parentResult.subresult(OP_GET_SUGGEST_OBJECT_TYPES_OPERATION_STATUS)
                 .addParam("token", token)
                 .build();
         try {
+            authorizeSmartIntegration(task, result);
             return new StatusInfoImpl<>(
                     getTask(token, result),
                     ObjectTypesSuggestionWorkStateType.F_RESULT,
                     ObjectTypesSuggestionType.class);
-        } catch (Throwable t) {
-            result.recordException(t);
-            throw t;
+        } catch (CommonException e) {
+            result.recordException(e);
+            throw e;
         } finally {
             result.close();
         }
     }
 
-    private @NotNull TaskType getTask(String oid, OperationResult result) throws ObjectNotFoundException, SchemaException {
+    private @NotNull TaskType getTask(String oid, OperationResult result) throws CommonException {
         return taskManager
                 .getObject(TaskType.class, oid, taskRetrievalOptions(), result)
                 .asObjectable();
@@ -553,6 +576,7 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
                 .addParam("typeIdentification", typeIdentification)
                 .build();
         try {
+            authorizeSmartIntegration(task, result);
             var workDef = new FocusTypeSuggestionWorkDefinitionType()
                     .resourceRef(resourceOid, ResourceType.COMPLEX_TYPE)
                     .kind(typeIdentification.getKind())
@@ -569,9 +593,9 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
             LOGGER.debug("Submitted suggest focus type operation for resourceOid {}, typeIdentification {}: {}",
                     resourceOid, typeIdentification, oid);
             return oid;
-        } catch (Throwable t) {
-            result.recordException(t);
-            throw t;
+        } catch (CommonException e) {
+            result.recordException(e);
+            throw e;
         } finally {
             result.close();
         }
@@ -580,11 +604,12 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
     @Override
     public List<StatusInfo<FocusTypeSuggestionType>> listSuggestFocusTypeOperationStatuses(
             String resourceOid, Task task, OperationResult parentResult)
-            throws SchemaException {
+            throws CommonException {
         var result = parentResult.subresult(OP_LIST_SUGGEST_FOCUS_TYPE_OPERATION_STATUSES)
                 .addParam("resourceOid", resourceOid)
                 .build();
         try {
+            authorizeSmartIntegration(task, result);
             var tasks = taskManager.searchObjects(
                     TaskType.class,
                     queryForActivityType(resourceOid, WorkDefinitionsType.F_FOCUS_TYPE_SUGGESTION),
@@ -600,9 +625,9 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
             }
             sortByFinishAndStartTime(resultingList);
             return resultingList;
-        } catch (Throwable t) {
-            result.recordException(t);
-            throw t;
+        } catch (CommonException e) {
+            result.recordException(e);
+            throw e;
         } finally {
             result.close();
         }
@@ -611,18 +636,19 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
     @Override
     public StatusInfo<FocusTypeSuggestionType> getSuggestFocusTypeOperationStatus(
             String token, Task task, OperationResult parentResult)
-            throws SchemaException, ObjectNotFoundException {
+            throws CommonException {
         var result = parentResult.subresult(OP_GET_SUGGEST_FOCUS_TYPE_OPERATION_STATUS)
                 .addParam("token", token)
                 .build();
         try {
+            authorizeSmartIntegration(task, result);
             return new StatusInfoImpl<>(
                     getTask(token, result),
                     FocusTypeSuggestionWorkStateType.F_RESULT,
                     FocusTypeSuggestionType.class);
-        } catch (Throwable t) {
-            result.recordException(t);
-            throw t;
+        } catch (CommonException e) {
+            result.recordException(e);
+            throw e;
         } finally {
             result.close();
         }
@@ -645,14 +671,15 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
                 .addParam("objectClassName", objectClassName)
                 .build();
         try (var serviceClient = this.clientFactory.getServiceClient(result)) {
+            authorizeSmartIntegration(task, result);
             var op = this.objectTypesSuggestionOperationFactory.create(
                     serviceClient, resourceOid, objectClassName, regenerateMode, previousObjectTypes, task, result);
             var types = op.suggestObjectTypes(statistics, result);
             LOGGER.debug("Object types suggestion:\n{}", types.debugDump(1));
             return types;
-        } catch (Throwable t) {
-            result.recordException(t);
-            throw t;
+        } catch (CommonException e) {
+            result.recordException(e);
+            throw e;
         } finally {
             result.closeWithSummarizedSuccesses();
         }
@@ -670,6 +697,7 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
                 .addArbitraryObjectAsParam("typeIdentification", typeIdentification)
                 .build();
         try {
+            authorizeSmartIntegration(task, result);
             try (var serviceClient = this.clientFactory.getServiceClient(result)) {
                 var suggestion = new FocusTypeSuggestionOperation(
                         TypeOperationContext.init(serviceClient, resourceOid, typeIdentification, null, task, result))
@@ -677,9 +705,9 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
                 LOGGER.debug("Suggested focus type: {}", suggestion.getFocusType());
                 return suggestion;
             }
-        } catch (Throwable t) {
-            result.recordException(t);
-            throw t;
+        } catch (CommonException e) {
+            result.recordException(e);
+            throw e;
         } finally {
             result.closeWithSummarizedSuccesses();
         }
@@ -697,6 +725,7 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
                 .addArbitraryObjectAsParam("typeDefBean", typeDefBean) // todo reconsider (too much text)
                 .build();
         try {
+            authorizeSmartIntegration(task, result);
             try (var serviceClient = this.clientFactory.getServiceClient(result)) {
                 var suggestion = new FocusTypeSuggestionOperation(
                         OperationContext.init(serviceClient, resourceOid, typeDefBean.getDelineation().getObjectClass(), task, result))
@@ -704,9 +733,9 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
                 LOGGER.debug("Suggested focus type: {}", suggestion.getFocusType());
                 return suggestion;
             }
-        } catch (Throwable t) {
-            result.recordException(t);
-            throw t;
+        } catch (CommonException e) {
+            result.recordException(e);
+            throw e;
         } finally {
             result.closeWithSummarizedSuccesses();
         }
@@ -729,15 +758,16 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
                 .addArbitraryObjectAsParam("typeIdentification", typeIdentification)
                 .build();
         try (var serviceClient = this.clientFactory.getServiceClient(result)) {
+            authorizeSmartIntegration(task, result);
             var correlation = new CorrelationSuggestionOperation(
                     TypeOperationContext.init(serviceClient, resourceOid, typeIdentification, null, task, result),
                     samplerProvider)
                     .suggestCorrelation(result, schemaMatch, targetPathsToIgnore);
             LOGGER.debug("Suggested correlation:\n{}", correlation.debugDump(1));
             return correlation;
-        } catch (Throwable t) {
-            result.recordException(t);
-            throw t;
+        } catch (CommonException e) {
+            result.recordException(e);
+            throw e;
         } finally {
             result.closeWithSummarizedSuccesses();
         }
@@ -763,15 +793,16 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
                 .addArbitraryObjectAsParam("typeIdentification", typeIdentification)
                 .build();
         try (var serviceClient = this.clientFactory.getServiceClient(result)) {
+            authorizeSmartIntegration(task, result);
             int retryCount = getConfiguredRetryCount(result);
             var mappings = this.mappingSuggestionOperationFactory.create(serviceClient, resourceOid,
                             typeIdentification, activityState, isInbound, useAiService, objectTypeStatistics, retryCount, task, result)
                     .suggestMappings(result, schemaMatch, targetPathsToIgnore);
             LOGGER.debug("Suggested mappings:\n{}", mappings.debugDumpLazily(1));
             return mappings;
-        } catch (Throwable t) {
-            result.recordException(t);
-            throw t;
+        } catch (CommonException e) {
+            result.recordException(e);
+            throw e;
         } finally {
             result.closeWithSummarizedSuccesses();
         }
@@ -808,6 +839,7 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
                 .addParam("typeIdentification", typeIdentification)
                 .build();
         try {
+            authorizeSmartIntegration(task, result);
             var workDef = new CorrelationSuggestionWorkDefinitionType()
                     .resourceRef(resourceOid, ResourceType.COMPLEX_TYPE)
                     .objectType(typeIdentification.asBean());
@@ -826,9 +858,9 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
             LOGGER.debug("Submitted suggest correlation operation for resourceOid {}, object type {}, permissions {}: {}",
                     resourceOid, typeIdentification, permissions, oid);
             return oid;
-        } catch (Throwable t) {
-            result.recordException(t);
-            throw t;
+        } catch (CommonException e) {
+            result.recordException(e);
+            throw e;
         } finally {
             result.close();
         }
@@ -840,7 +872,7 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
             @Nullable ResourceObjectTypeIdentification objectTypeIdentification,
             Task task,
             OperationResult parentResult)
-            throws SchemaException {
+            throws CommonException {
 
         var result = parentResult.subresult(OP_LIST_SUGGEST_CORRELATION_OPERATION_STATUSES)
                 .addParam("resourceOid", resourceOid)
@@ -851,11 +883,13 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
                 .build();
 
         try {
+            authorizeSmartIntegration(task, result);
             var tasks = listObjectTypeRelatedSuggestionTasks(
                     objectTypeIdentification,
                     resourceOid,
                     null,
                     List.of(SchemaConstantsGenerated.C_CORRELATION_SUGGESTION),
+                    task,
                     result);
 
             var resultingList = new ArrayList<StatusInfo<CorrelationSuggestionsType>>();
@@ -868,9 +902,9 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
 
             sortByFinishAndStartTime(resultingList);
             return resultingList;
-        } catch (Throwable t) {
-            result.recordException(t);
-            throw t;
+        } catch (CommonException e) {
+            result.recordException(e);
+            throw e;
         } finally {
             result.close();
         }
@@ -878,18 +912,19 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
 
     @Override
     public StatusInfo<CorrelationSuggestionsType> getSuggestCorrelationOperationStatus(
-            String token, Task task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException {
+            String token, Task task, OperationResult parentResult) throws CommonException {
         var result = parentResult.subresult(OP_GET_SUGGEST_CORRELATION_OPERATION_STATUS)
                 .addParam("token", token)
                 .build();
         try {
+            authorizeSmartIntegration(task, result);
             return new StatusInfoImpl<>(
                     getTask(token, result),
                     CorrelationSuggestionWorkStateType.F_RESULT,
                     CorrelationSuggestionsType.class);
-        } catch (Throwable t) {
-            result.recordException(t);
-            throw t;
+        } catch (CommonException e) {
+            result.recordException(e);
+            throw e;
         } finally {
             result.close();
         }
@@ -910,7 +945,7 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
                 .addParam("typeIdentification", typeIdentification)
                 .build();
         try {
-
+            authorizeSmartIntegration(task, result);
             MappingsSuggestionWorkDefinitionType mappingsSuggestionWorkDefinition = new MappingsSuggestionWorkDefinitionType()
                     .resourceRef(resourceOid, ResourceType.COMPLEX_TYPE)
                     .objectType(typeIdentification.asBean())
@@ -935,9 +970,9 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
             LOGGER.debug("Submitted suggest mappings operation for resourceOid {}, object type {}: {}",
                     resourceOid, typeIdentification, oid);
             return oid;
-        } catch (Throwable t) {
-            result.recordException(t);
-            throw t;
+        } catch (CommonException e) {
+            result.recordException(e);
+            throw e;
         } finally {
             result.close();
         }
@@ -950,7 +985,7 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
             Boolean isInbound,
             Task task,
             OperationResult parentResult)
-            throws SchemaException {
+            throws CommonException {
 
         var result = parentResult.subresult(OP_LIST_SUGGEST_MAPPINGS_OPERATION_STATUSES)
                 .addParam("resourceOid", resourceOid)
@@ -962,11 +997,13 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
                 .build();
 
         try {
+            authorizeSmartIntegration(task, result);
             var tasks = listObjectTypeRelatedSuggestionTasks(
                     objectTypeIdentification,
                     resourceOid,
                     null,
                     List.of(SchemaConstantsGenerated.C_MAPPINGS_SUGGESTION),
+                    task,
                     result);
 
             var resultingList = new ArrayList<StatusInfo<MappingsSuggestionType>>();
@@ -997,9 +1034,9 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
 
             sortByFinishAndStartTime(resultingList);
             return resultingList;
-        } catch (Throwable t) {
-            result.recordException(t);
-            throw t;
+        } catch (CommonException e) {
+            result.recordException(e);
+            throw e;
         } finally {
             result.close();
         }
@@ -1008,18 +1045,19 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
     @Override
     public StatusInfo<MappingsSuggestionType> getSuggestMappingsOperationStatus(
             String token, Task task, OperationResult parentResult)
-            throws SchemaException, ObjectNotFoundException {
+            throws CommonException {
         var result = parentResult.subresult(OP_GET_SUGGEST_MAPPINGS_OPERATION_STATUS)
                 .addParam("token", token)
                 .build();
         try {
+            authorizeSmartIntegration(task, result);
             return new StatusInfoImpl<>(
                     getTask(token, result),
                     MappingsSuggestionWorkStateType.F_RESULT,
                     MappingsSuggestionType.class);
-        } catch (Throwable t) {
-            result.recordException(t);
-            throw t;
+        } catch (CommonException e) {
+            result.recordException(e);
+            throw e;
         } finally {
             result.close();
         }
@@ -1052,8 +1090,10 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
             @NotNull String resourceOid,
             @Nullable QName objectClass,
             @NotNull List<ItemName> activityTypes,
+            Task task,
             @NotNull OperationResult result)
-            throws SchemaException {
+            throws CommonException {
+        authorizeSmartIntegration(task, result);
         ObjectQuery query = createQueryForObjectTypeSuggestionTasks(
                 objectTypeIdentification, resourceOid, objectClass, activityTypes);
 
@@ -1129,14 +1169,15 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
                 .addParam("resourceOid", resourceOid)
                 .build();
         try {
+            authorizeSmartIntegration(task, result);
             var resource = modelService.getObject(ResourceType.class, resourceOid, null, task, result);
 
             LOGGER.trace("Suggesting associations for resourceOid {}", resourceOid);
 
             return new SmartAssociationImpl().suggestSmartAssociation(resource.asObjectable());
-        } catch (Throwable t) {
-            result.recordException(t);
-            throw t;
+        } catch (CommonException e) {
+            result.recordException(e);
+            throw e;
         } finally {
             result.close();
         }
@@ -1153,6 +1194,7 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
                 .build();
 
         try {
+            authorizeSmartIntegration(task, result);
             var workDef = new AssociationSuggestionWorkDefinitionType()
                     .resourceRef(resourceOid, ResourceType.COMPLEX_TYPE);
 
@@ -1167,9 +1209,9 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
 
             LOGGER.debug("Submitted suggest associations operation for resourceOid: {}, odi: {}", resourceOid, oid);
             return oid;
-        } catch (Throwable t) {
-            result.recordException(t);
-            throw t;
+        } catch (CommonException e) {
+            result.recordException(e);
+            throw e;
         } finally {
             result.close();
         }
@@ -1178,12 +1220,13 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
     @Override
     public List<StatusInfo<AssociationsSuggestionType>> listSuggestAssociationsOperationStatuses(
             String resourceOid, Task task, OperationResult parentResult)
-            throws SchemaException {
+            throws CommonException {
 
         var result = parentResult.subresult(OP_LIST_SUGGEST_ASSOCIATIONS_OPERATION_STATUSES)
                 .addParam("resourceOid", resourceOid)
                 .build();
         try {
+            authorizeSmartIntegration(task, result);
             var tasks = taskManager.searchObjects(
                     TaskType.class,
                     queryForActivityType(resourceOid, SchemaConstantsGenerated.C_ASSOCIATIONS_SUGGESTION),
@@ -1201,9 +1244,9 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
 
             sortByFinishAndStartTime(resultingList);
             return resultingList;
-        } catch (Throwable t) {
-            result.recordException(t);
-            throw t;
+        } catch (CommonException e) {
+            result.recordException(e);
+            throw e;
         } finally {
             result.close();
         }
@@ -1212,19 +1255,20 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
     @Override
     public StatusInfo<AssociationsSuggestionType> getSuggestAssociationsOperationStatus(
             String token, Task task, OperationResult parentResult)
-            throws SchemaException, ObjectNotFoundException {
+            throws CommonException {
 
         var result = parentResult.subresult(OP_GET_SUGGEST_ASSOCIATIONS_OPERATION_STATUS)
                 .addParam("token", token)
                 .build();
         try {
+            authorizeSmartIntegration(task, result);
             return new StatusInfoImpl<>(
                     getTask(token, result),
                     AssociationSuggestionWorkStateType.F_RESULT,
                     AssociationsSuggestionType.class);
-        } catch (Throwable t) {
-            result.recordException(t);
-            throw t;
+        } catch (CommonException e) {
+            result.recordException(e);
+            throw e;
         } finally {
             result.close();
         }

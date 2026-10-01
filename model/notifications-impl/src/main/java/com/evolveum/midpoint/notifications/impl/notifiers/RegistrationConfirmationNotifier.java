@@ -11,7 +11,6 @@ import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.notifications.api.EventProcessingContext;
 import com.evolveum.midpoint.notifications.api.events.ModelEvent;
-import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.schema.config.ConfigurationItem;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -83,25 +82,12 @@ public class RegistrationConfirmationNotifier extends ConfirmationNotifier<Regis
             EventProcessingContext<? extends ModelEvent> ctx,
             OperationResult result) {
 
-      UserType userType = getUser(ctx.event());
-
-        String plainTextPassword = "IhopeYouRememberYourPassword";
-        try {
-            plainTextPassword = getMidpointFunctions().getPlaintextUserPassword(userType);
-        } catch (EncryptionException e) {
-            //ignore...????
-        }
+        UserType userType = getUser(ctx.event());
 
         return "Dear " + userType.getGivenName() + ",\n"
                 + "your account was successfully created. To activate your account click on the following confirmation link. "
                 + "\n"
-                + createConfirmationLink(userType, configuration, result)
-                + "\n\n"
-                + "After your account is activated, use following credentials to log in: \n"
-                + "username: "
-                + userType.getName().getOrig()
-                + "password: "
-                + plainTextPassword;
+                + createConfirmationLink(userType, configuration, result);
     }
 
     @Override

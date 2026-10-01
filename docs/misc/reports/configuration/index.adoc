@@ -36,7 +36,6 @@ Only one can be defined at the same time.
 Supported formats are CSV, HTML and XLSX.
 Default format for the dashboard-based reports is HTML and for object collection based reports is CSV.
 XLSX output writes all values as text cells, so spreadsheet applications do not interpret them as formulas.
-XLSX is currently supported for classic (single-task) report export only, not for distributed report export.
 
 The table below lists all configuration attributes of a report object:
 

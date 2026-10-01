@@ -6,6 +6,8 @@
 
 package com.evolveum.midpoint.notifications.impl.events;
 
+import com.evolveum.midpoint.prism.Safe;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.notifications.api.events.ActivityEvent;
@@ -38,21 +40,25 @@ public class ActivityEventImpl extends BaseEventImpl implements ActivityEvent {
     }
 
     @Override
+    @Safe
     public boolean isStatusType(EventStatusType eventStatus) {
         return false; // This kind of filtering is currently not supported here.
     }
 
     @Override
+    @Safe
     public boolean isOperationType(EventOperationType eventOperation) {
         return false; // This kind of filtering is currently not supported here.
     }
 
     @Override
+    @Safe
     public boolean isCategoryType(EventCategoryType eventCategory) {
         return eventCategory == EventCategoryType.ACTIVITY_EVENT;
     }
 
     @Override
+    @Safe
     public String debugDump(int indent) {
         StringBuilder sb = DebugUtil.createTitleStringBuilderLn(this.getClass(), indent);
         debugDumpCommon(sb, indent);

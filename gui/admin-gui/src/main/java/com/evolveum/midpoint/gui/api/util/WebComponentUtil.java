@@ -712,6 +712,13 @@ public final class WebComponentUtil {
         if (actions == null || actions.isEmpty()) {
             return true;
         }
+
+        var security = MidPointApplication.get().getSecurityEnforcer();
+
+        if (actions.stream().anyMatch(security::isAuthorizationDenied)) {
+            return false;
+        }
+
         Roles roles = new Roles(AuthorizationConstants.AUTZ_ALL_URL);
         roles.add(AuthorizationConstants.AUTZ_GUI_ALL_URL);
         roles.addAll(actions);
@@ -779,21 +786,21 @@ public final class WebComponentUtil {
         return (int) l.longValue();
     }
 
-    public static List<QName> createSupportedTargetTypeList(QName targetTypeFromDef) {
+    public static List<QName> createSupportedTargetTypeList(QName targetTypeFromDef, ModelServiceLocator modelServiceLocator) {
         if (targetTypeFromDef == null || ObjectType.COMPLEX_TYPE.equals(targetTypeFromDef)) {
-            return ObjectTypeListUtil.createObjectTypeList();
+            return ObjectTypeListUtil.createObjectTypeList(modelServiceLocator);
         }
 
         if (AbstractRoleType.COMPLEX_TYPE.equals(targetTypeFromDef)) {
-            return ObjectTypeListUtil.createAbstractRoleTypeList();
+            return ObjectTypeListUtil.createAbstractRoleTypeList(modelServiceLocator);
         }
 
         if (FocusType.COMPLEX_TYPE.equals(targetTypeFromDef)) {
-            return ObjectTypeListUtil.createFocusTypeList();
+            return ObjectTypeListUtil.createFocusTypeList(modelServiceLocator);
         }
 
         if (AssignmentHolderType.COMPLEX_TYPE.equals(targetTypeFromDef)) {
-            return ObjectTypeListUtil.createAssignmentHolderTypeQnamesList();
+            return ObjectTypeListUtil.createAssignmentHolderTypeQnamesList(modelServiceLocator);
         }
 
         return Collections.singletonList(targetTypeFromDef);
@@ -807,20 +814,21 @@ public final class WebComponentUtil {
      * <p>
      * TODO: move to schema component
      */
-    public static <O extends ObjectType> List<QName> resolveObjectTypesToQNames(Collection<Class<? extends O>> types, PrismContext prismContext) {
+    public static <O extends ObjectType> List<QName> resolveObjectTypesToQNames(
+            Collection<Class<? extends O>> types, ModelServiceLocator modelServiceLocator) {
         if (types == null) {
             return null;
         }
         List<QName> concreteTypes = new ArrayList<>(types.size());
         for (Class<? extends O> type : types) {
             if (type == null || type.equals(ObjectType.class)) {
-                MiscUtil.addAllIfNotPresent(concreteTypes, ObjectTypeListUtil.createObjectTypeList());
+                MiscUtil.addAllIfNotPresent(concreteTypes, ObjectTypeListUtil.createObjectTypeList(modelServiceLocator));
             } else if (type.equals(FocusType.class)) {
-                MiscUtil.addAllIfNotPresent(concreteTypes, ObjectTypeListUtil.createFocusTypeList());
+                MiscUtil.addAllIfNotPresent(concreteTypes, ObjectTypeListUtil.createFocusTypeList(modelServiceLocator));
             } else if (type.equals(AbstractRoleType.class)) {
-                MiscUtil.addAllIfNotPresent(concreteTypes, ObjectTypeListUtil.createAbstractRoleTypeList());
+                MiscUtil.addAllIfNotPresent(concreteTypes, ObjectTypeListUtil.createAbstractRoleTypeList(modelServiceLocator));
             } else {
-                MiscUtil.addIfNotPresent(concreteTypes, classToQName(prismContext, type));
+                MiscUtil.addIfNotPresent(concreteTypes, classToQName(modelServiceLocator.getPrismContext(), type));
             }
         }
         return concreteTypes;
@@ -2310,7 +2318,7 @@ public final class WebComponentUtil {
                 sb.append("; ");
             }
             if (referenceDef != null) {
-                List<QName> supportedTypes = createSupportedTargetTypeList(referenceDef.getTargetTypeName());
+                List<QName> supportedTypes = createSupportedTargetTypeList(referenceDef.getTargetTypeName(), pageBase);
                 if (supportedTypes != null && supportedTypes.size() > 1) {
                     sb.append(ref.getType().getLocalPart());
                 }
@@ -2534,7 +2542,7 @@ public final class WebComponentUtil {
             return builder.build();
         }
 
-        if (ProvisioningObjectsUtil.activationNotSupported(resource)) {
+        if (ProvisioningObjectsUtil.activationNotSupported(resource, shadow)) {
             appendNotSupportedActivation(title, isColumn, pageBase, builder);
             return builder.build();
         }

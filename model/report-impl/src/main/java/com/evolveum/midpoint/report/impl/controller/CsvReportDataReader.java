@@ -12,6 +12,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Predicate;
 
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
@@ -41,8 +42,8 @@ public class CsvReportDataReader implements ReportDataReader {
     }
 
     @Override
-    public @NotNull List<VariablesMap> read(@NotNull ReportDataType reportData, @NotNull List<String> viewHeaders)
-            throws IOException {
+    public void read(@NotNull ReportDataType reportData, @NotNull List<String> viewHeaders,
+            @NotNull Predicate<VariablesMap> rowHandler) throws IOException {
         List<String> headers = new ArrayList<>(viewHeaders);
         CSVFormat csvFormat = support.createCsvFormat();
         if (headers.isEmpty()) {
@@ -62,44 +63,57 @@ public class CsvReportDataReader implements ReportDataReader {
             csvFormat = csvFormat.withSkipHeaderRecord(false);
         }
 
-        List<VariablesMap> variablesMaps = new ArrayList<>();
         try (Reader reader = openReader(reportData);
                 CSVParser csvParser = new CSVParser(reader, csvFormat)) {
             if (headers.isEmpty()) {
                 headers = csvParser.getHeaderNames();
             }
             for (CSVRecord csvRecord : csvParser) {
-                VariablesMap variables = new VariablesMap();
-                for (String name : headers) {
-                    String value;
-                    if (support.isHeader()) {
-                        value = csvRecord.get(name);
-                    } else {
-                        value = csvRecord.get(headers.indexOf(name));
-                    }
-                    if (value != null && value.isEmpty()) {
-                        value = null;
-                    }
-                    if (value != null && value.contains(support.getMultivalueDelimiter())) {
-                        String[] realValues = value.split(support.getMultivalueDelimiter());
-                        variables.put(name, Arrays.asList(realValues), String.class);
-                    } else {
-                        variables.put(name, value, String.class);
-                    }
+                // passes the row to the caller (e.g. for import); false means the caller wants no more rows
+                if (!rowHandler.test(toVariables(csvRecord, headers))) {
+                    break;
                 }
-                variablesMaps.add(variables);
+            }
+        } catch (UncheckedIOException e) {
+            // the parser reports I/O and parsing errors as unchecked exceptions when iterating
+            throw e.getCause();
+        }
+    }
+
+    private VariablesMap toVariables(CSVRecord csvRecord, List<String> headers) {
+        VariablesMap variables = new VariablesMap();
+        for (String name : headers) {
+            String value;
+            if (support.isHeader()) {
+                value = csvRecord.get(name);
+            } else {
+                value = csvRecord.get(headers.indexOf(name));
+            }
+            if (value != null && value.isEmpty()) {
+                value = null;
+            }
+            if (value != null && value.contains(support.getMultivalueDelimiter())) {
+                String[] realValues = value.split(support.getMultivalueDelimiter());
+                variables.put(name, Arrays.asList(realValues), String.class);
+            } else {
+                variables.put(name, value, String.class);
             }
         }
-        return variablesMaps;
+        return variables;
     }
 
     private Reader openReader(ReportDataType reportData) throws IOException {
         InputStream in = new BufferedInputStream(Files.newInputStream(Paths.get(reportData.getFilePath())));
-        rejectZipContent(in, reportData);
-        BOMInputStream bomIn = BOMInputStream.builder()
-                .setInputStream(in)
-                .get();
-        return new InputStreamReader(bomIn, support.getEncoding());
+        try {
+            rejectZipContent(in, reportData);
+            BOMInputStream bomIn = BOMInputStream.builder()
+                    .setInputStream(in)
+                    .get();
+            return new InputStreamReader(bomIn, support.getEncoding());
+        } catch (IOException | RuntimeException e) {
+            in.close();
+            throw e;
+        }
     }
 
     /**

@@ -8,34 +8,46 @@ package com.evolveum.midpoint.web.page.admin.certification;
 
 import java.util.List;
 
-import com.evolveum.midpoint.gui.api.component.form.CheckBoxPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.certification.helpers.CertMiscUtil;
-import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettingsBuilder;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.web.component.prism.ItemVisibility;
-import com.evolveum.midpoint.web.component.util.EnableBehaviour;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.form.AjaxCheckBox;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
-import com.evolveum.midpoint.gui.api.component.form.TextArea;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.component.form.CheckBoxPanel;
+import com.evolveum.midpoint.gui.api.component.form.TextArea;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismReferenceWrapper;
+import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.impl.page.admin.certification.helpers.CertMiscUtil;
+import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettings;
+import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettingsBuilder;
+import com.evolveum.midpoint.gui.impl.prism.panel.PrismReferenceHeaderPanel;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.web.component.prism.ItemVisibility;
+import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.certification.dto.AccessCertificationReviewerDto;
 import com.evolveum.midpoint.web.page.admin.certification.dto.ManagerSearchDto;
 import com.evolveum.midpoint.web.page.admin.certification.dto.StageDefinitionDto;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseOutcomeStrategyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.VirtualContainerItemSpecificationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.VirtualContainersSpecificationType;
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 /**
  * Created by Kate Honchar.
@@ -49,7 +61,7 @@ public class DefinitionStagePanel extends BasePanel<StageDefinitionDto> {
     private static final String ID_NOTIFY_BEFORE_DEADLINE_HELP = "notifyBeforeDeadlineHelp";
     private static final String ID_NOTIFY_ONLY_WHEN_NO_DECISION = "notifyOnlyWhenNoDecision";
     private static final String ID_NOTIFY_WHEN_NO_DECISION_HELP = "notifyWhenNoDecisionHelp";
-    private static final String ID_REVIEWER_NAME= "reviewerName";
+    private static final String ID_REVIEWER_NAME = "reviewerName";
     private static final String ID_REVIEWER_DESCRIPTION = "reviewerDescription";
     private static final String ID_USE_TARGET_OWNER = "useTargetOwner";
     private static final String ID_USE_TARGET_APPROVER = "useTargetApprover";
@@ -58,18 +70,16 @@ public class DefinitionStagePanel extends BasePanel<StageDefinitionDto> {
     private static final String ID_USE_OBJECT_APPROVER = "useObjectApprover";
     private static final String ID_OBJECT_HELP = "reviewerSpecificationObjectHelp";
     private static final String ID_USE_OBJECT_MANAGER = "useObjectManager";
-    private static final String ID_USE_OBJECT_MANAGER_DETAILS= "useObjectManagerDetails";
+    private static final String ID_USE_OBJECT_MANAGER_DETAILS = "useObjectManagerDetails";
     private static final String ID_USE_OBJECT_MANAGER_HELP = "reviewerUseObjectManagerHelp";
     private static final String ID_USE_OBJECT_MANAGER_ORG_TYPE = "objectManagerOrgType";
     private static final String ID_USE_OBJECT_MANAGER_ORG_TYPE_HELP = "reviewerUseObjectManagerOrgTypeHelp";
     private static final String ID_USE_OBJECT_MANAGER_ALLOW_SELF = "useObjectManagerAllowSelf";
     private static final String ID_USE_OBJECT_MANAGER_ALLOW_SELF_HELP = "reviewerUseObjectManagerAllowSelfHelp";
-    private static final String ID_DEFAULT_REVIEWER_REF_CONTAINER = "defaultReviewerRefContainer";
+    private static final String ID_DEFAULT_REVIEWER_REF_HEADER = "defaultReviewerRefHeader";
     private static final String ID_DEFAULT_REVIEWER_REF = "defaultReviewerRef";
-    private static final String ID_DEFAULT_REVIEWER_REF_HELP = "defaultReviewerRefHelp";
-    private static final String ID_ADDITIONAL_REVIEWER_REF_CONTAINER = "additionalReviewerRefContainer";
+    private static final String ID_ADDITIONAL_REVIEWER_REF_HEADER = "additionalReviewerRefHeader";
     private static final String ID_ADDITIONAL_REVIEWER_REF = "additionalReviewerRef";
-    private static final String ID_ADDITIONAL_REVIEWER_REF_HELP = "additionalReviewerRefHelp";
     private static final String ID_APPROVAL_STRATEGY_CHECKBOX = "approvalStrategyCheckbox";
     private static final String ID_OUTCOME_STRATEGY = "outcomeStrategy";
     private static final String ID_OUTCOME_STRATEGY_HELP = "outcomeStrategyHelp";
@@ -168,16 +178,37 @@ public class DefinitionStagePanel extends BasePanel<StageDefinitionDto> {
 
 
         try {
-            ItemPanelSettingsBuilder builder = new ItemPanelSettingsBuilder().visibilityHandler(iw -> ItemVisibility.AUTO);
-            Panel defaultOwnerRefPanel = pageBase.initItemPanel(ID_DEFAULT_REVIEWER_REF, ObjectReferenceType.COMPLEX_TYPE,
-                    new PropertyModel<>(getModel(), StageDefinitionDto.F_REVIEWER_DTO + "." + AccessCertificationReviewerDto.F_DEFAULT_REVIEWERS), builder.build());
-            add(defaultOwnerRefPanel);
-            add(WebComponentUtil.createHelp(ID_DEFAULT_REVIEWER_REF_HELP));
+            AccessCertificationReviewerDto reviewerDto = getModelObject().getReviewerDto();
 
-            Panel additionalOwnerRefPanel = pageBase.initItemPanel(ID_ADDITIONAL_REVIEWER_REF, ObjectReferenceType.COMPLEX_TYPE,
-                    new PropertyModel<>(getModel(), StageDefinitionDto.F_REVIEWER_DTO + "." + AccessCertificationReviewerDto.F_ADDITIONAL_REVIEWERS), builder.build());
-            add(additionalOwnerRefPanel);
-            add(WebComponentUtil.createHelp(ID_ADDITIONAL_REVIEWER_REF_HELP));
+            ContainerPanelConfigurationType reviewerRefPanelConfiguration =
+                    new ContainerPanelConfigurationType()
+                            .container(new VirtualContainersSpecificationType()
+                                    .item(createReviewerRefItemConfiguration(
+                                            reviewerDto.getDefaultReviewers().getPath(),
+                                            "StageDefinitionPanel.defaultReviewerRef",
+                                            "StageDefinitionPanel.defaultReviewerRefHelp"))
+                                    .item(createReviewerRefItemConfiguration(
+                                            reviewerDto.getAdditionalReviewers().getPath(),
+                                            "StageDefinitionPanel.additionalReviewerRef",
+                                            "StageDefinitionPanel.additionalReviewerRefHelp")));
+
+            ItemPanelSettings settings = new ItemPanelSettingsBuilder().visibilityHandler(iw -> ItemVisibility.AUTO).headerVisibility(false)
+                    .displayedInColumn(true).panelConfiguration(reviewerRefPanelConfiguration).build();
+
+            IModel<PrismReferenceWrapper<ObjectReferenceType>> defaultReviewerModel =
+                    new PropertyModel<>(getModel(), StageDefinitionDto.F_REVIEWER_DTO + "." + AccessCertificationReviewerDto.F_DEFAULT_REVIEWERS);
+
+            Panel defaultReviewerRefPanel = pageBase.initItemPanel(ID_DEFAULT_REVIEWER_REF,
+                    ObjectReferenceType.COMPLEX_TYPE, defaultReviewerModel, settings);
+            add(defaultReviewerRefPanel);
+            add(createReviewerRefHeader(ID_DEFAULT_REVIEWER_REF_HEADER, defaultReviewerModel, settings, defaultReviewerRefPanel));
+            IModel<PrismReferenceWrapper<ObjectReferenceType>> additionalReviewerModel =
+                    new PropertyModel<>(getModel(), StageDefinitionDto.F_REVIEWER_DTO + "." + AccessCertificationReviewerDto.F_ADDITIONAL_REVIEWERS);
+
+            Panel additionalReviewerRefPanel = pageBase.initItemPanel(ID_ADDITIONAL_REVIEWER_REF,
+                    ObjectReferenceType.COMPLEX_TYPE, additionalReviewerModel, settings);
+            add(additionalReviewerRefPanel);
+            add(createReviewerRefHeader(ID_ADDITIONAL_REVIEWER_REF_HEADER, additionalReviewerModel, settings, additionalReviewerRefPanel));
         } catch (SchemaException e) {
 
         }
@@ -210,6 +241,34 @@ public class DefinitionStagePanel extends BasePanel<StageDefinitionDto> {
         add(WebComponentUtil.createHelp(ID_STOP_REVIEW_ON_HELP));
     }
 
+    private PrismReferenceHeaderPanel<ObjectReferenceType> createReviewerRefHeader(String id,
+            IModel<PrismReferenceWrapper<ObjectReferenceType>> reviewerModel,
+            ItemPanelSettings settings, Component reviewerPanel) {
+
+        return new PrismReferenceHeaderPanel<>(id, reviewerModel, settings) {
+
+            @Override
+            protected Component createTitle(IModel<String> label) {
+                return super.createTitle(label)
+                        .add(AttributeAppender.append("class", "text-reset"));
+            }
+
+            @Override
+            protected void refreshPanel(AjaxRequestTarget target) {
+                target.add(reviewerPanel);
+            }
+        };
+    }
+
+    private VirtualContainerItemSpecificationType createReviewerRefItemConfiguration(ItemPath itemPath,
+            String labelKey, String tooltipKey) {
+
+        return new VirtualContainerItemSpecificationType()
+                .path(new ItemPathType(itemPath.namedSegmentsOnly()))
+                .display(new DisplayType()
+                        .label(GuiDisplayTypeUtil.createPolyStringType(labelKey))
+                        .tooltip(GuiDisplayTypeUtil.createPolyStringType(tooltipKey)));
+    }
 
 //    private static class NoOffsetPrismReferencePanel extends PrismPropertyPanel<ReferenceWrapper> {
 //        public NoOffsetPrismReferencePanel(String id, IModel<ReferenceWrapper> propertyModel, Form form) {

@@ -6,6 +6,8 @@
 
 package com.evolveum.midpoint.notifications.impl.events;
 
+import com.evolveum.midpoint.prism.Safe;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -33,6 +35,7 @@ public class WorkItemLifecycleEventImpl extends WorkItemEventImpl implements Wor
     }
 
     @Override
+    @Safe
     public boolean isCategoryType(EventCategoryType eventCategory) {
         return eventCategory == EventCategoryType.WORK_ITEM_LIFECYCLE_EVENT
                 || eventCategory == EventCategoryType.WORK_ITEM_EVENT

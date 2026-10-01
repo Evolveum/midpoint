@@ -118,10 +118,10 @@ public class ObjectTypeStatisticsComputationActivityRun
         return true;
     }
 
-    private @Nullable String findLatestStatisticsObjectOid(OperationResult result) throws SchemaException {
+    private @Nullable String findLatestStatisticsObjectOid(OperationResult result) throws CommonException {
 
         var lastStatisticsObject = SmartIntegrationBeans.get().smartIntegrationService.getLatestObjectTypeStatistics(
-                getResourceOid(), getTypeIdentification(), result);
+                getResourceOid(), getTypeIdentification(), getRunningTask(), result);
         return lastStatisticsObject != null ? lastStatisticsObject.getOid() : null;
     }
 

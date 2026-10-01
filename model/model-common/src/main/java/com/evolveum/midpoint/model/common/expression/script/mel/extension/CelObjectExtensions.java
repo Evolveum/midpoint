@@ -16,6 +16,7 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ShadowSimpleAttribute;
 import com.evolveum.midpoint.schema.util.FocusTypeUtil;
@@ -952,7 +953,7 @@ public class CelObjectExtensions extends AbstractMidPointCelExtensions {
 
         @Override
         public String name() {
-            return "object";
+            return MidPointConstants.MEL_EXTENSION_OBJECT_NAME;
         }
 
         @Override

@@ -130,14 +130,7 @@ public class LinkedReferencePanel<R extends Referencable> extends BasePanel<R> {
                 DetailsPageUtil.dispatchToObjectDetailsPage(referenceModel.getObject(), LinkedReferencePanel.this, false);
             }
         };
-        nameLink.add(new EnableBehaviour(() -> {
-            PrismReferenceValue ref = referenceModel.getObject();
-            if (ref == null) {
-                return false;
-            }
-
-            return ref.getObject() != null;
-        }));
+        nameLink.add(new EnableBehaviour(this::isNavigationEnabled));
         nameLink.add(AttributeAppender.append("aria-label",
                 getLinkTextAriaLabelModel(displayModel.getObject(), nameLinkTextModel.getObject())));
         add(nameLink);
@@ -145,6 +138,21 @@ public class LinkedReferencePanel<R extends Referencable> extends BasePanel<R> {
         Label nameLinkText = new Label(ID_NAME_TEXT, nameLinkTextModel);
         nameLinkText.setRenderBodyOnly(true);
         nameLink.add(nameLinkText);
+    }
+
+    /**
+     * The link is enabled only if the referenced object was resolved and the user is authorized
+     * to open its details page.
+     */
+    private boolean isNavigationEnabled() {
+        PrismReferenceValue ref = referenceModel.getObject();
+        if (ref == null || ref.getObject() == null) {
+            return false;
+        }
+
+        Class<?> objectClass = ref.getObject().getCompileTimeClass();
+        return objectClass != null && ObjectType.class.isAssignableFrom(objectClass)
+                && WebComponentUtil.isAuthorized((Class<? extends ObjectType>) objectClass);
     }
 
     public AjaxLink getLinkPanel() {

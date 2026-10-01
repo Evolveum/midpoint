@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass;
 
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -20,6 +21,7 @@ import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.impl.component.data.provider.BaseSortableDataProvider;
 import com.evolveum.midpoint.gui.impl.component.data.provider.MultivalueContainerListDataProvider;
 import com.evolveum.midpoint.gui.impl.component.tile.TemplateTile;
 import com.evolveum.midpoint.gui.impl.component.tile.TileTablePanel;
@@ -33,6 +35,7 @@ import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.smart.api.conndev.ConnectorDevelopmentArtifacts;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
@@ -63,6 +66,8 @@ public class ObjectClassesConnectorStepPanel extends AbstractWizardStepPanel<Con
     private static final String ID_TABLE = "table";
 
     private IModel<List<PrismContainerValueWrapper<ConnDevObjectClassInfoType>>> objectClassesModel;
+
+    private TileTablePanel<TemplateTile<PrismContainerValueWrapper<ConnDevObjectClassInfoType>>, PrismContainerValueWrapper<ConnDevObjectClassInfoType>> table;
 
     public ObjectClassesConnectorStepPanel(WizardPanelHelper<? extends Containerable, ConnectorDevelopmentDetailsModel> helper) {
         super(helper);
@@ -112,8 +117,7 @@ public class ObjectClassesConnectorStepPanel extends AbstractWizardStepPanel<Con
         addObjectClassButton.setOutputMarkupId(true);
         add(addObjectClassButton);
 
-        TileTablePanel<TemplateTile<PrismContainerValueWrapper<ConnDevObjectClassInfoType>>, PrismContainerValueWrapper<ConnDevObjectClassInfoType>> table
-                = new TileTablePanel<>(ID_TABLE) {
+        table = new TileTablePanel<>(ID_TABLE) {
             @Override
             protected ISortableDataProvider createProvider() {
                 return new MultivalueContainerListDataProvider<>(
@@ -155,6 +159,52 @@ public class ObjectClassesConnectorStepPanel extends AbstractWizardStepPanel<Con
                             target.add(getFeedback());
                         }
                         target.add(ObjectClassesConnectorStepPanel.this);
+                    }
+
+                    @Override
+                    protected void clearCapabilitiesPerformed(
+                            List<ConnectorDevelopmentArtifacts.KnownArtifactType> selected, AjaxRequestTarget target) {
+                        String objectClassName = model.getObject().getValue().getRealValue().getName();
+                        PrismContainerValueWrapper<ConnDevObjectClassInfoType> objectClassValue =
+                                ConnectorDevelopmentWizardUtil.getObjectClassValueWrapper(getDetailsModel(), objectClassName);
+                        if (objectClassValue == null) {
+                            return;
+                        }
+
+                        List<ConnectorDevelopmentArtifacts.KnownArtifactType> remaining =
+                                new ArrayList<>(ConnectorObjectClassTilePanel.getAvailableCapabilities(objectClassValue));
+                        remaining.removeAll(selected);
+
+                        if (remaining.isEmpty()) {
+                            try {
+                                objectClassValue.getParent().remove(objectClassValue, getDetailsModel().getPageAssignmentHolder());
+                            } catch (SchemaException e) {
+                                throw new RuntimeException(e);
+                            }
+                        } else {
+                            for (ConnectorDevelopmentArtifacts.KnownArtifactType type : selected) {
+                                PrismContainerValueWrapper<ConnDevArtifactType> scriptValue =
+                                        ConnectorDevelopmentWizardUtil.getScript(getDetailsModel(), type, objectClassName);
+                                if (scriptValue == null) {
+                                    continue;
+                                }
+                                try {
+                                    scriptValue.getParent().remove(scriptValue, getDetailsModel().getPageAssignmentHolder());
+                                } catch (SchemaException e) {
+                                    throw new RuntimeException(e);
+                                }
+                            }
+                        }
+
+                        OperationResult result = getHelper().onSaveObjectPerformed(target);
+                        getDetailsModel().getConnectorDevelopmentOperation();
+                        if (result == null || result.isError()) {
+                            target.add(getFeedback());
+                        }
+
+                        ((BaseSortableDataProvider<?>) table.getProvider()).clearCache();
+                        table.getTilesModel().detach();
+                        table.refresh(target);
                     }
 
                     @Override
@@ -216,11 +266,12 @@ public class ObjectClassesConnectorStepPanel extends AbstractWizardStepPanel<Con
         Map<String, List<ItemName>> itemNames = new LinkedHashMap<>();
         itemNames.put("ObjectClassesConnectorStepPanel.schema",
                 List.of(ConnDevObjectClassInfoType.F_NATIVE_SCHEMA_SCRIPT));
-        itemNames.put("ObjectClassesConnectorStepPanel.search",
-                List.of(
-                        ConnDevObjectClassInfoType.F_SEARCH_ALL_OPERATION,
-                        ConnDevObjectClassInfoType.F_SEARCH_ID_OPERATION,
-                        ConnDevObjectClassInfoType.F_SEARCH_FILTER_OPERATION));
+        itemNames.put("ObjectClassesConnectorStepPanel.searchAll",
+                List.of(ConnDevObjectClassInfoType.F_SEARCH_ALL_OPERATION));
+        itemNames.put("ObjectClassesConnectorStepPanel.get",
+                List.of(ConnDevObjectClassInfoType.F_SEARCH_ID_OPERATION));
+        itemNames.put("ObjectClassesConnectorStepPanel.searchFilter",
+                List.of(ConnDevObjectClassInfoType.F_SEARCH_FILTER_OPERATION));
         itemNames.put("ObjectClassesConnectorStepPanel.create", List.of(ConnDevObjectClassInfoType.F_CREATE_SCRIPT));
         itemNames.put("ObjectClassesConnectorStepPanel.update", List.of(ConnDevObjectClassInfoType.F_UPDATE_SCRIPT));
         itemNames.put("ObjectClassesConnectorStepPanel.delete", List.of(ConnDevObjectClassInfoType.F_DELETE_SCRIPT));

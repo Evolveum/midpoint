@@ -787,8 +787,8 @@ public class ProvisioningObjectsUtil {
         return WebModelServiceUtils.resolveReferenceNoFetch(resourceRef, pageBase, task, result);
     }
 
-    public static boolean activationNotSupported(ResourceType resource) {
-        return resource != null && !ResourceTypeUtil.isActivationCapabilityEnabled(resource, null);
+    public static boolean activationNotSupported(ResourceType resource, ShadowType shadow) {
+        return resource != null && !isActivationSupported(shadow, Model.of(resource));
     }
 
     public static ResourceType resolveResource(ShadowType shadowType, boolean isColumn, PageBase pageBase) {

@@ -3576,6 +3576,64 @@ public class TestSecurityBasic extends AbstractInitializedSecurityTest {
         assertSearch(RoleType.class, alexRolesQuery, 0);
     }
 
+    /** Items in the inner filter of `referencedBy` must be authorized against the referencing type. MID-9670 */
+    @Test
+    public void test321AutzReferencedByInnerFilterItems() throws Exception {
+        given();
+        cleanupAutzTest(USER_JACK_OID);
+        assignRole(USER_JACK_OID, ROLE_SEARCH_NESTED_FILTER_ITEMS.oid);
+        login(USER_JACK_USERNAME);
+
+        when("searching for roles referenced by a user selected using an allowed item");
+        var allowedQuery = queryFor(RoleType.class)
+                .referencedBy(UserType.class, UserType.F_ASSIGNMENT.append(AssignmentType.F_TARGET_REF))
+                .item(UserType.F_NAME).eq("alex")
+                .build();
+
+        then("alex's assigned role is found");
+        assertSearch(RoleType.class, allowedQuery, ROLE_BASIC.oid);
+
+        when("searching for roles referenced by a user selected using a denied item");
+        var deniedQuery = queryFor(RoleType.class)
+                .referencedBy(UserType.class, UserType.F_ASSIGNMENT.append(AssignmentType.F_TARGET_REF))
+                .item(UserType.F_LOCALITY).isNull()
+                .build();
+
+        then("the unauthorized inner item prevents any results");
+        assertSearch(RoleType.class, deniedQuery, 0);
+    }
+
+    /** Items in the inner filter of `ownedBy` must be authorized against the owner type. MID-9670 */
+    @Test
+    public void test322AutzOwnedByInnerFilterItems() throws Exception {
+        given();
+        cleanupAutzTest(USER_JACK_OID);
+        assignRole(USER_JACK_OID, ROLE_SEARCH_NESTED_FILTER_ITEMS.oid);
+        login(USER_JACK_USERNAME);
+
+        when("searching for assignments owned by a user selected using an allowed item");
+        var allowedQuery = queryFor(AssignmentType.class)
+                .ownedBy(UserType.class, UserType.F_ASSIGNMENT)
+                .item(UserType.F_NAME).eq("alex")
+                .build();
+
+        then("alex's assignment is found");
+        var assignments = assertContainerSearch(AssignmentType.class, allowedQuery, 1);
+        assertThat(assignments)
+                .singleElement()
+                .extracting(assignment -> assignment.getTargetRef().getOid())
+                .isEqualTo(ROLE_BASIC.oid);
+
+        when("searching for assignments owned by a user selected using a denied item");
+        var deniedQuery = queryFor(AssignmentType.class)
+                .ownedBy(UserType.class, UserType.F_ASSIGNMENT)
+                .item(UserType.F_LOCALITY).isNull()
+                .build();
+
+        then("the unauthorized inner owner item prevents any results");
+        assertContainerSearch(AssignmentType.class, deniedQuery, 0);
+    }
+
     private ObjectQuery createRolesOfTeammateQuery(String userOid) {
         return queryFor(RoleType.class)
                 .referencedBy(UserType.class, UserType.F_ASSIGNMENT.append(AssignmentType.F_TARGET_REF))

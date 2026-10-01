@@ -13,6 +13,20 @@
         <targetRef oid="00000000-0000-0000-0000-000000000700" type="ArchetypeType"/>
     </assignment>
     <displayOrder>120</displayOrder>
+    <display>
+        <label>
+            <orig>Focus renamed</orig>
+            <translation>
+                <key>FocusRenamedMark.label</key>
+            </translation>
+        </label>
+        <help>
+            <orig>Number of focus objects whose name changed.</orig>
+            <translation>
+                <key>FocusRenamedMark.help</key>
+            </translation>
+        </help>
+    </display>
     <policyRule id="2">
         <name>focus-renamed</name>
         <policyConstraints>

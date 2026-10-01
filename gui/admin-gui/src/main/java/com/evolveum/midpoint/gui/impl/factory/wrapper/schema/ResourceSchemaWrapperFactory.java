@@ -12,12 +12,15 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.schema.util.PrismSchemaTypeUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.XmlSchemaType;
 import com.evolveum.midpoint.xml.ns._public.prism_schema_3.PrismSchemaType;
+import com.evolveum.prism.xml.ns._public.types_3.SchemaDefinitionType;
 
 import org.springframework.stereotype.Component;
 
@@ -51,5 +54,15 @@ public class ResourceSchemaWrapperFactory
         setReadOnlyRecursively(wrapper);
         wrapper.setReadOnly(true);
         return wrapper;
+    }
+
+    /**
+     * Lifecycle state of the owner (e.g. resource) describes the lifecycle of the object itself,
+     * not of the schema definitions
+     */
+    @Override
+    protected PrismSchemaType createPrismSchemaBean(
+            PrismContainerValueWrapper<?> parent, PrismProperty<SchemaDefinitionType> schema) throws SchemaException {
+        return PrismSchemaTypeUtil.convertToPrismSchemaType(schema.getRealValue());
     }
 }

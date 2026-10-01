@@ -6,8 +6,9 @@
 
 package com.evolveum.midpoint.report;
 
-import static com.evolveum.midpoint.common.MimeTypeUtil.MIME_APPLICATION_VND_MSEXCEL_2007;
 import static org.assertj.core.api.Assertions.assertThat;
+
+import static com.evolveum.midpoint.common.MimeTypeUtil.MIME_APPLICATION_VND_MSEXCEL_2007;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -34,8 +35,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  * Tests XLSX export for classic report tasks.
  *
  * Verifies that object collection and dashboard reports are exported as valid XLSX workbooks,
- * that XLSX notifications use the correct content type, and that unsupported
- * distributed XLSX export is rejected without creating report data.
+ * that XLSX notifications use the correct content type.
  */
 @ContextConfiguration(locations = { "classpath:ctx-report-test-main.xml" })
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
@@ -190,7 +190,7 @@ public class TestXlsxReportExportClassic extends EmptyReportIntegrationTest {
     }
 
     @Test
-    public void test200RejectDistributedExport() throws Exception {
+    public void test200DistributedExport() throws Exception {
         given();
 
         Task task = getTestTask();
@@ -215,13 +215,31 @@ public class TestXlsxReportExportClassic extends EmptyReportIntegrationTest {
                 TASK_DISTRIBUTED_EXPORT);
 
         when();
-        rerunTaskErrorsOk(TASK_DISTRIBUTED_EXPORT.oid, result);
+        rerunTask(TASK_DISTRIBUTED_EXPORT.oid, result);
+        waitForTaskCloseOrSuspend(TASK_DISTRIBUTED_EXPORT.oid);
 
         then();
         assertTask(TASK_DISTRIBUTED_EXPORT.oid, "after")
-                .assertFatalError()
-                .display();
+                .assertSuccess()
+                .display()
+                .assertHasArchetype(SystemObjectsType.ARCHETYPE_REPORT_EXPORT_DISTRIBUTED_TASK.value());
+
+        PrismObject<TaskType> reportTask = getObject(TaskType.class, TASK_DISTRIBUTED_EXPORT.oid);
+        File outputFile = findReportOutputFile(reportTask, result);
+        assertThat(outputFile).as("aggregated report output file").isNotNull();
+        assertThat(outputFile.getName()).endsWith(".xlsx");
+
+        try (var inputStream = new FileInputStream(outputFile); var workbook = new XSSFWorkbook(inputStream)) {
+            assertThat(workbook.getNumberOfSheets()).isEqualTo(1);
+            Sheet sheet = workbook.getSheetAt(0);
+            // header + administrator, jack, will + subscription footer
+            assertThat(sheet.getPhysicalNumberOfRows()).isEqualTo(5);
+            assertThat(cellValues(sheet)).contains("jack", "will", "administrator");
+            assertThat(sheet.getRow(0).getCell(0).getStringCellValue()).isEqualTo("Name");
+        }
+
+        // only the aggregated object remains; partial ones were consumed
         assertThat(repositoryService.countObjects(ReportDataType.class, null, null, result))
-                .isEqualTo(reportDataCountBefore);
+                .isEqualTo(reportDataCountBefore + 1);
     }
 }

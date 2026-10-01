@@ -56,7 +56,7 @@ public abstract class SmartAssociationTilePanel
     private static final String ID_LIFECYCLE_STATE = "lifecycleState";
     private static final String ID_DETAILS_PANEL = "detailsPanel";
 
-    private static final String ID_ACCEPT = "accept";
+    private static final String ID_REVIEW = "review";
     private static final String ID_DISMISS = "dismiss";
     private static final String ID_EDIT = "edit";
     private static final String ID_DETAILS = "details";
@@ -211,16 +211,16 @@ public abstract class SmartAssociationTilePanel
     }
 
     private void initSuggestionButtons(@NotNull WebMarkupContainer tile) {
-        AjaxIconButton accept = new AjaxIconButton(ID_ACCEPT, () -> "fa fa-check",
-                createStringResource("SmartAssociationTilePanel.accept")) {
+        AjaxIconButton review = new AjaxIconButton(ID_REVIEW, () -> "fa fa-search",
+                createStringResource("SmartAssociationTilePanel.review")) {
             @Override
             public void onClick(@NotNull AjaxRequestTarget target) {
-                performAcceptAction(target, SmartAssociationTilePanel.this.getModelObject().getValue());
+                performReviewAction(target, SmartAssociationTilePanel.this.getModelObject().getValue());
             }
         };
 
-        initSuggestionButtonCommon(accept);
-        tile.add(accept);
+        initSuggestionButtonCommon(review);
+        tile.add(review);
 
         AjaxIconButton dismiss = new AjaxIconButton(ID_DISMISS, () -> "fa fa-times",
                 createStringResource("SmartAssociationTilePanel.dismiss")) {
@@ -288,7 +288,7 @@ public abstract class SmartAssociationTilePanel
         }
     }
 
-    protected abstract void performAcceptAction(@NotNull AjaxRequestTarget target, PrismContainerValueWrapper<ShadowAssociationTypeDefinitionType> value);
+    protected abstract void performReviewAction(@NotNull AjaxRequestTarget target, PrismContainerValueWrapper<ShadowAssociationTypeDefinitionType> value);
 
     protected abstract void performDismissAction(@NotNull AjaxRequestTarget target, PrismContainerValueWrapper<ShadowAssociationTypeDefinitionType> value);
 

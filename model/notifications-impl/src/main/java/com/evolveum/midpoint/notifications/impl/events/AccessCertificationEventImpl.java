@@ -10,6 +10,8 @@ import static com.evolveum.midpoint.util.MiscUtil.or0;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType.IN_REVIEW_STAGE;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType.REVIEW_STAGE_DONE;
 
+import com.evolveum.midpoint.prism.Safe;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.notifications.api.events.AccessCertificationEvent;
@@ -35,35 +37,42 @@ public abstract class AccessCertificationEventImpl extends BaseEventImpl impleme
 
     @Override
     @NotNull
+    @Safe
     public AccessCertificationCampaignType getCampaign() {
         return campaign;
     }
 
     @Override
+    @Safe
     public boolean isStatusType(EventStatusType eventStatus) {
         return false;
     }
 
     @Override
+    @Safe
     public boolean isOperationType(EventOperationType eventOperation) {
         return this.operationType.equals(eventOperation);
     }
 
     @Override
+    @Safe
     public boolean isCategoryType(EventCategoryType eventCategory) {
         return EventCategoryType.ACCESS_CERTIFICATION_EVENT.equals(eventCategory);
     }
 
     @NotNull
+    @Safe
     public OperationResultStatus getStatus() {
         return status;
     }
 
     @NotNull
+    @Safe
     public EventOperationType getOperationType() {
         return operationType;
     }
 
+    @Safe
     public AccessCertificationStageDefinitionType getCurrentStageDefinition() {
         if (campaign.getState() != IN_REVIEW_STAGE && campaign.getState() != REVIEW_STAGE_DONE) {
             return null;

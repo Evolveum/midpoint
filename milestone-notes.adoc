@@ -9,6 +9,58 @@ This page contains the upgrade instructions and incompatibility changes that cou
 The upgrade instructions between releases are in the https://docs.evolveum.com/midpoint/release/[release notes].
 
 == 4.11-RC2
+
+=== 2026-09-25 Smart Integration: common "c:" namespace prefix removed from service requests
+
+Task: https://support.evolveum.com/wp/12098[12098]
+Description:
+
+Item paths and type names sent to the Smart Integration microservice no longer contain the common midPoint (`c:`) namespace prefix.
+For example, `c:attributes/ri:login` is now sent as `attributes/ri:login`, and `c:UserType` as `UserType`.
+Other prefixes (`ri:`, `icfs:`, extension ones) are kept.
+This applies to schema attribute names, schema type names, and attribute/attribute-tuple references in the statistics.
+Statistics stored in midPoint keep fully-qualified paths; only the copy sent to the service is simplified.
+
+`SiObjectSchemaType/name` in `common-smart-integration-3.xsd` changed its type from `xsd:QName` to `xsd:string`.
+
+Required Upgrade Steps:
+
+- Use a Smart Integration microservice version that accepts item paths without the `c:` prefix.
+- If you have custom tooling or prompts that parse the service requests, adapt them to the new path format.
+
+Notes & References:
+
+* Related commits: https://github.com/Evolveum/midpoint/commit/e7b95080a87c06110a8c47491b27a84598af8d73[e7b95080]
+* Docs: xref:/midpoint/reference/smart-integrations/service-item-paths/[Item Paths and Type Names in Smart Integration Service Requests]
+
+=== 2026-09-24 Safe Velocity mode introduced
+
+Task: https://support.evolveum.com/wp/12389[12389]
+Description:
+
+As part of providing safe execution mode for midPoint, where expressions and scripts can be safely entered by untrusted users, we are introducing `#safe-velocity` scripting language.
+It is based on existing `#velocity` language, with some restrictions.
+The existing `#velocity` scripts should not be affected.
+
+However, because of limitations of the Velocity engine (in particular that it requires the configuration to be global) we had to limit the execution of regular scripts in minor ways:
+
+. `#parse` and `#include` directives are forbidden
+. inline definition of Velocity macros is disabled
+
+If you need these features, please set `legacyVelocityEngine` to `true` in the `config.xml`.
+The drawback is that you won't be able to use new `#safe-velocity` language.
+
+Required Upgrade Steps:
+
+- Check if you need above-mentioned features; if yes, set `legacyVelocityEngine` to `true` or migrate your templates.
+- It is recommended to gradually migrate all your scripts to `#safe-velocity` language, and then disable the full (unsafe) `#velocity` language completely.
+It is done by setting `safeVelocityExpressionsOnly` to `true` in `config.xml`.
+
+Notes & References:
+
+* Related commits: <this one>
+* Docs: regular documentation and migration guide will be provided soon
+
 == 4.11-RC1
 
 === 2026-09-20 Expression profiles are now fully enforced

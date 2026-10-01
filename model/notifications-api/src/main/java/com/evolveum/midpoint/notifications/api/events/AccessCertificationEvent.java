@@ -6,6 +6,7 @@
 
 package com.evolveum.midpoint.notifications.api.events;
 
+import com.evolveum.midpoint.prism.Safe;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationStageDefinitionType;
@@ -25,22 +26,26 @@ public interface AccessCertificationEvent extends Event {
      *
      * In special cases there can be MODIFY e.g. meaning "stage deadline approaching".
      */
+    @Safe
     EventOperationType getOperationType();
 
     /**
      * Status of the operation.
      * (Currently always SUCCESS.)
      */
+    @Safe
     OperationResultStatus getStatus();
 
     /**
      * Related certification campaign.
      */
+    @Safe
     @NotNull AccessCertificationCampaignType getCampaign();
 
     /**
      * Name of the related certification campaign.
      */
+    @Safe
     default String getCampaignName() {
         return getCampaign().getName().getOrig();
     }
@@ -48,5 +53,6 @@ public interface AccessCertificationEvent extends Event {
     /**
      * Definition of the current stage.
      */
+    @Safe
     AccessCertificationStageDefinitionType getCurrentStageDefinition();
 }

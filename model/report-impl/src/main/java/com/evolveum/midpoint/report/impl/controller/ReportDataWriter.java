@@ -24,12 +24,12 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.FileFormatTypeType;
  * 1. Buffers semi-formatted ({@link ExportedReportHeaderRow} and {@link ExportedReportDataRow}) objects,
  * maintaining their correct order.
  *
- * 2. Writes the final form of the report when asked to do so.
+ * 2. Writes the final form of the report.
  *
  * 3. Holds the file-format-specific configuration.
  *
- * This is the contract common to all formats, text and binary alike. Formats whose output can be
- * produced and concatenated as text (needed e.g. for distributed export) implement {@link TextReportDataWriter}.
+ * This is the contract common to all formats. Formats whose output can be produced in pieces and merged
+ * (needed for distributed export) implement {@link DistributableReportDataWriter}.
  */
 public interface ReportDataWriter<ED extends ExportedReportDataRow, EH extends ExportedReportHeaderRow> {
 

@@ -220,6 +220,10 @@ public class AuthorizationConstants {
     public static final QName AUTZ_UI_CONNECTOR_WIZARD_QNAME = new QName(NS_AUTHORIZATION_UI, "connectorWizard");
     public static final String AUTZ_UI_CONNECTOR_WIZARD_URL = NS_AUTHORIZATION_UI + "#connectorWizard";
 
+    // smart integration
+    public static final QName AUTZ_UI_SMART_INTEGRATION_QNAME = new QName(NS_AUTHORIZATION_UI, "smartIntegration");
+    public static final String AUTZ_UI_SMART_INTEGRATION_URL = NS_AUTHORIZATION_UI + "#smartIntegration";
+
     //message template
     public static final QName AUTZ_UI_MESSAGE_TEMPLATE_QNAME = new QName(NS_AUTHORIZATION_UI, "messageTemplate");
     public static final String AUTZ_UI_MESSAGE_TEMPLATE_URL = NS_AUTHORIZATION_UI + "#messageTemplate";

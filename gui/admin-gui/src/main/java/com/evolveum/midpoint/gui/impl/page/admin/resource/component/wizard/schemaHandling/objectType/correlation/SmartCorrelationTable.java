@@ -697,7 +697,12 @@ public abstract class SmartCorrelationTable
 
     @Override
     protected boolean isSuggestButtonVisible() {
-        return isSuggestButtonEnabled();
+        return SmartIntegrationUtils.isSmartIntegrationAuthorized(getPageBase()) && isSuggestButtonEnabled();
+    }
+
+    @Override
+    protected boolean isToggleSuggestionVisible() {
+        return SmartIntegrationUtils.isSmartIntegrationAuthorized(getPageBase()) && super.isToggleSuggestionVisible();
     }
 
     public boolean isSuggestButtonEnabled() {

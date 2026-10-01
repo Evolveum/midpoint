@@ -120,6 +120,7 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
  */
 @SuppressWarnings("unused")
 @Component
+@Safe // but only selected methods
 public class MidpointFunctionsImpl implements MidpointFunctions {
 
     private static final Trace LOGGER = TraceManager.getTrace(MidpointFunctionsImpl.class);
@@ -1020,6 +1021,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     // Functions accessing modelService
 
     @Override
+    @Safe
     public <T extends ObjectType> T resolveReference(ObjectReferenceType reference)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
@@ -1062,6 +1064,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     }
 
     @Override
+    @Safe
     public <T extends ObjectType> T resolveReferenceIfExists(ObjectReferenceType reference)
             throws SchemaException, CommunicationException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {

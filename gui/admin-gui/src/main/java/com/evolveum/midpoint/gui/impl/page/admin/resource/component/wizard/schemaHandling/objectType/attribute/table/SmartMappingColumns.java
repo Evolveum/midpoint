@@ -9,6 +9,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.sche
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.attribute.mapping.AbstractMappingsTable.createSourceMultiselectModel;
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.attribute.mapping.InboundAttributeMappingsTable.getMappingUsedIconColumn;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -54,7 +55,15 @@ import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
  *
  * <p>Does not handle data loading or actions.
  */
-record SmartMappingColumns<P extends Containerable>(SmartMappingTable<P> table) implements Serializable {
+final class SmartMappingColumns<P extends Containerable> implements Serializable {
+
+    @Serial private static final long serialVersionUID = 1L;
+
+    private final SmartMappingTable<P> table;
+
+    SmartMappingColumns(SmartMappingTable<P> table) {
+        this.table = table;
+    }
 
     @NotNull List<IColumn<PrismContainerValueWrapper<MappingType>, String>> getColumns() {
         List<IColumn<PrismContainerValueWrapper<MappingType>, String>> columns = new ArrayList<>();

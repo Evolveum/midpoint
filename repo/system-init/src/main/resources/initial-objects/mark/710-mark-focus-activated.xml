@@ -17,6 +17,20 @@
         <targetRef oid="00000000-0000-0000-0000-000000000700" type="ArchetypeType"/>
     </assignment>
     <displayOrder>100</displayOrder>
+    <display>
+        <label>
+            <orig>Focus activated</orig>
+            <translation>
+                <key>FocusActivatedMark.label</key>
+            </translation>
+        </label>
+        <help>
+            <orig>Number of focus objects that became effectively enabled, either by being created or by being enabled.</orig>
+            <translation>
+                <key>FocusActivatedMark.help</key>
+            </translation>
+        </help>
+    </display>
     <policyRule id="2">
         <name>focus-activated</name>
         <policyConstraints>

@@ -16,7 +16,20 @@
         <targetRef oid="00000000-0000-0000-0000-000000000700" type="ArchetypeType"/>
     </assignment>
     <displayOrder>320</displayOrder>
-    <!-- TODO @Vilo please add "display" here (and to other tags) -->
+    <display>
+        <label>
+            <orig>Projection renamed</orig>
+            <translation>
+                <key>ProjectionRenamedMark.label</key>
+            </translation>
+        </label>
+        <help>
+            <orig>Number of projections whose name (naming attribute) changed.</orig>
+            <translation>
+                <key>ProjectionRenamedMark.help</key>
+            </translation>
+        </help>
+    </display>
     <policyRule id="2">
         <name>projection-renamed</name>
         <policyConstraints>

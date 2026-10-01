@@ -8,6 +8,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.sche
 
 import static com.evolveum.midpoint.web.component.menu.cog.MenuDividerPanel.createSectionDivider;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
@@ -27,7 +28,17 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDe
  *
  * <p>Contains no business logic – only menu composition.
  */
-record SmartMappingMenus<P extends Containerable>(SmartMappingTable<P> table, SmartMappingActions<P> actions) implements Serializable {
+final class SmartMappingMenus<P extends Containerable> implements Serializable {
+
+    @Serial private static final long serialVersionUID = 1L;
+
+    private final SmartMappingTable<P> table;
+    private final SmartMappingActions<P> actions;
+
+    SmartMappingMenus(SmartMappingTable<P> table, SmartMappingActions<P> actions) {
+        this.table = table;
+        this.actions = actions;
+    }
 
     @NotNull List<InlineMenuItem> getInlineMenuItems() {
         List<InlineMenuItem> items = new ArrayList<>();

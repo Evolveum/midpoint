@@ -57,6 +57,9 @@ public abstract class VerticalFormPanel<C extends Containerable> extends BasePan
 
     private void checkMultivalueValues() {
         PrismContainerWrapper<C> container = getModelObject();
+        if (container == null) {
+            return;
+        }
         try {
             if (container.getItem().getDefinition().isMultiValue() && container.getValues().isEmpty()) {
                 PrismContainerValue<C> newItem = container.getItem().createNewValue();

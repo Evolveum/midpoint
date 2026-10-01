@@ -15,6 +15,7 @@ import com.evolveum.midpoint.gui.impl.component.wizard.collapse.HelpChapter;
 import com.evolveum.midpoint.gui.impl.component.wizard.collapse.HelpTab;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.smart.api.conndev.ConnDevDocumentationTopic;
+import com.evolveum.midpoint.smart.api.conndev.ConnectorDevelopmentArtifacts;
 import com.evolveum.midpoint.smart.api.conndev.ConnectorDevelopmentOperation;
 import com.evolveum.midpoint.smart.api.conndev.ConnectorDevelopmentService;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
@@ -107,6 +108,21 @@ public class ConnectorWizardHelpTabsTest {
         Assert.assertNull(ConnectorDevelopmentWizardUtil.integrationProtocol(null, null));
     }
 
+    @Test
+    public void helpTopicForScriptArtifactTypes() {
+        Assert.assertEquals(ConnectorDevelopmentWizardUtil.helpTopicFor(ConnectorDevelopmentArtifacts.KnownArtifactType.NATIVE_SCHEMA_DEFINITION), "native-schema");
+        Assert.assertEquals(ConnectorDevelopmentWizardUtil.helpTopicFor(ConnectorDevelopmentArtifacts.KnownArtifactType.SEARCH_ALL_DEFINITION), "search-all");
+        Assert.assertEquals(ConnectorDevelopmentWizardUtil.helpTopicFor(ConnectorDevelopmentArtifacts.KnownArtifactType.SEARCH_BY_ID_DEFINITION), "search-by-id");
+        Assert.assertEquals(ConnectorDevelopmentWizardUtil.helpTopicFor(ConnectorDevelopmentArtifacts.KnownArtifactType.SEARCH_FILTER_DEFINITION), "search-filter");
+        Assert.assertEquals(ConnectorDevelopmentWizardUtil.helpTopicFor(ConnectorDevelopmentArtifacts.KnownArtifactType.CREATE), "create");
+        Assert.assertEquals(ConnectorDevelopmentWizardUtil.helpTopicFor(ConnectorDevelopmentArtifacts.KnownArtifactType.UPDATE), "update");
+        Assert.assertEquals(ConnectorDevelopmentWizardUtil.helpTopicFor(ConnectorDevelopmentArtifacts.KnownArtifactType.DELETE), "delete");
+        Assert.assertEquals(ConnectorDevelopmentWizardUtil.helpTopicFor(ConnectorDevelopmentArtifacts.KnownArtifactType.RELATIONSHIP_SCHEMA_DEFINITION), "relationship");
+        Assert.assertEquals(ConnectorDevelopmentWizardUtil.helpTopicFor(ConnectorDevelopmentArtifacts.KnownArtifactType.AUTHENTICATION_CUSTOMIZATION), "authentication-scripts");
+        Assert.assertNull(ConnectorDevelopmentWizardUtil.helpTopicFor(ConnectorDevelopmentArtifacts.KnownArtifactType.TEST_CONNECTION_DEFINITION));
+        Assert.assertNull(ConnectorDevelopmentWizardUtil.helpTopicFor(ConnectorDevelopmentArtifacts.KnownArtifactType.CONFIGURATION_VISIBILITY));
+    }
+
     /** Minimal {@link ConnectorDevelopmentService} double; only {@code getDocumentationTopics} is exercised. */
     private static final class StubConnectorDevelopmentService implements ConnectorDevelopmentService {
 
@@ -149,6 +165,12 @@ public class ConnectorWizardHelpTabsTest {
 
         @Override
         public StatusInfo<ConnDevDiscoverDocumentationResultType> getDiscoverDocumentationStatus(String token, Task task, OperationResult result)
+                throws CommonException {
+            throw unsupported();
+        }
+
+        @Override
+        public void removeDiscoveredDocumentation(String token, String name, Task task, OperationResult result)
                 throws CommonException {
             throw unsupported();
         }

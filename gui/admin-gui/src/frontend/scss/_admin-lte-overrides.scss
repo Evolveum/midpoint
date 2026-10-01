@@ -70,6 +70,13 @@
   color: $gray-700;
 }
 
+// AdminLTE uses secondary (75% alpha) text color here, which is below 4.5:1 contrast for every
+// text that inherits it, e.g. file name in file input (WCAG report 8.32).
+.login-card-body,
+.register-card-body {
+  color: var(--bs-body-color);
+}
+
 .form-control::placeholder {
   color: $gray-700;
   opacity: 0.9;
@@ -126,6 +133,23 @@
   }
   & .nav-link:hover {
     color: $primary;
+  }
+}
+
+// A tablist with a single tab has nothing to switch between, so the tab properties (hover color,
+// active border, pointer cursor) looks inappropriate. We restyle it to read visually as a plain
+// heading (see WCAG 7.1 report comment for the reasoning).
+.card.card-primary.card-outline-tabs > .card-header > .nav-tabs > .nav-item:first-child:last-child {
+  flex: 1 1 auto;
+  border-bottom: 1px solid $gray-300;
+
+  & .nav-link,
+  & .nav-link:hover,
+  & .nav-link.active {
+    color: $text-color;
+    font-weight: 600;
+    cursor: default;
+    border-color: transparent;
   }
 }
 

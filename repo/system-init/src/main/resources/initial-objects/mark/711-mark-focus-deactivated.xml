@@ -17,6 +17,20 @@
         <targetRef oid="00000000-0000-0000-0000-000000000700" type="ArchetypeType"/>
     </assignment>
     <displayOrder>110</displayOrder>
+    <display>
+        <label>
+            <orig>Focus deactivated</orig>
+            <translation>
+                <key>FocusDeactivatedMark.label</key>
+            </translation>
+        </label>
+        <help>
+            <orig>Number of previously enabled focus objects that were deleted or effectively disabled.</orig>
+            <translation>
+                <key>FocusDeactivatedMark.help</key>
+            </translation>
+        </help>
+    </display>
     <policyRule id="2">
         <name>focus-deactivated</name>
         <policyConstraints>

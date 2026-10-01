@@ -10,6 +10,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.connector.development.componen
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
@@ -19,7 +20,7 @@ import org.apache.wicket.model.PropertyModel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.impl.component.tile.TilePanel;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
-import com.evolveum.midpoint.web.component.input.CheckPanel;
+import com.evolveum.midpoint.web.component.data.column.IsolatedCheckBoxPanel;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnDevDocumentationSourceType;
 
@@ -47,7 +48,12 @@ public class DocumentationTilePanel extends TilePanel<DocumentationTile, PrismCo
         add(AttributeAppender.append("aria-checked", () -> getModelObject().isSelected() ? "true" : "false"));
         setOutputMarkupId(true);
 
-        CheckPanel check = new CheckPanel(ID_CHECK, new PropertyModel<>(getModel(), "selected"));
+        IsolatedCheckBoxPanel check = new IsolatedCheckBoxPanel(ID_CHECK, new PropertyModel<>(getModel(), "selected")) {
+            @Override
+            public void onUpdate(AjaxRequestTarget target) {
+                target.add(DocumentationTilePanel.this);
+            }
+        };
         check.setOutputMarkupId(true);
         add(check);
 
@@ -90,10 +96,10 @@ public class DocumentationTilePanel extends TilePanel<DocumentationTile, PrismCo
         };
         add(showDetails);
 
-        AjaxSubmitButton delete = new AjaxSubmitButton(ID_DELETE) {
+        AjaxLink<Void> delete = new AjaxLink<>(ID_DELETE) {
             @Override
-            protected void onSubmit(AjaxRequestTarget target) {
-                onDelete(getModelObject(), target);
+            public void onClick(AjaxRequestTarget target) {
+                onDelete(DocumentationTilePanel.this.getModelObject(), target);
             }
         };
         add(delete);

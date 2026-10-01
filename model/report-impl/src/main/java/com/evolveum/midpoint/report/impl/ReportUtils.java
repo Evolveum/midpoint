@@ -1035,17 +1035,6 @@ public class ReportUtils {
         }
     }
 
-    /**
-     * Returns true if the format produces text output that can be created in pieces and concatenated,
-     * i.e. if its writer is a {@link TextReportDataWriter}. Only such formats are usable for distributed export.
-     */
-    public static boolean isTextFormat(@NotNull FileFormatTypeType formatType) {
-        return switch (formatType) {
-            case CSV, HTML -> true;
-            case XLSX -> false;
-        };
-    }
-
     public static ReportDataWriter<ExportedReportDataRow, ExportedReportHeaderRow> createDataWriter(@NotNull ReportType report,
             @NotNull FileFormatTypeType defaultType, ReportServiceImpl reportService, CompiledObjectCollectionView compiledView) {
         FileFormatTypeType formatType = getFileFormatType(report, defaultType);
@@ -1063,14 +1052,14 @@ public class ReportUtils {
 
     /**
      * As {@link #createDataWriter(ReportType, FileFormatTypeType, ReportServiceImpl, CompiledObjectCollectionView)},
-     * but for callers that need text output (distributed export). Fails for binary formats.
+     * but for the distributed export, which needs a writer able to store and merge partial data.
      */
-    public static TextReportDataWriter<ExportedReportDataRow, ExportedReportHeaderRow> createTextDataWriter(
+    public static DistributableReportDataWriter<ExportedReportDataRow, ExportedReportHeaderRow> createDistributableDataWriter(
             @NotNull ReportType report, @NotNull FileFormatTypeType defaultType, ReportServiceImpl reportService,
             CompiledObjectCollectionView compiledView) throws ConfigurationException {
         var dataWriter = createDataWriter(report, defaultType, reportService, compiledView);
-        if (dataWriter instanceof TextReportDataWriter<ExportedReportDataRow, ExportedReportHeaderRow> textDataWriter) {
-            return textDataWriter;
+        if (dataWriter instanceof DistributableReportDataWriter<ExportedReportDataRow, ExportedReportHeaderRow> distributable) {
+            return distributable;
         }
         throw new ConfigurationException(
                 dataWriter.getFileFormatType() + " output is not supported for distributed report export");

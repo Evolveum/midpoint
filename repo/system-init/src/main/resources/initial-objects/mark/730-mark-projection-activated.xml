@@ -17,6 +17,20 @@
         <targetRef oid="00000000-0000-0000-0000-000000000700" type="ArchetypeType"/>
     </assignment>
     <displayOrder>300</displayOrder>
+    <display>
+        <label>
+            <orig>Projection activated</orig>
+            <translation>
+                <key>ProjectionActivatedMark.label</key>
+            </translation>
+        </label>
+        <help>
+            <orig>Number of projections that became effectively enabled, either by being created or by being enabled.</orig>
+            <translation>
+                <key>ProjectionActivatedMark.help</key>
+            </translation>
+        </help>
+    </display>
     <policyRule id="2">
         <name>projection-activated</name>
         <policyConstraints>

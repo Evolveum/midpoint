@@ -27,26 +27,20 @@ import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.PropertyModel;
-import org.springframework.context.ApplicationContext;
 
 import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
 import com.evolveum.midpoint.authentication.api.util.AuthConstants;
-import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.init.InitialDataImport;
 import com.evolveum.midpoint.init.StartupConfiguration;
 import com.evolveum.midpoint.model.api.ActivitySubmissionOptions;
-import com.evolveum.midpoint.model.api.ModelInteractionService;
-import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.repo.api.ClusterwideCacheInvalidationDispatcher;
 import com.evolveum.midpoint.repo.common.subscription.JarSignatureHolder;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.LabeledString;
@@ -58,7 +52,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.task.ActivityDefinitionBuilder;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -67,9 +60,6 @@ import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.dialog.DeleteConfirmationPanel;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ExecuteScriptActionExpressionType;
-import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ExecuteScriptType;
-import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ObjectFactory;
 import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 
 /**
@@ -99,7 +89,6 @@ public class PageAbout extends PageAdminConfiguration {
     private static final String OPERATION_GET_PROVISIONING_DIAG = DOT_CLASS + "getProvisioningDiag";
     private static final String OPERATION_DELETE_ALL_OBJECTS = DOT_CLASS + "deleteAllObjects";
     private static final String OPERATION_LOAD_NODE = DOT_CLASS + "loadNode";
-    private static final String OPERATION_INITIAL_IMPORT = DOT_CLASS + "initialImport";
 
     private static final String ID_BUILD_TIMESTAMP = "buildTimestamp";
     private static final String ID_BUILD = "build";
@@ -685,7 +674,7 @@ public class PageAbout extends PageAdminConfiguration {
         last.add(ObjectTypes.OBJECT_COLLECTION);
         last.add(ObjectTypes.ARCHETYPE);
         last.add(ObjectTypes.SECURITY_POLICY);
-        last.add(ObjectTypes.PASSWORD_POLICY);
+        last.add(ObjectTypes.VALUE_POLICY);
         last.add(ObjectTypes.SYSTEM_CONFIGURATION);
 
         final List<ObjectTypes> types = new ArrayList<>();
@@ -764,26 +753,11 @@ public class PageAbout extends PageAdminConfiguration {
     }
 
     private ActivityDefinitionType createInitialImportActivity(int order) {
-        ExecuteScriptActionExpressionType execute = new ExecuteScriptActionExpressionType();
-        ScriptExpressionEvaluatorType script = new ScriptExpressionEvaluatorType();
-        script.setCode("\n"
-                + PageAbout.class.getName() + ".runInitialDataImport(\n"
-                + "\tcom.evolveum.midpoint.model.impl.expr.SpringApplicationContextHolder.getApplicationContext(),\n"
-                + "\tmidpoint.getCurrentTask().getResult())\n"
-                + "log.info(\"Repository factory reset finished\")\n"
-        );
-        execute.setScript(script);
-        execute.setForWholeInput(true);
-
-        ExecuteScriptType executeScript = new ExecuteScriptType()
-                .scriptingExpression(new ObjectFactory().createExecute(execute));
-
         return new ActivityDefinitionType()
                 .identifier("Initial import")
                 .order(order)
                 .beginWork()
-                .beginNonIterativeScripting()
-                .scriptExecutionRequest(executeScript)
+                .beginInitialDataImport()
                 .<WorkDefinitionsType>end()
                 .end();
     }
@@ -809,38 +783,4 @@ public class PageAbout extends PageAdminConfiguration {
         return getString("PageAbout.unknownBuildNumber");
     }
 
-    /**
-     * Used in delete all task as last activity. Do not remove!
-     */
-    public static void runInitialDataImport(ApplicationContext context, OperationResult parent) {
-        OperationResult result = parent.createSubresult(OPERATION_INITIAL_IMPORT);
-
-        ModelService modelService = context.getBean(ModelService.class);
-        ModelInteractionService modelInteractionService = context.getBean(ModelInteractionService.class);
-        ClusterwideCacheInvalidationDispatcher cacheDispatcher = context.getBean(ClusterwideCacheInvalidationDispatcher.class);
-        TaskManager taskManager = context.getBean(TaskManager.class);
-        PrismContext prismContext = context.getBean(PrismContext.class);
-        MidpointConfiguration midpointConfiguration = context.getBean(MidpointConfiguration.class);
-
-        try {
-            InitialDataImport initialDataImport = new InitialDataImport();
-            initialDataImport.setModel(modelService);
-            initialDataImport.setTaskManager(taskManager);
-            initialDataImport.setPrismContext(prismContext);
-            initialDataImport.setConfiguration(midpointConfiguration);
-            initialDataImport.setModelInteractionService(modelInteractionService);
-            initialDataImport.init(true);
-
-            // TODO consider if we need to go clusterwide here
-            cacheDispatcher.dispatchInvalidation(null, null, true, null);
-
-            modelService.shutdown();
-
-            modelService.postInit(result);
-
-            result.recomputeStatus();
-        } catch (Exception ex) {
-            result.recordFatalError("Couldn't run initial data import", ex);
-        }
-    }
 }

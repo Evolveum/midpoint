@@ -13,4 +13,6 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 public interface ISelectableDataProvider<S> extends ISortableDataProvider<S, String> {
 
     void setQuery(ObjectQuery query);
+
+
 }

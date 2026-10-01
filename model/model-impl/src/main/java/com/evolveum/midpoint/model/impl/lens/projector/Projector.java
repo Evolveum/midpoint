@@ -251,15 +251,19 @@ public class Projector {
         if (focusContext != null) {
             var primaryDelta = focusContext.getPrimaryDelta();
             if (primaryDelta != null) {
-                // TODO what if delta is immutable?
-                //  all of this is a temporary solution!
                 PrismObject<F> object = focusContext.getObjectNewOrCurrentOrOld();
                 if (object != null) {
-                    // should be the case; checking just to be sure
-                    TrustDescriptorSetter.setDescriptors(
-                            primaryDelta,
-                            MidPointTrustDescriptor.forAuthorizedObject(object.asObjectable()));
-                    focusContext.setPrimaryDeltaAfterStart(primaryDelta);
+                    try {
+                        // We could avoid cloning if we'd set a kind of "dynamic" trust descriptor that would be computed
+                        // on the fly. But that would be more complicated and error-prone. This one cloning operation is
+                        // hopefully not a big deal.
+                        focusContext.modifyPrimaryDelta(delta ->
+                                TrustDescriptorSetter.setDescriptors(
+                                        delta,
+                                        MidPointTrustDescriptor.forAuthorizedObject(object.asObjectable())));
+                    } catch (SchemaException e) {
+                        throw SystemException.unexpected(e, "when setting trust descriptors (shouldn't happen)");
+                    }
                 }
             }
         }

@@ -302,16 +302,16 @@ public class PageUsers extends PageAdmin {
                 Collection<ItemDelta<?, ?>> userDeltas = new ArrayList<>();
                 ObjectDelta<UserType> userDelta = user.asPrismObject().createModifyDelta();
 
+                //change activation status to normal
+                userDeltas.add(PrismContext.get().deltaFor(UserType.class)
+                        .item(ItemPath.create(UserType.F_ACTIVATION, ActivationType.F_LOCKOUT_STATUS))
+                        .replace(LockoutStatusType.NORMAL)
+                        .asItemDelta());
+
                 if (user.getBehavior() != null) {
                     for (AuthenticationBehavioralDataType auth : user.getBehavior().getAuthentication()) {
                         @NotNull ItemPath path = auth.asPrismContainerValue().getPath()
                                 .append(AuthenticationBehavioralDataType.F_AUTHENTICATION_ATTEMPT);
-
-                        //change activation status to normal
-                        userDeltas.add(PrismContext.get().deltaFor(UserType.class)
-                                .item(ItemPath.create(UserType.F_ACTIVATION, ActivationType.F_LOCKOUT_STATUS))
-                                .replace(LockoutStatusType.NORMAL)
-                                .asItemDelta());
 
                         //also change all failed attempts to 0
                         for (AuthenticationAttemptDataType attempt : auth.getAuthenticationAttempt()) {
@@ -331,8 +331,8 @@ public class PageUsers extends PageAdmin {
                             }
                         }
                     }
-                    userDelta.addModifications(userDeltas);
                 }
+                userDelta.addModifications(userDeltas);
                 commonUsersDeltas.add(userDelta);
             }
             getModelService().executeChanges(commonUsersDeltas, null, task, result);

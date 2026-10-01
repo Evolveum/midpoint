@@ -204,9 +204,9 @@ public class ProjectionsLoadOperation<F extends ProjectionHolderType> {
     private void removeLinkRefModifications() throws SchemaException {
         focusContext.modifyPrimaryDelta(delta -> {
             if (delta.getChangeType() == ChangeType.ADD) {
-            delta.getObjectToAdd().removeReference(ProjectionHolderType.F_LINK_REF);
-        } else if (delta.getChangeType() == ChangeType.MODIFY) {
-            delta.removeReferenceModification(ProjectionHolderType.F_LINK_REF);
+                delta.getObjectToAdd().removeReference(ProjectionHolderType.F_LINK_REF);
+            } else if (delta.getChangeType() == ChangeType.MODIFY) {
+                delta.removeReferenceModification(ProjectionHolderType.F_LINK_REF);
             }
         });
     }

@@ -6,6 +6,7 @@
 
 package com.evolveum.midpoint.notifications.api.events;
 
+import com.evolveum.midpoint.prism.Safe;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
 
 import org.jetbrains.annotations.NotNull;
@@ -22,13 +23,16 @@ public interface CertReviewEvent extends AccessCertificationEvent {
      * Actual reviewer - the person which the work item is assigned to.
      * This is never his/her deputy.
      */
+    @Safe
     SimpleObjectRef getActualReviewer();
 
     /**
      * List of cases that await response from the actual reviewer.
      */
     @NotNull
+    @Safe
     Collection<AccessCertificationCaseType> getCasesAwaitingResponseFromActualReviewer();
 
+    @Safe
     List<AccessCertificationCaseType> getCases();
 }

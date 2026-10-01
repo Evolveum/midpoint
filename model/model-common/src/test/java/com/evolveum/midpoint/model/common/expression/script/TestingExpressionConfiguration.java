@@ -8,17 +8,24 @@ package com.evolveum.midpoint.model.common.expression.script;
 
 import com.evolveum.midpoint.common.configuration.api.ExpressionsConfigurationSection;
 
+import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.NullMarked;
+
+import java.util.Collection;
+
 /** Simulates "config.xml" section for expressions. Used in tests to override the default configuration. */
-public class TestingExpressionConfiguration implements ExpressionsConfigurationSection {
+@NullMarked
+public record TestingExpressionConfiguration(
+        boolean safeExpressionsOnly, boolean safeVelocityExpressionsOnly, Collection<String> javaMethodEvaluatorPackageNames)
+        implements ExpressionsConfigurationSection {
 
-    private final boolean safeExpressionsOnly;
-
-    public TestingExpressionConfiguration(boolean safeExpressionsOnly) {
-        this.safeExpressionsOnly = safeExpressionsOnly;
+    @Override
+    public boolean legacyVelocityEngine() {
+        return false;
     }
 
     @Override
-    public boolean isSafeExpressionsOnly() {
-        return safeExpressionsOnly;
+    public @Nullable String customVelocityExtensionClassName() {
+        return null;
     }
 }

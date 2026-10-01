@@ -6,6 +6,8 @@
 
 package com.evolveum.midpoint.report.impl.controller;
 
+import java.io.IOException;
+
 import com.evolveum.midpoint.report.impl.activity.ReportDataCreationActivityRun;
 
 import org.jetbrains.annotations.NotNull;
@@ -19,6 +21,7 @@ import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
@@ -57,11 +60,11 @@ public class CollectionDistributedExportController<C extends Containerable> exte
      */
     @NotNull private final ObjectReferenceType globalReportDataRef;
 
-    /** The same writer as in the superclass, but typed as text writer, as we need partial data in text form. */
-    @NotNull private final TextReportDataWriter<ExportedReportDataRow, ExportedReportHeaderRow> textDataWriter;
+    /** The same writer as in the superclass, but typed as distributable, as we need it to store partial data. */
+    @NotNull private final DistributableReportDataWriter<ExportedReportDataRow, ExportedReportHeaderRow> distributableDataWriter;
 
     public CollectionDistributedExportController(@NotNull ReportDataSource<C> dataSource,
-            @NotNull TextReportDataWriter<ExportedReportDataRow, ExportedReportHeaderRow> dataWriter,
+            @NotNull DistributableReportDataWriter<ExportedReportDataRow, ExportedReportHeaderRow> dataWriter,
             @NotNull ReportType report,
             @NotNull ObjectReferenceType globalReportDataRef,
             @NotNull ReportServiceImpl reportService,
@@ -71,7 +74,7 @@ public class CollectionDistributedExportController<C extends Containerable> exte
         super(dataSource, dataWriter, report, reportService, compiledCollection, reportParameters);
 
         this.globalReportDataRef = globalReportDataRef;
-        this.textDataWriter = dataWriter;
+        this.distributableDataWriter = dataWriter;
     }
 
     /**
@@ -90,12 +93,6 @@ public class CollectionDistributedExportController<C extends Containerable> exte
             return;
         }
 
-        String data = textDataWriter.getStringData();
-        textDataWriter.reset();
-
-        LOGGER.debug("Bucket {} is complete ({} chars in report). Let's create the partial report data object:\n{}",
-                bucketNumber, data.length(), data);
-
         // Note that we include [oid] in the object name to allow a poor man searching over the children.
         // It's until parentRef is properly indexed in the repository.
         // We also make the name sortable by padding the number with zeros: until we can sort on the sequential number.
@@ -105,8 +102,16 @@ public class CollectionDistributedExportController<C extends Containerable> exte
                 .name(name)
                 .reportRef(ObjectTypeUtil.createObjectRef(report))
                 .parentRef(globalReportDataRef.clone())
-                .sequentialNumber(bucketNumber)
-                .data(data);
+                .sequentialNumber(bucketNumber);
+        try {
+            distributableDataWriter.storePartialData(partialReportData);
+        } catch (IOException e) {
+            throw new SystemException("Couldn't store partial report data for bucket " + bucketNumber, e);
+        }
+        distributableDataWriter.reset();
+
+        LOGGER.debug("Bucket {} is complete. Let's create the partial report data object:\n{}",
+                bucketNumber, partialReportData.debugDumpLazily());
         repositoryService.addObject(partialReportData.asPrismObject(), null, result);
     }
 }

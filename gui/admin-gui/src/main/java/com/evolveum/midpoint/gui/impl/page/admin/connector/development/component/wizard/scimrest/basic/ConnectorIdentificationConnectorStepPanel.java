@@ -86,13 +86,13 @@ public class ConnectorIdentificationConnectorStepPanel extends AbstractFormWizar
             PrismPropertyWrapper<String> artifactIdProperty =
                     getContainerFormModel().getObject().findProperty(ConnDevConnectorType.F_ARTIFACT_ID);
             if (StringUtils.isEmpty(artifactIdProperty.getValue().getRealValue())) {
-                artifactIdProperty.getValue().setRealValue(StringUtils.normalizeSpace(containerBean.getApplicationName().getNorm()));
+                artifactIdProperty.getValue().setRealValue(sanitizeArtifactId(containerBean.getApplicationName().getNorm()));
             }
 
             PrismPropertyWrapper<String> versionProperty =
                     getContainerFormModel().getObject().findProperty(ConnDevConnectorType.F_VERSION);
             if (StringUtils.isEmpty(versionProperty.getValue().getRealValue())) {
-                versionProperty.getValue().setRealValue("1.0");
+                versionProperty.getValue().setRealValue("1.0-SNAPSHOT");
             }
 
             PrismPropertyWrapper<ConnDevIntegrationType> integrationTypeProperty =
@@ -110,6 +110,10 @@ public class ConnectorIdentificationConnectorStepPanel extends AbstractFormWizar
         } catch (SchemaException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private static String sanitizeArtifactId(String name) {
+        return name.trim().replaceAll("[^a-zA-Z_\\-0-9]+", "-");
     }
 
     @Override

@@ -15,7 +15,6 @@ import java.util.Objects;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.wicket.ajax.AjaxChannel;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.attributes.AjaxRequestAttributes;
 import org.apache.wicket.ajax.attributes.ThrottlingSettings;
@@ -254,7 +253,6 @@ public class PasswordPanel extends InputPanel {
             protected void updateAjaxAttributes(AjaxRequestAttributes attributes) {
                 super.updateAjaxAttributes(attributes);
                 attributes.setThrottlingSettings(new ThrottlingSettings(Duration.ofMillis(500), true));
-                attributes.setChannel(new AjaxChannel("Drop", AjaxChannel.Type.DROP));
             }
         });
 
@@ -276,7 +274,6 @@ public class PasswordPanel extends InputPanel {
             protected void updateAjaxAttributes(AjaxRequestAttributes attributes) {
                 super.updateAjaxAttributes(attributes);
                 attributes.setThrottlingSettings(new ThrottlingSettings(Duration.ofMillis(500), true));
-                attributes.setChannel(new AjaxChannel("Drop", AjaxChannel.Type.DROP));
             }
         });
 

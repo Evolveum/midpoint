@@ -1286,6 +1286,7 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
                                         PrismContext.get().itemPathSerializer()
                                                 .serializeStandalone(sourcePath))
                                 .isSystemProvided(true)),
+                task,
                 result);
 
         TestServiceClientFactory.mockServiceClient(clientFactoryMock, new MockServiceClientImpl());
@@ -1446,6 +1447,7 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
                 UserType.COMPLEX_TYPE,
                 RESOURCE_DUMMY_FOR_STATS_CALCULATION.oid,
                 ACCOUNT_DEFAULT,
+                task,
                 result);
         assertNotNull("Statistics object should exist", statsObject);
 

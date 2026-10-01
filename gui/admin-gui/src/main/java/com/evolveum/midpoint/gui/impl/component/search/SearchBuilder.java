@@ -223,7 +223,7 @@ public class SearchBuilder<C extends Serializable> {
                 .additionalSearchContext(additionalSearchContext)
                 .modelServiceLocator(modelServiceLocator)
                 .fullTextSearchEnabled(isFullTextSearchEnabled())
-                .create();
+                .create(modelServiceLocator);
 
         return SearchConfigurationMerger.mergeConfigurations(defaultSearchBoxConfig, configuredSearchBox, modelServiceLocator);
     }

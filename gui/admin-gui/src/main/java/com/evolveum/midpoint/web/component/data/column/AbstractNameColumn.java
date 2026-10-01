@@ -37,6 +37,7 @@ public abstract class AbstractNameColumn<SR extends SelectableRow<C>, C extends 
         IModel<String> labelModel = getDataModel(rowModel);
 
         cellItem.add(createComponent(componentId, labelModel, rowModel));
+        applyDisplayStyle(cellItem);
     }
 
     protected abstract Component createComponent(String componentId, IModel<String> labelModel, IModel<SR> rowModel);

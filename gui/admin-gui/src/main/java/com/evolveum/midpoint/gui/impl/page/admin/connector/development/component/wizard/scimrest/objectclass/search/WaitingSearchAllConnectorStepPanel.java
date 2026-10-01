@@ -21,6 +21,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnDevHttpEndpointIntentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnDevObjectClassInfoType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorDevelopmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationTypeType;
@@ -52,7 +53,13 @@ public class WaitingSearchAllConnectorStepPanel extends WaitingObjectClassScript
         var realValue = getObjectClassModel().getObject().getRealValue();
 
         return getDetailsModel().getConnectorDevelopmentOperation().submitGenerateSearchScript(
-                realValue.getName(), realValue.getEndpoint(), regenerate, getRepairScript(), getRepairErrors(), task, result);
+                realValue.getName(),
+                realValue.getEndpoint().stream()
+                        .filter(e -> e.getSuggestedUse().contains(ConnDevHttpEndpointIntentType.SEARCH)
+                                || e.getSuggestedUse().contains(ConnDevHttpEndpointIntentType.GET_ALL)
+                                || e.getSuggestedUse().contains(ConnDevHttpEndpointIntentType.LIST))
+                        .toList(),
+                regenerate, getRepairScript(), getRepairErrors(), task, result);
     }
 
     @Override
@@ -86,7 +93,7 @@ public class WaitingSearchAllConnectorStepPanel extends WaitingObjectClassScript
     }
 
     @Override
-    protected ConnectorDevelopmentArtifacts.KnownArtifactType getScriptType() {
+    public ConnectorDevelopmentArtifacts.KnownArtifactType getScriptType() {
         return ConnectorDevelopmentArtifacts.KnownArtifactType.SEARCH_ALL_DEFINITION;
     }
 }

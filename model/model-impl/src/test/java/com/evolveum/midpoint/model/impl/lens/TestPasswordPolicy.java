@@ -12,11 +12,17 @@ import static org.testng.AssertJUnit.assertNotNull;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Collection;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.model.common.expression.functions.BasicExpressionFunctions;
+import com.evolveum.midpoint.model.common.expression.script.ScriptFactory;
+import com.evolveum.midpoint.model.common.expression.script.TestingExpressionConfiguration;
+import com.evolveum.midpoint.model.common.expression.script.mel.MelScriptExecutor;
 import com.evolveum.midpoint.model.common.stringpolicy.StringPolicy;
 
 import com.evolveum.midpoint.model.common.stringpolicy.StringPolicy.CharacterClassLimitation;
@@ -54,6 +60,9 @@ public class TestPasswordPolicy extends AbstractInternalModelIntegrationTest {
 
     public static final File TEST_DIR = new File("src/test/resources/lens/ppolicy/");
 
+    private static final String DEFAULT_PASSWORD_POLICY_RESOURCE =
+            "/initial-objects/value-policy/010-value-policy.xml";
+
     private static final String USER_AB_USERNAME = "ab";
     private static final String USER_AB_GIVEN_NAME = "Ad";
     private static final String USER_AB_FAMILY_NAME = "Fel";
@@ -62,6 +71,9 @@ public class TestPasswordPolicy extends AbstractInternalModelIntegrationTest {
     private static final int USER_PROPS_ATTEMPTS = 5000;
 
     @Autowired private ValuePolicyProcessor valuePolicyProcessor;
+    @Autowired private ScriptFactory scriptFactory;
+    @Autowired private MelScriptExecutor melScriptExecutor;
+    @Autowired private BasicExpressionFunctions basicExpressionFunctions;
 
     /** Tests parsing the minimal (empty) value policy. */
     @Test
@@ -406,6 +418,41 @@ public class TestPasswordPolicy extends AbstractInternalModelIntegrationTest {
         then();
     }
 
+    /**The shipped default password policy must retain its semantics in safe-expression mode. See bug MID-12370 */
+    @Test
+    public void testDefaultPasswordPolicyMelInSafeExpressionsMode() throws Exception {
+        ValuePolicyType policy = parseDefaultPasswordPolicy();
+        PrismObject<UserType> user = createUserAb();
+
+        var restrictedMelExecutor = new MelScriptExecutor(
+                prismContext,
+                protector,
+                localizationService,
+                new TestingExpressionConfiguration(true, true, java.util.List.of()),
+                basicExpressionFunctions,
+                libraryMidpointFunctions,
+                null);
+
+        scriptFactory.replaceExecutor(restrictedMelExecutor);
+        try {
+            assertThat(isPasswordValid("Goodab123!", policy, user)).as("contains username").isFalse();
+            assertThat(isPasswordValid("GoodAB123!", policy, user)).as("contains mixed-case username").isFalse();
+            assertThat(isPasswordValid("GoodAD123!", policy, user)).as("contains given name").isFalse();
+            assertThat(isPasswordValid("GoodFEL123!", policy, user)).as("contains family name").isFalse();
+            assertThat(isPasswordValid("GoodX123!", policy, user)).as("contains additional name").isFalse();
+            assertThat(isPasswordValid("GoodSafe123!", policy, user)).as("unrelated compliant password").isTrue();
+
+            user.asObjectable().setGivenName(null);
+            user.asObjectable().setFamilyName(null);
+            user.asObjectable().setAdditionalName(null);
+            assertThat(isPasswordValid("GoodSafe123!", policy, user))
+                    .as("password with null optional personal names")
+                    .isTrue();
+        } finally {
+            scriptFactory.replaceExecutor(melScriptExecutor);
+        }
+    }
+
     private PrismObject<UserType> createUserAb() throws SchemaException {
         PrismObject<UserType> user = createUser(USER_AB_USERNAME, USER_AB_GIVEN_NAME, USER_AB_FAMILY_NAME, true);
         user.asObjectable().setAdditionalName(createPolyStringType(USER_AB_ADDITIONAL_NAME));
@@ -424,10 +471,28 @@ public class TestPasswordPolicy extends AbstractInternalModelIntegrationTest {
         return object;
     }
 
+    private ValuePolicyType parseDefaultPasswordPolicy() throws SchemaException, IOException {
+        try (InputStream stream = Objects.requireNonNull(
+                getClass().getResourceAsStream(DEFAULT_PASSWORD_POLICY_RESOURCE),
+                DEFAULT_PASSWORD_POLICY_RESOURCE)) {
+            var object = prismContext.parserFor(stream).xml().<ValuePolicyType>parse().asObjectable();
+            TrustDescriptorSetter.setDescriptors(object, IntegrationTestTools.trustedForTests());
+            return object;
+        }
+    }
+
     private boolean isPasswordValid(String password, ValuePolicyType pp) throws CommonException {
-        Task task = getTestTask();
+        return isPasswordValid(password, pp, null, getTestTask());
+    }
+
+    private boolean isPasswordValid(String password, ValuePolicyType pp, PrismObject<UserType> object) throws CommonException {
+        return isPasswordValid(password, pp, object, createPlainTask("default password policy validation"));
+    }
+
+    private boolean isPasswordValid(String password, ValuePolicyType pp, PrismObject<UserType> object, Task task) throws CommonException {
         OperationResult result = task.getResult();
-        valuePolicyProcessor.validateValue(password, pp, null, "pwdValidHelper", task, result);
+        valuePolicyProcessor.validateValue(
+                password, pp, createUserOriginResolver(object), "pwdValidHelper", task, result);
         result.computeStatus();
         String msg = "-> Policy " + pp.getName() + ", password '" + password + "': " + result.getStatus();
         System.out.println(msg);

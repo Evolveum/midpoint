@@ -112,8 +112,8 @@ public class PrismReferenceWrapperImpl<R extends Referencable>
     }
 
     @Override
-    public List<QName> getTargetTypes() {
-        return WebComponentUtil.createSupportedTargetTypeList(getTargetTypeName());
+    public List<QName> getTargetTypes(ModelServiceLocator modelServiceLocator) {
+        return WebComponentUtil.createSupportedTargetTypeList(getTargetTypeName(), modelServiceLocator);
     }
 
 //    @Override

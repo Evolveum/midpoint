@@ -307,7 +307,18 @@ public class MetricWidgetPanel extends WidgetPanel<DashboardWidgetType> {
                     return help != null ? LocalizationUtil.translatePolyString(help) : null;
                 };
             }
+
+            @Override
+            protected boolean isTooltipEnabled() {
+                return true;
+            }
+
+            @Override
+            protected String getLabelAdditionalCssClass() {
+                return "w-90 text-truncate";
+            }
         };
+
         add(title);
 
         // todo implement properly and make visible

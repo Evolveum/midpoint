@@ -19,6 +19,8 @@ public final class ConnectorWizardHelpTopics {
     public static final String CONNECTOR_COORDINATES = "connector-coordinates";
     public static final String BASE_URL = "base-url";
     public static final String AUTHENTICATION = "authentication";
+    /** Authentication script screen - script-based customization of the built-in authentication methods. */
+    public static final String AUTHENTICATION_SCRIPTS = "authentication-scripts";
     public static final String CREDENTIALS = "credentials";
     public static final String CONNECTIVITY_ENDPOINT = "connectivity-endpoint";
     public static final String FIX_CONNECTION = "fix-connection";

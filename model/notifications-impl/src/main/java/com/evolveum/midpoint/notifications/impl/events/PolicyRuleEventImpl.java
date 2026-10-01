@@ -8,6 +8,7 @@ package com.evolveum.midpoint.notifications.impl.events;
 
 import com.evolveum.midpoint.model.api.context.DirectlyEvaluatedClockworkPolicyRule;
 import com.evolveum.midpoint.notifications.api.events.PolicyRuleEvent;
+import com.evolveum.midpoint.prism.Safe;
 import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.EventCategoryType;
@@ -30,16 +31,19 @@ public class PolicyRuleEventImpl extends BaseEventImpl implements PolicyRuleEven
     }
 
     @Override
+    @Safe
     public boolean isStatusType(EventStatusType eventStatus) {
         return eventStatus == EventStatusType.SUCCESS || eventStatus == EventStatusType.ALSO_SUCCESS;
     }
 
     @Override
+    @Safe
     public boolean isOperationType(EventOperationType eventOperation) {
         return eventOperation == EventOperationType.ADD;
     }
 
     @Override
+    @Safe
     public boolean isCategoryType(EventCategoryType eventCategory) {
         return eventCategory == EventCategoryType.POLICY_RULE_EVENT;
     }
@@ -51,11 +55,13 @@ public class PolicyRuleEventImpl extends BaseEventImpl implements PolicyRuleEven
     }
 
     @Override
+    @Safe
     public String getRuleName() {
         return policyRule.getName();
     }
 
     @Override
+    @Safe
     public String debugDump(int indent) {
         StringBuilder sb = DebugUtil.createTitleStringBuilderLn(this.getClass(), indent);
         debugDumpCommon(sb, indent);

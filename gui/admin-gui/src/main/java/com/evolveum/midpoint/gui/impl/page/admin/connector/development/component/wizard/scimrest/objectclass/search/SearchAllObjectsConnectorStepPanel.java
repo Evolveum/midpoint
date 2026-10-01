@@ -146,6 +146,11 @@ public class SearchAllObjectsConnectorStepPanel extends ScriptConfirmationPanel 
             }
 
             @Override
+            protected boolean allwaysProvideResult() {
+                return true;
+            }
+
+            @Override
             protected void processResult(OperationResult result) {
                 if (getWizard() instanceof WizardModelWithParentSteps wizardModel) {
                     ConnectorDevelopmentWizardUtil.collectConnectorResults(result, (connIdResult) -> {
@@ -153,7 +158,7 @@ public class SearchAllObjectsConnectorStepPanel extends ScriptConfirmationPanel 
                         wizardModel.addOperationResult(getStepId(), "cdw-search-all-script", connIdResult);
 
                     });
-
+                    ConnectorDevelopmentWizardUtil.reportConnectorLogs(SearchAllObjectsConnectorStepPanel.this, getStepId(), result, null);
                 }
             }
 

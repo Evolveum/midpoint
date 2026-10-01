@@ -48,7 +48,7 @@ public enum ObjectTypeGuiDescriptor {
 
     ROLE(ObjectTypes.ROLE, "ObjectTypeGuiDescriptor.role", GuiStyleConstants.CLASS_OBJECT_ROLE_ICON_COLORED, GuiStyleConstants.CLASS_OBJECT_ROLE_ICON),
 
-    VALUE_POLICY(ObjectTypes.PASSWORD_POLICY, "ObjectTypeGuiDescriptor.passwordPolicy", "silk-lock", "silk-lock"),
+    VALUE_POLICY(ObjectTypes.VALUE_POLICY, "ObjectTypeGuiDescriptor.valuePolicy", "silk-lock", "silk-lock"),
 
     NODE(ObjectTypes.NODE, "ObjectTypeGuiDescriptor.node", "silk-computer", "silk-computer"),
 

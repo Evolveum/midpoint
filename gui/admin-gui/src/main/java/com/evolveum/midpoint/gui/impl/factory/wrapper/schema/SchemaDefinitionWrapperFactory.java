@@ -62,13 +62,8 @@ public class SchemaDefinitionWrapperFactory
         ItemStatus status = getStatus(schema);
         PrismContainer<PrismSchemaType> childItem = null;
         if (schema != null) {
-            PrismObjectWrapper objectWrapper = parent.getParent().findObjectWrapper();
-            ObjectType objectBean = (ObjectType) objectWrapper.getObject().asObjectable();
-            String lifecycleState = objectBean.getLifecycleState();
             childItem = def.instantiate();
-            PrismContainerValue<PrismSchemaType> value =
-                    PrismSchemaTypeUtil.convertToPrismSchemaType(schema.getRealValue(), lifecycleState)
-                    .asPrismContainerValue();
+            PrismContainerValue<PrismSchemaType> value = createPrismSchemaBean(parent, schema).asPrismContainerValue();
             childItem.add(value);
         }
 
@@ -82,6 +77,17 @@ public class SchemaDefinitionWrapperFactory
         }
 
         return createWrapper(parent, childItem, status, context);
+    }
+
+    /**
+     * Converts xsd schema to PrismSchemaType. Lifecycle state of the owner object is used as lifecycle state
+     * of the schema definitions.
+     */
+    protected PrismSchemaType createPrismSchemaBean(
+            PrismContainerValueWrapper<?> parent, PrismProperty<SchemaDefinitionType> schema) throws SchemaException {
+        PrismObjectWrapper objectWrapper = parent.getParent().findObjectWrapper();
+        ObjectType objectBean = (ObjectType) objectWrapper.getObject().asObjectable();
+        return PrismSchemaTypeUtil.convertToPrismSchemaType(schema.getRealValue(), objectBean.getLifecycleState());
     }
 
     @Override

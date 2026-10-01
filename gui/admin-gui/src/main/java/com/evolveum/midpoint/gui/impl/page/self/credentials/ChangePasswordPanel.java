@@ -16,7 +16,6 @@ import com.evolveum.midpoint.util.LocalizableMessage;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.wicket.ajax.AjaxChannel;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.attributes.AjaxRequestAttributes;
 import org.apache.wicket.ajax.attributes.ThrottlingSettings;
@@ -252,7 +251,6 @@ public class ChangePasswordPanel<F extends FocusType> extends BasePanel<F> {
                 //the error appeared because of the same delay on the password input fields
                 //which is needed to make all the passwords validations
                 attributes.setThrottlingSettings(new ThrottlingSettings(Duration.ofMillis(500), true));
-                attributes.setChannel(new AjaxChannel("Drop", AjaxChannel.Type.DROP));
             }
         };
         changePasswordButton.add(new VisibleBehaviour(() -> !savedPassword));

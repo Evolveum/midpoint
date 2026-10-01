@@ -138,7 +138,7 @@ public class PageSimulationResultObject extends PageAdmin implements SimulationP
             if (StringUtils.isEmpty(name)) {
                 SimulationResultProcessedObjectType object = objectModel.getObject();
                 ProcessedObject<?> processedObject = SimulationsGuiUtil.parseProcessedObject(object, PageSimulationResultObject.this);
-                name = SimulationsGuiUtil.getShadowNameFromAttribute(processedObject);
+                name = SimulationsGuiUtil.getShadowDisplayNameFromAttribute(processedObject);
             }
 
             return name + " (" + WebComponentUtil.getDisplayNameOrName(resultModel.getObject().asPrismObject()) + ")";

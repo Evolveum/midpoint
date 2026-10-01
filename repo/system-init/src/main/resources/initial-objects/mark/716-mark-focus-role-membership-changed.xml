@@ -14,6 +14,20 @@
         <targetRef oid="00000000-0000-0000-0000-000000000700" type="ArchetypeType"/>
     </assignment>
     <displayOrder>160</displayOrder>
+    <display>
+        <label>
+            <orig>Focus role membership changed</orig>
+            <translation>
+                <key>FocusRoleMembershipChangedMark.label</key>
+            </translation>
+        </label>
+        <help>
+            <orig>Number of focus objects whose role membership references changed.</orig>
+            <translation>
+                <key>FocusRoleMembershipChangedMark.help</key>
+            </translation>
+        </help>
+    </display>
     <policyRule id="2">
         <name>focus-role-membership-changed</name>
         <policyConstraints>

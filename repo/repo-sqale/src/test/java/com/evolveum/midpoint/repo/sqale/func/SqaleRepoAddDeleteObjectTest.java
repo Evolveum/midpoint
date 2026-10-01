@@ -11,7 +11,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import static com.evolveum.midpoint.repo.api.RepoAddOptions.createOverwrite;
-import static com.evolveum.midpoint.schema.util.SimpleExpressionUtil.velocityExpression;
+import static com.evolveum.midpoint.schema.util.SimpleExpressionUtil.safeVelocityExpression;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -1729,26 +1729,38 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         assertThat(row.connectorHostRefTargetOid).isNull();
     }
 
-    @Test(enabled = false) // MID-10973
-    public void test813NonUniqueConnector() {
+    @Test
+    public void test813ConnectorWithSameTypeAndVersionAllowed() throws Exception {
         OperationResult result = createOperationResult();
 
-        given("connector already existing in the repository");
-        String objectName = "conn" + getTestNumber(); // name is unique, but that's not what we test
+        given("connector already existing in the repository with the same type and version");
+        String objectName = "conn" + getTestNumber();
+        ConnectorType existingConnector = new ConnectorType()
+                .name(objectName + "-existing")
+                .connectorBundle("com.connector.package")
+                .connectorType("ConnectorTypeClass")
+                .connectorVersion("1.2.3")
+                .framework(SchemaConstants.UCF_FRAMEWORK_URI_BUILTIN);
+        repositoryService.addObject(existingConnector.asPrismObject(), null, result);
+
+        and("another connector with a unique name and the same type and version");
         ConnectorType connector = new ConnectorType()
                 .name(objectName)
                 .connectorBundle("com.connector.package")
-                // We need unique connectorType + connectorVersion + connectorHostRef.oid (even if NULL)
                 .connectorType("ConnectorTypeClass")
                 .connectorVersion("1.2.3")
                 .framework(SchemaConstants.UCF_FRAMEWORK_URI_BUILTIN);
 
-        expect("adding it to the repository fails");
-        assertThatThrownBy(() -> repositoryService.addObject(connector.asPrismObject(), null, result))
-                .isInstanceOf(ObjectAlreadyExistsException.class);
+        when("adding it to the repository");
+        String oid = repositoryService.addObject(connector.asPrismObject(), null, result);
 
-        assertThatOperationResult(result).isFatalError()
-                .hasMessageContaining("m_connector_typeversion_key");
+        then("it is stored with the same type and version and no connector host reference");
+        assertThatOperationResult(result).isSuccess();
+
+        MConnector row = selectObjectByOid(QConnector.class, oid);
+        assertThat(row.connectorType).isEqualTo("ConnectorTypeClass");
+        assertThat(row.connectorVersion).isEqualTo("1.2.3");
+        assertThat(row.connectorHostRefTargetOid).isNull();
     }
 
     @Test
@@ -2795,7 +2807,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         var messageTemplate = new MessageTemplateType()
                 .name(objectName)
                 .defaultContent(new MessageTemplateContentType()
-                        .subjectExpression(velocityExpression("subject", null)));
+                        .subjectExpression(safeVelocityExpression("subject", null)));
 
         when("adding it to the repository");
         repositoryService.addObject(messageTemplate.asPrismObject(), null, result);

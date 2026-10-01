@@ -553,7 +553,7 @@ public class Visualizer {
             }
         }
         visualization.setSourceValue(value);
-        visualizeItems(visualization, value.getItems(), true, context, task, result);
+        visualizeItems(visualization, value.getItems(), false, context, task, result);
 
         parentVisualization.addPartialVisualization(visualization);
 

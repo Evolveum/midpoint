@@ -24,6 +24,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SchemaType;
 import com.evolveum.midpoint.xml.ns._public.prism_schema_3.PrismSchemaType;
 
 import com.evolveum.prism.xml.ns._public.types_3.SchemaDefinitionType;
@@ -108,9 +109,11 @@ public class PrismSchemaWrapper extends PrismContainerWrapperImpl<PrismSchemaTyp
     private PrismPropertyValue<SchemaDefinitionType> createSchemaValue(
             PrismObjectWrapper<ObjectType> objectWrapper, PrismContainerValue<PrismSchemaType> value) throws SchemaException {
         @NotNull ObjectType objectBean = objectWrapper.getObject().asObjectable();
-        String lifecycleState = objectBean.getLifecycleState();
         @NotNull PrismSchemaType prismSchemaBean = value.asContainerable();
-        SchemaDefinitionType schemaDefBean = PrismSchemaTypeUtil.convertToSchemaDefinitionType(prismSchemaBean, lifecycleState);
+        // Lifecycle state of the owner is relevant only for schema extension (SchemaType), see SchemaDefinitionWrapperFactory
+        SchemaDefinitionType schemaDefBean = objectBean instanceof SchemaType
+                ? PrismSchemaTypeUtil.convertToSchemaDefinitionType(prismSchemaBean, objectBean.getLifecycleState())
+                : PrismSchemaTypeUtil.convertToSchemaDefinitionType(prismSchemaBean);
         return PrismContext.get().itemFactory().createPropertyValue(schemaDefBean);
     }
 }

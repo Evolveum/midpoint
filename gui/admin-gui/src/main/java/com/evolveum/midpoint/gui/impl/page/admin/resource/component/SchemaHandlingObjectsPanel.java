@@ -133,7 +133,7 @@ public abstract class SchemaHandlingObjectsPanel<C extends Containerable> extend
         LoadableDetachableModel<SmartGeneratingAlertDto> suggestionModel = new LoadableDetachableModel<>() {
             @Override
             protected @NotNull SmartGeneratingAlertDto load() {
-                return new SmartGeneratingAlertDto(null, Model.of(), getPageBase());
+                return new SmartGeneratingAlertDto(null, Model.of(), getSuggestionType(), getPageBase());
             }
         };
 
@@ -164,7 +164,8 @@ public abstract class SchemaHandlingObjectsPanel<C extends Containerable> extend
                         onSuggestValue(createContainerModel(), target);
                     }
                 };
-                generateButton.add(new VisibleBehaviour(() -> true));
+                generateButton.add(new VisibleBehaviour(
+                        () -> SmartIntegrationUtils.isSmartIntegrationAuthorized(getPageBase())));
                 generateButton.add(AttributeModifier.append("class", "btn btn-purple ms-auto"));
                 generateButton.setOutputMarkupId(true);
                 generateButton.showTitleAsLabel(true);
@@ -226,6 +227,12 @@ public abstract class SchemaHandlingObjectsPanel<C extends Containerable> extend
             @Override
             protected IModel<Boolean> getSwitchSuggestion() {
                 return switchSuggestion;
+            }
+
+            @Override
+            protected boolean isToggleSuggestionVisible() {
+                return SmartIntegrationUtils.isSmartIntegrationAuthorized(getPageBase())
+                        && super.isToggleSuggestionVisible();
             }
 
             @Override

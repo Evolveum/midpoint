@@ -12,6 +12,7 @@ import com.evolveum.midpoint.web.component.prism.InputPanel;
 
 import com.evolveum.midpoint.web.model.XmlGregorianCalendarModel;
 
+import org.apache.commons.text.StringEscapeUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -66,12 +67,20 @@ public class DateTimePickerPanel extends InputPanel {
         String config = hasModalParent
                 ? dateTimePickerOptions.toJsConfiguration(getPageBase().getMainPopup().getMarkupId(), getParentPage())
                 : dateTimePickerOptions.toJsConfiguration(getParentPage());
-        String messageOpen = getString("DateTimePickerPanel.pickerOpened");
-        String messageClose = getString("DateTimePickerPanel.pickerClosed");
-        String messageCurrent = getString("DateTimePickerPanel.messageCurrentValue");
-        String messageViewSelected = getString("DateTimePickerPanel.messageViewSelected");
+        String messageOpen = getEscapedString("DateTimePickerPanel.pickerOpened");
+        String messageClose = getEscapedString("DateTimePickerPanel.pickerClosed");
+        String messageCurrent = getEscapedString("DateTimePickerPanel.messageCurrentValue");
+        String messageViewSelected = getEscapedString("DateTimePickerPanel.messageViewSelected");
         return String.format("MidPointTheme.initDateTimePicker(%s, %s, '%s', '%s', '%s', '%s', '%s');",
                 getMarkupId(), config, ID_PICKER_STATUS, messageOpen, messageClose, messageCurrent, messageViewSelected);
+    }
+
+    /**
+     * Escapes special characters in localized text to safely embed it in JavaScript strings.
+     */
+    protected String getEscapedString(String key) {
+        String string = getString(key);
+        return StringEscapeUtils.escapeEcmaScript(string);
     }
 
     private void initLayout(IModel<Date> model) {

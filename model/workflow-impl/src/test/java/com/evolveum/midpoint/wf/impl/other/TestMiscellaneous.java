@@ -99,6 +99,8 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
     private static final TestObject<RoleType> ROLE_AUTOCOMPLETIONS = TestObject.file(
             TEST_DIR, "role-autocompletions.xml", "a2570ee8-6c13-48b9-9a33-d8e88c4fe618");
 
+    private static final TestObject<RoleType> ROLE_NOTIFICATIONS = TestObject.file(TEST_DIR, "role-notifications.xml", "5c097ab2-2413-49ba-8060-c8004901b5f9");
+
     private static final TestObject<OrgType> ORG_APPROVERS = TestObject.file(
             TEST_DIR, "org-approvers.xml", "8b928d45-bb91-4a02-8418-6ae0d3b6a7d2");
     private static final TestObject<RoleType> ROLE_APPROVED_BY_ORG = TestObject.file(
@@ -109,11 +111,6 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
             TEST_DIR, "user-approver-by-multiple-relations.xml", "a9aca7bb-923e-4be6-9aa4-5c90af978207");
     private static final TestObject<RoleType> ROLE_APPROVE_WITH_SKIP_LAST_STAGE = TestObject.file(
             TEST_DIR, "role-approve-with-skip-last-stage.xml", "8b928d45-bb91-4a02-8418-6ae0d3b6a1d3");
-
-    @Override
-    protected PrismObject<UserType> getDefaultActor() {
-        return userAdministrator;
-    }
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -141,6 +138,7 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
         addAndRecompute(USER_LAUNCHPAD, initTask, initResult);
 
         addObject(ROLE_AUTOCOMPLETIONS, initTask, initResult);
+        addObject(ROLE_NOTIFICATIONS, initTask, initResult);
 
         ORG_APPROVERS.init(this, initTask, initResult);
         ROLE_APPROVED_BY_ORG.init(this, initTask, initResult);
@@ -773,7 +771,7 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
     private List<CaseType> selectChildren(String oid, List<CaseType> allCases) {
         List<CaseType> directChildren = allCases.stream()
                 .filter(c -> c.getParentRef() != null && c.getParentRef().getOid().equals(oid))
-                .collect(Collectors.toList());
+                .toList();
         List<CaseType> children = new ArrayList<>(directChildren);
         directChildren.forEach(ch ->
                 children.addAll(selectChildren(ch.getOid(), allCases)));
@@ -851,7 +849,6 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
         and("case notifications are OK");
         List<Message> casesNotifications = dummyTransport.getMessages(DUMMY_SIMPLE_WORKFLOW_NOTIFIER_PROCESSES);
         displayCollection("notifications - cases", casesNotifications);
-        //noinspection AssertBetweenInconvertibleTypes
         assertThat(casesNotifications).as("cases notifications")
                 .singleElement()
                 .extracting(m -> m.getSubject())
@@ -1114,6 +1111,73 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
                     throw new AssertionError("Multi-relation filter found: " + relations + ", " + f);
                 }
             }
+        });
+    }
+
+    /**
+     * Tests whether notifications (from the training) can be evaluated even under `safe-velocity` scripting language executor.
+     */
+    @Test
+    public void test500SafeNotifications() throws Exception {
+        var task = getTestTask();
+        var result = task.getResult();
+        login(userAdministrator);
+        dummyTransport.clearMessages();
+
+        given("a user with no assignments");
+        String userName = getTestNameShort();
+        UserType user = new UserType()
+                .name(userName)
+                .fullName("f-" + userName);
+        var oid = addObject(user, task, result);
+        assertUser(oid, "");
+
+        when("a user with role assignment is created");
+        executeChanges(
+                deltaFor(UserType.class)
+                        .item(UserType.F_ASSIGNMENT)
+                        .add(ROLE_NOTIFICATIONS.assignmentTo())
+                        .asObjectDelta(oid),
+                null, task, result);
+
+        then("assignment is not created but case exists");
+        assertUserAfter(oid)
+                .assertAssignments(0);
+
+        var workItem = assertCase(result, "after")
+                .display()
+                .subcases()
+                .singleWithApprovalSchema() // assignment ADD
+                .display()
+                .workItems()
+                .single()
+                .assertAssignees(USER_ADMINISTRATOR_OID)
+                .getRealValue();
+
+        caseManager.completeWorkItem(
+                WorkItemId.of(workItem),
+                ApprovalUtils.createRejectOutput().comment("NO"),
+                new WorkItemEventCauseInformationType()
+                        .type(WorkItemEventCauseTypeType.USER_ACTION),
+                task, result);
+
+        List<Message> casesNotifications = dummyTransport.getMessages(DUMMY_WORKFLOW_PROCESS_SAFE);
+        displayCollection("notifications - cases", casesNotifications);
+        assertThat(casesNotifications).as("cases notifications").hasSize(1);
+        assertSuccessfullyExpanded(casesNotifications);
+
+        and("work items notifications are OK");
+        List<Message> workItemsNotifications = new ArrayList<>(dummyTransport.getMessages(DUMMY_WORK_ITEM_SAFE));
+        displayCollection("notifications - work items", workItemsNotifications);
+        assertThat(workItemsNotifications).as("work items notifications").hasSize(1);
+        assertSuccessfullyExpanded(workItemsNotifications);
+    }
+
+    private void assertSuccessfullyExpanded(List<Message> messages) {
+        messages.forEach(message -> {
+            assertThat(message.getBody())
+                    .doesNotContain("$") // indicates that some variable was not expanded
+                    .doesNotContain(": ]"); // indicates that some variable was "expanded" to empty string
         });
     }
 }

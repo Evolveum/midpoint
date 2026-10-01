@@ -85,6 +85,22 @@
         <constructor-arg name="configuration">
             <bean factory-bean="midpointConfiguration" factory-method="getExpressionsSection"/>
         </constructor-arg>
+        <constructor-arg name="expressionsConfigurationView">
+            <bean factory-bean="systemObjectCache" factory-method="getExpressionsConfigurationView"/>
+        </constructor-arg>
+    </bean>
+
+    <bean id="safeVelocityScriptExecutor"
+            class="com.evolveum.midpoint.model.common.expression.script.velocity.SafeVelocityScriptExecutor">
+        <constructor-arg name="prismContext" ref="prismContext"/>
+        <constructor-arg name="protector" ref="protector"/>
+        <constructor-arg name="localizationService" ref="localizationService"/>
+        <constructor-arg name="configuration">
+            <bean factory-bean="midpointConfiguration" factory-method="getExpressionsSection"/>
+        </constructor-arg>
+        <constructor-arg name="expressionsConfigurationView">
+            <bean factory-bean="systemObjectCache" factory-method="getExpressionsConfigurationView"/>
+        </constructor-arg>
     </bean>
 
     <bean id="melScriptExecutor"
@@ -110,18 +126,33 @@
                 <ref bean="midpointFunctionLibrary"/>
             </list>
         </constructor-arg>
-        <constructor-arg name="evaluators">
+        <constructor-arg name="executors">
             <list>
                 <ref bean="javascriptScriptExecutor"/>
                 <ref bean="groovyScriptExecutor"/>
                 <ref bean="pythonScriptExecutor"/>
                 <ref bean="velocityScriptExecutor"/>
+                <ref bean="safeVelocityScriptExecutor"/>
                 <ref bean="melScriptExecutor"/>
             </list>
         </constructor-arg>
         <constructor-arg name="objectResolver" ref="modelObjectResolver"/>
         <constructor-arg name="functionLibraryManager" ref="functionLibraryManager"/>
         <constructor-arg name="systemObjectCache" ref="systemObjectCache"/>
+    </bean>
+
+    <bean id="javaMethodReferenceExpressionEvaluatorFactory"
+            class="com.evolveum.midpoint.model.common.expression.evaluator.JavaMethodReferenceExpressionEvaluatorFactory">
+        <constructor-arg name="configuration">
+            <bean factory-bean="midpointConfiguration" factory-method="getExpressionsSection"/>
+        </constructor-arg>
+        <constructor-arg name="builtInLibraryBindings">
+            <list>
+                <ref bean="basicFunctionLibrary"/>
+                <ref bean="logFunctionLibrary"/>
+                <ref bean="midpointFunctionLibrary"/>
+            </list>
+        </constructor-arg>
     </bean>
 
     <bean id="functionExpressionEvaluatorFactory"
