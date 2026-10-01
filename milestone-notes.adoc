@@ -10,6 +10,40 @@ The upgrade instructions between releases are in the https://docs.evolveum.com/m
 
 == 4.11-RC2
 
+=== 2026-09-30 Smart Integration: dedicated authorization added
+
+Task: https://support.evolveum.com/wp/12091[12091]
+Description:
+
+Smart Integration suggestion operations now require the new `+http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#smartIntegration+` authorization.
+The backend service enforces it in all channels (GUI, REST, tasks).
+REST endpoints additionally require `+http://midpoint.evolveum.com/xml/ns/public/security/authorization-rest-3#smartIntegration+`.
+Users without the authorization don't see the suggestion actions in the GUI.
+
+Statistics and schema match objects (`SmartIntegrationArtifactType`) are now accessed through the model layer instead of the repository directly.
+Object-scoped authorizations (`read`, `add`, `delete`) therefore apply to them.
+Statistics do not require the `#smartIntegration` authorization.
+
+`SmartIntegrationService` API changed: `getAiInfo`, statistics and schema match related methods now take `Task` and/or `OperationResult` parameters.
+Suggestion operation status methods, statistics and schema match related methods now declare `CommonException` instead of specific exceptions.
+
+Required Upgrade Steps:
+
+- Grant `authorization-ui-3#smartIntegration` (and `authorization-rest-3#smartIntegration` for REST clients such as midPoint Studio) to non-superuser roles that should use Smart Integration suggestions.
+The owners of suggestion tasks need it as well.
+- Make sure non-superuser roles that use Smart Integration suggestions or statistics have `read`, `add` and `delete` authorizations for `SmartIntegrationArtifactType`, and `add` authorization for `TaskType` (suggestion and statistics operations are submitted as tasks via the model).
+This applies also to users working with statistics only, without `#smartIntegration`.
+- Adapt custom code (overlays, scripts) that calls `SmartIntegrationService` to the new method signatures.
+
+Notes & References:
+
+* Related commits: https://github.com/Evolveum/midpoint/commit/3766267ce960aae16f7fdb1127ab5800d408dbbe[3766267c],
+https://github.com/Evolveum/midpoint/commit/9f0e268bc00353edde7bb6c45aca143c53b18260[9f0e268b],
+https://github.com/Evolveum/midpoint/commit/ff54cfcbc9a1e9e24e2951891c3b33c0dcacc4d8[ff54cfcb],
+https://github.com/Evolveum/midpoint/commit/e577b418dee1cf0a70798173d848db49c2944a26[e577b418],
+https://github.com/Evolveum/midpoint/commit/37499c3a1ec528aedc57bfe30fee0d878f6bb64b[37499c3a]
+* Docs: xref:/midpoint/reference/smart-integrations/authorization/[Smart Integration Authorization]
+
 === 2026-09-25 Smart Integration: common "c:" namespace prefix removed from service requests
 
 Task: https://support.evolveum.com/wp/12098[12098]
