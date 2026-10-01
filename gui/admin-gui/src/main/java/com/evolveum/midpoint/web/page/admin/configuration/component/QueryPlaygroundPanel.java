@@ -211,7 +211,7 @@ public class QueryPlaygroundPanel extends BasePanel<RepoQueryDto> {
         mainForm.add(scriptCheck);
 
         ScriptExpressionPanel scriptExpressionPanel = new ScriptExpressionPanel(ID_EDITOR_MIDPOINT_SCRIPT,
-                new PropertyModel<>(getModel(), RepoQueryDto.F_MIDPOINT_QUERY_SCRIPT));
+                new PropertyModel<>(getModel(), RepoQueryDto.F_MIDPOINT_QUERY_SCRIPT), null);
         scriptExpressionPanel.setOutputMarkupId(true);
         scriptExpressionPanel.setOutputMarkupPlaceholderTag(true);
         scriptExpressionPanel.add(new VisibleBehaviour(() -> getModel().getObject().isScriptEnabled()));

@@ -22,8 +22,12 @@ import com.evolveum.midpoint.gui.impl.component.tile.TileTablePanel;
 import com.evolveum.midpoint.gui.impl.component.wizard.collapse.CollapsedItem;
 import com.evolveum.midpoint.gui.impl.component.wizard.collapse.DrawerModel;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.ExpressionWrapper;
+import com.evolveum.midpoint.model.common.expression.ExpressionProfileManager;
 import com.evolveum.midpoint.prism.PrismContext;
 
+import com.evolveum.midpoint.schema.expression.ExpressionProfile;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.data.Table;
@@ -75,6 +79,7 @@ public class ExpressionPanel extends BasePanel<ExpressionType> {
     private LoadableModel<String> helpModel;
     private boolean isEvaluatorPanelExpanded = false;
     private boolean displayHelp = true;
+    private RecognizedEvaluator defaultEvaluator;
 
     /**
      * Copy of the expression the script drawer works with, kept until the user applies it or closes
@@ -171,7 +176,9 @@ public class ExpressionPanel extends BasePanel<ExpressionType> {
                 @Override
                 protected RecognizedEvaluator load() {
                     ExpressionEvaluatorType type = ExpressionUtil.getExpressionType(getModelObject());
-                    return recognizeEvaluator(type);
+                    RecognizedEvaluator defaultEvaluator = recognizeEvaluator(type);
+                    setDefaultEvaluator(defaultEvaluator);
+                    return defaultEvaluator;
                 }
 
                 @Override
@@ -221,6 +228,12 @@ public class ExpressionPanel extends BasePanel<ExpressionType> {
                             ExpressionUtil.loadExpression(getModelObject(), PrismContext.get(), LOGGER));
                 }
             };
+        }
+    }
+
+    private void setDefaultEvaluator(RecognizedEvaluator defaultEvaluator) {
+        if (this.defaultEvaluator == null) {
+            this.defaultEvaluator = defaultEvaluator;
         }
     }
 
@@ -520,9 +533,9 @@ public class ExpressionPanel extends BasePanel<ExpressionType> {
         if (type != null && type.evaluatorPanel != null) {
             try {
                 Constructor<? extends BasePanel<ExpressionType>> constructor =
-                        type.evaluatorPanel.getConstructor(String.class, IModel.class, IModel.class);
+                        type.evaluatorPanel.getConstructor(String.class, IModel.class, IModel.class, IModel.class);
                 BasePanel<ExpressionType> evaluatorPanel =
-                        constructor.newInstance(id, model, (IModel<QName>) this::resolveExpressionTargetType);
+                        constructor.newInstance(id, model, parent, (IModel<QName>) this::resolveExpressionTargetType);
                 evaluatorPanel.setOutputMarkupId(true);
                 evaluatorPanel.add(new VisibleBehaviour(() -> isInPopup || isEvaluatorPanelExpanded()));
                 if (!isInTable()) {
@@ -545,7 +558,25 @@ public class ExpressionPanel extends BasePanel<ExpressionType> {
     }
 
     protected List<RecognizedEvaluator> getChoices() {
-        List<RecognizedEvaluator> choices = new ArrayList<>(Arrays.asList(RecognizedEvaluator.values()));
+
+        ExpressionProfile expressionProfile = ExpressionUtil.getExpressionProfile(getModelObject(), parent, getPageBase());
+        List<RecognizedEvaluator> choices;
+
+        if (expressionProfile != null) {
+            choices = new ArrayList<>(
+                    Arrays.stream(RecognizedEvaluator.class.getEnumConstants())
+                            .filter(evaluator -> expressionProfile
+                                    .getEvaluatorProfile(evaluator.type.getItemName())
+                                    .isNotCompletelyForbidden())
+                            .toList());
+        } else {
+            choices = new ArrayList<>(List.of(RecognizedEvaluator.values()));
+        }
+
+        if (defaultEvaluator != null && !choices.contains(defaultEvaluator)) {
+            choices.add(defaultEvaluator);
+        }
+
         choices.removeIf(choice -> RecognizedEvaluator.AS_IS == choice);
         return choices;
     }
@@ -568,6 +599,7 @@ public class ExpressionPanel extends BasePanel<ExpressionType> {
 
     /**
      * Shows the panel of the evaluator right away, without waiting for the user to expand it.
+     *
      * @param expanded true to show the evaluator panel from the start.
      */
     public void setEvaluatorPanelExpanded(boolean expanded) {

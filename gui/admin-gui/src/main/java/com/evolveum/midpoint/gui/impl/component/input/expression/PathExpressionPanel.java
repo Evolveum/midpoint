@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.gui.impl.component.input.expression;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -35,10 +36,14 @@ public class PathExpressionPanel extends EvaluatorExpressionPanel {
     private static final String ID_PATH_LABEL = "pathLabel";
 
     public PathExpressionPanel(String id, IModel<ExpressionType> model) {
-        this(id, model, null);
+        this(id, model, null, null);
     }
 
-    public PathExpressionPanel(String id, IModel<ExpressionType> model, IModel<QName> expressionTargetTypeModel) {
+    public PathExpressionPanel(
+            String id,
+            IModel<ExpressionType> model,
+            IModel<PrismPropertyWrapper<ExpressionType>> property,
+            IModel<QName> expressionTargetTypeModel) {
         super(id, model, expressionTargetTypeModel);
     }
 
