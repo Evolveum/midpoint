@@ -23,10 +23,15 @@ import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
 import com.evolveum.midpoint.model.common.expression.ExpressionTestUtil;
 import com.evolveum.midpoint.model.common.expression.functions.BasicExpressionFunctions;
+import com.evolveum.midpoint.model.common.expression.functions.FunctionLibrary;
 import com.evolveum.midpoint.model.common.expression.functions.FunctionLibraryBinding;
 import com.evolveum.midpoint.model.common.expression.functions.FunctionLibraryUtil;
 import com.evolveum.midpoint.model.common.expression.functions.LogExpressionFunctions;
+import com.evolveum.midpoint.model.common.expression.script.mel.CelTypeMapper;
+import com.evolveum.midpoint.model.common.expression.script.mel.FunctionLibraryProcessor;
 import com.evolveum.midpoint.model.common.expression.script.mel.MelScriptExecutor;
+import com.evolveum.midpoint.model.common.expression.script.mel.value.ContainerValueCelValue;
+import com.evolveum.midpoint.model.common.expression.script.mel.value.ReferenceCelValue;
 
 import com.evolveum.midpoint.prism.*;
 
@@ -54,6 +59,8 @@ import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 import com.google.common.collect.ImmutableList;
+import dev.cel.common.types.SimpleType;
+import dev.cel.compiler.CelCompilerFactory;
 import org.jetbrains.annotations.Nullable;
 import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
@@ -124,6 +131,48 @@ public class TestMelExpressions extends AbstractScriptTest {
     @Override
     protected File getTestDir() {
         return new File(BASE_TEST_DIR, "mel");
+    }
+
+    @Test
+    public void testContainerQNameToCelTypeMapping() {
+        assertSame(
+                ContainerValueCelValue.CEL_TYPE,
+                CelTypeMapper.toCelType(AssignmentType.COMPLEX_TYPE));
+    }
+
+    @Test
+    public void testReferenceQNameToCelTypeMapping() {
+        assertSame(
+                ReferenceCelValue.CEL_TYPE,
+                CelTypeMapper.toCelType(ObjectReferenceType.COMPLEX_TYPE));
+    }
+
+    @Test
+    public void testComplexQNameToCelTypeMapping() {
+        assertSame(
+                SimpleType.DYN,
+                CelTypeMapper.toCelType(SingleLocalizableMessageType.COMPLEX_TYPE));
+    }
+
+    @Test
+    public void testCompileWithUnusedCustomFunctionReturningContainer() throws Exception {
+        var library = FunctionLibrary.of(
+                new FunctionLibraryType()
+                        .oid("20f8468d-737d-4a81-a0d4-765d70dcec6a")
+                        .name("testLibrary")
+                        .function(
+                                new ExpressionType()
+                                        .name("unused")
+                                        .returnType(AssignmentType.COMPLEX_TYPE)
+                                        .returnMultiplicity(ExpressionReturnMultiplicityType.SINGLE)));
+        var binding = new FunctionLibraryBinding("testLibrary", new Object(), library);
+        var builder = CelCompilerFactory.standardCelCompilerBuilder();
+        builder.setTypeProvider(new CelTypeMapper(prismContext));
+        new FunctionLibraryProcessor().addCompilerCustomLibraryDeclarations(builder, null, binding);
+
+        var validationResult = builder.build().compile("true", getTestName());
+
+        assertFalse(validationResult.getErrorString(), validationResult.hasError());
     }
 
     @FunctionalInterface

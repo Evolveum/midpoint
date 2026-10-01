@@ -199,11 +199,27 @@ public class CelTypeMapper implements CelTypeProvider  {
     @NotNull
     public static CelType toCelType(@NotNull QName xsdType) {
         CelType celType = getCelType(xsdType);
-        if (celType == null) {
-            throw new IllegalArgumentException("No CEL mapping for XSD type " + xsdType);
-        } else {
+        if (celType != null) {
             return celType;
         }
+
+        ComplexTypeDefinition typeDefinition = PrismContext.get()
+                .getSchemaRegistry()
+                .findComplexTypeDefinitionByType(xsdType);
+
+        if (typeDefinition != null) {
+            if (typeDefinition.isObjectMarker()) {
+                return ObjectCelValue.CEL_TYPE;
+            } else if (typeDefinition.isReferenceMarker()) {
+                return ReferenceCelValue.CEL_TYPE;
+            } else if (typeDefinition.isContainerMarker()) {
+                return ContainerValueCelValue.CEL_TYPE;
+            } else {
+                return SimpleType.DYN;
+            }
+        }
+
+        throw new IllegalArgumentException("No CEL mapping for XSD type " + xsdType);
     }
 
     @NotNull
