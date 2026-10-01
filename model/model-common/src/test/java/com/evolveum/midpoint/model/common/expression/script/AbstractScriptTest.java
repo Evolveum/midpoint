@@ -399,7 +399,7 @@ public abstract class AbstractScriptTest extends AbstractUnitTest
     protected void processScriptBeanAfterParsing(ScriptExpressionEvaluatorType bean) {
     }
 
-    private <T> List<PrismPropertyValue<T>> executeScript(
+    protected <T> List<PrismPropertyValue<T>> executeScript(
             ScriptExpressionEvaluatorType scriptType, ItemDefinition<?> outputDefinition,
             VariablesMap variables, String shortDesc, OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException,

@@ -8,24 +8,25 @@ package com.evolveum.midpoint.model.common.expression.script;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Proxy;
 import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.function.Function;
 
 import com.evolveum.midpoint.common.Clock;
+import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
 import com.evolveum.midpoint.model.common.expression.ExpressionTestUtil;
 import com.evolveum.midpoint.model.common.expression.functions.BasicExpressionFunctions;
 import com.evolveum.midpoint.model.common.expression.functions.FunctionLibraryBinding;
 import com.evolveum.midpoint.model.common.expression.functions.FunctionLibraryUtil;
 import com.evolveum.midpoint.model.common.expression.functions.LogExpressionFunctions;
-import com.evolveum.midpoint.model.common.expression.script.mel.CelTypeMapper;
 import com.evolveum.midpoint.model.common.expression.script.mel.MelScriptExecutor;
-import com.evolveum.midpoint.model.common.expression.script.mel.extension.CelMelExtensions;
-import com.evolveum.midpoint.model.common.expression.script.mel.value.QNameCelValue;
 
 import com.evolveum.midpoint.prism.*;
 
@@ -75,18 +76,180 @@ public class TestMelExpressions extends AbstractScriptTest {
 
     private static final String FULL_NAME_RS = "Ing. Radovan \"Gildir\" Semančík, PhD.";
 
+    private static MidpointFunctions createMidpointFunctions(
+            IdentityValueSelector selector) {
+
+        return (MidpointFunctions) Proxy.newProxyInstance(
+                MidpointFunctions.class.getClassLoader(),
+                new Class<?>[] { MidpointFunctions.class },
+                (proxy, method, args) -> {
+                    if (method.getName().equals("selectIdentityItemValues")
+                            && method.getParameterCount() == 3) {
+                        //noinspection unchecked
+                        return selector.select(
+                                (Collection<FocusIdentityType>) args[0],
+                                (FocusIdentitySourceType) args[1],
+                                (ItemPath) args[2]);
+                    }
+
+                    if (method.getDeclaringClass() == Object.class) {
+                        return switch (method.getName()) {
+                            case "toString" -> "MidpointFunctions test proxy";
+                            case "hashCode" -> System.identityHashCode(proxy);
+                            case "equals" -> proxy == args[0];
+                            default -> throw new AssertionError(
+                                    "Unexpected Object method: " + method);
+                        };
+                    }
+
+                    throw new AssertionError(
+                            "Unexpected MidpointFunctions call: " + method);
+                });
+    }
+
+
     @Override
     protected ScriptExecutor createExecutor(PrismContext prismContext, Protector protector, Clock clock, boolean restrictedMode) {
+        return createExecutor(prismContext, protector, clock, restrictedMode, null);
+    }
+
+    private ScriptExecutor createExecutor(PrismContext prismContext, Protector protector, Clock clock, boolean restrictedMode, MidpointFunctions midpointFunctions) {
         FunctionLibraryBinding basicFunctionLibraryBinding = FunctionLibraryUtil.createBasicFunctionLibraryBinding(prismContext, protector, clock);
         return new MelScriptExecutor(prismContext, protector, localizationService,
                 ExpressionTestUtil.testingExpressionsConfiguration(restrictedMode),
                 (BasicExpressionFunctions) basicFunctionLibraryBinding.getImplementation(),
-                null, null);
+                midpointFunctions, null);
     }
 
     @Override
     protected File getTestDir() {
         return new File(BASE_TEST_DIR, "mel");
+    }
+
+    @FunctionalInterface
+    private interface IdentityValueSelector {
+
+        Collection<PrismValue> select(
+                Collection<FocusIdentityType> identities,
+                FocusIdentitySourceType source,
+                ItemPath itemPath);
+    }
+
+    @Test
+    public void testSelectIdentityItemValues() throws Exception {
+        var firstIdentity = new FocusIdentityType().source(new FocusIdentitySourceType().tag("first"));
+        var secondIdentity = new FocusIdentityType().source(new FocusIdentitySourceType().tag("second"));
+        var authoritativeSource = new FocusIdentitySourceType().tag("second");
+
+        PrismPropertyValue<Object> firstValue = prismContext.itemFactory().createPropertyValue((Object) "first value");
+        PrismPropertyValue<Object> secondValue = prismContext.itemFactory().createPropertyValue((Object) "second value");
+        firstValue.setUserData("marker", "preserved");
+
+        IdentityValueSelector selector = (identities, source, path) -> {
+            assertTrue("Wrong item path", path.equivalent(UserType.F_FAMILY_NAME));
+
+            if (identities.isEmpty()) {
+                assertNull("Null source should be preserved", source);
+                return List.of();
+            }
+
+            assertEquals("Wrong number of identities", 2, identities.size());
+            assertEquals("Wrong first identity", "first", identities.iterator().next().getSource().getTag());
+
+            if (source == null) {
+                return new HashSet<>(List.of(firstValue, firstValue, secondValue));
+            }
+
+            assertEquals("Wrong authoritative source", "second", source.getTag());
+
+            return List.of(secondValue);
+        };
+
+        var midpointFunctions = createMidpointFunctions(selector);
+        var testExecutor = createExecutor(
+                prismContext,
+                protector,
+                clock,
+                true,
+                midpointFunctions);
+
+        scriptFactory.replaceExecutor(testExecutor);
+
+        try {
+            var emptyValues = executeIdentityItemSelection(null, null);
+            assertTrue("Expected no selected values", emptyValues.isEmpty());
+
+            var allValues = executeIdentityItemSelection(List.of(firstIdentity, secondIdentity), null);
+
+            assertEquals("Wrong number of returned values", 2, allValues.size());
+            assertTrue("First PrismValue instance was not preserved",
+                    allValues.stream().anyMatch(value -> value == firstValue));
+            assertTrue("Second PrismValue instance was not preserved",
+                    allValues.stream().anyMatch(value -> value == secondValue));
+
+            var returnedFirstValue = allValues.stream()
+                    .filter(value -> value == firstValue)
+                    .findFirst()
+                    .orElseThrow();
+
+            assertEquals("PrismValue metadata was not preserved",
+                    "preserved", returnedFirstValue.getUserData("marker"));
+
+            var selectedValues = executeIdentityItemSelection(
+                    List.of(firstIdentity, secondIdentity),
+                    authoritativeSource);
+
+            assertEquals("Wrong number of selected values", 1, selectedValues.size());
+            assertSame("Selected PrismValue instance was not preserved",
+                    secondValue, selectedValues.get(0));
+        } finally {
+            switchToUnrestrictedMode();
+        }
+    }
+
+    private List<PrismPropertyValue<Object>> executeIdentityItemSelection(Collection<FocusIdentityType> identities,
+            FocusIdentitySourceType source) throws Exception {
+
+        return executeScript(
+                parseScriptType("expression-select-identity-item-values.xml"),
+                null,
+                createVariables(
+                        "identity", identities, FocusIdentityType.class,
+                        "defaultAuthoritativeSource", source, FocusIdentitySourceType.class),
+                getTestName(),
+                createOperationResult());
+    }
+
+    @Test
+    public void testTracingAccountCondition() throws Exception {
+        var accountName = "O'Brien\\operations\nnight";
+        var item = new ShadowType().name(accountName);
+
+        switchToRestrictedMode();
+        try {
+            evaluateAndAssertBooleanScalarExpression(
+                    "expression-tracing-account-condition.xml",
+                    createVariables(
+                            ExpressionConstants.VAR_ITEM, item, ShadowType.class,
+                            "tracingAccount", accountName, PrimitiveType.STRING),
+                    true);
+
+            evaluateAndAssertBooleanScalarExpression(
+                    "expression-tracing-account-condition.xml",
+                    createVariables(
+                            ExpressionConstants.VAR_ITEM, item, ShadowType.class,
+                            "tracingAccount", "different", PrimitiveType.STRING),
+                    false);
+
+            evaluateAndAssertBooleanScalarExpression(
+                    "expression-tracing-account-condition.xml",
+                    createVariables(
+                            ExpressionConstants.VAR_ITEM, new ShadowType(), ShadowType.class,
+                            "tracingAccount", accountName, PrimitiveType.STRING),
+                    false);
+        } finally {
+            switchToUnrestrictedMode();
+        }
     }
 
     @Test

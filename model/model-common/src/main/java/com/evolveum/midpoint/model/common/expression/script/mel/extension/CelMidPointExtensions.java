@@ -8,7 +8,9 @@ package com.evolveum.midpoint.model.common.expression.script.mel.extension;
 import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
 import com.evolveum.midpoint.model.common.expression.script.mel.CelTypeMapper;
 import com.evolveum.midpoint.model.common.expression.script.mel.value.ContainerValueCelValue;
+import com.evolveum.midpoint.model.common.expression.script.mel.value.ItemPathCelValue;
 import com.evolveum.midpoint.model.common.expression.script.mel.value.ObjectCelValue;
+import com.evolveum.midpoint.model.common.expression.script.mel.value.OpaqueJavaCelValue;
 import com.evolveum.midpoint.model.common.expression.script.mel.value.QNameCelValue;
 import com.evolveum.midpoint.model.common.expression.script.mel.value.ReferenceCelValue;
 import com.evolveum.midpoint.prism.Containerable;
@@ -35,6 +37,7 @@ import dev.cel.common.values.CelValue;
 import dev.cel.common.values.NullValue;
 import dev.cel.extensions.CelExtensionLibrary;
 import dev.cel.runtime.CelFunctionBinding;
+import dev.cel.runtime.NullabilityProperties;
 import org.jetbrains.annotations.Nullable;
 
 import javax.xml.namespace.QName;
@@ -577,10 +580,28 @@ public class CelMidPointExtensions extends AbstractMidPointCelExtensions {
                         CelFunctionBinding.from(FUNCTION_NAME_PREFIX_DASH + "translateKeyInCurrentLocale",
                                 String.class,
                                 key -> midpointExpressionFunctions.translateKeyInCurrentLocale(key))
-                )
+                ),
 
-                // selectIdentityItemValues: not implemented yet.
-                // This would probably require some rework, as FocusIdentitySourceTypeUtil is not available in CEL.
+                // midpoint.selectIdentityItemValues(identities, source, itemPath)
+                new Function(
+                        CelFunctionDecl.newFunctionDeclaration(
+                                FUNCTION_NAME_PREFIX_DOT + "selectIdentityItemValues",
+                                CelOverloadDecl.newGlobalOverload(
+                                        FUNCTION_NAME_PREFIX_DASH + "selectIdentityItemValues",
+                                        "Selects identity item values from the requested authoritative source.",
+                                        ListType.create(OpaqueJavaCelValue.CEL_TYPE),
+                                        NullableType.create(SimpleType.DYN),
+                                        NullableType.create(ContainerValueCelValue.CEL_TYPE),
+                                        ItemPathCelValue.CEL_TYPE)),
+                        CelFunctionBinding.from(
+                                FUNCTION_NAME_PREFIX_DASH + "selectIdentityItemValues",
+                                ImmutableList.of(
+                                        Object.class,
+                                        Object.class,
+                                        ItemPathCelValue.class),
+                                this::selectIdentityItemValues,
+                                NullabilityProperties.NULLABLE)
+                )
 
         );
     }
@@ -698,6 +719,29 @@ public class CelMidPointExtensions extends AbstractMidPointCelExtensions {
         } catch (CommonException e) {
             throw createException(e);
         }
+    }
+
+    @SuppressWarnings("unchecked")
+    private List<Object> selectIdentityItemValues(Object[] args) {
+        Object identities = args[0];
+        Object source = args[1];
+        ItemPathCelValue itemPath = (ItemPathCelValue) args[2];
+
+        var identityBeans = isCelNull(identities)
+                ? List.<FocusIdentityType>of()
+                : ((Collection<?>) identities).stream()
+                .map(value -> toJavaContainerable((ContainerValueCelValue<FocusIdentityType>) value))
+                .toList();
+
+        var sourceBean = isCelNull(source)
+                ? null : toJavaContainerable((ContainerValueCelValue<FocusIdentitySourceType>) source);
+
+        return midpointExpressionFunctions
+                .selectIdentityItemValues(identityBeans, sourceBean, itemPath.getJavaValue())
+                .stream()
+                .map(OpaqueJavaCelValue::create)
+                .map(Object.class::cast)
+                .toList();
     }
 
     private CelValue getOrgByName(String name) {
