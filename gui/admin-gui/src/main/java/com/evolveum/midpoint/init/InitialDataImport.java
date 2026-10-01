@@ -53,9 +53,12 @@ public class InitialDataImport extends DataImport {
     }
 
     public void init(boolean overwrite) throws SchemaException {
+        init(overwrite, new OperationResult(OPERATION_INITIAL_OBJECTS_IMPORT));
+    }
+
+    public void init(boolean overwrite, OperationResult mainResult) throws SchemaException {
         LOGGER.info("Starting initial object import (if necessary).");
 
-        OperationResult mainResult = new OperationResult(OPERATION_INITIAL_OBJECTS_IMPORT);
         Task task = taskManager.createTaskInstance(OPERATION_INITIAL_OBJECTS_IMPORT);
         task.setChannel(SchemaConstants.CHANNEL_INIT_URI);
 

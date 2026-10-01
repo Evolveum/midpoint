@@ -191,12 +191,6 @@
 
         <!-- Test -->
         <dependency>
-            <groupId>com.evolveum.midpoint.repo</groupId>
-            <artifactId>repo-cache</artifactId>
-            <version>${project.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
             <groupId>com.evolveum.midpoint.provisioning</groupId>
             <artifactId>provisioning-impl</artifactId>
             <version>${project.version}</version>
@@ -376,6 +370,12 @@
         <dependency>
             <groupId>com.evolveum.midpoint.repo</groupId>
             <artifactId>repo-api</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.evolveum.midpoint.repo</groupId>
+            <artifactId>repo-cache</artifactId>
             <version>${project.version}</version>
         </dependency>
 

@@ -18,7 +18,7 @@ public class QNameWithoutNamespaceItemWrapperFactory extends AbstractSearchItemW
 
     @Override
     protected QNameWithoutNamespaceItemWrapper createSearchWrapper(SearchItemContext ctx) {
-        return new QNameWithoutNamespaceItemWrapper();
+        return new QNameWithoutNamespaceItemWrapper(ctx.getModelServiceLocator());
     }
 
     @Override

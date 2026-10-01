@@ -199,7 +199,7 @@ public class ReferenceValueSearchPopupPanel extends PopoverSearchPopupPanel<Obje
     }
 
     protected List<QName> getSupportedTargetList() {
-        return ObjectTypeListUtil.createFocusTypeList();
+        return ObjectTypeListUtil.createFocusTypeList(getPageBase());
     }
 
     protected boolean isAllowedNotFoundObjectRef() {

@@ -11,6 +11,7 @@ import java.util.List;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
 import org.apache.wicket.model.IModel;
 
@@ -34,6 +35,7 @@ public class MappingRangePanel extends BasePanel<PrismContainerValueWrapper<Mapp
 
     @Serial private static final long serialVersionUID = 1L;
 
+    private static final String ID_HEADER = "header";
     private static final String ID_RANGE_CHOICE = "rangeChoice";
     private static final String ID_CONDITION = "condition";
 
@@ -52,8 +54,19 @@ public class MappingRangePanel extends BasePanel<PrismContainerValueWrapper<Mapp
         setOutputMarkupId(true);
         rangeModel = new MappingRangeModel(getModel());
 
+        add(createHeader());
         add(createRangeChoice());
         add(createConditionPanel());
+    }
+
+    private Component createHeader() {
+        WebMarkupContainer header = new WebMarkupContainer(ID_HEADER);
+        header.add(new VisibleBehaviour(this::isHeaderVisible));
+        return header;
+    }
+
+    protected boolean isHeaderVisible() {
+        return true;
     }
 
     private Component createRangeChoice() {

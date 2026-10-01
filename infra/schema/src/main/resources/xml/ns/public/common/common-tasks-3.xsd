@@ -2363,6 +2363,13 @@
                         </xsd:documentation>
                     </xsd:annotation>
                 </xsd:element>
+                <xsd:element name="initialDataImport" type="tns:InitialDataImportWorkDefinitionType" minOccurs="0">
+                    <xsd:annotation>
+                        <xsd:documentation>
+                            Imports initial objects, overwriting existing ones.
+                        </xsd:documentation>
+                    </xsd:annotation>
+                </xsd:element>
                 <xsd:element name="shadowCleanup" type="tns:ShadowCleanupWorkDefinitionType" minOccurs="0">
                     <xsd:annotation>
                         <xsd:documentation>
@@ -8324,6 +8331,23 @@
         </xsd:complexContent>
     </xsd:complexType>
     <xsd:element name="repartitioningWorkDefinition" type="tns:RepartitioningWorkDefinitionType"/>
+
+    <xsd:complexType name="InitialDataImportWorkDefinitionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Imports initial objects, overwriting existing ones.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:since>4.11</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractWorkDefinitionType">
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="initialDataImportWorkDefinition" type="tns:InitialDataImportWorkDefinitionType"/>
 
 
     <xsd:complexType name="ObjectSetBasedWorkDefinitionType">

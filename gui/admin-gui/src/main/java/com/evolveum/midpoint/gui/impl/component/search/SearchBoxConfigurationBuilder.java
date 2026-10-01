@@ -9,6 +9,7 @@ package com.evolveum.midpoint.gui.impl.component.search;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.ObjectTypeListUtil;
 
 import com.evolveum.midpoint.gui.impl.util.RelationUtil;
@@ -143,10 +144,10 @@ public class SearchBoxConfigurationBuilder {
         return this;
     }
 
-    public SearchBoxConfigurationType create() {
+    public SearchBoxConfigurationType create(ModelServiceLocator modelServiceLocator) {
         SearchBoxConfigurationType defaultSearchBoxConfig = createDefaultSearchBoxConfig();
 
-        defaultSearchBoxConfig.setObjectTypeConfiguration(createObjectTypeSearchItemConfiguration());
+        defaultSearchBoxConfig.setObjectTypeConfiguration(createObjectTypeSearchItemConfiguration(modelServiceLocator));
 
         addMemberSearchConfiguration(defaultSearchBoxConfig);
 
@@ -306,10 +307,10 @@ public class SearchBoxConfigurationBuilder {
         return null;
     }
 
-    private ObjectTypeSearchItemConfigurationType createObjectTypeSearchItemConfiguration() {
+    private ObjectTypeSearchItemConfigurationType createObjectTypeSearchItemConfiguration(ModelServiceLocator modelServiceLocator) {
         ObjectTypeSearchItemConfigurationType objectTypeItem = new ObjectTypeSearchItemConfigurationType();
         objectTypeItem.setDefaultValue(WebComponentUtil.anyClassToQName(PrismContext.get(), type));
-        objectTypeItem.getSupportedTypes().addAll(getSupportedObjectTypes(collectionPanelType));
+        objectTypeItem.getSupportedTypes().addAll(getSupportedObjectTypes(collectionPanelType, modelServiceLocator));
         objectTypeItem.setVisibility(UserInterfaceElementVisibilityType.VISIBLE);
         return objectTypeItem;
     }
@@ -432,7 +433,7 @@ public class SearchBoxConfigurationBuilder {
         return RelationUtil.getCategoryRelationChoices(AreaCategoryType.GOVERNANCE, modelServiceLocator);
     }
 
-    public static List<QName> getSupportedObjectTypes(CollectionPanelType collectionPanelType) {
+    public static List<QName> getSupportedObjectTypes(CollectionPanelType collectionPanelType, ModelServiceLocator modelServiceLocator) {
         if (collectionPanelType == null) {
             return new ArrayList<>();
         }
@@ -446,15 +447,15 @@ public class SearchBoxConfigurationBuilder {
             case ORG_MEMBER_GOVERNANCE:
             case CARDS_GOVERNANCE:
             case ARCHETYPE_MEMBER_GOVERNANCE:
-                return ObjectTypeListUtil.createFocusTypeList();
+                return ObjectTypeListUtil.createFocusTypeList(modelServiceLocator);
             case ORG_MEMBER_MEMBER:
             case MEMBER_ORGANIZATION:
             case ARCHETYPE_MEMBER_MEMBER:
-                List<QName> supportedObjectTypes = ObjectTypeListUtil.createAssignmentHolderTypeQnamesList();
+                List<QName> supportedObjectTypes = ObjectTypeListUtil.createAssignmentHolderTypeQnamesList(modelServiceLocator);
                 supportedObjectTypes.remove(AssignmentHolderType.COMPLEX_TYPE);
                 return supportedObjectTypes;
             case DEBUG:
-                return ObjectTypeListUtil.createObjectTypesList().stream()
+                return ObjectTypeListUtil.createObjectTypesList(modelServiceLocator).stream()
                         .map(type -> type.getTypeQName()).collect(Collectors.toList());
             case ASSIGNABLE:
                 return Arrays.asList(

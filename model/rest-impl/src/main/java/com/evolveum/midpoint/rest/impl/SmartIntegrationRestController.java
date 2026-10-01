@@ -12,6 +12,8 @@ import com.evolveum.midpoint.model.api.util.SmartIntegrationConstants;
 import com.evolveum.midpoint.model.api.util.SmartIntegrationOperationExecutor;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.security.api.RestAuthorizationAction;
+import com.evolveum.midpoint.security.api.RestHandlerMethod;
 import com.evolveum.midpoint.smart.api.RegenerateMode;
 import com.evolveum.midpoint.smart.api.SmartIntegrationService;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
@@ -50,6 +52,7 @@ public class SmartIntegrationRestController extends AbstractRestController {
      *
      * Returned body contains the serialized form of {@link ObjectTypesSuggestionType}.
      */
+    @RestHandlerMethod(authorization = RestAuthorizationAction.SMART_INTEGRATION)
     @PostMapping(SmartIntegrationConstants.RPC_SUGGEST_OBJECT_TYPES_SUBMIT_OPERATION)
     public ResponseEntity<?> submitOperationSuggestObjectTypes(
             @RequestBody ObjectTypesSuggestionWorkDefinitionType objectTypesSuggestionWorkDefinitionType
@@ -72,6 +75,7 @@ public class SmartIntegrationRestController extends AbstractRestController {
         );
     }
 
+    @RestHandlerMethod(authorization = RestAuthorizationAction.SMART_INTEGRATION)
     @GetMapping(SmartIntegrationConstants.RPC_SUGGEST_OBJECT_TYPES_STATUS_INFO)
     public ResponseEntity<?> getSuggestObjectTypesStatus(
             @RequestParam("token") @NotNull String token
@@ -91,6 +95,7 @@ public class SmartIntegrationRestController extends AbstractRestController {
      *
      * Returned body contains the serialized form of {@link CorrelationSuggestionsType}.
      */
+    @RestHandlerMethod(authorization = RestAuthorizationAction.SMART_INTEGRATION)
     @PostMapping(SmartIntegrationConstants.RPC_SUGGEST_CORRELATIONS_SUBMIT_OPERATION)
     public ResponseEntity<?> submitOperationSuggestCorrelations(
             @RequestBody CorrelationSuggestionWorkDefinitionType correlationSuggestionWorkDefinitionType
@@ -115,6 +120,7 @@ public class SmartIntegrationRestController extends AbstractRestController {
         );
     }
 
+    @RestHandlerMethod(authorization = RestAuthorizationAction.SMART_INTEGRATION)
     @GetMapping(SmartIntegrationConstants.RPC_SUGGEST_CORRELATIONS_STATUS_INFO)
     public ResponseEntity<?> getSuggestCorrelationsStatus(
             @RequestParam("token") @NotNull String token
@@ -134,6 +140,7 @@ public class SmartIntegrationRestController extends AbstractRestController {
      *
      * Returned body contains the serialized form of {@link MappingsSuggestionType}.
      */
+    @RestHandlerMethod(authorization = RestAuthorizationAction.SMART_INTEGRATION)
     @PostMapping(SmartIntegrationConstants.RPC_SUGGEST_MAPPINGS_SUBMIT_OPERATION)
     public ResponseEntity<?> submitOperationSuggestMappings(
             @RequestBody MappingsSuggestionWorkDefinitionType mappingsSuggestionWorkDefinitionType
@@ -160,6 +167,7 @@ public class SmartIntegrationRestController extends AbstractRestController {
         );
     }
 
+    @RestHandlerMethod(authorization = RestAuthorizationAction.SMART_INTEGRATION)
     @GetMapping(SmartIntegrationConstants.RPC_SUGGEST_MAPPINGS_STATUS_INFO)
     public ResponseEntity<?> getSuggestMappingsStatus(
             @RequestParam("token") @NotNull String token
@@ -179,6 +187,7 @@ public class SmartIntegrationRestController extends AbstractRestController {
      *
      * Returned body contains the serialized form of {@link AssociationSuggestionType}.
      */
+    @RestHandlerMethod(authorization = RestAuthorizationAction.SMART_INTEGRATION)
     @PostMapping(SmartIntegrationConstants.RPC_SUGGEST_ASSOCIATION_TYPE_SUBMIT_OPERATION)
     public ResponseEntity<?> submitOperationSuggestAssociations(
             @RequestBody AssociationSuggestionWorkDefinitionType associationSuggestionWorkDefinitionType
@@ -198,6 +207,7 @@ public class SmartIntegrationRestController extends AbstractRestController {
         );
     }
 
+    @RestHandlerMethod(authorization = RestAuthorizationAction.SMART_INTEGRATION)
     @GetMapping(SmartIntegrationConstants.RPC_SUGGEST_ASSOCIATION_TYPE_STATUS_INFO)
     public ResponseEntity<?> getSuggestAssociationStatus(
             @RequestParam("token") @NotNull String token
@@ -219,6 +229,7 @@ public class SmartIntegrationRestController extends AbstractRestController {
      * In the future, we may return a full QName, but for now we keep it simple. We spare the client from
      * having to parse the string representing the QName.
      */
+    @RestHandlerMethod(authorization = RestAuthorizationAction.SMART_INTEGRATION)
     @PostMapping(SmartIntegrationConstants.RPC_SUGGEST_FOCUS_TYPE_SUBMIT_OPERATION)
     public ResponseEntity<?> suggestFocusType(
             @RequestParam("resourceOid") String resourceOid,
@@ -240,6 +251,7 @@ public class SmartIntegrationRestController extends AbstractRestController {
         }
     }
 
+    @RestHandlerMethod(authorization = RestAuthorizationAction.SMART_INTEGRATION)
     @GetMapping(SmartIntegrationConstants.RPC_SUGGEST_FOCUS_TYPE_STATUS_INFO)
     public ResponseEntity<?> getSuggestFocusTypeStatus(
             @RequestParam("token") @NotNull String token
@@ -257,6 +269,7 @@ public class SmartIntegrationRestController extends AbstractRestController {
     /**
      * Retrieves information about the configured AI smart integration service.
      */
+    @RestHandlerMethod(authorization = RestAuthorizationAction.SMART_INTEGRATION)
     @GetMapping(SmartIntegrationConstants.RPC_GET_AI_INFO)
     public ResponseEntity<?> getAiInfo() {
 
@@ -264,7 +277,7 @@ public class SmartIntegrationRestController extends AbstractRestController {
         var result = createSubresult(task, OPERATION_GET_AI_INFO);
 
         try {
-            var aiInfo = smartIntegrationService.getAiInfo();
+            var aiInfo = smartIntegrationService.getAiInfo(task, result);
 
             if (aiInfo.isEmpty()) {
                 return createResponse(HttpStatus.NOT_FOUND, null, result);

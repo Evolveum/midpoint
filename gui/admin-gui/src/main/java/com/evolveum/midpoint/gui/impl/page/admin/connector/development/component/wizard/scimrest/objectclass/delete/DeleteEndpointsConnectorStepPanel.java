@@ -15,6 +15,7 @@ import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.ConnectorDevelopmentDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.EndpointsConnectorStepPanel;
 import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.smart.api.conndev.ConnectorDevelopmentArtifacts;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
@@ -50,6 +51,11 @@ public class DeleteEndpointsConnectorStepPanel extends EndpointsConnectorStepPan
 
     protected Collection<ConnDevHttpEndpointIntentType> getEndpointIntents() {
         return List.of(ConnDevHttpEndpointIntentType.DELETE);
+    }
+
+    @Override
+    protected ConnectorDevelopmentArtifacts.KnownArtifactType getScriptType() {
+        return ConnectorDevelopmentArtifacts.KnownArtifactType.DELETE;
     }
 
     protected String getPanelType() {

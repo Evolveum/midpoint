@@ -6,6 +6,8 @@
 
 package com.evolveum.midpoint.gui.api.component;
 
+import com.evolveum.midpoint.web.util.TooltipBehavior;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -39,6 +41,11 @@ public class LabelWithHelpPanel extends BasePanel<String> {
         Label label = new Label(ID_LABEL, getModel());
         label.setOutputMarkupId(true);
         label.add(AttributeModifier.append("class", getLabelAdditionalCssClass()));
+
+        if (isTooltipEnabled()) {
+            label.add(new TooltipBehavior());
+            label.add(AttributeModifier.append("title", getModel()));
+        }
         add(label);
 
         WebMarkupContainer btnContainer = new WebMarkupContainer(ID_BUTTON_CONTAINER);
@@ -60,6 +67,10 @@ public class LabelWithHelpPanel extends BasePanel<String> {
         }
 
         btnContainer.add(help);
+    }
+
+    protected boolean isTooltipEnabled() {
+        return false;
     }
 
     protected IModel<String> getHelpModel() {

@@ -1,0 +1,32 @@
+<!--
+  ~ Copyright (C) 2010-2025 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+    <div class="d-flex flex-column">
+        <div class="border-bottom pb-2 mb-2">
+            <div class="fw-bold">
+                <wicket:message key="ClearCapabilityPopup.subtitle"/>
+            </div>
+            <div class="text-secondary" wicket:id="description"/>
+        </div>
+
+        <div class="list-group" wicket:id="items">
+            <label class="list-group-item list-group-item-action d-flex align-items-center gap-2 py-2" wicket:id="item">
+                <input wicket:id="checkbox" type="checkbox" class="form-check-input mt-0 flex-shrink-0"/>
+                <span wicket:id="label"/>
+            </label>
+        </div>
+    </div>
+
+    <wicket:fragment wicket:id="buttons">
+        <div class="d-flex flex-wrap gap-2 w-100 justify-content-between">
+            <a class="btn btn-light border" wicket:id="cancel"/>
+            <a class="btn btn-danger" wicket:id="confirm"/>
+        </div>
+    </wicket:fragment>
+</wicket:panel>
+</html>

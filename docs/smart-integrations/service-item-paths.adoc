@@ -1,0 +1,74 @@
+= Item Paths and Type Names in Smart Integration Service Requests
+:page-toc: top
+:page-since: "4.11"
+:page-upkeep-status: green
+
+== Overview
+
+When midPoint calls the Smart Integration microservice, it describes resource object classes, focus types, and their statistics in a textual form.
+Items are identified by _descriptive item paths_, and object classes and focus types are identified by _type names_.
+
+To make the request more readable for LLMs and to reduce noise in the payload, the common midPoint namespace (shown with the `c:` prefix) is *not shown* in these values.
+All other namespace prefixes are kept.
+
+== Descriptive Item Paths
+
+Descriptive item paths are used in the `name` of schema attributes (`SiAttributeDefinitionType`) and in the `ref` of attribute and attribute-tuple statistics sent to the service.
+
+Path segments are separated by `/`.
+A segment may carry a namespace prefix, typically:
+
+* `ri:` - resource-specific attributes (resource instance namespace),
+* `icfs:` - ConnId special attributes, e.g. `icfs:name`, `icfs:uid`,
+* `ext1:`, `ext2:`, ... - extension items.
+
+Segments from the common midPoint namespace are written without any prefix.
+
+A multivalued segment that is not the last one in the path is followed by `[*]`.
+
+.Examples
+[cols="1,1"]
+|===
+| Before 4.11-RC2 | Now
+
+| `c:givenName`
+| `givenName`
+
+| `c:attributes/ri:login`
+| `attributes/ri:login`
+
+| `c:attributes/icfs:name`
+| `attributes/icfs:name`
+
+| `c:activation/c:administrativeStatus`
+| `activation/administrativeStatus`
+
+| `c:credentials/c:password/c:value`
+| `credentials/password/value`
+
+| `c:extension/ext1:shoeSize`
+| `extension/ext1:shoeSize`
+
+| `c:email[*]/c:value`
+| `email[*]/value`
+|===
+
+== Type Names
+
+The `name` of the object schema (`SiObjectSchemaType`) follows the same rule:
+
+* resource object classes keep their prefix, e.g. `ri:inetOrgPerson`, `ri:account`,
+* midPoint focus types are sent without prefix, e.g. `UserType` instead of `c:UserType`.
+
+Because of this, `SiObjectSchemaType/name` is now declared as `xsd:string` instead of `xsd:QName`.
+
+== Statistics
+
+Object class statistics (`ObjectSetStatisticsType`) stored in midPoint keep fully-qualified item paths, e.g. `c:attributes/ri:emptype`.
+Only the copy sent to the service is simplified: common-namespace segments in `attribute/ref` and `attributeTuple/ref` are replaced with unqualified names, e.g. `attributes/ri:emptype`.
+The stored statistics are not modified.
+
+== Paths Returned by the Service
+
+The service is expected to refer to items using the same descriptive paths it received in the request.
+MidPoint resolves these paths back to regular item paths using the mapping created while serializing the request, so the unqualified form is correctly interpreted as items from the common midPoint namespace.

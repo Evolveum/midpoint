@@ -82,8 +82,9 @@ public class SmartSuggestButtonWithConfirmation<T extends Describable>
             @Override
             protected AiInfo load() {
                 try {
+                    var task = pageBase.createSimpleTask("getAiInfo");
                     return pageBase.getSmartIntegrationService()
-                            .getAiInfo()
+                            .getAiInfo(task, task.getResult())
                             .orElse(null);
                 } catch (SystemException e) {
                     return null;

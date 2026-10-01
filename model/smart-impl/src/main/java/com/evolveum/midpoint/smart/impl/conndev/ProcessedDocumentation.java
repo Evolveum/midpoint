@@ -14,6 +14,8 @@ import java.nio.charset.StandardCharsets;
 
 public class ProcessedDocumentation {
 
+    public static final String STORAGE_DIR_NAME = "tmp-docs";
+
     private final File directory;
     private final String uri;
     private final String uuid;
@@ -28,7 +30,7 @@ public class ProcessedDocumentation {
     ProcessedDocumentation(String uuid, String uri) {
         this.uuid = uuid;
         this.uri = uri;
-        directory = new File(ConnDevBeans.get().getMidpointHome(), "tmp-docs");
+        directory = new File(ConnDevBeans.get().getMidpointHome(), STORAGE_DIR_NAME);
         directory.mkdirs();
         storage = new File(directory, uuid);
     }

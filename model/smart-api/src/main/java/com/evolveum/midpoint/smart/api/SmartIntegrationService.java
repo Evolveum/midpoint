@@ -44,7 +44,7 @@ public interface SmartIntegrationService {
      * Returns AI provider and model info fetched from the microservice health endpoint.
      * Returns empty Optional if the information is unavailable.
      */
-    Optional<AiInfo> getAiInfo();
+    Optional<AiInfo> getAiInfo(Task task, OperationResult result);
 
     /**
      * Creates a new resource with the given connector and the given connector configuration.
@@ -75,8 +75,8 @@ public interface SmartIntegrationService {
 
     /** Returns the object holding last known statistics for the given resource and object class. */
     SmartIntegrationArtifactType getLatestObjectClassStatistics(
-            String resourceOid, QName objectClassName, OperationResult result)
-            throws SchemaException;
+            String resourceOid, QName objectClassName, Task task, OperationResult result)
+            throws CommonException;
 
     /** Regenerates statistics for the given resource and object class. */
     String regenerateObjectClassStatistics(String resourceOid, QName objectClassName, Task task, OperationResult result)
@@ -88,34 +88,36 @@ public interface SmartIntegrationService {
 
     /** Returns OID of the object holding last known statistics for the given resource, kind and intent. */
     SmartIntegrationArtifactType getLatestObjectTypeStatistics(
-            String resourceOid, ResourceObjectTypeIdentification typeIdentification, OperationResult parentResult)
-            throws SchemaException;
+            String resourceOid, ResourceObjectTypeIdentification typeIdentification, Task task, OperationResult parentResult)
+            throws CommonException;
 
     /** Deletes all object type statistics for the given resource, kind, and intent. */
     void deleteObjectTypeStatistics(
-            String resourceOid, ResourceObjectTypeIdentification typeIdentification, OperationResult result)
-            throws SchemaException;
+            String resourceOid, ResourceObjectTypeIdentification typeIdentification, Task task, OperationResult result)
+            throws CommonException;
 
     /** Deletes all statistics objects for the given resource and object class. */
     void deleteStatisticsForResource(
-            String resourceOid, QName objectClassName, OperationResult result)
-            throws SchemaException;
+            String resourceOid, QName objectClassName, Task task, OperationResult result)
+            throws CommonException;
 
     /** Returns the object holding last known statistics for the given focus object type and resource/kind/intent. */
     SmartIntegrationArtifactType getLatestFocusObjectStatistics(
             QName objectTypeName,
             String resourceOid,
             ResourceObjectTypeIdentification typeIdentification,
+            Task task,
             OperationResult parentResult)
-            throws SchemaException;
+            throws CommonException;
 
     /** Deletes all focus object statistics for the given object type and resource/kind/intent. */
     void deleteFocusObjectStatistics(
             QName objectTypeName,
             String resourceOid,
             ResourceObjectTypeIdentification typeIdentification,
+            Task task,
             OperationResult result)
-            throws SchemaException;
+            throws CommonException;
 
     /** Regenerates statistics for the given focus object type (e.g. UserType) filtered by resource/kind/intent. */
     String regenerateFocusObjectStatistics(
@@ -128,8 +130,8 @@ public interface SmartIntegrationService {
 
     /** Returns the object holding last known schema match for the given resource, kind and intent. */
     SmartIntegrationArtifactType getLatestObjectTypeSchemaMatch(
-            String resourceOid, ResourceObjectTypeIdentification typeIdentification, OperationResult parentResult)
-            throws SchemaException;
+            String resourceOid, ResourceObjectTypeIdentification typeIdentification, Task task, OperationResult parentResult)
+            throws CommonException;
 
     /** Computes schema match pairs for the given resource and object type. */
     SchemaMatchResultType computeSchemaMatch(
@@ -161,12 +163,12 @@ public interface SmartIntegrationService {
             @Nullable ResourceObjectTypeIdentification objectTypeIdentification,
             @Nullable QName objectClass,
             Task task, OperationResult result)
-            throws SchemaException, ObjectNotFoundException, ConfigurationException;
+            throws CommonException;
 
     /** Checks the status of the "suggest object types" request. */
     StatusInfo<ObjectTypesSuggestionType> getSuggestObjectTypesOperationStatus(
             String token, Task task, OperationResult result)
-            throws SchemaException, ObjectNotFoundException, ConfigurationException;
+            throws CommonException;
 
     /**
      * Submits "suggest focus type" request. Returns a token used to query the status.
@@ -181,12 +183,12 @@ public interface SmartIntegrationService {
      */
     List<StatusInfo<FocusTypeSuggestionType>> listSuggestFocusTypeOperationStatuses(
             String resourceOid, Task task, OperationResult result)
-            throws SchemaException, ObjectNotFoundException, ConfigurationException;
+            throws CommonException;
 
     /** Checks the status of the "suggest focus type" request. */
     StatusInfo<FocusTypeSuggestionType> getSuggestFocusTypeOperationStatus(
             String token, Task task, OperationResult result)
-            throws SchemaException, ObjectNotFoundException, ConfigurationException;
+            throws CommonException;
 
     /** Invokes the service client to suggest object types for the given resource and object class. */
     ObjectTypesSuggestionType suggestObjectTypes(
@@ -255,12 +257,12 @@ public interface SmartIntegrationService {
             String resourceOid,
             @Nullable ResourceObjectTypeIdentification objectTypeIdentification,
             Task task, OperationResult result)
-            throws SchemaException, ObjectNotFoundException, ConfigurationException;
+            throws CommonException;
 
     /** Checks the status of the "suggest correlation" request. */
     StatusInfo<CorrelationSuggestionsType> getSuggestCorrelationOperationStatus(
             String token, Task task, OperationResult result)
-            throws SchemaException, ObjectNotFoundException, ConfigurationException;
+            throws CommonException;
 
     /**
      * Suggests inbound/outbound mappings for the given resource object type and focus type.
@@ -327,12 +329,12 @@ public interface SmartIntegrationService {
             Boolean isInbound,
             Task task,
             OperationResult result)
-            throws SchemaException, ObjectNotFoundException, ConfigurationException;
+            throws CommonException;
 
     /** Checks the status of the "suggest mappings" request. */
     StatusInfo<MappingsSuggestionType> getSuggestMappingsOperationStatus(
             String token, Task task, OperationResult result)
-            throws SchemaException, ObjectNotFoundException, ConfigurationException;
+            throws CommonException;
 
     /**
      * Suggests association type definitions for the given resource. (Either for all object types, or with some restrictions.)
@@ -361,12 +363,12 @@ public interface SmartIntegrationService {
      */
     List<StatusInfo<AssociationsSuggestionType>> listSuggestAssociationsOperationStatuses(
             String resourceOid, Task task, OperationResult result)
-            throws SchemaException, ObjectNotFoundException, ConfigurationException;
+            throws CommonException;
 
     /** Checks the status of the "suggest associations" request. */
     StatusInfo<AssociationsSuggestionType> getSuggestAssociationsOperationStatus(
             String token, Task task, OperationResult result)
-            throws SchemaException, ObjectNotFoundException, ConfigurationException;
+            throws CommonException;
 
     /**
      * Cancels the request with the given token.
@@ -409,5 +411,6 @@ public interface SmartIntegrationService {
             @NotNull String resourceOid,
             @Nullable QName objectClass,
             @NotNull List<ItemName> activityTypes,
-            @NotNull OperationResult result) throws SchemaException;
+            Task task,
+            @NotNull OperationResult result) throws CommonException;
 }

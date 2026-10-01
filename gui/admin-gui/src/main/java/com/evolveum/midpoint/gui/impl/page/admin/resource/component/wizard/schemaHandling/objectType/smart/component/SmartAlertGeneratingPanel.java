@@ -8,6 +8,8 @@ package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.sche
 
 import static com.evolveum.midpoint.gui.api.util.LocalizationUtil.translate;
 
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils;
+
 import java.io.Serial;
 import java.time.Duration;
 import java.util.Collections;
@@ -78,6 +80,11 @@ public abstract class SmartAlertGeneratingPanel extends BasePanel<SmartGeneratin
     protected void onInitialize() {
         super.onInitialize();
         initLayout();
+    }
+
+    @Override
+    public boolean isVisible() {
+        return super.isVisible() && SmartIntegrationUtils.isSmartIntegrationAuthorized(getPageBase());
     }
 
     /** Builds the component layout: container, message, buttons, progress, info, timer. */
@@ -338,8 +345,9 @@ public abstract class SmartAlertGeneratingPanel extends BasePanel<SmartGeneratin
         }
         suggestButton.add(AttributeModifier.append("class", "ms-auto"));
         suggestButton.showTitleAsLabel(true);
-        suggestButton.add(new VisibleBehaviour(() -> getModelObject().isSuggestionButtonVisible()
-                || getModelObject().isRefreshButtonVisible()));
+        suggestButton.add(new VisibleBehaviour(() -> SmartIntegrationUtils.isSmartIntegrationAuthorized(getPageBase())
+                && (getModelObject().isSuggestionButtonVisible()
+                || getModelObject().isRefreshButtonVisible())));
         return suggestButton;
     }
 

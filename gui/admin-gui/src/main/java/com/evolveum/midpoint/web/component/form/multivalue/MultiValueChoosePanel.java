@@ -91,7 +91,7 @@ public class MultiValueChoosePanel<T extends ObjectType> extends BasePanel<List<
 
         // initialize types when component is in page and getPageBase() has meaning
         this.typeQNames = WebComponentUtil.resolveObjectTypesToQNames(types,
-                getPageBase().getPrismContext());
+                getPageBase());
         typeQNames.sort(Comparator.comparing(QName::getLocalPart));
     }
 

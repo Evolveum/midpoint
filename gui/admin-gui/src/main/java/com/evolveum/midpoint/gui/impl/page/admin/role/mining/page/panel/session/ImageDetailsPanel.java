@@ -44,12 +44,22 @@ public class ImageDetailsPanel extends BasePanel<CustomImageResource> implements
             protected String getIconCssClass() {
                 return modelObject.getColumnIcon();
             }
+
+            @Override
+            protected String getAdditionalIconCss() {
+                return "";
+            }
         };
 
         IconWithLabel rowHeader = new IconWithLabel(ID_ROW_HEADER, createStringResource(modelObject.getRowTitle())) {
             @Override
             protected String getIconCssClass() {
                 return modelObject.getRowIcon();
+            }
+
+            @Override
+            protected String getAdditionalIconCss() {
+                return "";
             }
 
             @Contract(pure = true)
