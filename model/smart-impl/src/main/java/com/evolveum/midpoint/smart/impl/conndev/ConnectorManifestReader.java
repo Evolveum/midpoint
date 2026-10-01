@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.smart.impl.conndev;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnDevHttpAuthTypeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnDevIntegrationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnDevOperationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnDevScriptIntentType;
 
@@ -43,7 +45,22 @@ public class ConnectorManifestReader {
 
     private static final YAMLMapper MAPPER = new YAMLMapper();
 
-    public record ManifestApplication(String name, String description) {
+    public record ManifestApplication(
+            String name,
+            String description,
+            String version,
+            String apiVersion) {
+    }
+
+    /**
+     * A supported (selected) authentication method of the connector. {@code type} is
+     * mandatory; {@code name} and {@code quirks} are optional and only carried over when the
+     * manifest provides them.
+     */
+    public record ManifestAuth(
+            ConnDevHttpAuthTypeType type,
+            String name,
+            String quirks) {
     }
 
     /**
@@ -60,6 +77,8 @@ public class ConnectorManifestReader {
 
     public record Manifest(
             ManifestApplication application,
+            ConnDevIntegrationType integrationType,
+            List<ManifestAuth> authMethods,
             List<ManifestScript> scripts) {
     }
 
@@ -71,16 +90,37 @@ public class ConnectorManifestReader {
         if (applicationNode.isObject() && !applicationNode.isEmpty()) {
             application = new ManifestApplication(
                     textOrNull(applicationNode.path("name")),
-                    textOrNull(applicationNode.path("description")));
+                    textOrNull(applicationNode.path("description")),
+                    textOrNull(applicationNode.path("version")),
+                    textOrNull(applicationNode.path("apiVersion")));
         }
 
         var scripts = new ArrayList<ManifestScript>();
         var connectorNode = root.path("connector");
+        var integrationType = fromIntegrationType(textOrNull(connectorNode.path("integrationType")));
+        var authMethods = new ArrayList<ManifestAuth>();
+        var authMethodsNode = connectorNode.path("authMethods");
+        if (authMethodsNode.isArray()) {
+            for (var entry : authMethodsNode) {
+                var auth = parseAuthMethod(entry);
+                if (auth != null) {
+                    authMethods.add(auth);
+                }
+            }
+        }
         collectScripts(connectorNode.path("schema"), scripts);
         collectScripts(connectorNode.path("authorization"), scripts);
         collectScripts(connectorNode.path("operation"), scripts);
 
-        return new Manifest(application, List.copyOf(scripts));
+        return new Manifest(application, integrationType, List.copyOf(authMethods), List.copyOf(scripts));
+    }
+
+    private static ManifestAuth parseAuthMethod(JsonNode entry) {
+        var type = fromAuthType(textOrNull(entry.path("type")));
+        if (type == null) {
+            return null;
+        }
+        return new ManifestAuth(type, textOrNull(entry.path("name")), textOrNull(entry.path("quirks")));
     }
 
     private static void collectScripts(JsonNode section, List<ManifestScript> scripts) {
@@ -211,8 +251,17 @@ public class ConnectorManifestReader {
         return name;
     }
 
+    /**
+     * The scalar value of the node as text, or {@code null} when absent/blank. Accepts both
+     * textual and numeric scalars - hand-written manifests frequently leave values such as
+     * {@code version: 4.2} unquoted, and YAML then parses them as numbers.
+     */
     private static String textOrNull(JsonNode node) {
-        return node != null && node.isTextual() && !node.asText().isBlank() ? node.asText() : null;
+        if (node == null || !node.isValueNode() || node.isNull()) {
+            return null;
+        }
+        var text = node.asText();
+        return text != null && !text.isBlank() ? text : null;
     }
 
     private static ConnDevOperationType fromOperation(String value) {
@@ -235,6 +284,31 @@ public class ConnectorManifestReader {
             return ConnDevScriptIntentType.fromValue(value);
         } catch (IllegalArgumentException e) {
             LOGGER.warn("Unknown intent value '{}' in connector manifest; treating the entry as legacy", value);
+            return null;
+        }
+    }
+
+    private static ConnDevIntegrationType fromIntegrationType(String value) {
+        if (value == null) {
+            return null;
+        }
+        try {
+            return ConnDevIntegrationType.fromValue(value);
+        } catch (IllegalArgumentException e) {
+            LOGGER.warn("Unknown integrationType value '{}' in connector manifest; it will be ignored", value);
+            return null;
+        }
+    }
+
+    private static ConnDevHttpAuthTypeType fromAuthType(String value) {
+        if (value == null) {
+            LOGGER.warn("Auth method without a type in connector manifest; the entry will be ignored");
+            return null;
+        }
+        try {
+            return ConnDevHttpAuthTypeType.fromValue(value);
+        } catch (IllegalArgumentException e) {
+            LOGGER.warn("Unknown auth method type '{}' in connector manifest; the entry will be ignored", value);
             return null;
         }
     }

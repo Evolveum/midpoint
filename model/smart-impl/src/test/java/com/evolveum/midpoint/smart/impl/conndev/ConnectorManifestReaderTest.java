@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.smart.impl.conndev;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnDevHttpAuthTypeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnDevIntegrationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnDevOperationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnDevScriptIntentType;
 
@@ -25,7 +27,16 @@ public class ConnectorManifestReaderTest {
             application:
               name: Test App
               description: A test application
+              version: 4.2
+              apiVersion: v3
             connector:
+              integrationType: scim
+              authMethods:
+                - type: basic
+                  name: HTTP Basic Authorization
+                - type: apiKey
+                  name: HTTP API Key Authorization
+                  quirks: The key is sent in the X-Api-Key header
               schema:
                 - script: /User.native.schema.groovy
                   objectClass: User
@@ -71,6 +82,19 @@ public class ConnectorManifestReaderTest {
 
         assertThat(manifest.application().name()).isEqualTo("Test App");
         assertThat(manifest.application().description()).isEqualTo("A test application");
+        assertThat(manifest.application().version()).as("unquoted YAML number is accepted").isEqualTo("4.2");
+        assertThat(manifest.application().apiVersion()).isEqualTo("v3");
+
+        assertThat(manifest.integrationType()).isEqualTo(ConnDevIntegrationType.SCIM);
+        assertThat(manifest.authMethods()).hasSize(2);
+        var basic = manifest.authMethods().get(0);
+        assertThat(basic.type()).isEqualTo(ConnDevHttpAuthTypeType.BASIC);
+        assertThat(basic.name()).isEqualTo("HTTP Basic Authorization");
+        assertThat(basic.quirks()).isNull();
+        var apiKey = manifest.authMethods().get(1);
+        assertThat(apiKey.type()).isEqualTo(ConnDevHttpAuthTypeType.API_KEY);
+        assertThat(apiKey.name()).isEqualTo("HTTP API Key Authorization");
+        assertThat(apiKey.quirks()).isEqualTo("The key is sent in the X-Api-Key header");
 
         assertThat(manifest.scripts()).hasSize(10);
 
@@ -136,6 +160,8 @@ public class ConnectorManifestReaderTest {
                 """);
 
         assertThat(manifest.application()).isNull();
+        assertThat(manifest.integrationType()).as("legacy manifests don't carry an integration type").isNull();
+        assertThat(manifest.authMethods()).as("legacy manifests don't carry auth methods").isEmpty();
 
         var userSchema = script(manifest, "User", ConnDevOperationType.SCHEMA);
         assertThat(userSchema.intent()).isEqualTo(ConnDevScriptIntentType.NATIVE);
@@ -188,6 +214,29 @@ public class ConnectorManifestReaderTest {
                     - script: something.unknown.file.xyz
                 """);
         assertThat(manifest.scripts()).isEmpty();
+    }
+
+    @Test
+    public void unknownIntegrationTypeAndAuthTypeTolerated() throws Exception {
+        var manifest = ConnectorManifestReader.read("""
+                application:
+                  name: Tolerant App
+                  version: 1.0
+                connector:
+                  integrationType: graphql
+                  authMethods:
+                    - type: basic
+                    - type: carrierPigeon
+                    - name: Typeless Entry
+                """);
+
+        assertThat(manifest.application().version()).isEqualTo("1.0");
+        assertThat(manifest.integrationType())
+                .as("unknown integration types are ignored, not fatal").isNull();
+        assertThat(manifest.authMethods())
+                .as("entries with an unknown or missing type are skipped")
+                .extracting(ConnectorManifestReader.ManifestAuth::type)
+                .containsExactly(ConnDevHttpAuthTypeType.BASIC);
     }
 
     @Test

@@ -65,7 +65,16 @@ public class ConnectorImportStoryTest extends AbstractEmptyModelIntegrationTest 
             application:
               name: Imported Test App
               description: A low-code connector imported into the development
+              version: 3.1
+              apiVersion: v2
             connector:
+              integrationType: rest
+              authMethods:
+                - type: basic
+                  name: HTTP Basic Authorization
+                - type: apiKey
+                  name: API Key
+                  quirks: Sent in the X-Api-Key header
               schema:
                 - script: /User.native.schema.groovy
                   objectClass: User
@@ -175,8 +184,20 @@ public class ConnectorImportStoryTest extends AbstractEmptyModelIntegrationTest 
         assertThat(connDef.getGroupId()).isEqualTo(GROUP_ID);
         assertThat(connDef.getArtifactId()).isEqualTo(ARTIFACT_ID);
         assertThat(connDef.getVersion()).as("version bumped by one minor level").isEqualTo(TARGET_VERSION);
-        assertThat(connDef.getIntegrationType()).as("inferred from the @ConnectorClass package")
-                .isEqualTo(ConnDevIntegrationType.SCIM);
+        // The manifest declares "rest", while the class-based inference of the scimrest template
+        // bundle would yield SCIM - the manifest wins.
+        assertThat(connDef.getIntegrationType())
+                .as("integration type taken from the manifest, overriding the class-based inference")
+                .isEqualTo(ConnDevIntegrationType.REST);
+        assertThat(development.getApplication().getIntegrationType())
+                .isEqualTo(ConnDevIntegrationType.REST);
+        assertThat(development.getApplication().getVersion()).isEqualTo("3.1");
+        assertThat(development.getApplication().getApiVersion()).isEqualTo("v2");
+        assertThat(connDef.getAuth()).extracting(ConnDevAuthInfoType::getType)
+                .as("selected auth methods prefilled from the manifest")
+                .containsExactly(ConnDevHttpAuthTypeType.BASIC, ConnDevHttpAuthTypeType.API_KEY);
+        assertThat(connDef.getAuth().get(1).getName()).isEqualTo("API Key");
+        assertThat(connDef.getAuth().get(1).getQuirks()).isEqualTo("Sent in the X-Api-Key header");
         assertThat(connDef.getSourceConnectorRef()).isNotNull();
         assertThat(connDef.getSourceConnectorRef().getOid()).isEqualTo(sourceConnectorOid);
 

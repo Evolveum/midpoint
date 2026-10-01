@@ -30,6 +30,7 @@ import com.evolveum.midpoint.smart.api.conndev.ConnDevDocumentationTopic;
 import com.evolveum.midpoint.smart.api.conndev.ConnectorDevelopmentArtifacts;
 import com.evolveum.midpoint.smart.api.conndev.ConnectorDevelopmentOperation;
 import com.evolveum.midpoint.smart.api.conndev.ConnectorDevelopmentService;
+import com.evolveum.midpoint.smart.api.conndev.SupportedAuthorization;
 
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
 import com.evolveum.midpoint.smart.impl.StatusInfoImpl;
@@ -67,6 +68,7 @@ public class ConnectorDevelopmentServiceImpl implements ConnectorDevelopmentServ
 
     /** Auto cleanup time for background tasks created by the service. Will be shorter, probably. */
     private static final Duration AUTO_CLEANUP_TIME = XmlTypeConverter.createDuration("P1D");
+    private static final Logger LOG = LoggerFactory.getLogger(ConnectorDevelopmentServiceImpl.class);
 
     @Autowired private ModelInteractionService modelInteractionService;
     @Autowired private TaskManager taskManager;
@@ -96,7 +98,7 @@ public class ConnectorDevelopmentServiceImpl implements ConnectorDevelopmentServ
         // produced (connectorRef) or the connector it was imported from (sourceConnectorRef).
         var existing = findDevelopmentForConnector(sourceConnector, task, result);
         if (existing != null) {
-            LOGGER.info("Reusing existing connector development {} for connector {}",
+            LOG.info("Reusing existing connector development {} for connector {}",
                     existing.getOid(), sourceConnector.getOid());
             return existing;
         }
@@ -136,7 +138,11 @@ public class ConnectorDevelopmentServiceImpl implements ConnectorDevelopmentServ
         var artifactId = bundle.substring(bundleDot + 1);
         // A new minor version, so the imported bundle can coexist with the original connector.
         var version = ConnectorVersionUtil.bumpMinor(sourceConnector.getConnectorVersion());
-        var integrationType = integrationTypeFor(beans.connectorService.getConnectorClass(sourceConnector));
+        // The manifest's integration type wins; the class-based inference is only the fallback
+        // for legacy manifests that don't carry it.
+        var integrationType = manifest.integrationType() != null
+                ? manifest.integrationType()
+                : integrationTypeFor(beans.connectorService.getConnectorClass(sourceConnector));
 
         var manifestApplication = manifest.application();
         var displayName = sourceConnector.getDisplayName() != null
@@ -153,6 +159,12 @@ public class ConnectorDevelopmentServiceImpl implements ConnectorDevelopmentServ
         if (manifestApplication != null && manifestApplication.description() != null) {
             application.description(manifestApplication.description());
         }
+        if (manifestApplication != null && manifestApplication.version() != null) {
+            application.version(manifestApplication.version());
+        }
+        if (manifestApplication != null && manifestApplication.apiVersion() != null) {
+            application.apiVersion(manifestApplication.apiVersion());
+        }
 
         var connector = new ConnDevConnectorType()
                 .groupId(groupId)
@@ -161,25 +173,30 @@ public class ConnectorDevelopmentServiceImpl implements ConnectorDevelopmentServ
                 .integrationType(integrationType)
                 .sourceConnectorRef(sourceConnector.getOid(), ConnectorType.COMPLEX_TYPE);
         connector.displayName(displayName);
+        populateAuthMethodsFromManifest(connector, manifest, sourceConnector);
         populateConnectorFromManifest(connector, manifest, editable, sourceConnector);
 
         // The object classes (names) are also reflected in the application's detected schema - the
         // discovery steps then enrich it (and the connector object classes) from the development-mode
         // metadata and/or documentation.
-        if (!connector.getObjectClass().isEmpty()) {
+        /*if (!connector.getObjectClass().isEmpty()) {
             var detectedSchema = new ConnDevSchemaType();
             for (var objectClass : connector.getObjectClass()) {
-                detectedSchema.objectClass(new ConnDevObjectClassInfoType().name(objectClass.getName()).relevant(true));
+                detectedSchema.objectClass(new ConnDevObjectClassInfoType()
+                        .name(objectClass.getName())
+                                .embedded(false)
+                                ._abstract(false)
+                                .relevant(true));
             }
             application.detectedSchema(detectedSchema);
-        }
+        }*/
 
         var development = new ConnectorDevelopmentType()
                 .name(groupId + ":" + artifactId + ":" + version)
                 .application(application)
                 .connector(connector);
         var oid = beans.repositoryService.addObject(development.asPrismObject(), null, result);
-        LOGGER.info("Created connector development {} imported from connector {} ({}:{}:{} -> {})",
+        LOG.info("Created connector development {} imported from connector {} ({}:{}:{} -> {})",
                 oid, sourceConnector.getOid(), groupId, artifactId, sourceConnector.getConnectorVersion(), version);
         return modelService.getObject(ConnectorDevelopmentType.class, oid, null, task, result).asObjectable();
     }
@@ -190,7 +207,7 @@ public class ConnectorDevelopmentServiceImpl implements ConnectorDevelopmentServ
             var editable = ConnDevBeans.get().connectorService.editableConnectorFor(connector);
             return editable != null && isManifestBased(editable);
         } catch (Exception e) {
-            LOGGER.warn("Couldn't determine whether connector {} is manifest-based", connector.getOid(), e);
+            LOG.warn("Couldn't determine whether connector {} is manifest-based", connector.getOid(), e);
             return false;
         }
     }
@@ -233,6 +250,28 @@ public class ConnectorDevelopmentServiceImpl implements ConnectorDevelopmentServ
     }
 
     /**
+     * Prefills the connector's selected supported authentication methods from the manifest's
+     * {@code connector/authMethods} entries. Canonical names and descriptions come from the
+     * {@link SupportedAuthorization} catalog; a manifest-supplied name or quirks override them.
+     */
+    private void populateAuthMethodsFromManifest(ConnDevConnectorType connector,
+            ConnectorManifestReader.Manifest manifest, ConnectorType sourceConnector) {
+        for (var authMethod : manifest.authMethods()) {
+            var base = SupportedAuthorization.fromAiType(authMethod.type().value());
+            var auth = base != null ? base : new ConnDevAuthInfoType().type(authMethod.type());
+            if (authMethod.name() != null) {
+                auth.name(authMethod.name());
+            }
+            if (authMethod.quirks() != null) {
+                auth.quirks(authMethod.quirks());
+            }
+            connector.auth(auth);
+            LOG.debug("Prefilled auth method '{}' (type {}) of connector development from manifest of connector {}",
+                    authMethod.name(), authMethod.type(), sourceConnector.getOid());
+        }
+    }
+
+    /**
      * Maps the manifest script entries onto the connector item: object class script slots,
      * relation schema scripts, the authentication script and the test-connection operation.
      * Script contents are read from the source bundle (the files are carried over by the
@@ -250,11 +289,11 @@ public class ConnectorDevelopmentServiceImpl implements ConnectorDevelopmentServ
                 if (bundle.fileExists(filename)) {
                     content = bundle.readFile(filename);
                 } else {
-                    LOGGER.warn("Manifest script '{}' of connector {} is missing from the bundle; the artifact will have no content",
+                    LOG.warn("Manifest script '{}' of connector {} is missing from the bundle; the artifact will have no content",
                             filename, sourceConnector.getOid());
                 }
             } catch (IOException e) {
-                LOGGER.warn("Couldn't read manifest script '{}' of connector {}", filename, sourceConnector.getOid(), e);
+                LOG.warn("Couldn't read manifest script '{}' of connector {}", filename, sourceConnector.getOid(), e);
             }
             var artifact = new ConnDevArtifactType()
                     .objectClass(script.objectClass())
@@ -279,11 +318,14 @@ public class ConnectorDevelopmentServiceImpl implements ConnectorDevelopmentServ
             } else if (ConnDevOperationType.TEST_CONNECTION.equals(script.operation())) {
                 connector.testOperation(artifact);
             } else if (script.objectClass() == null) {
-                LOGGER.warn("Manifest script '{}' of connector {} has no object class; it will be ignored",
+                LOG.warn("Manifest script '{}' of connector {} has no object class; it will be ignored",
                         filename, sourceConnector.getOid());
             } else {
                 var objectClass = objectClasses.computeIfAbsent(script.objectClass(),
-                        name -> new ConnDevObjectClassInfoType().name(name).relevant(true));
+                        name -> new ConnDevObjectClassInfoType().name(name)
+                                .embedded(false)
+                                ._abstract(false)
+                                .relevant(true));
                 setArtifactSlot(objectClass, script, artifact, sourceConnector);
             }
         }
@@ -305,14 +347,14 @@ public class ConnectorDevelopmentServiceImpl implements ConnectorDevelopmentServ
                     case ALL -> objectClass.searchAllOperation(artifact);
                     case ID -> objectClass.searchIdOperation(artifact);
                     case FILTER -> objectClass.searchFilterOperation(artifact);
-                    default -> LOGGER.warn("No script slot for {} search (intent {}) of object class {} in connector {}",
+                    default -> LOG.warn("No script slot for {} search (intent {}) of object class {} in connector {}",
                             script.operation(), script.intent(), objectClass.getName(), sourceConnector.getOid());
                 }
             }
             case CREATE -> objectClass.createScript(artifact);
             case UPDATE -> objectClass.updateScript(artifact);
             case DELETE -> objectClass.deleteScript(artifact);
-            default -> LOGGER.warn("No script slot for {} operation of object class {} in connector {}",
+            default -> LOG.warn("No script slot for {} operation of object class {} in connector {}",
                     script.operation(), objectClass.getName(), sourceConnector.getOid());
         }
     }

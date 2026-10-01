@@ -95,7 +95,7 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element minOccurs="0" name="apiVersion" type="xsd:string">
+            <xsd:element minOccurs="0" name="apiVersion" type="xsd:string" />
             <xsd:element minOccurs="0" name="baseApiEndpoint" type="xsd:string"/>
         </xsd:sequence>
     </xsd:complexType>
