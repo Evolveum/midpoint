@@ -7,7 +7,11 @@
 package com.evolveum.midpoint.gui.impl.component.input.expression;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
+import com.evolveum.midpoint.schema.expression.ExpressionEvaluatorProfile;
+import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -50,6 +54,7 @@ public class ScriptExpressionPanel extends EvaluatorExpressionPanel {
     private static final String ID_LANGUAGE_INPUT = "languageInput";
     private static final String ID_LANGUAGE_LABEL = "languageLabel";
     private static final String ID_INFO_DISABLED_LANGUAGE = "infoDisabledLanguage";
+    private static final String ID_INFO_DISABLED_SCRIPT_EVALUATOR = "infoDisabledScriptEvaluator";
     private static final String ID_DESCRIPTION_LABEL = "descriptionLabel";
     private static final String ID_DESCRIPTION_INPUT = "descriptionInput";
     private static final String C_DATA_PREFIX = "<![CDATA[";
@@ -58,13 +63,20 @@ public class ScriptExpressionPanel extends EvaluatorExpressionPanel {
     //TODO we use ExpressionType->description instead of  ExpressionType->ScriptExpressionEvaluatorType->description, why?
     private IModel<String> descriptionModel;
     private ExpressionUtil.Language disabledDefaultLanguage;
+    private IModel<PrismPropertyWrapper<ExpressionType>> property;
+    private List<ExpressionUtil.Language> allowedLanguageByProfiles;
 
-    public ScriptExpressionPanel(String id, IModel<ExpressionType> model) {
-        this(id, model, null);
+    public ScriptExpressionPanel(String id, IModel<ExpressionType> model, IModel<PrismPropertyWrapper<ExpressionType>> property) {
+        this(id, model, property, null);
     }
 
-    public ScriptExpressionPanel(String id, IModel<ExpressionType> model, IModel<QName> expressionTargetTypeModel) {
+    public ScriptExpressionPanel(
+            String id,
+            IModel<ExpressionType> model,
+            IModel<PrismPropertyWrapper<ExpressionType>> property,
+            IModel<QName> expressionTargetTypeModel) {
         super(id, model, expressionTargetTypeModel);
+        this.property = property;
     }
 
     @Override
@@ -73,6 +85,8 @@ public class ScriptExpressionPanel extends EvaluatorExpressionPanel {
     }
 
     protected void initLayout(MarkupContainer parent) {
+        allowedLanguageByProfiles = initAllowedLanguageByProfiles();
+
         IModel<ExpressionUtil.Language> languageModel = createLanguageModel();
         descriptionModel = createDescriptionModel();
 
@@ -83,22 +97,52 @@ public class ScriptExpressionPanel extends EvaluatorExpressionPanel {
 
         parent.add(new Label(ID_LANGUAGE_LABEL, createStringResource("ScriptExpressionEvaluatorType.language")));
 
-        WebMarkupContainer infoPanel = createInfoPanel(languageModel);
-        parent.add(infoPanel);
+        WebMarkupContainer disabledLanguageInfoPanel = createDisabledLanguageInfoPanel(languageModel);
+        parent.add(disabledLanguageInfoPanel);
 
-        parent.add(createLanguageInputPanel(languageModel, codePanel, infoPanel));
+        WebMarkupContainer disabledScriptInfoPanel = createDisabledScriptInfoPanel();
+        parent.add(disabledScriptInfoPanel);
+
+        parent.add(createLanguageInputPanel(languageModel, codePanel, disabledLanguageInfoPanel, disabledScriptInfoPanel));
 
         parent.add(new Label(ID_CODE_LABEL, createStringResource("ScriptExpressionEvaluatorType.code")));
 
         parent.add(codePanel);
     }
 
-    private WebMarkupContainer createInfoPanel(IModel<ExpressionUtil.Language> languageModel) {
+    private List<ExpressionUtil.Language> initAllowedLanguageByProfiles() {
+        ExpressionProfile expressionProfile = ExpressionUtil.getExpressionProfile(getModelObject(), property, getPageBase());
+
+        if (expressionProfile != null) {
+            ExpressionEvaluatorProfile expressionEvaluatorProfile = expressionProfile
+                    .getEvaluatorProfile(SchemaConstantsGenerated.C_SCRIPT);
+            return Arrays.stream(ExpressionUtil.Language.class.getEnumConstants())
+                    .filter(language -> expressionEvaluatorProfile
+                            .getScriptLanguageExpressionProfile(language.getLanguage())
+                            .isNotCompletelyForbidden())
+                    .toList();
+        }
+
+        return Arrays.asList(ExpressionUtil.Language.class.getEnumConstants());
+    }
+
+    private WebMarkupContainer createDisabledLanguageInfoPanel(IModel<ExpressionUtil.Language> languageModel) {
         WebMarkupContainer infoPanel = new WebMarkupContainer(ID_INFO_DISABLED_LANGUAGE);
         infoPanel.setOutputMarkupId(true);
         infoPanel.add(new VisibleBehaviour(() -> {
             ExpressionUtil.Language currentLanguage = languageModel.getObject();
             return disabledDefaultLanguage != null && currentLanguage == disabledDefaultLanguage;
+        }));
+        return infoPanel;
+    }
+
+    private WebMarkupContainer createDisabledScriptInfoPanel() {
+        WebMarkupContainer infoPanel = new WebMarkupContainer(ID_INFO_DISABLED_SCRIPT_EVALUATOR);
+        infoPanel.setOutputMarkupId(true);
+        infoPanel.add(new VisibleBehaviour(() -> {
+            ExpressionProfile expressionProfile = ExpressionUtil.getExpressionProfile(getModelObject(), property, getPageBase());
+            return expressionProfile != null
+                    && !expressionProfile.getEvaluatorProfile(SchemaConstantsGenerated.C_SCRIPT).isNotCompletelyForbidden();
         }));
         return infoPanel;
     }
@@ -169,15 +213,17 @@ public class ScriptExpressionPanel extends EvaluatorExpressionPanel {
     }
 
     private Component createLanguageInputPanel(
-            IModel<ExpressionUtil.Language> languageModel, SimpleAceEditorPanel codePanel,WebMarkupContainer infoPanel) {
+            IModel<ExpressionUtil.Language> languageModel, SimpleAceEditorPanel codePanel, WebMarkupContainer... infoPanels) {
+
+        IModel<List<ExpressionUtil.Language>> choices = getLanguageChoices(languageModel);
+
         DropDownChoicePanel<ExpressionUtil.Language> languagePanel =
                 WebComponentUtil.createEnumPanel(
                         ID_LANGUAGE_INPUT,
-                        getLanguageChoices(languageModel),
+                        choices,
                         languageModel,
                         ScriptExpressionPanel.this,
                         false);
-        languagePanel.setOutputMarkupId(true);
 
         languagePanel.getBaseFormComponent().add(new AjaxFormComponentUpdatingBehavior("blur") {
 
@@ -193,11 +239,16 @@ public class ScriptExpressionPanel extends EvaluatorExpressionPanel {
         languagePanel.getBaseFormComponent().add(new AjaxFormComponentUpdatingBehavior("change") {
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
-                target.add(infoPanel);
-                target.add(infoPanel.getParent());
+                target.add(infoPanels);
+                target.add(infoPanels[0].getParent());
             }
         });
 
+        if (choices.getObject().size() == 1) {
+            languagePanel.getBaseFormComponent().add(AttributeAppender.append("readonly", ""));
+        }
+
+        languagePanel.setOutputMarkupId(true);
         return languagePanel;
     }
 
@@ -218,6 +269,7 @@ public class ScriptExpressionPanel extends EvaluatorExpressionPanel {
         List<ExpressionUtil.Language> list = new ArrayList<>();
         Arrays.asList(ExpressionUtil.Language.class.getEnumConstants()).stream()
                 .filter(language -> !safeExpressionsOnly || language.isSafeLanguage())
+                .filter(language -> allowedLanguageByProfiles.isEmpty() || allowedLanguageByProfiles.contains(language))
                 .forEach(list::add);
         return list;
     }

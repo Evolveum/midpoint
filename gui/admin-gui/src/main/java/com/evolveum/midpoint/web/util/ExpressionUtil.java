@@ -8,10 +8,19 @@ package com.evolveum.midpoint.web.util;
 
 import java.util.*;
 
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
+import com.evolveum.midpoint.model.common.expression.ExpressionProfileManager;
 import com.evolveum.midpoint.prism.path.ItemName;
 
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
+import com.evolveum.midpoint.schema.expression.ExpressionProfile;
+import com.evolveum.midpoint.schema.expression.MidPointTrustDescriptor;
 import com.evolveum.midpoint.schema.util.ShadowAssociationsUtil;
+
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 
 import jakarta.xml.bind.JAXBElement;
 
@@ -19,6 +28,7 @@ import javax.xml.namespace.QName;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.model.IModel;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.PrismContainerValue;
@@ -49,15 +59,24 @@ public class ExpressionUtil {
     private static final Trace LOGGER = TraceManager.getTrace(ExpressionUtil.class);
 
     public enum ExpressionEvaluatorType {
-        LITERAL,
-        AS_IS,
-        PATH,
-        SCRIPT,
-        GENERATE,
-        ASSOCIATION_FROM_LINK,
-        SHADOW_OWNER_REFERENCE_SEARCH,
-        FILTER,
-        NULL
+        LITERAL(SchemaConstantsGenerated.C_VALUE),
+        AS_IS(SchemaConstantsGenerated.C_AS_IS),
+        PATH(SchemaConstantsGenerated.C_PATH),
+        SCRIPT(SchemaConstantsGenerated.C_SCRIPT),
+        GENERATE(SchemaConstantsGenerated.C_GENERATE),
+        ASSOCIATION_FROM_LINK(SchemaConstantsGenerated.C_ASSOCIATION_FROM_LINK),
+        SHADOW_OWNER_REFERENCE_SEARCH(SchemaConstantsGenerated.C_SHADOW_OWNER_REFERENCE_SEARCH),
+        FILTER(SchemaConstantsGenerated.C_FILTER),
+        NULL(SchemaConstantsGenerated.C_NULL);
+
+        private final ItemName itemName;
+        ExpressionEvaluatorType(ItemName itemName) {
+            this.itemName = itemName;
+        }
+
+        public ItemName getItemName() {
+            return itemName;
+        }
     }
 
     public enum Language {
@@ -107,25 +126,6 @@ public class ExpressionUtil {
     public static final String ELEMENT_NULL_WITH_NS = "<null";
 
     /**
-     * Element name of an evaluator paired with  corresponding type the GUI knows it as.
-     * @param name name of the element
-     * @param type type of the evaluator
-     */
-    private record EvaluatorElement(QName name, ExpressionEvaluatorType type) {}
-
-    private static final List<EvaluatorElement> EVALUATOR_ELEMENTS = List.of(
-            new EvaluatorElement(
-                    SchemaConstantsGenerated.C_SHADOW_OWNER_REFERENCE_SEARCH, ExpressionEvaluatorType.SHADOW_OWNER_REFERENCE_SEARCH),
-            new EvaluatorElement(SchemaConstantsGenerated.C_AS_IS, ExpressionEvaluatorType.AS_IS),
-            new EvaluatorElement(SchemaConstantsGenerated.C_GENERATE, ExpressionEvaluatorType.GENERATE),
-            new EvaluatorElement(SchemaConstantsGenerated.C_PATH, ExpressionEvaluatorType.PATH),
-            new EvaluatorElement(SchemaConstantsGenerated.C_SCRIPT, ExpressionEvaluatorType.SCRIPT),
-            new EvaluatorElement(SchemaConstantsGenerated.C_VALUE, ExpressionEvaluatorType.LITERAL),
-            new EvaluatorElement(SchemaConstantsGenerated.C_FILTER, ExpressionEvaluatorType.FILTER),
-            new EvaluatorElement(SchemaConstantsGenerated.C_ASSOCIATION_FROM_LINK, ExpressionEvaluatorType.ASSOCIATION_FROM_LINK),
-            new EvaluatorElement(SchemaConstantsGenerated.C_NULL, ExpressionEvaluatorType.NULL));
-
-    /**
      * Recognizes the evaluator from the names of the evaluator elements. Preferred over the text based
      * variant - it does not serialize the expression, and it only looks at the top level evaluators, so
      * a nested element of the same name cannot fool it. Search evaluators, for one, contain a nested
@@ -143,9 +143,9 @@ public class ExpressionUtil {
             if (evaluator == null || evaluator.getName() == null) {
                 continue;
             }
-            for (EvaluatorElement element : EVALUATOR_ELEMENTS) {
-                if (QNameUtil.match(evaluator.getName(), element.name())) {
-                    return element.type();
+            for (ExpressionEvaluatorType evaluatorType : ExpressionEvaluatorType.values()) {
+                if (QNameUtil.match(evaluator.getName(), evaluatorType.getItemName())) {
+                    return evaluatorType;
                 }
             }
         }
@@ -884,5 +884,33 @@ public class ExpressionUtil {
         } catch (SchemaException e) {
             throw new IllegalStateException("Couldn't parse script expression.", e);
         }
+    }
+
+    public static ExpressionProfile getExpressionProfile(
+            ExpressionType expression, IModel<PrismPropertyWrapper<ExpressionType>> property, PageBase pageBase) {
+        MidPointTrustDescriptor trustDescriptor = null;
+        if (expression != null
+                && expression.getTrustDescriptor() instanceof MidPointTrustDescriptor) {
+            trustDescriptor = (MidPointTrustDescriptor) expression.getTrustDescriptor();
+        } else {
+            if (property != null && property.getObject() != null) {
+                PrismObjectWrapper<ObjectType> objectWrapper = property.getObject().findObjectWrapper();
+                if (objectWrapper != null && objectWrapper.getObject() != null) {
+                    trustDescriptor = MidPointTrustDescriptor.forAuthorizedObject(objectWrapper.getObject().asObjectable());
+                }
+            }
+        }
+
+        if (trustDescriptor != null) {
+            Task task = pageBase.createSimpleTask("getExpressionProfile");
+            ExpressionProfileManager expressionProfileManager = pageBase.getExpressionProfileManager();
+            try {
+                return expressionProfileManager.determineExpressionProfile(trustDescriptor, task, task.getResult());
+            } catch (SecurityViolationException e) {
+                LOGGER.error("Couldn't get expression profiles");
+                pageBase.error(pageBase.getString("ScriptExpressionPanel.error.getExpressionProfile"));
+            }
+        }
+        return null;
     }
 }

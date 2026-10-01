@@ -42,6 +42,7 @@ import javax.xml.namespace.QName;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -178,6 +179,26 @@ public abstract class ConnectorDevelopmentBackend {
         beans.modelService.executeChanges(List.of(delta), null, task, result);
         reload();
     };
+
+    /**
+     * Saves the uploaded documentation file to disk (tmp-docs).
+     *
+     * @param fileName original name of the uploaded file
+     * @param content file content
+     * @param contentType MIME type of the file
+     * @return generated UUID under which the file is stored
+     */
+    public String saveDocumentationFile(String fileName, InputStream content, String contentType) throws IOException {
+        String uuid = UUID.randomUUID().toString();
+        var documentation = new ProcessedDocumentation(uuid, fileName)
+                .contentType(contentType);
+        try (var output = documentation.asOutputStream()) {
+            content.transferTo(output);
+        }
+        // TODO: add the path of the saved file to the in-progress connector object
+        //  (ConnectorDevelopmentType.processedDocumentation).
+        return uuid;
+    }
 
     public ConnectorDevelopmentType developmentObject() {
         return development;
