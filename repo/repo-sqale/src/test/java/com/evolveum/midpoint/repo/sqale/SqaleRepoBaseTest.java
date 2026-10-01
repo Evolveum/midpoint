@@ -59,6 +59,8 @@ import com.evolveum.midpoint.test.util.AbstractSpringTest;
 import com.evolveum.midpoint.test.util.InfraTestMixin;
 import com.evolveum.midpoint.util.CheckedRunnable;
 import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.SingleLocalizableMessage;
+import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.query_3.QueryType;
@@ -163,6 +165,24 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
     protected <R, Q extends FlexibleRelationalPathBase<R>> Q aliasFor(
             Class<Q> entityPath, String name) {
         return sqlRepoContext.getMappingByQueryType(entityPath).newAlias(name);
+    }
+
+    /**
+     * Returns always the same string that database can not compress, e.g. to test size limits.
+     * Compressible value may fit into index row regardless of its length.
+     */
+    protected String incompressibleString(int length) {
+        return new Random(length).ints(length, 'a', 'z' + 1)
+                .collect(StringBuilder::new, StringBuilder::appendCodePoint, StringBuilder::append)
+                .toString();
+    }
+
+    /** Asserts that the exception carries user-friendly message with the given localization key. */
+    protected void assertUserFriendlyMessageKey(Throwable e, String expectedKey) {
+        assertThat(e).isInstanceOf(CommonException.class);
+        assertThat(((CommonException) e).getUserFriendlyMessage())
+                .isInstanceOfSatisfying(SingleLocalizableMessage.class,
+                        m -> assertThat(m.getKey()).isEqualTo(expectedKey));
     }
 
     protected <R, Q extends FlexibleRelationalPathBase<R>> void assertCount(

@@ -58,8 +58,8 @@ public class AddObjectContext<S extends ObjectType, Q extends QObject<R>, R exte
             return oid;
         } catch (QueryException e) { // Querydsl exception, not ours
             Throwable cause = e.getCause();
-            if (cause instanceof PSQLException) {
-                SqaleUtils.handlePostgresException((PSQLException) cause);
+            if (cause instanceof PSQLException pe) {
+                SqaleUtils.handlePostgresException(pe);
             }
             throw e;
         }
@@ -79,18 +79,12 @@ public class AddObjectContext<S extends ObjectType, Q extends QObject<R>, R exte
         }
     }
 
-    public void executeReindexed(JdbcSession jdbcSession)
-            throws SchemaException, ObjectAlreadyExistsException {
-        try {
-            initContexts();
-            addObjectWithOid(jdbcSession);
-        } catch (QueryException e) { // Querydsl exception, not ours
-            Throwable cause = e.getCause();
-            if (cause instanceof PSQLException) {
-                SqaleUtils.handlePostgresException((PSQLException) cause);
-            }
-            throw e;
-        }
+    /**
+     * Adds the object again as a part of bigger operation (overwrite, reindex).
+     * Database exceptions are not translated here, it is up to the operation that uses this.
+     */
+    public void executeReindexed(JdbcSession jdbcSession) throws SchemaException {
+        addObjectWithOid(jdbcSession);
     }
 
     private void initContexts() {
