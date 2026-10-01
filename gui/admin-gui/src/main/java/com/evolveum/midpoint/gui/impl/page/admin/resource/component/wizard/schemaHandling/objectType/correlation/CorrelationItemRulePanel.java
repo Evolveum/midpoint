@@ -31,6 +31,7 @@ import org.apache.wicket.model.Model;
 
 import java.util.List;
 
+import static com.evolveum.midpoint.gui.api.util.LocalizationUtil.translate;
 import static com.evolveum.midpoint.gui.api.util.WebPrismUtil.setReadOnlyRecursively;
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationStatusInfoUtils.extractEfficiencyFromSuggestedCorrelationItemWrapper;
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils.getAiEfficiencyBadgeModel;
@@ -95,12 +96,14 @@ public class CorrelationItemRulePanel<C extends Containerable> extends BasePanel
 
     private BadgePanel createEfficiencyBadge() {
         String efficiency = extractEfficiencyFromSuggestedCorrelationItemWrapper(getModelObject());
+        if (efficiency == null) {
+            efficiency = translate("SmartCorrelation.unknown");
+        }
 
-        String tooltip = createStringResource("SmartIntegration.badge.tooltip.ai").getObject();
+        String tooltip = translate("SmartIntegration.badge.tooltip.ai");
         BadgePanel badge = new BadgePanel(ID_ALERT_BADGE,
                 getAiEfficiencyBadgeModel(
-                        createStringResource("SmartCorrelationTilePanel.unconfirmed.suggestion.efficiency",
-                                efficiency).getString(),
+                        translate("SmartCorrelationTilePanel.unconfirmed.suggestion.efficiency", efficiency),
                         tooltip));
         badge.setOutputMarkupId(true);
         return badge;

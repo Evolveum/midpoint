@@ -127,8 +127,10 @@ public class SmartCorrelationTilePanel<C extends PrismContainerValueWrapper<Item
     }
 
     protected void buildBasicPanel(Fragment fragment) {
-        initLabelComponent(ID_TITLE, () -> getModelObject().getName(), fragment);
+        initLabelComponent(ID_TITLE, () -> getModelObject().getName() != null
+                ? getModelObject().getName() : createStringResource("SmartCorrelation.unnamed").getString(), fragment);
         initLabelComponent(ID_DESC, () -> getModelObject().getDescription(), fragment);
+        fragment.get(ID_DESC).add(new VisibleBehaviour(() -> getModelObject().getDescription() != null));
         initLabelComponent(ID_STATS_LABEL, createStringResource("SmartCorrelationTilePanel.stats.label"), fragment);
         if (statusModel.getObject() != null) {
             initLabelComponent(ID_STATE_LABEL, createStringResource("SmartCorrelationTilePanel.action.label"), fragment);
@@ -194,7 +196,8 @@ public class SmartCorrelationTilePanel<C extends PrismContainerValueWrapper<Item
             @Override
             protected void populateItem(@NotNull ListItem<SmartCorrelationTileModel.StateRecord> listItem) {
                 SmartCorrelationTileModel.StateRecord stateRecord = listItem.getModelObject();
-                Label stateValue = new Label(ID_STATS_PANEL_VALUE, stateRecord.getValue());
+                Label stateValue = new Label(ID_STATS_PANEL_VALUE, () -> stateRecord.getValue() != null
+                        ? stateRecord.getValue() : createStringResource("SmartCorrelation.notSet").getString());
                 stateValue.setOutputMarkupId(true);
                 listItem.add(stateValue);
 
