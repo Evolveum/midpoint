@@ -94,7 +94,7 @@ final class SmartMappingColumns<P extends Containerable> implements Serializable
             @Override
             protected DisplayType getIconDisplayType(
                     IModel<PrismContainerValueWrapper<MappingType>> rowModel) {
-                return MappingAuthorityDisplayResolver.resolve(rowModel.getObject().getRealValue(), "");
+                return MappingAuthorityDisplayResolver.resolveDisplay(rowModel.getObject().getRealValue(), "");
             }
 
             @Override

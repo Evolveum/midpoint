@@ -125,7 +125,7 @@ public abstract class AbstractMappingsTable<P extends Containerable> extends Abs
 
             @Override
             protected DisplayType getIconDisplayType(IModel<PrismContainerValueWrapper<MappingType>> rowModel) {
-                return MappingAuthorityDisplayResolver.resolve(rowModel.getObject().getRealValue(), null);
+                return MappingAuthorityDisplayResolver.resolveDisplay(rowModel.getObject().getRealValue(), null);
             }
 
             @Override
