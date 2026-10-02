@@ -607,15 +607,42 @@ public class TestMelExpressions extends AbstractScriptTest {
     public void testWorkItemEscalationLevelNumber() throws Exception {
         var definition = prismContext.getSchemaRegistry()
                 .findContainerDefinitionByType(AccessCertificationWorkItemType.COMPLEX_TYPE);
-        var workItem = new AccessCertificationWorkItemType()
+        var workItemWithEscalation = new AccessCertificationWorkItemType()
                 .escalationLevel(new WorkItemEscalationLevelType()
                         .number(2)
                         .name("second-level"));
 
         evaluateAndAssertIntegerScalarExpression(
                 "expression-work-item-escalation-level-number.xml",
-                createVariables("workItems", workItem.asPrismContainerValue(), definition),
+                createVariables("workItems", workItemWithEscalation.asPrismContainerValue(), definition),
                 2);
+        evaluateAndAssertIntegerScalarExpression(
+                "expression-work-item-escalation-level-number.xml",
+                createVariables(
+                        "workItems",
+                        new AccessCertificationWorkItemType().asPrismContainerValue(),
+                        definition),
+                null);
+    }
+
+    @Test
+    public void testWorkItemAssigneeNames() throws Exception {
+        var definition = prismContext.getSchemaRegistry()
+                .findContainerDefinitionByType(AccessCertificationWorkItemType.COMPLEX_TYPE);
+        var workItem = new AccessCertificationWorkItemType();
+        workItem.getAssigneeRef().addAll(List.of(
+                new ObjectReferenceType()
+                        .oid(USER_JACK_OID)
+                        .type(UserType.COMPLEX_TYPE)
+                        .targetName(createPolyStringType("Jack Sparrow")),
+                new ObjectReferenceType()
+                        .oid(USER_BARBOSSA_OID)
+                        .type(UserType.COMPLEX_TYPE)));
+
+        evaluateAndAssertStringListExpression(
+                "expression-work-item-assignee-names.xml",
+                createVariables("workItems", workItem.asPrismContainerValue(), definition),
+                "Jack Sparrow", USER_BARBOSSA_OID);
     }
 
     @Test

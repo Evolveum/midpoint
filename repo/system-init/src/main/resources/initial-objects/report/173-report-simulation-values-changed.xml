@@ -27,7 +27,7 @@
                         script:
                             language: http://midpoint.evolveum.com/xml/ns/public/expression/language#mel
                             objectVariableMode: referencableWithoutResolution
-                            code: 'isPresent(simulationResultRef) ? simulationResultRef.oid : nil'
+                            code: 'simulationResultRef.oid'
                     ```
                 </q:text>
             </filter>
@@ -116,9 +116,7 @@
                         <script>
                             <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                             <code>
-                                isPresent(objectMarks) ? objectMarks.map(ref, isPresent(ref.targetName) &amp;&amp; isPresent(ref.targetName.orig)
-                                    ? ref.targetName.orig : ref.oid)
-                                : nil
+                                isPresent(objectMarks) ? objectMarks.map(ref, default(ref.targetName.orig, ref.oid)) : nil
                             </code>
                         </script>
                     </expression>
@@ -155,7 +153,7 @@
                     <expression>
                         <script>
                             <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
-                            <code>isPresent(itemDelta) ? itemDelta.path : nil</code>
+                            <code>itemDelta.path</code>
                         </script>
                     </expression>
                 </export>
@@ -175,7 +173,7 @@
                     <expression>
                         <script>
                             <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
-                            <code>isPresent(valueWithState) ? valueWithState.state : nil</code>
+                            <code>valueWithState.state</code>
                         </script>
                     </expression>
                 </export>
@@ -195,7 +193,7 @@
                     <expression>
                         <script>
                             <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
-                            <code>isPresent(valueWithState) ? valueWithState.value : nil</code>
+                            <code>valueWithState.value</code>
                         </script>
                     </expression>
                 </export>
@@ -235,7 +233,7 @@
                     <expression>
                         <script>
                             <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
-                            <code>isPresent(relatedAssignment) ? relatedAssignment.id : nil</code>
+                            <code>relatedAssignment.id</code>
                         </script>
                     </expression>
                 </export>
@@ -255,7 +253,7 @@
                     <expression>
                         <script>
                             <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
-                            <code>isPresent(relatedAssignment) ? relatedAssignment.targetRef : nil</code>
+                            <code>relatedAssignment.targetRef</code>
                         </script>
                     </expression>
                 </export>
@@ -276,8 +274,7 @@
                         <script>
                             <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                             <code>
-                                isPresent(relatedAssignment) &amp;&amp; isPresent(relatedAssignment.targetRef)
-                                    ? relatedAssignment.targetRef.relation : nil
+                                relatedAssignment.targetRef.relation
                             </code>
                         </script>
                     </expression>
@@ -299,8 +296,7 @@
                         <script>
                             <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                             <code>
-                                isPresent(relatedAssignment) &amp;&amp; isPresent(relatedAssignment.construction)
-                                    ? relatedAssignment.construction.resourceRef : nil
+                                relatedAssignment.construction.resourceRef
                             </code>
                         </script>
                     </expression>
@@ -322,8 +318,7 @@
                         <script>
                             <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                             <code>
-                                isPresent(relatedAssignment) &amp;&amp; isPresent(relatedAssignment.construction)
-                                    ? relatedAssignment.construction.kind : nil
+                                relatedAssignment.construction.kind
                             </code>
                         </script>
                     </expression>
@@ -345,8 +340,7 @@
                         <script>
                             <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                             <code>
-                                isPresent(relatedAssignment) &amp;&amp; isPresent(relatedAssignment.construction)
-                                    ? relatedAssignment.construction.intent : nil
+                                relatedAssignment.construction.intent
                             </code>
                         </script>
                     </expression>
@@ -456,7 +450,7 @@
             <expression>
                 <script>
                     <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
-                    <code>isPresent(itemDelta) ? itemDelta.valuesWithStates : nil</code>
+                    <code>itemDelta.valuesWithStates</code>
                 </script>
             </expression>
             <order>20</order>
@@ -486,10 +480,7 @@
                 <script>
                     <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                     <code>
-                        isPresent(itemDelta)
-                            ? itemDelta.relatedAssignment(
-                                isPresent(valueWithState) ? valueWithState.value : nil)
-                            : nil
+                        isPresent(itemDelta) ? itemDelta.relatedAssignment( valueWithState.value) : nil
                     </code>
                 </script>
             </expression>

@@ -128,7 +128,7 @@
                         <script>
                             <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                             <code>
-                                isPresent(metric) &amp;&amp; isPresent(metric.ref) ? metric.ref.builtIn : nil
+                                metric.ref.builtIn
                             </code>
                         </script>
                     </expression>
@@ -153,7 +153,7 @@
                         <script>
                             <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                             <code>
-                                isPresent(metric) &amp;&amp; isPresent(metric.ref) ? metric.ref.eventMarkRef : nil
+                                metric.ref.eventMarkRef
                             </code>
                         </script>
                     </expression>
@@ -178,7 +178,7 @@
                         <script>
                             <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                             <code>
-                                isPresent(metric) &amp;&amp; isPresent(metric.ref) ? metric.ref.identifier : nil
+                                metric.ref.identifier
                             </code>
                         </script>
                     </expression>
@@ -199,7 +199,7 @@
                     <expression>
                         <script>
                             <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
-                            <code>isPresent(metric) ? metric.aggregationFunction : nil</code>
+                            <code>metric.aggregationFunction</code>
                         </script>
                     </expression>
                 </export>
@@ -224,7 +224,7 @@
                         <script>
                             <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                             <code>
-                                isPresent(partition) &amp;&amp; isPresent(partition.scope) ? partition.scope.typeName : nil
+                                partition.scope.typeName
                             </code>
                         </script>
                     </expression>
@@ -249,8 +249,6 @@
                         <script>
                             <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                             <code>
-                                isPresent(partition) &amp;&amp;
-                                isPresent(partition.scope) &amp;&amp;
                                 isPresent(partition.scope.structuralArchetypeOid)
                                     ? objectReference(
                                         partition.scope.structuralArchetypeOid,
@@ -280,8 +278,6 @@
                         <script>
                             <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                             <code>
-                                isPresent(partition) &amp;&amp;
-                                isPresent(partition.scope) &amp;&amp;
                                 isPresent(partition.scope.resourceOid)
                                     ? objectReference(
                                         partition.scope.resourceOid,
@@ -311,7 +307,7 @@
                         <script>
                             <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                             <code>
-                                isPresent(partition) &amp;&amp; isPresent(partition.scope) ? partition.scope.kind : nil
+                                partition.scope.kind
                             </code>
                         </script>
                     </expression>
@@ -336,7 +332,7 @@
                         <script>
                             <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                             <code>
-                                isPresent(partition) &amp;&amp; isPresent(partition.scope) ? partition.scope.intent : nil
+                                partition.scope.intent
                             </code>
                         </script>
                     </expression>
@@ -360,7 +356,7 @@
                     <expression>
                         <script>
                             <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
-                            <code>isPresent(partition) ? partition.value : nil</code>
+                            <code>partition.value</code>
                         </script>
                     </expression>
                 </export>
@@ -385,7 +381,7 @@
                     <expression>
                         <script>
                             <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
-                            <code>isPresent(partition) ? partition.selectionSize : nil</code>
+                            <code>partition.selectionSize</code>
                         </script>
                     </expression>
                 </export>
@@ -408,7 +404,7 @@
                     <expression>
                         <script>
                             <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
-                            <code>isPresent(partition) ? partition.selectionTotalValue : nil</code>
+                            <code>partition.selectionTotalValue</code>
                         </script>
                     </expression>
                 </export>
@@ -431,7 +427,7 @@
                     <expression>
                         <script>
                             <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
-                            <code>isPresent(partition) ? partition.domainSize : nil</code>
+                            <code>partition.domainSize</code>
                         </script>
                     </expression>
                 </export>
@@ -454,7 +450,7 @@
                     <expression>
                         <script>
                             <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
-                            <code>isPresent(partition) ? partition.domainTotalValue : nil</code>
+                            <code>partition.domainTotalValue</code>
                         </script>
                     </expression>
                 </export>
@@ -481,7 +477,7 @@
             <expression>
                 <script>
                     <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
-                    <code>isPresent(metric) ? metric.partition : nil</code>
+                    <code>metric.partition</code>
                 </script>
             </expression>
             <order>20</order>
