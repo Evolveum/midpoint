@@ -236,7 +236,8 @@ public abstract class CorrelationItemsTableWizardPanel extends AbstractResourceW
 
             @Override
             protected boolean isShowSuggestionsButtonVisible() {
-                return isSuggestionExists(loadExistingSuggestion().getObject());
+                return SmartIntegrationUtils.isSmartIntegrationAuthorized(getPageBase())
+                        && isSuggestionExists(loadExistingSuggestion().getObject());
             }
 
             @Override

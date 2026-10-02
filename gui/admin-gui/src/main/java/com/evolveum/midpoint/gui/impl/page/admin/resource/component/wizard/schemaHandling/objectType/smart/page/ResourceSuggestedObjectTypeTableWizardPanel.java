@@ -26,6 +26,7 @@ import com.evolveum.midpoint.smart.api.info.AiInfo;
 import com.evolveum.midpoint.smart.api.info.HealthStatus;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationOption;
@@ -356,7 +357,7 @@ public abstract class ResourceSuggestedObjectTypeTableWizardPanel<P extends Cont
                     return getPageBase().getSmartIntegrationService()
                             .getAiInfo(task, task.getResult())
                             .orElse(null);
-                } catch (SystemException e) {
+                } catch (CommonException e) {
                     return null;
                 }
             }
