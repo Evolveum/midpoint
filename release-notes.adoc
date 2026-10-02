@@ -570,7 +570,172 @@ NOTE: This section is relevant to the majority of midPoint deployments.
 It describes what data items were marked as deprecated, or removed altogether from the schema.
 You should at least scan through it - or use the `ninja` tool to check the deprecations for you.
 
-// TODO
+.Items being deprecated
+[%autowidth]
+|===
+| Type | Item or value | Note
+| `DefaultExpressionProfilesConfigurationType`
+| `bulkActions`
+| Use `unprivilegedPrincipal` for actions provided via GUI or REST, and expression profiles based on types/archetypes for actions in repository objects.
+
+| `DefaultExpressionProfilesConfigurationType`
+| `privilegedBulkActions`
+| Use `privilegedPrincipal` for actions provided via GUI or REST, and expression profiles based on types/archetypes for actions in repository objects.
+
+| `PolicyRuleType`
+| `enabled`
+| Kept for compatibility with activity policies. Use `processing` in activity `policies` to switch policies on/off for specific task.
+|===
+
+.Items being removed
+[%autowidth]
+|===
+| Type | Item or value | Note
+| `DefaultExpressionProfilesConfigurationType`
+| `customWorkflowNotifications`
+| Deprecated since 4.8.
+
+| `OidcResourceServerAuthenticationModuleType`
+| `realm`, `issuerUri`, `jwkSetUri`, `nameOfUsernameClaim`, `singleSymmetricKey`, `trustedAlgorithm`, `trustingAsymmetricCertificate`, `keyStoreTrustingAsymmetricKey`
+| Deprecated since 4.8. Use items in token definition (`jwt` or `opaqueToken`) instead.
+|===
+
+.Items being added
+[%autowidth]
+|===
+| Type | Item or value | Note
+| `AuditEventRecordType`
+| `payload`
+| Generic payload (name, content type, content) attached to audit record.
+
+| `AuditEventTypeType`
+| `externalServiceCall`
+| New audit event type.
+
+| `SystemConfigurationAuditType`
+| `externalServices`
+| Audit of external service calls (experimental).
+
+| `UserType`
+| `displayName`, `preferredName`
+| New properties, see behavior changes below.
+
+| `FocusType`
+| `email`, `phoneNumber`, `physicalAddress`
+| Multi-value containers for contact information.
+
+| `CredentialsType`
+| `otps`
+| OTP (TOTP) credentials.
+
+| `CredentialsPolicyType`
+| `otp`
+| Policy for OTP credentials.
+
+| `AuthenticationModulesType`
+| `totp`
+| TOTP authentication module.
+
+| `PolicyConstraintsType`
+| `executionTime`, `executionAttempts`, `itemProcessingResult`
+| Activity related constraints, with corresponding `PolicyConstraintKindType` values.
+
+| `PolicyActionsType`
+| `restartActivity`, `skipActivity`
+| Activity related policy actions.
+
+| `PolicyRuleType`
+| `order`
+| Order of policy rule evaluation.
+
+| `ActivityPoliciesType`
+| `processing`
+| Switches activity policies processing on/off for the task.
+
+| `ActivityStateType`
+| `haltingInformation`
+| Marks activity halted by policy action.
+
+| `DefaultExpressionProfilesConfigurationType`
+| `privilegedPrincipal`, `unprivilegedPrincipal`, `authorizedObjects`, `bulkActionsInAuthorizedObjects`
+| New default expression profile settings.
+
+| `SystemConfigurationExpressionsType`
+| `defaultScriptLanguage`
+| Default language for script expressions.
+
+| `SystemConfigurationType`
+| `smartIntegration`
+| Smart integration configuration.
+
+| `AdminGuiConfigurationType`
+| `fileUploadConfiguration`
+| Upload validation and image processing configuration.
+
+| `IterationSpecificationType`
+| `start`, `end`, `useTokenOnlyOnConflict`
+| Iteration range and token evaluation control.
+
+| `TaskExecutionEnvironmentType`
+| `conflictResolution`
+| Resolution of write-write conflicts on focal objects.
+
+| `SchemaHandlingType`
+| `complexAttributeType`
+| Definition of complex attribute types.
+
+| `ShadowKindType`
+| `work`
+| New shadow kind for work items (issues, tickets).
+
+| `FileFormatConfigurationType`
+| `xlsx`
+| XLSX report file format, with `FileFormatTypeType` value `xlsx`.
+
+| `ValueMetadataType`
+| `validation`
+| Validation state of the value.
+
+| `ImportOptionsType`
+| `compatFor`
+| Object types for which compatibility mode is enabled.
+
+| `ConnectorType`
+| `discoveryTimestamp`
+| Protected timestamp of connector discovery.
+
+| `SearchItemType`
+| `displayOrder`
+| Order of search item.
+
+| `VirtualContainerItemSpecificationType`
+| `display`, `label`, `validator`
+| Display and validation of virtual container item.
+
+| `WorkDefinitionsType`
+| various
+| New activities, e.g. `correlation`, `initialDataImport`, mapping simulations, smart integration and connector development activities.
+|===
+
+New schema files `common-smart-integration-3.xsd`, `common-connector-dev-3.xsd` and `common-complex-attributes-3.xsd` were added.
+
+Other changes:
+
+* Activity policies (`activity/policies/policy`) now use common `PolicyRuleType`, `PolicyConstraintsType` and `PolicyActionsType`.
+Types `ActivityPolicyType`, `ActivityPolicyConstraintsType`, `ActivityPolicyActionsType` and related action and trigger types were removed.
+Item names did not change, existing activity policy configuration stays valid.
+* `PasswordType.hint` changed type from `string` to `ProtectedStringType`.
+* `linkRef` was moved from `FocusType` to new supertype `ProjectionHolderType`.
+`CaseType` now extends `ProjectionHolderType` as well.
+* `DefaultExpressionProfilesConfigurationType` items `bulkActions` and `privilegedBulkActions` are now optional.
+* `ShadowAssociationTypeDefinitionType.associationObject` (experimental) changed type from `AssociatedResourceObjectTypeDefinitionType` to `ResourceObjectTypeDefinitionType`.
+* `ReportDataType.data` (experimental) changed type from `string` to `anyType`.
+
+_Actions required:_
+
+* Inspect your configuration for deprecated items, and replace them by their suggested equivalents.
+Make sure you don't use any removed items.
+You can use `ninja` tool for this.
 
 [#_behavior_changes_since_4_10]
 === Behavior Changes Since 4.10
