@@ -28,11 +28,6 @@ public class RangeAwareMappingTargetValueWrapper
             PrismPropertyWrapper<VariableBindingDefinitionType> parent,
             PrismPropertyValue<VariableBindingDefinitionType> value, ValueStatus status) {
         super(parent, value, status);
-        VariableBindingDefinitionType target = getRealValue();
-        if (shouldApplyDefaultRange(target)) {
-            target.setSet(defaultRange(target));
-        }
-
     }
 
     @Override
