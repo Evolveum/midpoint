@@ -13,6 +13,7 @@ import com.evolveum.midpoint.authentication.api.authorization.Url;
 import com.evolveum.midpoint.gui.impl.component.wizard.withnavigation.WizardWithNavigationPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.PageAssignmentHolderDetails;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.ConnectorDevelopmentController;
+import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.ConnectorDevelopmentWizardUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.DetailsFragment;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
@@ -79,6 +80,29 @@ public class PageConnectorDevelopment extends PageAssignmentHolderDetails<Connec
         fragment.setOutputMarkupId(true);
 
         return fragment;
+    }
+
+    @Override
+    protected void onBeforeRender() {
+        super.onBeforeRender();
+        // Offline mode warning - shown (via the page feedback) when the connector-generation
+        // service is not configured (limited functionality, skeleton scripts). Re-asserted on
+        // every render so it stays visible while the page is open.
+        if (isOffline()) {
+            String warning = createStringResource("PageConnectorDevelopment.offlineWarning").getObject();
+            // Add the warning only once so its component state (e.g. the user having closed it)
+            // persists across renders and it stays dismissable.
+            boolean alreadyPresent = getFeedbackMessages().toList().stream()
+                    .anyMatch(message -> warning.equals(message.getMessage()));
+            if (!alreadyPresent) {
+                warn(warning);
+            }
+        }
+    }
+
+    private boolean isOffline() {
+        return getObjectDetailsModels() != null
+                && ConnectorDevelopmentWizardUtil.isOffline(getObjectDetailsModels());
     }
 
     @Override

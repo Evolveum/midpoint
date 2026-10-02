@@ -815,6 +815,15 @@ public class ConnectorDevelopmentWizardUtil {
         result.addContext("logs", logs.toString());
     }
 
+    /**
+     * Whether the connector-generation service is not configured (offline mode) - in that case the
+     * wizard runs with limited functionality: documentation discovery is skipped and scripts are
+     * generated as skeletons the user edits manually.
+     */
+    public static boolean isOffline(ConnectorDevelopmentDetailsModel detailsModel) {
+        return detailsModel.getServiceLocator().getConnectorService().isOffline();
+    }
+
     public static boolean isScim(ConnectorDevelopmentDetailsModel detailsModel) {
         try {
             PrismPropertyWrapper<ConnDevIntegrationType> integrationType = detailsModel.getObjectWrapper().findProperty(

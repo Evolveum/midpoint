@@ -885,4 +885,9 @@ public class ConnectorDevelopmentServiceImpl implements ConnectorDevelopmentServ
     public List<ConnDevDocumentationTopic> getDocumentationTopics(String key, String protocol) {
         return conndevDocumentationService.getTopics(key, protocol);
     }
+
+    @Override
+    public boolean isOffline() {
+        return ConnDevBeans.get().isOffline();
+    }
 }

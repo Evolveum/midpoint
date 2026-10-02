@@ -80,29 +80,14 @@ public class DiscoverObjectClassInformationActivityHandler
             var skipCache = Boolean.TRUE.equals(getWorkDefinition().typedDefinition.getSkipCache());
             var connectorDiscovered = backend.discoverObjectClassesUsingConnector();
 
-            List<ConnDevBasicObjectClassInfoType> discovered;
-            List<ConnDevRelationInfoType> relations;
-            if (!connectorDiscovered.isEmpty()) {
-                // Development-mode metadata is the source of truth (imported low-code connectors
-                // and any connector exposing conndev_ObjectClass); no documentation processing
-                // (or generation service) is needed for the object classes themselves. Relations
-                // are not discovered here - an imported connector already carries them from its
-                // manifest.
-                discovered = connectorDiscovered;
-                relations = List.of();
-            } else {
-                backend.ensureDocumentationIsProcessed();
-                discovered = backend.discoverObjectClassesUsingDocumentation(connectorDiscovered, false, skipCache);
-                relations = backend.discoverRelationsUsingObjectClasses(discovered, skipCache);
-            }
+            backend.ensureDocumentationIsProcessed();
+            var discovered = backend.discoverObjectClassesUsingDocumentation(connectorDiscovered, false, skipCache);
+            var relations = backend.discoverRelationsUsingObjectClasses(discovered, skipCache);
 
             backend.updateApplicationObjectClasses(discovered);
 
             backend.updateRelations(relations);
             var state = getActivityState();
-
-            // FIXME: Write connectorRef + connectorDirectory to ConnectorDevelopmentType
-
             state.setWorkStateItemRealValues(FocusTypeSuggestionWorkStateType.F_RESULT,
                     new ConnDevDiscoverObjectClassInformationResultType());
             state.flushPendingTaskModifications(result);

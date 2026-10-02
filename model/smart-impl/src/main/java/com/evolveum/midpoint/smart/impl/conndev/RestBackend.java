@@ -188,10 +188,10 @@ public class RestBackend extends ConnectorDevelopmentBackend {
         restoreRelations(client);
         restoreEndpoints(client);
         restoreAttributes(client);
-        if (developmentObject().getConnector().getDirectory() != null) {
-            // Artifacts needs to be stored
-            restoreCodegenArtifacts(client);
-        }
+
+        // Artifacts needs to be stored
+        restoreCodegenArtifacts(client);
+
     }
 
     @Override

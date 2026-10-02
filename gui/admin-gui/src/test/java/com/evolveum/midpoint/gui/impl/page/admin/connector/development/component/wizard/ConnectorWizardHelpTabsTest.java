@@ -142,6 +142,11 @@ public class ConnectorWizardHelpTabsTest {
         }
 
         @Override
+        public boolean isOffline() {
+            throw unsupported();
+        }
+
+        @Override
         public ConnectorDevelopmentOperation startFromNew(ConnDevApplicationInfoType basicInfo, OperationResult result) {
             throw unsupported();
         }

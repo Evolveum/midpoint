@@ -94,15 +94,18 @@ public class GenerateConnectorArtifactActivityHandler
                 }
 
                 ConnDevArtifactValidationResult validation = backend.validateArtifact(script);
-                if (validation.ok() || attempt == MAX_VALIDATION_ATTEMPTS) {
+                if (validation.ok() || attempt == MAX_VALIDATION_ATTEMPTS || !backend.isOnline()) {
+                    // The offline backend generates a static skeleton - retrying validation with
+                    // the same content cannot produce a different (valid) script, the user edits
+                    // it in the wizard instead.
                     break;
                 }
                 currentDefinition = retryDefinition(currentDefinition, script, validation);
             }
 
             if (script != null) {
-                if (script.getContent() != null) {
-                    // Mark as AI
+                if (script.getContent() != null && backend.isOnline()) {
+                    // Mark as AI (offline skeletons are generated locally, not by the AI service)
                     SmartMetadataUtil.markAsAiProvided(script.asPrismContainerValue().findItem(ConnDevArtifactType.F_CONTENT).getValue());
                 }
                 resultObj.artifact(script);

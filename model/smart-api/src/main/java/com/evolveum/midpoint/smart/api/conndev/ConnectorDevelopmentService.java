@@ -44,6 +44,15 @@ public interface ConnectorDevelopmentService {
      */
     boolean isManifestBasedConnector(ConnectorType connector, OperationResult result);
 
+    /**
+     * Whether the connector-generation service is configured
+     * ({@code systemConfiguration/smartIntegration/connectorGenerationUrl}). When {@code true}, the
+     * connector development runs without the AI service: documentation discovery is skipped, object
+     * classes come from the connector's development-mode ({@code conndev_}) metadata, and scripts
+     * are generated locally as skeletons the user edits manually.
+     */
+    boolean isOffline();
+
     StatusInfo<ConnDevCreateConnectorResultType> getCreateConnectorStatus(String token, Task task, OperationResult result) throws CommonException;
 
     /**

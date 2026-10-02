@@ -109,7 +109,7 @@ public abstract class ConnectorDevelopmentBackend {
         var beans = ConnDevBeans.get();
         var connDev = beans.modelService.getObject(ConnectorDevelopmentType.class, connectorDevelopmentOid, null, task, result);
         if (beans.isOffline()) {
-            return new OfflineBackend(beans, connDev.asObjectable(), task, result);
+            return offlineBackendFor(connDev.asObjectable(), beans, task, result);
         }
         return backendFor(connDev.asObjectable(), task, result);
     }
@@ -119,15 +119,41 @@ public abstract class ConnectorDevelopmentBackend {
             case REST -> new RestBackend(beans, connDev, task, result);
             case SCIM -> new ScimBackend(beans, connDev, task, result);
             case SQL -> new SqlBackend(beans, connDev, task, result);
-            //case DUMMY -> new OfflineBackend(beans, connDev, task, result);
         };
 
+    }
+
+    /**
+     * The protocol-specific offline backend for the given development: SCIM and SQL get their own
+     * backends, everything else (REST, unknown) uses the REST one.
+     */
+    private static ConnectorDevelopmentBackend offlineBackendFor(ConnectorDevelopmentType connDev, ConnDevBeans beans, Task task, OperationResult result) {
+        var integrationType = resolveIntegrationType(connDev);
+        return switch (integrationType) {
+            case SCIM -> new OfflineScimBackend(beans, connDev, task, result);
+            case SQL -> new OfflineSqlBackend(beans, connDev, task, result);
+            default -> new OfflineRestBackend(beans, connDev, task, result);
+        };
+    }
+
+    /** The development's integration type: the connector's, then the application's, then {@code null}. */
+    private static ConnDevIntegrationType resolveIntegrationType(ConnectorDevelopmentType connDev) {
+        if (connDev.getConnector() != null && connDev.getConnector().getIntegrationType() != null) {
+            return connDev.getConnector().getIntegrationType();
+        }
+        if (connDev.getApplication() != null) {
+            return connDev.getApplication().getIntegrationType();
+        }
+        return null;
     }
 
     @NotNull
     public static ConnectorDevelopmentBackend backendFor(ConnectorDevelopmentType connDev, Task task, OperationResult result) {
         var beans = ConnDevBeans.get();
 
+        if (beans.isOffline()) {
+            return offlineBackendFor(connDev, beans, task, result);
+        }
         if (connDev.getConnector() != null && connDev.getConnector().getIntegrationType() != null) {
             return backendFor(connDev.getConnector().getIntegrationType(), connDev, beans, task, result);
         }
@@ -963,8 +989,10 @@ public abstract class ConnectorDevelopmentBackend {
 
     protected void restoreCodegenArtifacts(ServiceClient.RestorationClient client) throws IOException {
         var connector = developmentObject().getConnector();
-        if (connector == null) return;
-
+        if (connector == null || connector.getDirectory() == null) {
+            // COnnector is not unpacked, we can not upload files.
+            return;
+        }
         for (var oc : connector.getObjectClass()) {
             var name = oc.getName();
             putCodegenArtifact(client, "codegen/{sessionId}/classes/" + name + "/native-schema", oc.getNativeSchemaScript());
