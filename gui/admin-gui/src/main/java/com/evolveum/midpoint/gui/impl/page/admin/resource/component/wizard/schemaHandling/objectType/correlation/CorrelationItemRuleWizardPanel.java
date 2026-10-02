@@ -87,11 +87,25 @@ public class CorrelationItemRuleWizardPanel<C extends Containerable> extends Abs
     @Override
     protected void onSubmitPerformed(AjaxRequestTarget target) {
         if (isSuggestionApplied()) {
-            acceptSuggestionPerformed(target, getValueModel());
+            if (isValid(target)) {
+                acceptSuggestionPerformed(target, getValueModel());
+            }
             return;
         }
 
         onExitPerformed(target);
+    }
+
+    @Override
+    protected boolean isValid(AjaxRequestTarget target) {
+        if (!super.isValid(target)) {
+            return false;
+        }
+        boolean valid = ((CorrelationItemRulePanel<?>) get(ID_PANEL)).validateCorrelationItems(target);
+        if (!valid) {
+            target.add(getFeedback());
+        }
+        return valid;
     }
 
     protected boolean isShowEmptyField() {

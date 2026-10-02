@@ -12,6 +12,7 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismValueWrapper;
 import com.evolveum.midpoint.gui.impl.factory.panel.PrismPropertyPanelContext;
+import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardBasicInitializer;
 import com.evolveum.midpoint.web.component.input.PopoverActionChoicePanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
@@ -58,7 +59,7 @@ public class CorrelatorItemRefPanelFactory extends ItemPathPanelFactory implemen
                         panelCtx.getComponentId(),
                         panelCtx.getRealValueModel(),
                         Model.ofList(itemPaths),
-                        true) {
+                        false) {
 
                     @Override
                     protected IModel<String> getChoicesIconCssModel() {
@@ -89,7 +90,10 @@ public class CorrelatorItemRefPanelFactory extends ItemPathPanelFactory implemen
                     protected void onChoiceSelected(
                             AjaxRequestTarget target,
                             PopoverActionChoicePanel<ItemPathType> component) {
-                        // Nothing else to refresh here.
+                        AbstractWizardBasicInitializer wizard = component.findParent(AbstractWizardBasicInitializer.class);
+                        if (wizard != null) {
+                            target.add(wizard.getFeedback());
+                        }
                     }
                 };
 

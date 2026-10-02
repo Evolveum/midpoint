@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Locale;
 
 import com.evolveum.midpoint.gui.api.component.IconComponent;
+import com.evolveum.midpoint.gui.impl.component.message.FeedbackLabels;
 import com.evolveum.midpoint.gui.impl.component.search.panel.Popover;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
@@ -227,8 +228,13 @@ public abstract class PopoverActionChoicePanel<T> extends InputPanel {
                     @Override
                     public void onClick(AjaxRequestTarget target) {
                         PopoverActionChoicePanel.this.model.setObject(item.getModelObject());
+                        input.getFeedbackMessages().clear();
+                        input.valid();
                         filterModel.setObject("");
                         target.add(input);
+                        if (PopoverActionChoicePanel.this.getParent() != null) {
+                            target.addChildren(PopoverActionChoicePanel.this.getParent(), FeedbackLabels.class);
+                        }
                         closePopover(target, input, popover);
                         onChoiceSelected(target, PopoverActionChoicePanel.this);
                     }
@@ -256,6 +262,20 @@ public abstract class PopoverActionChoicePanel<T> extends InputPanel {
 
     private @NotNull TextField<T> buildTextField() {
         TextField<T> input = new TextField<>(ID_INPUT, model) {
+            @Override
+            public String[] getInputAsArray() {
+                String[] submittedInput = super.getInputAsArray();
+                if (submittedInput != null) {
+                    return submittedInput;
+                }
+
+                // Ajax links can trigger validation without submitting this field.
+                T selectedChoice = getModelObject();
+                return selectedChoice != null
+                        ? new String[] { String.valueOf(renderer.getDisplayValue(selectedChoice)) }
+                        : null;
+            }
+
             @Override
             @SuppressWarnings("unchecked")
             public <C> IConverter<C> getConverter(Class<C> type) {

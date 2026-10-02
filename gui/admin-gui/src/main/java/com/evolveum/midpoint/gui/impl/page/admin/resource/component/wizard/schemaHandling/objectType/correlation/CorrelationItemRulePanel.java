@@ -23,6 +23,7 @@ import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.Component;
+import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
@@ -186,6 +187,10 @@ public class CorrelationItemRulePanel<C extends Containerable> extends BasePanel
         };
         table.setOutputMarkupId(true);
         return table;
+    }
+
+    public boolean validateCorrelationItems(AjaxRequestTarget target) {
+        return ((CorrelationItemRefsTable<?>) get(ID_TABLE)).validateCorrelationItems(target);
     }
 
     protected boolean isShowEmptyField() {
