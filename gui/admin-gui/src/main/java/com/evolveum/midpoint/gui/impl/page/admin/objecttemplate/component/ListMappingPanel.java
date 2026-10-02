@@ -15,8 +15,6 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 
 import com.evolveum.midpoint.gui.api.component.tabs.PanelTab;
 import com.evolveum.midpoint.gui.impl.component.input.range.MappingRangePanel;
-import com.evolveum.midpoint.gui.impl.component.input.range.MappingRangeUtils;
-import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.attribute.mapping.AbstractMappingsTable;
 
 import com.evolveum.midpoint.web.component.data.column.IconColumn;
@@ -251,22 +249,9 @@ public class ListMappingPanel extends AbstractMappingsTable<ObjectTemplateType> 
             }
         });
 
-        columns.add(new PrismPropertyWrapperColumn<MappingType, String>(
-                mappingTypeDef,
-                MappingType.F_TARGET,
-                AbstractItemWrapperColumn.ColumnType.VALUE,
-                getPageBase()));
+        columns.add(createTargetColumn());
 
         return columns;
-    }
-
-    @Override
-    protected PrismContainerValueWrapper createNewValue(PrismContainerValue<MappingType> value, AjaxRequestTarget target) {
-        PrismContainerValueWrapper newValue = super.createNewValue(value, target);
-        if (newValue != null) {
-            MappingRangeUtils.initializeRange(newValue);
-        }
-        return newValue;
     }
 
     @Override

@@ -40,7 +40,6 @@ import org.jetbrains.annotations.Nullable;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
-import com.evolveum.midpoint.gui.impl.component.input.range.MappingRangeUtils;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
 import com.evolveum.midpoint.gui.api.util.MappingDirection;
@@ -587,9 +586,6 @@ public abstract class SmartMappingTable<P extends Containerable> extends BasePan
                 getPageBase(),
                 target);
 
-        if (newValue != null) {
-            MappingRangeUtils.initializeRange(newValue);
-        }
         return newValue;
     }
 
