@@ -17,6 +17,8 @@ import jakarta.annotation.PreDestroy;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
+
 @Component
 public class DiscoverObjectClassInformationActivityHandler
         extends AbstractConnDevActivityHandler<DiscoverObjectClassInformationActivityHandler.WorkDefinition, DiscoverObjectClassInformationActivityHandler> {
@@ -75,20 +77,17 @@ public class DiscoverObjectClassInformationActivityHandler
 
             var backend = ConnectorDevelopmentBackend.backendFor(getWorkDefinition().connectorDevelopmentOid, task, result);
 
-            backend.ensureDocumentationIsProcessed();
-            var connectorDiscovered =  backend.discoverObjectClassesUsingConnector();
-
             var skipCache = Boolean.TRUE.equals(getWorkDefinition().typedDefinition.getSkipCache());
+            var connectorDiscovered = backend.discoverObjectClassesUsingConnector();
+
+            backend.ensureDocumentationIsProcessed();
             var discovered = backend.discoverObjectClassesUsingDocumentation(connectorDiscovered, false, skipCache);
+            var relations = backend.discoverRelationsUsingObjectClasses(discovered, skipCache);
 
             backend.updateApplicationObjectClasses(discovered);
-            var relations = backend.discoverRelationsUsingObjectClasses(discovered, skipCache);
 
             backend.updateRelations(relations);
             var state = getActivityState();
-
-            // FIXME: Write connectorRef + connectorDirectory to ConnectorDevelopmentType
-
             state.setWorkStateItemRealValues(FocusTypeSuggestionWorkStateType.F_RESULT,
                     new ConnDevDiscoverObjectClassInformationResultType());
             state.flushPendingTaskModifications(result);

@@ -178,6 +178,14 @@ public class BasicInformationConnectorStepPanel extends AbstractFormWizardStepPa
 
     @Override
     public List<WizardStep> createChildrenSteps() {
+        // Documentation discovery is skipped offline - there is no generation service to discover
+        // or process documentation with.
+        if (ConnectorDevelopmentWizardUtil.isOffline(getDetailsModel())) {
+            return List.of(
+                    new ApplicationIdentificationConnectorStepPanel(getHelper()),
+                    new ConnectorIdentificationConnectorStepPanel(getHelper()),
+                    new WaitingConnectorCreatingConnectorStepPanel(getHelper()));
+        }
         return List.of(
                 new ApplicationIdentificationConnectorStepPanel(getHelper()),
                 new WaitingForDocumentationConnectorStepPanel(getHelper()),

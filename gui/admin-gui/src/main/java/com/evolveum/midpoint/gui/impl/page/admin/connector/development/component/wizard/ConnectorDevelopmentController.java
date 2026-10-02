@@ -184,8 +184,11 @@ public class ConnectorDevelopmentController extends AbstractWizardController<Con
             list.add(new ObjectClassesConnectorDevPartItem(getHelper()));
         }
 
-        if (ConnectorDevelopmentWizardUtil.existContainerValue(
-                getObjectWrapper(), ItemPath.create(ConnectorDevelopmentType.F_CONNECTOR, ConnDevConnectorType.F_RELATION))) {
+        // Relationship scripts are AI-generated; without the AI service the wizard cannot produce
+        // meaningful relationship parts, so they are skipped in offline mode.
+        if (!ConnectorDevelopmentWizardUtil.isOffline(getObjectDetailsModel())
+                && ConnectorDevelopmentWizardUtil.existContainerValue(
+                        getObjectWrapper(), ItemPath.create(ConnectorDevelopmentType.F_CONNECTOR, ConnDevConnectorType.F_RELATION))) {
             list.add(new RelationshipsConnectorDevPartItem(getHelper()));
         }
 
@@ -225,26 +228,28 @@ public class ConnectorDevelopmentController extends AbstractWizardController<Con
             getObjectDetailsModel().getPageAssignmentHolder().error(message);
         }
 
-        try {
-            PrismContainerWrapper<ConnDevRelationInfoType> relationshipsContainer = getObjectWrapper().findContainer(
-                    ItemPath.create(ConnectorDevelopmentType.F_CONNECTOR,
-                            ConnDevConnectorType.F_RELATION));
+                if (!ConnectorDevelopmentWizardUtil.isOffline(getObjectDetailsModel())) {
+            try {
+                PrismContainerWrapper<ConnDevRelationInfoType> relationshipsContainer = getObjectWrapper().findContainer(
+                        ItemPath.create(ConnectorDevelopmentType.F_CONNECTOR,
+                                ConnDevConnectorType.F_RELATION));
 
-            for (PrismContainerValueWrapper<ConnDevRelationInfoType> relationshipValue : relationshipsContainer.getValues()) {
-                if (relationshipValue.getStatus() == ValueStatus.DELETED) {
-                    continue;
+                for (PrismContainerValueWrapper<ConnDevRelationInfoType> relationshipValue : relationshipsContainer.getValues()) {
+                    if (relationshipValue.getStatus() == ValueStatus.DELETED) {
+                        continue;
+                    }
+                    InitRelationshipConnectorDevPartItem partItem = new InitRelationshipConnectorDevPartItem(getHelper());
+                    partItem.setParameter(relationshipValue.getRealValue().getName());
+                    if (!partItem.isComplete()) {
+                        list.add(partItem);
+                        break;
+                    }
                 }
-                InitRelationshipConnectorDevPartItem partItem = new InitRelationshipConnectorDevPartItem(getHelper());
-                partItem.setParameter(relationshipValue.getRealValue().getName());
-                if (!partItem.isComplete()) {
-                    list.add(partItem);
-                    break;
-                }
+            } catch (SchemaException e) {
+                LOGGER.error("Couldn't determine wizard parts for relationships.", e);
+                String message = getObjectDetailsModel().getPageAssignmentHolder().getString("ConnectorDevelopmentController.couldntDetermineRelationships");
+                getObjectDetailsModel().getPageAssignmentHolder().error(message);
             }
-        } catch (SchemaException e) {
-            LOGGER.error("Couldn't determine wizard parts for relationships.", e);
-            String message = getObjectDetailsModel().getPageAssignmentHolder().getString("ConnectorDevelopmentController.couldntDetermineRelationships");
-            getObjectDetailsModel().getPageAssignmentHolder().error(message);
         }
         return list;
     }

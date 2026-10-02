@@ -45,6 +45,22 @@ public class ConnectorManifestWriter {
         var authorization = FACTORY.arrayNode();
         var operations = FACTORY.arrayNode();
 
+        writeTextProperty(this.connector, "integrationType", connector.getIntegrationType(), ConnDevIntegrationType::value);
+
+        var authMethods = FACTORY.arrayNode();
+        for (var auth : connector.getAuth()) {
+            var authNode = FACTORY.objectNode();
+            writeTextProperty(authNode, "type", auth.getType(), ConnDevHttpAuthTypeType::value);
+            writeTextProperty(authNode, "name", auth.getName());
+            writeTextProperty(authNode, "quirks", auth.getQuirks());
+            if (!authNode.isEmpty()) {
+                authMethods.add(authNode);
+            }
+        }
+        if (!authMethods.isEmpty()) {
+            this.connector.set("authMethods", authMethods);
+        }
+
         for (var artifact : ConnectorDevelopmentArtifacts.allArtifacts(connector)) {
             var classification = ConnectorDevelopmentArtifacts.classify(artifact);
             if (classification == ConnectorDevelopmentArtifacts.KnownArtifactType.AUTHENTICATION_CUSTOMIZATION) {
@@ -91,6 +107,8 @@ public class ConnectorManifestWriter {
         }
         writeTextProperty(application, "name", app.getApplicationName());
         writeTextProperty(application, "description", app.getDescription());
+        writeTextProperty(application, "version", app.getVersion());
+        writeTextProperty(application, "apiVersion", app.getApiVersion());
     }
 
 
