@@ -13,6 +13,7 @@ import com.evolveum.midpoint.gui.api.component.button.DropdownButtonPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.component.tile.MultiSelectContainerActionTileTablePanel;
 import com.evolveum.midpoint.gui.impl.component.tile.TemplateTilePanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils.SuggestionUiStyle;
@@ -33,6 +34,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ItemsSubCorrelatorTy
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -203,6 +205,12 @@ public class SmartCorrelationTilePanel<C extends PrismContainerValueWrapper<Item
 
                 Label stateLabel = new Label(ID_STATS_PANEL_LABEL, stateRecord.getLabel());
                 stateLabel.setOutputMarkupId(true);
+                String help = WebPrismUtil.getHelpText(getPageBase().getPrismContext(),
+                        stateRecord.containerClass(), stateRecord.itemName());
+                if (StringUtils.isNotBlank(help)) {
+                    stateLabel.add(AttributeModifier.replace("title", help));
+                    stateLabel.add(new TooltipBehavior());
+                }
                 listItem.add(stateLabel);
             }
         };
