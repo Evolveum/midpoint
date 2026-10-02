@@ -26,8 +26,11 @@ import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
+import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.markup.html.panel.EmptyPanel;
+import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
@@ -35,11 +38,12 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
-import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
+import com.evolveum.midpoint.gui.api.util.MappingAuthorityDisplayResolver;
 import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperColumn;
 import com.evolveum.midpoint.gui.impl.component.data.column.LifecycleStateColumn;
 import com.evolveum.midpoint.gui.impl.component.data.column.MappingExpressionColumn;
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapperColumn;
+import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapperColumnPanel;
 import com.evolveum.midpoint.gui.impl.component.input.FocusDefinitionsMappingProvider;
 import com.evolveum.midpoint.gui.impl.component.input.Select2MultiChoiceColumnPanel;
 import com.evolveum.midpoint.gui.impl.prism.panel.PrismPropertyHeaderPanel;
@@ -94,7 +98,7 @@ final class SmartMappingColumns<P extends Containerable> implements Serializable
             @Override
             protected DisplayType getIconDisplayType(
                     IModel<PrismContainerValueWrapper<MappingType>> rowModel) {
-                return GuiDisplayTypeUtil.getDisplayTypeForStrengthOfMapping(rowModel, "text-muted");
+                return MappingAuthorityDisplayResolver.resolve(rowModel.getObject().getRealValue(), "");
             }
 
             @Override
