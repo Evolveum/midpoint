@@ -310,6 +310,7 @@ public abstract class ResourceSuggestedObjectTypeTableWizardPanel<P extends Cont
      */
     private void showRegenerateConfirmationDialog(AjaxRequestTarget target, @Nullable RegenerateMode regenerateMode) {
         SuggestionOption suggestionOption = SuggestionOption.aiOnly(ConfirmationOption.delineationPermissionsOptions());
+        IModel<AiInfo> aiInfoModel = createAiInfoModel();
 
         ConfirmationWithOptionsDto<DataAccessPermission> confirmationDto =
                 ConfirmationWithOptionsDto.<DataAccessPermission>builder()
@@ -317,18 +318,18 @@ public abstract class ResourceSuggestedObjectTypeTableWizardPanel<P extends Cont
                         .confirmationSubtitle(createStringResource("SmartSuggestConfirmationPanel.subtitle"))
                         .confirmationOptionsTitle(createStringResource(
                                 "SmartSuggestConfirmationPanel.request.component.title"))
-                        .infoEntries(createAiInfoModel())
+                        .infoEntries(aiInfoModel)
                         .errorMessage(() ->
                                 suggestionOption.requiresAiService()
                                         ? getAiUnavailableMessage(
-                                        createAiInfoModel(),
+                                        aiInfoModel,
                                         "SmartSuggestConfirmationPanel.serviceUnreachable.error")
                                         : null)
                         .warningMessage(() ->
                                 suggestionOption.requiresAiService()
                                         ? null
                                         : getAiUnavailableMessage(
-                                        createAiInfoModel(),
+                                        aiInfoModel,
                                         "SmartSuggestConfirmationPanel.serviceUnreachable.warning"))
                         .confirmationOptions(suggestionOption.confirmationOptions())
                         .requireAiService(suggestionOption.requiresAiService())
