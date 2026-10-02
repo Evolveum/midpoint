@@ -73,6 +73,10 @@ public interface CommonInitialObjects {
             ARCHETYPES, "509-archetype-task-iterative-bulk-action.xml",
             SystemObjectsType.ARCHETYPE_ITERATIVE_BULK_ACTION_TASK.value());
 
+    TestObject<ArchetypeType> ARCHETYPE_SHADOWS_DELETE_LONG_TIME_NOT_UPDATED_TASK = TestObject.classPath(
+            ARCHETYPES, "516-archetype-task-shadows-delete-long-time-not-updated.xml",
+            SystemObjectsType.ARCHETYPE_SHADOWS_DELETE_LONG_TIME_NOT_UPDATED_TASK.value());
+
     TestObject<ArchetypeType> ARCHETYPE_UTILITY_TASK = TestObject.classPath(
             ARCHETYPES, "528-archetype-task-util.xml",
             SystemObjectsType.ARCHETYPE_UTILITY_TASK.value());

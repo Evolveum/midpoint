@@ -99,7 +99,7 @@
                 <expression>
                     <script>
                         <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
-                        <code>midpoint.getDefaultNameForResourceRelatedTask(stringify(archetypeName), focus.activity.work.shadowCleanup.resourceObjects)</code>
+                        <code>midpoint.getDefaultNameForResourceRelatedTask(stringify(archetypeName), focus.activity.work.shadowCleanup.shadows)</code>
                     </script>
                 </expression>
                 <target>
