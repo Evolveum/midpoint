@@ -67,8 +67,6 @@ public class ScriptFactory {
     /** Initialized at startup. The collection is immutable. */
     @NotNull private final Collection<FunctionLibraryBinding> builtInLibraryBindings;
 
-    private String systemDefaultLanguage = null;
-
     // Invoked by Spring
     public ScriptFactory(
             @NotNull PrismContext prismContext,
@@ -198,27 +196,35 @@ public class ScriptFactory {
     }
 
     private String determineLanguage(ScriptExpressionEvaluatorType expressionBean, OperationResult result) {
-        if (systemDefaultLanguage == null) {
-            initDefaultLanguage(result);
+        var explicitLanguage = expressionBean.getLanguage();
+        if (explicitLanguage != null) {
+            return explicitLanguage;
+        } else {
+            return getDefaultLanguageFromSystemConfiguration(result);
         }
-        return Objects.requireNonNullElse(expressionBean.getLanguage(), systemDefaultLanguage);
     }
 
-    private void initDefaultLanguage(OperationResult result) {
-        if (systemObjectCache != null) {
-            SystemConfigurationExpressionsType expressionsConfig = null;
-            try {
-                var systemConfiguration = systemObjectCache.getSystemConfiguration(result);
-                expressionsConfig = systemConfiguration != null ? systemConfiguration.asObjectable().getExpressions() : null;
-            } catch (SchemaException e) {
-                LoggingUtils.logUnexpectedException(LOGGER, "Schema error when determining default scripting language", e);
-            }
-            if (expressionsConfig != null) {
-                systemDefaultLanguage = expressionsConfig.getDefaultScriptLanguage();
+    private String getDefaultLanguageFromSystemConfiguration(OperationResult result) {
+        SystemConfigurationExpressionsType expressionsConfig = getExpressionsConfig(result);
+        if (expressionsConfig != null) {
+            var configured = expressionsConfig.getDefaultScriptLanguage();
+            if (configured != null) {
+                return configured;
             }
         }
-        if (systemDefaultLanguage == null) {
-            systemDefaultLanguage = DEFAULT_LANGUAGE;
+        return DEFAULT_LANGUAGE;
+    }
+
+    private @Nullable SystemConfigurationExpressionsType getExpressionsConfig(OperationResult result) {
+        if (systemObjectCache == null) {
+            return null; // maybe in tests
+        }
+        try {
+            var systemConfiguration = systemObjectCache.getSystemConfigurationBean(result);
+            return systemConfiguration != null ? systemConfiguration.getExpressions() : null;
+        } catch (SchemaException e) {
+            LoggingUtils.logUnexpectedException(LOGGER, "Schema error when determining default scripting language", e);
+            return null;
         }
     }
 }
