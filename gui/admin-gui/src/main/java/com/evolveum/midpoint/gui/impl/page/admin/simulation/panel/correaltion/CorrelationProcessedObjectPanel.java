@@ -171,6 +171,7 @@ public abstract class CorrelationProcessedObjectPanel
         return InlineMenuItemBuilder.create()
                 .label(createStringResource("MainObjectListPanel.menu.modifyMark"))
                 .headerMenuItem(false)
+                .submit(true)
                 .action(createMarkColumnAction())
                 .buildInlineMenu();
     }
