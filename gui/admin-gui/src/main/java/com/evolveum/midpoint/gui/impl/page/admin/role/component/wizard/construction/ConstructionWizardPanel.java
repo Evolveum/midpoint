@@ -190,7 +190,13 @@ public class ConstructionWizardPanel<AR extends AbstractRoleType> extends Abstra
                 showConstructionWizard(target, valueModel, ConstructionOutboundMappingsStepPanel.PANEL_TYPE);
             }
         });
-        steps.add(new ConstructionOutboundOptionalStepPanel(getAssignmentHolderModel(), rowModel) {
+        steps.add(new ConstructionOutboundMappingRangeStepPanel<>(getAssignmentHolderModel(), rowModel) {
+            @Override
+            protected void onExitPerformed(AjaxRequestTarget target) {
+                showConstructionWizard(target, valueModel, ConstructionOutboundMappingsStepPanel.PANEL_TYPE);
+            }
+        });
+        steps.add(new ConstructionOutboundOptionalStepPanel<>(getAssignmentHolderModel(), rowModel) {
             @Override
             protected void onExitPerformed(AjaxRequestTarget target) {
                 showConstructionWizard(target, valueModel, ConstructionOutboundMappingsStepPanel.PANEL_TYPE);
