@@ -298,11 +298,11 @@ public abstract class ProcessedObjectsPanel extends ContainerableListPanel<Simul
         return StringUtils.joinWith(", ", names);
     }
 
-    private List<InlineMenuItem> createRowMenuItems() {
+    private @NotNull List<InlineMenuItem> createRowMenuItems() {
         List<InlineMenuItem> items = new ArrayList<>();
 
         items.add(new ButtonInlineMenuItem(createStringResource("pageContentAccounts.menu.markProtected"), true) {
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public CompositedIconBuilder getIconCompositedBuilder() {
@@ -311,19 +311,38 @@ public abstract class ProcessedObjectsPanel extends ContainerableListPanel<Simul
 
             @Override
             public InlineMenuItemAction initAction() {
-                return new ColumnMenuAction<SelectableBean<SimulationResultProcessedObjectType>>() {
-                    private static final long serialVersionUID = 1L;
-
-                    @Override
-                    public void onSubmit(AjaxRequestTarget target) {
-                        markObjects(getRowModel(), target);
-                    }
-                };
+                return getMarkMenuAction(SystemObjectsType.MARK_PROTECTED);
             }
         });
 
+        items.add(markInlineMenuAction("pageContentAccounts.menu.markDoNotTouch", SystemObjectsType.MARK_DO_NOT_TOUCH));
+        items.add(markInlineMenuAction("pageContentAccounts.menu.markCorrelateLater", SystemObjectsType.MARK_CORRELATE_LATER));
+        items.add(markInlineMenuAction("pageContentAccounts.menu.markInvalidData", SystemObjectsType.MARK_INVALID_DATA));
         items.add(modifyMarkInlineMenuAction());
+
         return items;
+    }
+
+    private @NotNull ColumnMenuAction<SelectableBean<SimulationResultProcessedObjectType>> getMarkMenuAction(SystemObjectsType mark) {
+        return new ColumnMenuAction<>() {
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            public void onSubmit(AjaxRequestTarget target) {
+                markObjects(getRowModel(), Collections.singletonList(mark.value()), target);
+            }
+        };
+    }
+
+    private @NotNull InlineMenuItem markInlineMenuAction(final String key, final SystemObjectsType mark) {
+        return new InlineMenuItem(createStringResource(key), true) {
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            public InlineMenuItemAction initAction() {
+                return getMarkMenuAction(mark);
+            }
+        };
     }
 
     public InlineMenuItem modifyMarkInlineMenuAction() {
