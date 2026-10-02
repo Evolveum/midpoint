@@ -340,8 +340,7 @@ public class TestMelExpressions extends AbstractScriptTest {
 
     @Test
     public void testFormatReferenceNamed() throws Exception {
-        var definition = prismContext.definitionFactory()
-                .newReferenceDefinition(UserType.F_PERSONA_REF, UserType.COMPLEX_TYPE);
+        var definition = createNewReferenceDefinition();
         var reference = new ObjectReferenceType()
                 .oid(USER_JACK_OID)
                 .type(UserType.COMPLEX_TYPE)
@@ -355,9 +354,7 @@ public class TestMelExpressions extends AbstractScriptTest {
 
     @Test
     public void testReferenceTargetName() throws Exception {
-        var definition = prismContext.definitionFactory()
-                .newReferenceDefinition(
-                        new QName(NS_C, "anyRef"), ObjectReferenceType.COMPLEX_TYPE);
+        var definition = createNewReferenceDefinition();
         var referenceWithTargetName = new ObjectReferenceType()
                 .oid(USER_JACK_OID)
                 .type(UserType.COMPLEX_TYPE)
@@ -376,10 +373,15 @@ public class TestMelExpressions extends AbstractScriptTest {
                 "UserType:missing");
     }
 
+    private PrismReferenceDefinition createNewReferenceDefinition() {
+        return prismContext.definitionFactory()
+                .newReferenceDefinition(
+                        new QName(NS_C, "anyRef"), ObjectReferenceType.COMPLEX_TYPE);
+    }
+
     @Test
     public void testFormatReferenceOidFallback() throws Exception {
-        var definition = prismContext.definitionFactory()
-                .newReferenceDefinition(UserType.F_PERSONA_REF, UserType.COMPLEX_TYPE);
+        var definition = createNewReferenceDefinition();
         var reference = new ObjectReferenceType()
                 .oid(USER_JACK_OID)
                 .type(UserType.COMPLEX_TYPE);
@@ -392,8 +394,7 @@ public class TestMelExpressions extends AbstractScriptTest {
 
     @Test
     public void testFormatReferenceNull() throws Exception {
-        var definition = prismContext.definitionFactory()
-                .newReferenceDefinition(UserType.F_PERSONA_REF, UserType.COMPLEX_TYPE);
+        var definition = createNewReferenceDefinition();
 
         executeAndAssertStringScalarExpression(
                 "expression-format-reference.xml",
