@@ -391,7 +391,9 @@
                 <script>
                     <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                     <code>
-                        object.workItem.filter(w, !isPresent(stageNumber) || w.stageNumber == stageNumber)
+                        object.workItem.filter(w,
+                            (!isPresent(stageNumber) || w.stageNumber == stageNumber)
+                                &amp;&amp; (!isPresent(iteration) || default(w.iteration, 1) == iteration))
                     </code>
                 </script>
             </expression>
