@@ -602,9 +602,30 @@ public class CelMidPointExtensions extends AbstractMidPointCelExtensions {
                                         ItemPathCelValue.class),
                                 this::selectIdentityItemValues,
                                 NullabilityProperties.NULLABLE)
-                )
+                ),
 
+                // midpoint.getPrincipalRef()
+                new Function(
+                        CelFunctionDecl.newFunctionDeclaration(
+                                FUNCTION_NAME_PREFIX_DOT + "getPrincipalRef",
+                                CelOverloadDecl.newGlobalOverload(
+                                        FUNCTION_NAME_PREFIX_DASH + "getPrincipalRef",
+                                        "Returns a reference to the principal representing the user whose identity is used to execute the expression.",
+                                        NullableType.create(ReferenceCelValue.CEL_TYPE))),
+                        CelFunctionBinding.from(FUNCTION_NAME_PREFIX_DASH + "getPrincipalRef",
+                                ImmutableList.of(),
+                                this::getPrincipalRef,
+                                NullabilityProperties.NULLABLE)
+                )
         );
+    }
+
+    private CelValue getPrincipalRef(Object[] objects) {
+        try {
+            return toCelReference(midpointExpressionFunctions.getPrincipalRef());
+        } catch (CommonException e) {
+            throw createException(e);
+        }
     }
 
     private boolean isFocusActivated(Object[] objects) {
@@ -908,6 +929,13 @@ public class CelMidPointExtensions extends AbstractMidPointCelExtensions {
         } catch (CommonException e) {
             throw createException(e);
         }
+    }
+
+    private static CelValue toCelReference(ObjectReferenceType reference) {
+        if (reference == null) {
+            return NullValue.NULL_VALUE;
+        }
+        return ReferenceCelValue.create(reference.asReferenceValue());
     }
 
     private static <O extends ObjectType> CelValue toCelObject(O o) {

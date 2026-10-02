@@ -82,21 +82,35 @@ public class OutputValuesConvertor {
 
         // TODO: what about PrismContainer and PrismReference? Shouldn't they be processed in the same way as PrismProperty?
         if (rawResult instanceof Collection<?> collection) {
+
             for (Object rawResultValue : collection) {
                 T evalResult = convertScalarResult(javaReturnType, rawResultValue);
                 values.add(
                         ExpressionUtil.convertToPrismValue(
                                 evalResult, outputDefinition, contextDescription));
             }
+
         } else if (rawResult instanceof PrismProperty<?>) {
+
             //noinspection unchecked
             values.addAll(
                     (Collection<? extends V>) PrismValueCollectionsUtil.cloneCollection(
                             ((PrismProperty<T>) rawResult).getValues()));
+
+        } else if (rawResult instanceof PrismReferenceValue referenceValue) {
+
+            // Ugly hack. MEL executor returns prism values (at least in some cases).
+            // We should treat this more systematically. See #12504.
+
+            //noinspection unchecked
+            values.add((V) referenceValue);
+
         } else if (rawResult != null) {
+
             T evalResult = convertScalarResult(javaReturnType, rawResult);
             values.add(
                     ExpressionUtil.convertToPrismValue(evalResult, outputDefinition, contextDescription));
+
         }
 
         return values;

@@ -389,6 +389,11 @@ public interface CommonInitialObjects {
             "290-object-collection-shadow-all.xml",
             "00000000-0000-0000-0001-000000000008");
 
+    TestObject<ObjectCollectionType> OBJECT_COLLECTION_MY_CASES = TestObject.classPath(
+            OBJECT_COLLECTION,
+            "330-object-collection-my-cases.xml",
+            "00000000-0000-0000-0000-000000000344");
+
     TestReport REPORT_CERTIFICATION_DEFINITIONS = TestReport.classPath(
             REPORTS,
             "130-report-certification-definitions.xml",

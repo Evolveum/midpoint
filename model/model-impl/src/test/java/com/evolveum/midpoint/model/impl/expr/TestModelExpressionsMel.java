@@ -16,6 +16,7 @@ import com.evolveum.midpoint.schema.expression.VariablesMap;
 
 import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
@@ -326,6 +327,14 @@ public class TestModelExpressionsMel extends AbstractModelExpressionsTest {
                 ),
                 "get-object-with-options",
                 "Dummy Resource");
+    }
+
+    @Test
+    public void testGetPrincipalRef() throws Exception {
+        assertExecuteScriptExpressionReference(
+                createVariables(),
+                "get-principal-ref",
+                ObjectTypeUtil.createObjectRef(userAdministrator)); // we hope the references will match (adapt the test if not)
     }
 
     @Test

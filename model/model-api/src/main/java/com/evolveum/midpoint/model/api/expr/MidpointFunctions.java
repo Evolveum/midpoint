@@ -1319,6 +1319,12 @@ public interface MidpointFunctions {
      */
     MidPointPrincipal getPrincipal() throws SecurityViolationException;
 
+    /** Returns a reference to the principal representing the user whose identity is used to execute the expression. */
+    default ObjectReferenceType getPrincipalRef() throws SecurityViolationException {
+        var principal = getPrincipal();
+        return principal != null ? principal.toObjectReference() : null;
+    }
+
     /**
      * Returns OID of the current principal. After login is complete, the returned OID is the same as
      * getPrincipal().getOid(). However, during login process, this method returns the OID of the user that is

@@ -375,12 +375,12 @@ public class CelTypeMapper implements CelTypeProvider  {
         if (celValue instanceof Collection<?> col) {
             return toJavaValues(col);
         }
-        if (celValue instanceof CelValue) {
-            return toJavaValue((CelValue) celValue);
+        if (celValue instanceof CelValue realCelValue) {
+            return toJavaValue(realCelValue);
         } else if (celValue instanceof Instant i) {
             return toXmlGregorianCalendar(i);
-        } else if (celValue instanceof com.google.protobuf.Duration gDurantion) {
-            return toXmlDuration(gDurantion);
+        } else if (celValue instanceof com.google.protobuf.Duration gDuration) {
+            return toXmlDuration(gDuration);
         } else {
             return celValue;
         }
