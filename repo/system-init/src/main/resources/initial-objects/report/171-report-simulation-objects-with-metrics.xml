@@ -27,7 +27,7 @@
                         script:
                             language: http://midpoint.evolveum.com/xml/ns/public/expression/language#mel
                             objectVariableMode: referencableWithoutResolution
-                            code: 'isPresent(simulationResultRef) ? simulationResultRef.oid : nil'
+                            code: 'simulationResultRef.oid'
                     ```
                 </q:text>
             </filter>
@@ -116,8 +116,7 @@
                         <script>
                             <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                             <code>
-                                isPresent(objectMarks) ? objectMarks.map(ref, isPresent(ref.targetName) &amp;&amp; isPresent(ref.targetName.orig)
-                                    ? ref.targetName.orig : ref.oid)
+                                isPresent(objectMarks) ? objectMarks.map(ref, default(ref.targetName.orig, ref.oid))
                                 : nil
                             </code>
                         </script>
@@ -150,7 +149,7 @@
                     <expression>
                         <script>
                             <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
-                            <code>isPresent(metric) ? metric.eventMarkRef : nil</code>
+                            <code>metric.eventMarkRef</code>
                         </script>
                     </expression>
                 </export>
@@ -170,7 +169,7 @@
                     <expression>
                         <script>
                             <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
-                            <code>isPresent(metric) ? metric.id : nil</code>
+                            <code>metric.id</code>
                         </script>
                     </expression>
                 </export>
@@ -190,7 +189,7 @@
                     <expression>
                         <script>
                             <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
-                            <code>isPresent(metric) ? metric.selected : nil</code>
+                            <code>metric.selected</code>
                         </script>
                     </expression>
                 </export>
@@ -210,7 +209,7 @@
                     <expression>
                         <script>
                             <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
-                            <code>isPresent(metric) ? metric.value : nil</code>
+                            <code>metric.value</code>
                         </script>
                     </expression>
                 </export>

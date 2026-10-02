@@ -61,7 +61,6 @@
                     <objectVariableMode>prismReference</objectVariableMode>
                     <code>
                         object.valueMetadata().filter(metadata,
-                            isPresent(metadata.provenance) &amp;&amp;
                             isPresent(metadata.provenance.assignmentPath))
                     </code>
                 </script>
@@ -95,9 +94,8 @@
                                 !isPresent(data) ? 'Unknown owner' : cel.bind(owner,
                                         midpoint.resolveReferenceIfExists(
                                             data.provenance.assignmentPath.sourceRef),
-                                        isPresent(owner) &amp;&amp; isPresent(owner.name) &amp;&amp;
-                                        isPresent(owner.name.orig) &amp;&amp; owner.name.orig != ''
-                                            ? owner.name.orig : 'Unknown owner')
+                                        cel.bind(name, owner.name.orig,
+                                            default(name, '') != '' ? name : 'Unknown owner'))
                             </code>
                         </script>
                     </expression>
@@ -121,8 +119,7 @@
                             <objectVariableMode>prismReference</objectVariableMode>
                             <code>
                                 cel.bind(role, midpoint.resolveReferenceIfExists(object),
-                                    isPresent(role) &amp;&amp; isPresent(role.name)
-                                        ? role.name.orig : nil)
+                                    role.name.orig)
                             </code>
                         </script>
                     </expression>
@@ -147,8 +144,7 @@
                             <code>
                                 cel.bind(role, midpoint.resolveReferenceIfExists(object),
                                     !isPresent(role) ? nil : cel.bind(archetype, role.structuralArchetype(),
-                                            isPresent(archetype) &amp;&amp; isPresent(archetype.name)
-                                                ? archetype.name.orig : nil))
+                                            archetype.name.orig))
                             </code>
                         </script>
                     </expression>
@@ -170,7 +166,7 @@
                         <script>
                             <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                             <objectVariableMode>prismReference</objectVariableMode>
-                            <code>isPresent(object) ? object.relation : nil</code>
+                            <code>object.relation</code>
                         </script>
                     </expression>
                 </export>
@@ -197,8 +193,7 @@
                                     ? '?' : cel.bind(path,
                                         data.provenance.assignmentPath.segment
                                             .map(segment, midpoint.resolveReferenceIfExists(segment.targetRef))
-                                            .map(target, isPresent(target) &amp;&amp; isPresent(target.name)
-                                                    ? stringify(target.name.orig, 'null') : 'null')
+                                            .map(target, stringify(target.name.orig, 'null'))
                                             .join(' -> '),
                                         path != '' ? path : '?')
                             </code>
@@ -231,8 +226,7 @@
                                             midpoint.resolveReferenceIfExists(
                                                 data.provenance.assignmentPath.segment[
                                                     data.provenance.assignmentPath.segment.size() - 2].targetRef),
-                                            isPresent(parent) &amp;&amp; isPresent(parent.name)
-                                                ? parent.name.orig : nil)
+                                            parent.name.orig)
                             </code>
                         </script>
                     </expression>
@@ -262,8 +256,7 @@
                                                 !isPresent(owner) ? nil : cel.bind(assignments,
                                                         owner.assignment.filter(assignment,
                                                             assignment.id == path.segment[0].assignmentId),
-                                                        assignments.size() == 0 ||
-                                                        !isPresent(assignments[0].activation) ? nil : assignments[0].activation.effectiveStatus)))
+                                                        assignments.size() == 0 ? nil : assignments[0].activation.effectiveStatus)))
                             </code>
                         </script>
                     </expression>
@@ -292,8 +285,7 @@
                                                 !isPresent(owner) ? nil : cel.bind(assignments,
                                                         owner.assignment.filter(assignment,
                                                             assignment.id == path.segment[0].assignmentId),
-                                                        assignments.size() == 0 ||
-                                                        !isPresent(assignments[0].activation) ? nil : assignments[0].activation.validTo)))
+                                                        assignments.size() == 0 ? nil : assignments[0].activation.validTo)))
                             </code>
                         </script>
                     </expression>
@@ -316,8 +308,7 @@
                             <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                             <objectVariableMode>prismReference</objectVariableMode>
                             <code>
-                                isPresent(data) &amp;&amp; isPresent(data.storage)
-                                    ? data.storage.createTimestamp : nil
+                                data.storage.createTimestamp
                             </code>
                         </script>
                     </expression>
@@ -347,7 +338,6 @@
                                                         owner.assignment.filter(assignment,
                                                             assignment.id == path.segment[0].assignmentId),
                                                         assignments.size() == 0 ||
-                                                        !isPresent(assignments[0].metadata) ||
                                                         !isPresent(assignments[0].metadata.createChannel)
                                                             ? nil : cel.bind(channel,
                                                                 assignments[0].metadata.createChannel,

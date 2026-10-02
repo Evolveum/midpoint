@@ -7,5 +7,8 @@
 
 <script xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
     <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
-    <code>workItems.escalationLevel.number</code>
+    <code>
+        workItems.assigneeRef.map(ref,
+            default(ref.targetName.orig, ref.oid))
+    </code>
 </script>

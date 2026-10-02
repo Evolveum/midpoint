@@ -25,7 +25,7 @@
                         script:
                             language: http://midpoint.evolveum.com/xml/ns/public/expression/language#mel
                             objectVariableMode: referencableWithoutResolution
-                            code: 'isPresent(campaignRef) ? campaignRef.oid : nil'
+                            code: 'campaignRef.oid'
                     ```
                 </q:text>
             </filter>
@@ -94,8 +94,7 @@
                             <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                             <code>
                                 cel.bind(campaign, object.containingObject(),
-                                    isPresent(campaign) &amp;&amp; isPresent(campaign.name)
-                                        ? campaign.name.orig : nil)
+                                    campaign.name.orig)
                             </code>
                         </script>
                     </expression>
@@ -122,8 +121,7 @@
                                         .filter(w, w.stageNumber == default(object.stageNumber, 0))
                                         .map(w, w.assigneeRef)
                                         .flatten()
-                                        .map(ref, isPresent(ref.targetName) &amp;&amp; isPresent(ref.targetName.orig)
-                                            ? ref.targetName.orig : ref.oid),
+                                        .map(ref, default(ref.targetName.orig, ref.oid)),
                                 ',')
                             </code>
                         </script>
@@ -146,8 +144,8 @@
                         <script>
                             <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                             <code>
-                                cel.bind(responded, object.workItem.filter(w, isPresent(w.output) &amp;&amp;(isPresent(w.output.outcome)
-                                || (isPresent(w.output.comment) &amp;&amp; w.output.comment != '' ))),
+                                cel.bind(responded, object.workItem.filter(w, isPresent(w.output.outcome)
+                                || default(w.output.comment, '') != ''),
                                     responded.size() == 0 ? nil : responded
                                             .map(w, w.outputChangeTimestamp)
                                             .sort()
@@ -175,11 +173,10 @@
                             <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                             <code>
                                 object.workItem
-                                    .filter(w, isPresent(w.output) &amp;&amp; (isPresent(w.output.outcome)
-                                || (isPresent(w.output.comment) &amp;&amp;w.output.comment != '' )))
+                                    .filter(w, isPresent(w.output.outcome)
+                                || default(w.output.comment, '') != '')
                                     .map(w, w.performerRef)
-                                 .map(ref, isPresent(ref.targetName) &amp;&amp; isPresent(ref.targetName.orig)
-                                     ? ref.targetName.orig : ref.oid)
+                                 .map(ref, default(ref.targetName.orig, ref.oid))
                             </code>
                         </script>
                     </expression>
@@ -248,8 +245,7 @@
                         <script>
                             <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                             <code>
-                                object.workItem .filter(w, isPresent(w.output)
-                                &amp;&amp; isPresent(w.output.comment) &amp;&amp; w.output.comment != '')
+                                object.workItem .filter(w, default(w.output.comment, '') != '')
                                     .map(w, w.output.comment)
                             </code>
                         </script>

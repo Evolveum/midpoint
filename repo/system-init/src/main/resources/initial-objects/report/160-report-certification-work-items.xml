@@ -26,7 +26,7 @@
                     script:
                         language: http://midpoint.evolveum.com/xml/ns/public/expression/language#mel
                         objectVariableMode: referencableWithoutResolution
-                        code: 'isPresent(campaignRef) ? campaignRef.oid : nil'
+                        code: 'campaignRef.oid'
                     ```
                 </q:text>
             </filter>
@@ -95,9 +95,7 @@
                             <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                             <code>
                                 cel.bind(campaign, object.containingObject(),
-                                isPresent(campaign) &amp;&amp; isPresent(campaign.name)
-                                ? campaign.name.orig
-                                : nil)
+                                campaign.name.orig)
                             </code>
                         </script>
                     </expression>
@@ -159,9 +157,8 @@
                         <script>
                             <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                             <code>
-                                cel.bind(ref, workItems.originalAssigneeRef, isPresent(ref)
-                                ? (isPresent(ref.targetName) &amp;&amp; isPresent(ref.targetName.orig) ? ref.targetName.orig : ref.oid )
-                                : nil)
+                                cel.bind(ref, workItems.originalAssigneeRef,
+                                default(ref.targetName.orig, ref.oid))
                             </code>
                         </script>
                     </expression>
@@ -203,8 +200,8 @@
                         <script>
                             <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                             <code>
-                                workItems.assigneeRef.map(ref, isPresent(ref.targetName) &amp;&amp; isPresent(ref.targetName.orig)
-                                ? ref.targetName.orig : ref.oid)
+                                workItems.assigneeRef.map(ref,
+                                default(ref.targetName.orig, ref.oid))
                             </code>
                         </script>
                     </expression>
@@ -226,7 +223,7 @@
                         <script>
                             <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                             <code>
-                                isPresent(workItems.escalationLevel) ? workItems.escalationLevel.number : nil
+                                workItems.escalationLevel.number
                             </code>
                         </script>
                     </expression>
@@ -248,10 +245,8 @@
                         <script>
                             <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                             <code>
-                                cel.bind(ref, workItems.performerRef, isPresent(ref)
-                                ? (isPresent(ref.targetName) &amp;&amp; isPresent(ref.targetName.orig)
-                                    ? ref.targetName.orig : ref.oid )
-                                : nil)
+                                cel.bind(ref, workItems.performerRef,
+                                default(ref.targetName.orig, ref.oid))
                             </code>
                         </script>
                     </expression>
@@ -273,8 +268,7 @@
                         <script>
                             <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                             <code>
-                                format.certificationOutcome( isPresent(workItems.output)
-                                ? workItems.output.outcome : nil)
+                                format.certificationOutcome(workItems.output.outcome)
                             </code>
                         </script>
                     </expression>
@@ -296,7 +290,7 @@
                         <script>
                             <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                             <code>
-                                isPresent(workItems.output) ? workItems.output.comment : nil
+                                workItems.output.comment
                             </code>
                         </script>
                     </expression>
