@@ -17,6 +17,7 @@ import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
@@ -35,6 +36,8 @@ import static org.testng.AssertJUnit.assertEquals;
 @ContextConfiguration(locations = { "classpath:ctx-model-test-main.xml" })
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class TestModelExpressionsMel extends AbstractModelExpressionsTest {
+
+    private static final String ORG_F0001_OID = "00000000-8888-6666-0000-100000000001";
 
     @Override
     protected File getTestDir() {
@@ -196,6 +199,16 @@ public class TestModelExpressionsMel extends AbstractModelExpressionsTest {
     }
 
     @Test
+    public void testStructuralArchetype() throws Exception {
+        var org = repositoryService.getObject(
+                OrgType.class, ORG_F0001_OID, null, getTestOperationResult());
+
+        assertExecuteScriptExpressionString(
+                createVariables("input", org, org.getDefinition()),
+                "Organizational unit");
+    }
+
+    @Test
     public void testShadowNameSubstring() throws Exception {
         assertExecuteScriptExpressionString(
                 createFocusProjectionResourceVariables(),
@@ -284,16 +297,25 @@ public class TestModelExpressionsMel extends AbstractModelExpressionsTest {
 
     @Test
     public void testResolveReferenceIfExists() throws Exception {
+        var definition = prismContext.getSchemaRegistry()
+                .findObjectDefinitionByCompileTimeClass(UserType.class)
+                .findReferenceDefinition(UserType.F_PERSONA_REF);
+
         assertExecuteScriptExpressionString(
                 createFocusProjectionResourceVariables(
                         "ref",
                         new ObjectReferenceType()
                                 .oid(USER_GUYBRUSH_OID)
                                 .type(UserType.COMPLEX_TYPE),
-                        ObjectReferenceType.class
+                        definition
                 ),
                 "resolve-reference-if-exists",
                 "Guybrush Threepwood");
+
+        assertExecuteScriptExpressionString(
+                createFocusProjectionResourceVariables("ref", null, definition),
+                "resolve-reference-if-exists",
+                null);
     }
 
     @Test
