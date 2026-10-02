@@ -12,6 +12,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils;
 import com.evolveum.midpoint.gui.impl.validator.ResourceObjectFocusTypeValidator;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -94,6 +95,11 @@ public class ResourceObjectFocusTypePanelFactory extends AbstractInputGuiCompone
                         Model.ofList(types),
                         new QNameObjectTypeChoiceRenderer(),
                         true) {
+
+                    @Override
+                    protected boolean isSuggestContainerVisible() {
+                        return SmartIntegrationUtils.isSmartIntegrationAuthorized(getPageBase());
+                    }
 
                     @Override
                     protected void onSuggestAction(@NotNull AjaxRequestTarget target,
