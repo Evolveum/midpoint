@@ -35,8 +35,6 @@ import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import org.jspecify.annotations.NonNull;
-
 /**
  * @author lskublik
  */
@@ -224,7 +222,7 @@ public class CorrelationItemRuleWizardPanel<C extends Containerable> extends Abs
 
     }
 
-    private @NonNull AjaxIconButton createDeleteButton(@NonNull RepeatingView buttons) {
+    private AjaxIconButton createDeleteButton(RepeatingView buttons) {
         AjaxIconButton deleteButton = new AjaxIconButton(
                 buttons.newChildId(),
                 Model.of("fa fa-trash"),
