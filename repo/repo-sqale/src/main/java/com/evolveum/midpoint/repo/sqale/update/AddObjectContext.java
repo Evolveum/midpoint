@@ -84,6 +84,7 @@ public class AddObjectContext<S extends ObjectType, Q extends QObject<R>, R exte
      * Database exceptions are not translated here, it is up to the operation that uses this.
      */
     public void executeReindexed(JdbcSession jdbcSession) throws SchemaException {
+        initContexts();
         addObjectWithOid(jdbcSession);
     }
 
