@@ -61,6 +61,7 @@ public class ContainerValueCelValue<C extends Containerable> extends AbstractCon
     }
 
     @Override
+    public boolean containsKey(Object key) {
         if (F_ID.equals(key)) {
             return getContainerValue().getId() != null;
         } else {
