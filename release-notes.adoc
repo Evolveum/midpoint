@@ -108,6 +108,8 @@ See xref:/midpoint/guides/account-activation-sequence/[Account Activation Authen
 * Fixed object marks not being removed immediately after unassigning the policy that induces them. See bug:MID-10641[].
 * Registration confirmation notifier doesn't send cleartext username and password by default.
 * Password hint is now hidden by default in the self-service user interface.
+* Added option to relax email address validation when sending notifications (`mail.mime.address.strict` JVM property). See bug:MID-11048[].
+* Simulation results offer more marking options. See bug:MID-11583[].
 
 #TODO#
 
@@ -237,6 +239,20 @@ See xref:/midpoint/guides/account-activation-sequence/[Account Activation Authen
 * Fixed extra reviewer reference labels in certification campaign stage definitions. See bug:MID-6647[]
 * Fixed access certification ignoring overridden system clock in deadlines, reminders, notifications and campaign cleanup. See bug:MID-11008[]
 * Replaced Groovy usage in repository factory reset with a dedicated initial import activity and safe default password policy expression. See bug:MID-12370[]
+* Fixed reviewer being able to submit a certification decision after the stage deadline has passed. See bug:MID-11028[].
+* Fixed unstable display order of certification work items. See bug:MID-11047[].
+* Fixed rendering of deltas of container items in audit report delta columns. See bug:MID-10984[].
+* Fixed page crash when searching audit records by delta changed item path. See bug:MID-10985[].
+* Fixed read-only fields being rendered as plain text without any visual container; they are now shown as greyed-out fields. See bug:MID-11853[].
+* Fixed activation outbound mappings being applied to unmanaged shadows. See bug:MID-11029[].
+* Fixed concurrency issue when parsing queries. See bug:MID-11058[].
+* Fixed dashboard widget showing "Unknown" for shadow collections. See bug:MID-11102[].
+* Fixed parsing of shadow attributes and identifiers in JSON format. See bug:MID-10944[].
+* Fixed handling of modification provenance metadata for phantom assignment additions. See bug:MID-10979[].
+* Reduced memory consumption when storing very large strings (e.g. traces) in the repository. See bug:MID-11015[].
+* Fixed duplicate trigger on task unpause that could leave task trees suspended or frozen. See bug:MID-10496[].
+* Fixed model loading for unassign action popup. See bug:MID-11584[].
+* Fixed report import for big data file. Report import uses streaming processing and has a maximal file size limit. See bug:MID-11009[].
 
 === Releases Of Other Components
 
