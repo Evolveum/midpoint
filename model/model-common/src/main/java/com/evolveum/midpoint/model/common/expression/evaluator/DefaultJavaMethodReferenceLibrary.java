@@ -7,6 +7,8 @@
 package com.evolveum.midpoint.model.common.expression.evaluator;
 
 import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
+import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.schema.DeltaConvertor;
@@ -58,8 +60,19 @@ public class DefaultJavaMethodReferenceLibrary {
      *
      * Used by {@code 270-object-collection-audit}.
      */
-    public static String formatAuditDelta(ObjectDeltaOperationType input) throws SchemaException {
-        ObjectDeltaOperation<?> delta = DeltaConvertor.createObjectDeltaOperation(input, true);
+    public static List<String> formatAuditDelta(List<ObjectDeltaOperationType> input) throws SchemaException {
+
+        var formatted = new ArrayList<String>(input.size());
+
+        for (ObjectDeltaOperationType deltaType : input) {
+            var delta = DeltaConvertor.createObjectDeltaOperation(deltaType, true);
+            formatted.add(printAuditDelta(delta));
+        }
+
+        return formatted;
+    }
+
+    private static String printAuditDelta(ObjectDeltaOperation<?> delta) {
         try {
             Class<?> reportUtils = Class.forName(REPORT_UTILS_CLASS_NAME);
             return (String) reportUtils

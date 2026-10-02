@@ -140,7 +140,7 @@
                     <expression>
                         <script>
                             <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
-                            <code>object.case.filter(c, c.reviewFinishedTimestamp == null).size()</code>
+                            <code>object.case.filter(c, !isPresent(c.reviewFinishedTimestamp)).size()</code>
                         </script>
                     </expression>
                 </export>
