@@ -6,6 +6,22 @@
 
 package com.evolveum.midpoint.authentication.impl.filter;
 
+import static com.evolveum.midpoint.authentication.impl.util.MidpointRequestMatchers.pathMatcher;
+import static com.evolveum.midpoint.schema.util.SecurityPolicyUtil.NO_CUSTOM_IGNORED_LOCAL_PATH;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+
+import jakarta.servlet.http.HttpServletRequest;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.authentication.AuthenticationServiceException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.util.matcher.RequestMatcher;
+
 import com.evolveum.midpoint.authentication.api.AuthModule;
 import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
 import com.evolveum.midpoint.authentication.api.RemoveUnusedSecurityFilterPublisher;
@@ -23,6 +39,8 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.common.SystemObjectCache;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.SecurityPolicyUtil;
+import com.evolveum.midpoint.security.api.MidPointPrincipal;
+import com.evolveum.midpoint.security.api.SecurityUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -32,23 +50,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequen
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationsPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityPolicyType;
-
-import jakarta.servlet.http.HttpServletRequest;
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.security.authentication.AuthenticationProvider;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.web.util.matcher.RequestMatcher;
-import static com.evolveum.midpoint.authentication.impl.util.MidpointRequestMatchers.pathMatcher;
-
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-
-import com.evolveum.midpoint.security.api.SecurityUtil;
-
-import static com.evolveum.midpoint.schema.util.SecurityPolicyUtil.NO_CUSTOM_IGNORED_LOCAL_PATH;
 
 class AuthenticationWrapper {
     private static final Trace LOGGER = TraceManager.getTrace(AuthenticationWrapper.class);
@@ -94,7 +95,7 @@ class AuthenticationWrapper {
         resolvePolicies(mpAuthentication, taskManager);
         initializeAuthenticationSequence(mpAuthentication, httpRequest, taskManager);
         initializeAuthenticationChannel(authChannelRegistry);
-        initAuthenticationModule(mpAuthentication, httpRequest);
+        initAuthenticationModule(mpAuthentication, httpRequest, taskManager);
         return this;
     }
 
@@ -173,7 +174,6 @@ class AuthenticationWrapper {
         return defaultAuthenticationPolicy;
     }
 
-
     private PrismObject<SecurityPolicyType> getGlobalSecurityPolicy() throws SchemaException {
         return systemObjectCache.getSecurityPolicy();
     }
@@ -237,8 +237,8 @@ class AuthenticationWrapper {
                 && !sequenceIdentifiersMatch(mpAuthentication.getSequence(), sequence)
                 && mpAuthentication.isAuthenticated()
                 && (((sequence != null
-                    && sequence.getChannel() != null
-                    && mpAuthentication.getAuthenticationChannel().matchChannel(sequence)))
+                && sequence.getChannel() != null
+                && mpAuthentication.getAuthenticationChannel().matchChannel(sequence)))
                 || mpAuthentication.getAuthenticationChannel().getChannelId().equals(AuthSequenceUtil.findChannelByRequest(httpRequest)));
     }
 
@@ -262,9 +262,10 @@ class AuthenticationWrapper {
         return seqIdentifier1 != null && StringUtils.equals(seqIdentifier1, seqIdentifier2);
     }
 
-    private void initAuthenticationModule(MidpointAuthentication mpAuthentication, HttpServletRequest httpRequest) {
+    private void initAuthenticationModule(
+            MidpointAuthentication mpAuthentication, HttpServletRequest httpRequest, TaskManager taskManager) {
         if (!AuthSequenceUtil.isClusterSequence(httpRequest)) {
-            this.authModules = createAuthenticationModuleBySequence(mpAuthentication, httpRequest);
+            this.authModules = createAuthenticationModuleBySequence(mpAuthentication, httpRequest, taskManager);
             return;
         }
 
@@ -280,16 +281,20 @@ class AuthenticationWrapper {
                 }
             }
         } else {
-            this.authModules = createAuthenticationModuleBySequence(mpAuthentication,  httpRequest);
+            this.authModules = createAuthenticationModuleBySequence(mpAuthentication, httpRequest, taskManager);
             authModulesOfSpecificSequences.put(this.getSequenceIdentifier(), this.authModules);
         }
     }
 
     private List<AuthModule<?>> createAuthenticationModuleBySequence(MidpointAuthentication mpAuthentication,
-            HttpServletRequest httpRequest) {
+            HttpServletRequest httpRequest, TaskManager taskManager) {
         List<AuthModule<?>> authModules;
         boolean processingDifferentSequence = processingDifferentAuthenticationSequence(mpAuthentication, this.sequence);
-        if (processingDifferentSequence || sequence.getModule().size() != mpAuthentication.getSequence().getModule().size()
+        if (processingDifferentSequence && isSequenceReplacedByPrincipalPolicy(mpAuthentication, httpRequest, taskManager)) {
+            reportSequenceReplacedByPrincipalPolicy(mpAuthentication, httpRequest);
+        }
+        // The definition of the processed sequence can change when the security policy of the principal is applied.
+        if (processingDifferentSequence || !sequence.equals(mpAuthentication.getSequence())
                 || StringUtils.isNotEmpty(mpAuthentication.getArchetypeOid())) {
             authenticationManager.getProviders().clear();
             //noinspection unchecked
@@ -312,6 +317,43 @@ class AuthenticationWrapper {
         return authModules;
     }
 
+    /**
+     * The flow started with a sequence of the global security policy, because the principal was not known.
+     * After the principal is identified, its security policy (e.g. the one of its archetype) is used.
+     *
+     * Such policy is expected to adjust the sequence which is already in progress, under the same identifier.
+     * A sequence with different identifier which takes over the request is not supported: the flow would
+     * continue with modules the user has not started with.
+     */
+    private boolean isSequenceReplacedByPrincipalPolicy(
+            MidpointAuthentication mpAuthentication, HttpServletRequest httpRequest, TaskManager taskManager) {
+        if (mpAuthentication == null
+                || mpAuthentication.isAuthenticated()
+                || mpAuthentication.resolveSecurityPolicyForPrincipal() == null) {
+            return false;
+        }
+        try {
+            AuthenticationSequenceType sequenceWithoutPrincipal = AuthSequenceUtil.getSequenceByPath(
+                    httpRequest, getAuthenticationPolicy(getGlobalSecurityPolicy()), taskManager.getLocalNodeGroups());
+            return sequenceWithoutPrincipal != null
+                    && sequenceIdentifiersMatch(sequenceWithoutPrincipal, mpAuthentication.getSequence());
+        } catch (SchemaException e) {
+            LOGGER.debug("Couldn't resolve authentication sequence of global security policy", e);
+            return false;
+        }
+    }
+
+    private void reportSequenceReplacedByPrincipalPolicy(MidpointAuthentication mpAuthentication, HttpServletRequest httpRequest) {
+        LOGGER.error("Authentication of {} can't continue. It started with sequence '{}' and the security policy "
+                        + "applicable to the user ({}) defines sequence '{}' for the same requests. Security policy "
+                        + "of the user has to use the identifier of the sequence it adjusts.",
+                mpAuthentication.getPrincipal() instanceof MidPointPrincipal principal
+                        ? principal.getFocus() : mpAuthentication.getPrincipal(),
+                mpAuthentication.getSequenceIdentifier(),
+                mpAuthentication.resolveSecurityPolicyForPrincipal(),
+                getSequenceIdentifier());
+        AuthSequenceUtil.saveException(httpRequest, new AuthenticationServiceException("web.security.provider.invalid"));
+    }
 
     private boolean processingDifferentAuthenticationSequence(MidpointAuthentication mpAuthentication, AuthenticationSequenceType sequence) {
         return mpAuthentication == null || !sequenceIdentifiersMatch(sequence, mpAuthentication.getSequence());
