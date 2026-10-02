@@ -35,7 +35,7 @@
     <div class="d-flex flex-wrap w-100" wicket:id="radioGroup">
         <div class="flex-fill p-1" wicket:id="panel">
             <div class="d-flex flex-row card shadow-sm p-2 h-100">
-                <div class="d-flex flex-column justify-content-center h-100 m-auto pe-3">
+                <div class="d-flex flex-column justify-content:center h-100 m-auto pe-3">
                     <input wicket:id="radio" type="radio" onclick="event.stopPropagation()"/>
                 </div>
                 <div class="w-100 d-flex flex-column">
@@ -44,6 +44,29 @@
                     </div>
                     <div class="text-secondary" wicket:id="description"/>
                 </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-12" wicket:id="createObjectClass">
+        <div class="d-flex flex-row flex-wrap alert alert-info alert-opaque px-3 mt-2">
+            <span class="d-flex py-2 pe-2 align-items-start alert-icon">
+                <i class="fa fa fa-plus-circle"></i>
+            </span>
+            <div class="d-flex flex-column justify-content-center align-items-start">
+                <div class="fw-bold">
+                    <wicket:message key="ObjectClassSelectConnectorStepPanel.create.title"/>
+                </div>
+                <div>
+                    <wicket:message key="ObjectClassSelectConnectorStepPanel.create.description"/>
+                </div>
+            </div>
+        </div>
+        <div class="d-flex flex-row align-items-center col-12 pt-2">
+            <div class="col-6">
+                <label class="form-label" for="cdw-select-object-class:newObjectName">
+                    <wicket:message key="ObjectClassSelectConnectorStepPanel.create.name"/>
+                </label>
+                <input class="form-control" wicket:id="newObjectName" type="text"/>
             </div>
         </div>
     </div>

@@ -21,6 +21,7 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Radio;
 import org.apache.wicket.markup.html.form.RadioGroup;
+import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
@@ -70,10 +71,13 @@ public class ObjectClassSelectConnectorStepPanel extends AbstractWizardStepPanel
     private static final String ID_DESCRIPTION = "description";
     private static final String ID_MORE_OBJECT_CLASSES_BUTTON = "moreObjectClassesButton";
     private static final String ID_MORE_CLASSES_HINT = "moreClassesHint";
+    private static final String ID_CREATE_OBJECT_CLASS = "createObjectClass";
+    private static final String ID_NEW_OBJECT_CLASS_NAME = "newObjectName";
 
     private final IModel<PrismContainerValueWrapper<ConnDevObjectClassInfoType>> valueModel;
     private boolean showAllClasses;
     private LoadableModel<List<PrismContainerValueWrapper<ConnDevObjectClassInfoType>>> valuesModel;
+    private final IModel<String> newObjectNameModel = Model.of("");
 
     public ObjectClassSelectConnectorStepPanel(WizardPanelHelper<? extends Containerable, ConnectorDevelopmentDetailsModel> helper,
             IModel<PrismContainerValueWrapper<ConnDevObjectClassInfoType>> valueModel) {
@@ -272,6 +276,22 @@ public class ObjectClassSelectConnectorStepPanel extends AbstractWizardStepPanel
                 target.add(get(ID_RADIO_GROUP));
             }
         });
+
+        WebMarkupContainer createObjectClass = new WebMarkupContainer(ID_CREATE_OBJECT_CLASS);
+        createObjectClass.setOutputMarkupId(true);
+        createObjectClass.setOutputMarkupPlaceholderTag(true);
+        createObjectClass.add(new VisibleBehaviour(this::hasNoCandidates));
+        TextField<String> newName = new TextField<>(ID_NEW_OBJECT_CLASS_NAME, newObjectNameModel);
+        newName.setOutputMarkupId(true);
+        createObjectClass.add(newName);
+        add(createObjectClass);
+    }
+
+    /**
+     * The "create object class" option is offered when none of the detected classes is available to pick from.
+     */
+    private boolean hasNoCandidates() {
+        return valuesModel.getObject().isEmpty();
     }
 
     protected String getPanelType() {
@@ -322,28 +342,55 @@ public class ObjectClassSelectConnectorStepPanel extends AbstractWizardStepPanel
                     getDetailsModel().getObjectWrapper().findContainer(
                             ItemPath.create(ConnectorDevelopmentType.F_CONNECTOR, ConnDevConnectorType.F_OBJECT_CLASS));
 
-            valuesModel.getObject().stream()
-                    .filter(PrismContainerValueWrapper::isSelected)
-                    .map(detectedValue -> {
-                        try {
-                            //noinspection unchecked
-                            return (PrismContainerValueWrapper<ConnDevObjectClassInfoType>) getPageBase().createValueWrapper(
-                                    parentWrapper, detectedValue.getRealValue().asPrismContainerValue().clone(), ValueStatus.ADDED, getDetailsModel().createWrapperContext());
-                        } catch (SchemaException e) {
-                            throw new RuntimeException(e);
-                        }
-                    })
-                    .findFirst()
-                    .ifPresent(valueWrapper -> {
-                        objectClassName.set(valueWrapper.getRealValue().getName());
-                        try {
-                            //noinspection unchecked
-                            parentWrapper.getItem().add(valueWrapper.getRealValue().asPrismContainerValue());
-                        } catch (SchemaException e) {
-                            throw new RuntimeException(e);
-                        }
-                        parentWrapper.getValues().add(valueWrapper);
-                    });
+            if (hasNoCandidates()) {
+                String newName = StringUtils.trimToNull(newObjectNameModel.getObject());
+                if (newName == null) {
+                    getPageBase().error(createStringResource("ObjectClassSelectConnectorStepPanel.create.name.empty").getString());
+                    target.add(getFeedback());
+                    return false;
+                }
+                boolean duplicate = getDetailsModel().getObjectType().getConnector().getObjectClass().stream()
+                        .anyMatch(existing -> StringUtils.equalsIgnoreCase(existing.getName(), newName));
+                if (duplicate) {
+                    getPageBase().error(createStringResource("ObjectClassSelectConnectorStepPanel.create.name.duplicate").getString());
+                    target.add(getFeedback());
+                    return false;
+                }
+
+                ConnDevObjectClassInfoType newObjectClass = new ConnDevObjectClassInfoType();
+                newObjectClass.setName(newName);
+                //noinspection unchecked
+                PrismContainerValueWrapper<ConnDevObjectClassInfoType> valueWrapper =
+                        (PrismContainerValueWrapper<ConnDevObjectClassInfoType>) getPageBase().createValueWrapper(
+                                parentWrapper, newObjectClass.asPrismContainerValue(), ValueStatus.ADDED, getDetailsModel().createWrapperContext());
+                objectClassName.set(newName);
+                //noinspection unchecked
+                parentWrapper.getItem().add(valueWrapper.getRealValue().asPrismContainerValue());
+                parentWrapper.getValues().add(valueWrapper);
+            } else {
+                valuesModel.getObject().stream()
+                        .filter(PrismContainerValueWrapper::isSelected)
+                        .map(detectedValue -> {
+                            try {
+                                //noinspection unchecked
+                                return (PrismContainerValueWrapper<ConnDevObjectClassInfoType>) getPageBase().createValueWrapper(
+                                        parentWrapper, detectedValue.getRealValue().asPrismContainerValue().clone(), ValueStatus.ADDED, getDetailsModel().createWrapperContext());
+                            } catch (SchemaException e) {
+                                throw new RuntimeException(e);
+                            }
+                        })
+                        .findFirst()
+                        .ifPresent(valueWrapper -> {
+                            objectClassName.set(valueWrapper.getRealValue().getName());
+                            try {
+                                //noinspection unchecked
+                                parentWrapper.getItem().add(valueWrapper.getRealValue().asPrismContainerValue());
+                            } catch (SchemaException e) {
+                                throw new RuntimeException(e);
+                            }
+                            parentWrapper.getValues().add(valueWrapper);
+                        });
+            }
 
         } catch (SchemaException e) {
             throw new RuntimeException(e);

@@ -7,7 +7,14 @@ public class ConnectorGeneratorConstants {
 
     public static final String RPC_START_FROM_NEW = "/rpc/startFromNew";
 
+    public static final String RPC_START_FROM_EXISTING = "/rpc/startFromExisting";
+
     public static final String RPC_CONTINUE_FROM = "/rpc/continueFrom";
+
+    public static final String RPC_IS_MANIFEST_BASED_CONNECTOR = "/rpc/isManifestBasedConnector";
+
+    public static final String RPC_COPY_CONNECTOR_SUBMIT_OPERATION = "/rpc/copyConnectorSubmitOperation";
+    public static final String RPC_COPY_CONNECTOR_STATUS_INFO = "/rpc/copyConnectorStatus";
 
     public static final String RPC_CREATE_CONNECTOR_SUBMIT_OPERATION = "/rpc/createConnectorSubmitOperation";
     public static final String RPC_CREATE_CONNECTOR_STATUS_INFO = "/rpc/createConnectorStatus";

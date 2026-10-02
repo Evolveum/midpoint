@@ -443,6 +443,16 @@ public class ConnectorDevelopmentWizardUtil {
         }
     }
 
+    /**
+     * Whether the development was imported from an existing low-code connector (its
+     * {@code connector/sourceConnectorRef} is set) - in that case the "creating connector" step
+     * copies the source connector's bundle instead of downloading a fresh framework template.
+     */
+    public static boolean isImportedConnector(PrismObjectWrapper<ConnectorDevelopmentType> objectWrapper) {
+        return existReferenceValue(objectWrapper, ItemPath.create(
+                ConnectorDevelopmentType.F_CONNECTOR, ConnDevConnectorType.F_SOURCE_CONNECTOR_REF));
+    }
+
     public static <C extends PrismContainerWrapper<?>> boolean existTestingResourcePropertyValue(
             ConnectorDevelopmentDetailsModel detailsModel, String panelType, ItemName propertyName) {
         try {
@@ -803,6 +813,15 @@ public class ConnectorDevelopmentWizardUtil {
             }
         }
         result.addContext("logs", logs.toString());
+    }
+
+    /**
+     * Whether the connector-generation service is not configured (offline mode) - in that case the
+     * wizard runs with limited functionality: documentation discovery is skipped and scripts are
+     * generated as skeletons the user edits manually.
+     */
+    public static boolean isOffline(ConnectorDevelopmentDetailsModel detailsModel) {
+        return detailsModel.getServiceLocator().getConnectorService().isOffline();
     }
 
     public static boolean isScim(ConnectorDevelopmentDetailsModel detailsModel) {

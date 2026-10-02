@@ -13,4 +13,10 @@ public interface EditableConnector extends DownloadedConnector {
     String readFile(String filename) throws IOException;
 
     void updateProperty(String filename, String key, String value) throws IOException;
+
+    /**
+     * Whether a file with the given path (relative to the bundle directory root) exists in the
+     * bundle. Invalid paths (e.g. escaping the bundle directory) are reported as not existing.
+     */
+    boolean fileExists(String filename);
 }

@@ -208,6 +208,7 @@ public class ConnectorIdentificationConnectorStepPanel extends AbstractFormWizar
     protected ItemVisibilityHandler getVisibilityHandler() {
         return wrapper -> {
             if (wrapper.getItemName().equals(ConnDevConnectorType.F_CONNECTOR_REF)
+                    || wrapper.getItemName().equals(ConnDevConnectorType.F_SOURCE_CONNECTOR_REF)
                     || wrapper.getItemName().equals(ConnDevConnectorType.F_DIRECTORY)){
                 return ItemVisibility.HIDDEN;
             }
