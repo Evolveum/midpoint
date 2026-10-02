@@ -32,7 +32,11 @@ public class OutboundMappingTargetWrapperFactory extends NoEmptyValueContainerWr
             ItemPath.create(AssignmentHolderType.F_ASSIGNMENT, AssignmentType.F_FOCUS_MAPPINGS, MappingsType.F_MAPPING),
             ItemPath.create(AbstractRoleType.F_INDUCEMENT, AssignmentType.F_FOCUS_MAPPINGS, MappingsType.F_MAPPING),
             ItemPath.create(ObjectTemplateType.F_MAPPING),
-            ItemPath.create(ObjectTemplateType.F_ITEM, ObjectTemplateItemDefinitionType.F_MAPPING));
+            ItemPath.create(ObjectTemplateType.F_ITEM, ObjectTemplateItemDefinitionType.F_MAPPING), ItemPath.create(
+                    AbstractRoleType.F_INDUCEMENT,
+                    AssignmentType.F_CONSTRUCTION,
+                    ConstructionType.F_ATTRIBUTE,
+                    ResourceAttributeDefinitionType.F_OUTBOUND));
 
     @Override
     public <C extends Containerable> boolean match(ItemDefinition<?> def, PrismContainerValue<C> parent) {
@@ -40,9 +44,9 @@ public class OutboundMappingTargetWrapperFactory extends NoEmptyValueContainerWr
                 && def.getTypeClass() != null
                 && MappingType.class.isAssignableFrom(def.getTypeClass())
                 && parent != null
-                && QNameUtil.match(def.getItemName(),ResourceAttributeDefinitionType.F_OUTBOUND)
+                && QNameUtil.match(def.getItemName(), ResourceAttributeDefinitionType.F_OUTBOUND)
                 && MAPPING_PATHS.stream().anyMatch(path -> path.equivalent(
-                        parent.getPath().namedSegmentsOnly().append(def.getItemName())));
+                parent.getPath().namedSegmentsOnly().append(def.getItemName())));
     }
 
     @Override
