@@ -39,7 +39,7 @@ public class SimulationValueWithStateCelValue extends AbstractStructuredCelValue
     protected Map<String, Object> createMapValue() {
         return Map.of(
                 F_STATE, valueWithState.getState().name(),
-                F_VALUE, OpaqueJavaCelValue.create(valueWithState.getValue()));
+                F_VALUE, PrismCelValue.create(valueWithState.getPrismValue()));
     }
 
     @Override
@@ -56,7 +56,7 @@ public class SimulationValueWithStateCelValue extends AbstractStructuredCelValue
         var fields = ImmutableSet.of(F_STATE, F_VALUE);
         StructType.FieldResolver resolver = field -> Optional.of(switch (field) {
             case F_STATE -> SimpleType.STRING;
-            case F_VALUE -> OpaqueJavaCelValue.CEL_TYPE;
+            case F_VALUE -> PrismCelValue.CEL_TYPE;
             default -> throw new IllegalStateException("Illegal simulation value-with-state field " + field);
         });
         return StructType.create(ProcessedObject.ValueWithState.class.getCanonicalName(), fields, resolver);

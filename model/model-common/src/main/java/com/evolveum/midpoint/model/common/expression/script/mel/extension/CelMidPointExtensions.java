@@ -10,7 +10,7 @@ import com.evolveum.midpoint.model.common.expression.script.mel.CelTypeMapper;
 import com.evolveum.midpoint.model.common.expression.script.mel.value.ContainerValueCelValue;
 import com.evolveum.midpoint.model.common.expression.script.mel.value.ItemPathCelValue;
 import com.evolveum.midpoint.model.common.expression.script.mel.value.ObjectCelValue;
-import com.evolveum.midpoint.model.common.expression.script.mel.value.OpaqueJavaCelValue;
+import com.evolveum.midpoint.model.common.expression.script.mel.value.PrismCelValue;
 import com.evolveum.midpoint.model.common.expression.script.mel.value.QNameCelValue;
 import com.evolveum.midpoint.model.common.expression.script.mel.value.ReferenceCelValue;
 import com.evolveum.midpoint.prism.Containerable;
@@ -38,7 +38,6 @@ import dev.cel.common.values.NullValue;
 import dev.cel.extensions.CelExtensionLibrary;
 import dev.cel.runtime.CelFunctionBinding;
 import dev.cel.runtime.NullabilityProperties;
-import org.jetbrains.annotations.Nullable;
 
 import javax.xml.namespace.QName;
 import java.util.Collection;
@@ -590,7 +589,7 @@ public class CelMidPointExtensions extends AbstractMidPointCelExtensions {
                                 CelOverloadDecl.newGlobalOverload(
                                         FUNCTION_NAME_PREFIX_DASH + "selectIdentityItemValues",
                                         "Selects identity item values from the requested authoritative source.",
-                                        ListType.create(OpaqueJavaCelValue.CEL_TYPE),
+                                        ListType.create(PrismCelValue.CEL_TYPE),
                                         NullableType.create(SimpleType.DYN),
                                         NullableType.create(ContainerValueCelValue.CEL_TYPE),
                                         ItemPathCelValue.CEL_TYPE)),
@@ -740,7 +739,7 @@ public class CelMidPointExtensions extends AbstractMidPointCelExtensions {
         return midpointExpressionFunctions
                 .selectIdentityItemValues(identityBeans, sourceBean, itemPath.getJavaValue())
                 .stream()
-                .map(OpaqueJavaCelValue::create)
+                .map(PrismCelValue::create)
                 .map(Object.class::cast)
                 .toList();
     }

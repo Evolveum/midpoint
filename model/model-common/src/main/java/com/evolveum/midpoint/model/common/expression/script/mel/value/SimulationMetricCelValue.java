@@ -49,7 +49,7 @@ public class SimulationMetricCelValue extends AbstractStructuredCelValue<Object>
         value.put(F_ID, metric.getId() != null ? metric.getId() : NullValue.NULL_VALUE);
         value.put(F_SELECTED, metric.isSelected());
         value.put(F_VALUE, metric.getValue() != null
-                ? OpaqueJavaCelValue.create(metric.getValue())
+                ? BigDecimalCelValue.create(metric.getValue())
                 : NullValue.NULL_VALUE);
         return value;
     }
@@ -70,7 +70,7 @@ public class SimulationMetricCelValue extends AbstractStructuredCelValue<Object>
             case F_EVENT_MARK_REF -> NullableType.create(ReferenceCelValue.CEL_TYPE);
             case F_ID -> NullableType.create(SimpleType.STRING);
             case F_SELECTED -> SimpleType.BOOL;
-            case F_VALUE -> NullableType.create(OpaqueJavaCelValue.CEL_TYPE);
+            case F_VALUE -> NullableType.create(BigDecimalCelValue.CEL_TYPE);
             default -> throw new IllegalStateException("Illegal simulation metric field " + field);
         });
         return StructType.create(ProcessedObject.Metric.class.getCanonicalName(), fields, resolver);

@@ -13,6 +13,8 @@ import java.util.Optional;
 
 import com.evolveum.midpoint.model.api.simulation.ProcessedObject;
 
+import com.evolveum.midpoint.prism.PrismValue;
+
 import com.google.common.collect.ImmutableSet;
 import dev.cel.common.types.*;
 import dev.cel.common.values.NullValue;
@@ -47,22 +49,20 @@ public class SimulationItemDeltaCelValue extends AbstractStructuredCelValue<Obje
     @Override
     protected Map<String, Object> createMapValue() {
         Map<String, Object> value = new HashMap<>();
-        value.put(F_PATH, itemDelta.getPath() != null
-                ? ItemPathCelValue.create(itemDelta.getPath())
-                : NullValue.NULL_VALUE);
-        value.put(F_REAL_VALUES_BEFORE, wrapRealValues(itemDelta.getRealValuesBefore()));
-        value.put(F_REAL_VALUES_AFTER, wrapRealValues(itemDelta.getRealValuesAfter()));
-        value.put(F_REAL_VALUES_ADDED, wrapRealValues(itemDelta.getRealValuesAdded()));
-        value.put(F_REAL_VALUES_DELETED, wrapRealValues(itemDelta.getRealValuesDeleted()));
+        value.put(F_PATH, ItemPathCelValue.create(itemDelta.getPath()));
+        value.put(F_REAL_VALUES_BEFORE, wrapPrismValues(itemDelta.getPrismValuesBefore()));
+        value.put(F_REAL_VALUES_AFTER, wrapPrismValues(itemDelta.getPrismValuesAfter()));
+        value.put(F_REAL_VALUES_ADDED, wrapPrismValues(itemDelta.getPrismValuesAdded()));
+        value.put(F_REAL_VALUES_DELETED, wrapPrismValues(itemDelta.getPrismValuesDeleted()));
         value.put(F_VALUES_WITH_STATES, itemDelta.getValuesWithStates().stream()
                 .map(SimulationValueWithStateCelValue::create)
                 .toList());
         return value;
     }
 
-    private static List<Object> wrapRealValues(Collection<?> values) {
-        return values.stream()
-                .map(value -> value != null ? OpaqueJavaCelValue.create(value) : NullValue.NULL_VALUE)
+    private static List<Object> wrapPrismValues(Collection<? extends PrismValue> prismValues) {
+        return prismValues.stream()
+                .map(value -> value != null ? PrismCelValue.create(value) : NullValue.NULL_VALUE)
                 .map(Object.class::cast)
                 .toList();
     }
@@ -92,7 +92,7 @@ public class SimulationItemDeltaCelValue extends AbstractStructuredCelValue<Obje
         StructType.FieldResolver resolver = field -> Optional.of(switch (field) {
             case F_PATH -> NullableType.create(ItemPathCelValue.CEL_TYPE);
             case F_REAL_VALUES_BEFORE, F_REAL_VALUES_AFTER, F_REAL_VALUES_ADDED, F_REAL_VALUES_DELETED ->
-                    ListType.create(NullableType.create(OpaqueJavaCelValue.CEL_TYPE));
+                    ListType.create(NullableType.create(PrismCelValue.CEL_TYPE));
             case F_VALUES_WITH_STATES -> ListType.create(SimulationValueWithStateCelValue.CEL_TYPE);
             default -> throw new IllegalStateException("Illegal simulation item delta field " + field);
         });

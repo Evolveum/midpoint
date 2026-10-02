@@ -77,7 +77,8 @@ public class CelTypeMapper implements CelTypeProvider  {
                 SimulationMetricCelValue.CEL_TYPE,
                 SimulationItemDeltaCelValue.CEL_TYPE,
                 SimulationValueWithStateCelValue.CEL_TYPE,
-                OpaqueJavaCelValue.CEL_TYPE
+                PrismCelValue.CEL_TYPE,
+                BigDecimalCelValue.CEL_TYPE
         );
     }
 

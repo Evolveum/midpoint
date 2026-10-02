@@ -7,6 +7,7 @@ package com.evolveum.midpoint.model.common.expression.script.mel.extension;
 
 import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
 import com.evolveum.midpoint.model.common.expression.script.mel.value.*;
+import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationResultProcessedObjectType;
@@ -102,11 +103,11 @@ public class CelSimulationExtensions extends AbstractMidPointCelExtensions {
                                         "Returns the assignment related to a processed item delta or value.",
                                         NullableType.create(ContainerValueCelValue.CEL_TYPE),
                                         SimulationItemDeltaCelValue.CEL_TYPE,
-                                        NullableType.create(OpaqueJavaCelValue.CEL_TYPE))),
+                                        NullableType.create(PrismCelValue.CEL_TYPE))),
                         CelFunctionBinding.from(
                                 PREFIX + "-itemDelta-relatedAssignment-value",
                                 SimulationItemDeltaCelValue.class,
-                                Object.class,
+                                PrismCelValue.class,
                                 CelSimulationExtensions::relatedAssignment,
                                 NullabilityProperties.NULLABLE)));
     }
@@ -159,18 +160,20 @@ public class CelSimulationExtensions extends AbstractMidPointCelExtensions {
     }
 
     private static ContainerValueCelValue<?> relatedAssignment(
-            SimulationItemDeltaCelValue itemDelta, Object value) {
+            SimulationItemDeltaCelValue itemDelta, PrismCelValue prismCelValue) {
         AssignmentType fromDelta = itemDelta.getItemDelta().getRelatedAssignment();
         if (fromDelta != null) {
             return wrapAssignment(fromDelta);
         }
-        Object javaValue = toJava(value);
-        return javaValue instanceof AssignmentType assignment ? wrapAssignment(assignment) : null;
+        if (prismCelValue.getJavaValue() instanceof PrismContainerValue<?> pcv) {
+            return ContainerValueCelValue.create(pcv);
+        }
+        return null;
     }
 
     private static ContainerValueCelValue<?> wrapAssignment(AssignmentType assignment) {
         return assignment != null
-                ? ContainerValueCelValue.create(assignment.asPrismContainerValue())
+                ? ContainerValueCelValue.create((PrismContainerValue<?>) assignment.asPrismContainerValue())
                 : null;
     }
 
