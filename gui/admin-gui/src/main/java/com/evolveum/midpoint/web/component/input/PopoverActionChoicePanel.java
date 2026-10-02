@@ -228,8 +228,7 @@ public abstract class PopoverActionChoicePanel<T> extends InputPanel {
                     @Override
                     public void onClick(AjaxRequestTarget target) {
                         PopoverActionChoicePanel.this.model.setObject(item.getModelObject());
-                        input.getFeedbackMessages().clear();
-                        input.valid();
+                        clearInputState();
                         filterModel.setObject("");
                         target.add(input);
                         if (PopoverActionChoicePanel.this.getParent() != null) {
@@ -348,6 +347,24 @@ public abstract class PopoverActionChoicePanel<T> extends InputPanel {
 
     public IModel<? extends List<? extends T>> getChoicesModel() {
         return choices;
+    }
+
+    /** Refreshes the field after its model has been updated externally. */
+    public void refresh(AjaxRequestTarget target) {
+        choices.detach();
+        clearInputState();
+        target.add(this);
+        if (getParent() != null) {
+            target.addChildren(getParent(), FeedbackLabels.class);
+        }
+        onChoiceSelected(target, this);
+    }
+
+    private void clearInputState() {
+        FormComponent<T> input = getBaseFormComponent();
+        input.clearInput();
+        input.getFeedbackMessages().clear();
+        input.valid();
     }
 
     public void togglePopover(AjaxRequestTarget target) {

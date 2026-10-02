@@ -20,6 +20,7 @@ import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
@@ -52,13 +53,20 @@ public class CorrelatorItemRefPanelFactory extends ItemPathPanelFactory implemen
     protected Panel getPanel(PrismPropertyPanelContext<ItemPathType> panelCtx) {
         PrismPropertyWrapper<ItemPathType> item = panelCtx.unwrapWrapperModel();
 
-        List<ItemPathType> itemPaths = getTargetsOfInboundMappings(item);
+        IModel<List<ItemPathType>> itemPaths = new LoadableDetachableModel<>() {
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            protected List<ItemPathType> load() {
+                return getTargetsOfInboundMappings(panelCtx.unwrapWrapperModel());
+            }
+        };
 
         PopoverActionChoicePanel<ItemPathType> typePanel =
                 new PopoverActionChoicePanel<>(
                         panelCtx.getComponentId(),
                         panelCtx.getRealValueModel(),
-                        Model.ofList(itemPaths),
+                        itemPaths,
                         false) {
 
                     @Override
@@ -123,7 +131,7 @@ public class CorrelatorItemRefPanelFactory extends ItemPathPanelFactory implemen
 
         createMapping(target, pageBase,
                 () -> correlator,
-                ajaxTarget -> ajaxTarget.add(panel),
+                panel::refresh,
                 rowModel);
     }
 
