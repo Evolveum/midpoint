@@ -437,10 +437,11 @@ public class CelMidPointExtensions extends AbstractMidPointCelExtensions {
                                         FUNCTION_NAME_PREFIX_DASH + "getDefaultNameForResourceRelatedTask",
                                         "Determines the default name for a task that executes an operation against given resource, like import or reconciliation.",
                                         SimpleType.STRING,
-                                        SimpleType.STRING, ContainerValueCelValue.CEL_TYPE)),
+                                        SimpleType.STRING, NullableType.create(ContainerValueCelValue.CEL_TYPE))),
                         CelFunctionBinding.from(FUNCTION_NAME_PREFIX_DASH + "getDefaultNameForResourceRelatedTask",
-                                String.class, ContainerValueCelValue.class,
-                                this::getDefaultNameForResourceRelatedTask)
+                                String.class, Object.class,
+                                this::getDefaultNameForResourceRelatedTask,
+                                NullabilityProperties.NULLABLE)
                 ),
 
                 // midpoint.isUniquePropertyValue(object, propertyPathString, propertyValue)
@@ -634,9 +635,11 @@ public class CelMidPointExtensions extends AbstractMidPointCelExtensions {
         }
     }
 
-    private String getDefaultNameForResourceRelatedTask(String taskTypeName, ContainerValueCelValue<ResourceObjectSetType> set) {
+    private String getDefaultNameForResourceRelatedTask(String taskTypeName, Object set) {
         try {
-            return midpointExpressionFunctions.getDefaultNameForResourceRelatedTask(taskTypeName, toJavaContainerable(set));
+            ResourceObjectSetType javaSet = isCelNull(set)
+                    ? null : toJavaContainerable((ContainerValueCelValue<ResourceObjectSetType>) set);
+            return midpointExpressionFunctions.getDefaultNameForResourceRelatedTask(taskTypeName, javaSet);
         } catch (CommonException e) {
             throw createException(e);
         }
