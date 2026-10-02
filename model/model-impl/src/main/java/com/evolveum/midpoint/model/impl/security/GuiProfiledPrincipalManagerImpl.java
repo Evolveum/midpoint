@@ -449,7 +449,7 @@ public class GuiProfiledPrincipalManagerImpl
         List<Object> loggedInUsers = sessionRegistry.getAllPrincipals();
         for (Object principal : loggedInUsers) {
 
-            if (!(principal instanceof GuiProfiledPrincipal midPointPrincipal)) {
+            if (!(principal instanceof GuiProfiledPrincipal)) {
                 continue;
             }
 
@@ -457,15 +457,25 @@ public class GuiProfiledPrincipalManagerImpl
             if (sessionInfos == null || sessionInfos.isEmpty()) {
                 continue;
             }
-            CompiledGuiProfile compiledProfile = midPointPrincipal.getCompiledGuiProfile();
-            LOGGER.debug("Checking {} if it is derived from {}", midPointPrincipal, oid);
-            LOGGER.trace("      is actually derived from {}", compiledProfile.getDependencies());
 
-            if (oid == null || compiledProfile.derivedFrom(oid)) {
-                LOGGER.debug("Markin profile invalid for {} because of change in {}:{}", midPointPrincipal, type, oid);
-                compiledProfile.markInvalid();
+            // Registry keeps only one principal instance per user (principals are equal by focus OID), but each
+            // session has its own principal instance with its own compiled profile. All of them have to be checked.
+            for (SessionInformation sessionInfo : sessionInfos) {
+                if (sessionInfo.getPrincipal() instanceof GuiProfiledPrincipal sessionPrincipal) {
+                    invalidateCompiledProfile(sessionPrincipal, type, oid);
+                }
             }
+        }
+    }
 
+    private <O extends ObjectType> void invalidateCompiledProfile(GuiProfiledPrincipal principal, Class<O> type, String oid) {
+        CompiledGuiProfile compiledProfile = principal.getCompiledGuiProfile();
+        LOGGER.debug("Checking {} if it is derived from {}", principal, oid);
+        LOGGER.trace("      is actually derived from {}", compiledProfile.getDependencies());
+
+        if (oid == null || compiledProfile.derivedFrom(oid)) {
+            LOGGER.debug("Marking profile invalid for {} because of change in {}:{}", principal, type, oid);
+            compiledProfile.markInvalid();
         }
     }
 
