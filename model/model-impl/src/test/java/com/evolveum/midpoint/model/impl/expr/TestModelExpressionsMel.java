@@ -11,12 +11,16 @@ import java.io.File;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.PrimitiveType;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
+import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 
 import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.test.IntegrationTestTools;
+import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
@@ -29,6 +33,7 @@ import org.testng.annotations.Test;
 
 import javax.xml.namespace.QName;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.assertEquals;
 
 /**
@@ -348,6 +353,52 @@ public class TestModelExpressionsMel extends AbstractModelExpressionsTest {
                 "Dummy Resource");
     }
 
+    @Test
+    public void testFilterExpressionRespectingSystemDefaultLanguageSimple() throws Exception {
+        // The script is constructed so that it fails if the expression is interpreted as Groovy
+        testFilterExpressionRespectingSystemDefaultLanguage("name = `default(test, 'abc')`");
+    }
+
+    @Test
+    public void testFilterExpressionRespectingSystemDefaultLanguageMultiline() throws Exception {
+        // The script is constructed so that it fails if the expression is interpreted as Groovy
+        testFilterExpressionRespectingSystemDefaultLanguage("""
+                name = ```
+                   default(test, 'abc')
+                ```""");
+    }
+
+    private void testFilterExpressionRespectingSystemDefaultLanguage(String filterAsString) throws CommonException {
+        var task = getTestTask();
+        var result = task.getResult();
+
+        setDefaultExpressionLanguage(MidPointConstants.EXPRESSION_LANGUAGE_MEL_URL, task, result);
+        try {
+            given("filters with expression (unspecified language, should be interpreted as default)");
+            var filter = prismContext.createQueryParser().parseFilter(UserType.class, filterAsString);
+            filter.setTrustDescriptor(IntegrationTestTools.trustedForTests());
+
+            when("expression is resolved");
+            var resolvedFilter = ExpressionUtil.evaluateFilterExpressions(
+                    filter,
+                    createVariables("test", "xyz", PrimitiveType.STRING),
+                    expressionFactory,
+                    "testFilterResolution", task, result);
+
+            then("it is interpreted as MEL");
+            displayDumpable("resolvedFilter", resolvedFilter);
+            var expectedFilter = prismContext.createQueryParser().parseFilter(UserType.class, "name = 'xyz'");
+            assertThat(resolvedFilter).as("resolvedFilter").isEqualTo(expectedFilter);
+        } finally {
+            setDefaultExpressionLanguage(null, task, result);
+        }
+    }
+
+    /*
+                var filter2 = prismContext.createQueryParser().parseFilter(UserType.class, "name = ```\ndefault(test, 'abc')\n```");
+            filter2.setTrustDescriptor(IntegrationTestTools.trustedForTests());
+
+     */
     @Test
     public void testCacheInvalidation() throws Exception {
         VariablesMap variables = VariablesMap.create(prismContext,

@@ -88,7 +88,7 @@ public abstract class AbstractModelExpressionsTest extends AbstractInternalModel
     private static final String SOMEHOW_USEFUL = "somehow useful";
 
     @Autowired private ScriptFactory scriptFactory;
-    @Autowired private ExpressionFactory expressionFactory;
+    @Autowired ExpressionFactory expressionFactory;
 
     private static final File TEST_EXPRESSIONS_OBJECTS_FILE = new File(BASE_TEST_DIR, "orgstruct.xml");
     protected static final TestObject<FunctionLibraryType> FUNCTION_LIBRARY =
