@@ -8,12 +8,17 @@ package com.evolveum.midpoint.report;
 
 import static com.evolveum.midpoint.model.test.CommonInitialObjects.*;
 import static com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification.ACCOUNT_DEFAULT;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import java.util.UUID;
 
+import com.evolveum.midpoint.audit.api.AuditEventRecord;
+import com.evolveum.midpoint.audit.api.AuditEventStage;
+import com.evolveum.midpoint.audit.api.AuditEventType;
+import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.test.TestReport;
 
@@ -211,6 +216,20 @@ public class TestBuiltInReports extends TestCsvReport {
         var task = getTestTask();
         var result = task.getResult();
 
+        var firstDeltaMarker = "first audit delta";
+        var secondDeltaMarker = "second audit delta";
+        var auditRecord = new AuditEventRecord(AuditEventType.MODIFY_OBJECT, AuditEventStage.EXECUTION);
+        auditRecord.setTarget(USER_JACK.get());
+        auditRecord.addDelta(new ObjectDeltaOperation<>(
+                prismContext.deltaFor(UserType.class)
+                        .item(UserType.F_DESCRIPTION).replace(firstDeltaMarker)
+                        .asObjectDelta(USER_JACK.oid)));
+        auditRecord.addDelta(new ObjectDeltaOperation<>(
+                prismContext.deltaFor(UserType.class)
+                        .item(UserType.F_SUBTYPE).replace(secondDeltaMarker)
+                        .asObjectDelta(USER_JACK.oid)));
+        modelAuditService.audit(auditRecord, task, result);
+
         when("audit report is created for Jack");
         var lines = REPORT_AUDIT.export()
                 .withParameter("targetRef", USER_JACK.ref())
@@ -221,10 +240,20 @@ public class TestBuiltInReports extends TestCsvReport {
                 .assertColumns(AUDIT_COLUMNS)
                 .forRecords(
                         1,
-                        record -> record.get(C_AUDIT_DELTA).contains("Modify"),
+                        record -> record.get(C_AUDIT_DELTA).contains("assignment"),
                         record -> record.assertValue(
                                 C_AUDIT_DELTA,
-                                value -> value.contains("assignment")));
+                                value -> value.contains("Modify", "assignment")))
+                .forRecords(
+                        1,
+                        record -> record.get(C_AUDIT_DELTA).contains(firstDeltaMarker),
+                        record -> record.assertValue(
+                                C_AUDIT_DELTA,
+                                value -> value
+                                        .contains("Modify", firstDeltaMarker, secondDeltaMarker)
+                                        .satisfies(formatted -> assertThat(formatted.indexOf(firstDeltaMarker))
+                                                .as("position of the first formatted delta")
+                                                .isLessThan(formatted.indexOf(secondDeltaMarker)))));
     }
 
     @Test
