@@ -7,6 +7,10 @@
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.correlation;
 
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
+import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
+
+import com.evolveum.midpoint.web.component.prism.ValueStatus;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -87,11 +91,25 @@ public class CorrelationItemRuleWizardPanel<C extends Containerable> extends Abs
     @Override
     protected void onSubmitPerformed(AjaxRequestTarget target) {
         if (isSuggestionApplied()) {
-            acceptSuggestionPerformed(target, getValueModel());
+            if (isValid(target)) {
+                acceptSuggestionPerformed(target, getValueModel());
+            }
             return;
         }
 
         onExitPerformed(target);
+    }
+
+    @Override
+    protected boolean isValid(AjaxRequestTarget target) {
+        if (!super.isValid(target)) {
+            return false;
+        }
+        boolean valid = ((CorrelationItemRulePanel<?>) get(ID_PANEL)).validateCorrelationItems(target);
+        if (!valid) {
+            target.add(getFeedback());
+        }
+        return valid;
     }
 
     protected boolean isShowEmptyField() {
@@ -195,8 +213,48 @@ public class CorrelationItemRuleWizardPanel<C extends Containerable> extends Abs
         };
         discardButton.showTitleAsLabel(true);
         discardButton.add(new VisibleBehaviour(this::isDiscardButtonVisible));
-        discardButton.add(AttributeAppender.append("class", "btn-link text-danger"));
+        discardButton.add(AttributeAppender.append("class", "btn btn-outline-danger"));
         buttons.add(discardButton);
+
+        AjaxIconButton deleteButton = createDeleteButton(buttons);
+        deleteButton.add(new VisibleBehaviour(() -> !isSuggestionApplied()));
+        buttons.add(deleteButton);
+
+    }
+
+    private AjaxIconButton createDeleteButton(RepeatingView buttons) {
+        AjaxIconButton deleteButton = new AjaxIconButton(
+                buttons.newChildId(),
+                Model.of("fa fa-trash"),
+                createStringResource("CorrelationItemRuleWizardPanel.delete")) {
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                ConfirmationPanel confirmation = new ConfirmationPanel(
+                        getPageBase().getMainPopupBodyId(),
+                        createStringResource("CorrelationItemRuleWizardPanel.deleteConfirmation")) {
+                    @Override
+                    public void yesPerformed(AjaxRequestTarget target) {
+                        deleteRulePerformed(target);
+                    }
+                };
+                getPageBase().showMainPopup(confirmation, target);
+            }
+        };
+        deleteButton.showTitleAsLabel(true);
+        deleteButton.add(AttributeAppender.replace("class", "btn btn-outline-danger"));
+        return deleteButton;
+    }
+
+    private void deleteRulePerformed(AjaxRequestTarget target) {
+        PrismContainerValueWrapper<ItemsSubCorrelatorType> value = getValueModel().getObject();
+        if (value.getStatus() == ValueStatus.ADDED) {
+            PrismContainerWrapper<ItemsSubCorrelatorType> parent = value.getParent();
+            parent.getValues().remove(value);
+        } else {
+            value.setStatus(ValueStatus.DELETED);
+        }
+        value.setSelected(false);
+        onExitPerformedAfterValidate(target);
     }
 
     protected boolean isDiscardButtonVisible() {

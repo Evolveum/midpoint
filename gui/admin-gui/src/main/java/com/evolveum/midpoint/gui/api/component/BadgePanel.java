@@ -6,6 +6,8 @@
 
 package com.evolveum.midpoint.gui.api.component;
 
+import com.evolveum.midpoint.web.util.TooltipBehavior;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -41,6 +43,10 @@ public class BadgePanel extends BasePanel<Badge> {
     private void initLayout() {
         add(AttributeModifier.replace("title", getModelObject().getTitle()));
 
+        if (isTooltipEnabled()) {
+            add(new TooltipBehavior());
+        }
+
         add(AttributeAppender.append("class", () -> getModelObject().getCssClass()));
         add(new VisibleBehaviour(() ->
                 getModelObject() != null
@@ -55,4 +61,9 @@ public class BadgePanel extends BasePanel<Badge> {
         text.add(AttributeAppender.append("class", () -> getModelObject().getTextCssClass()));
         add(text);
     }
+
+    protected boolean isTooltipEnabled() {
+        return false;
+    }
+
 }

@@ -11,11 +11,12 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
-import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
+import com.evolveum.midpoint.gui.api.util.MappingAuthorityDisplayResolver;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperColumn;
 import com.evolveum.midpoint.gui.impl.component.data.column.LifecycleStateColumn;
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapperColumn;
+import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapperColumnPanel;
 import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardTable;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismPropertyValueWrapper;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismValueWrapperImpl;
@@ -43,7 +44,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.VariableBindingDefinitionType;
 
 import org.apache.wicket.Component;
+import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -122,7 +125,7 @@ public abstract class AbstractMappingsTable<P extends Containerable> extends Abs
 
             @Override
             protected DisplayType getIconDisplayType(IModel<PrismContainerValueWrapper<MappingType>> rowModel) {
-                return GuiDisplayTypeUtil.getDisplayTypeForStrengthOfMapping(rowModel, null);
+                return MappingAuthorityDisplayResolver.resolveDisplay(rowModel.getObject().getRealValue(), null);
             }
 
             @Override
@@ -138,7 +141,7 @@ public abstract class AbstractMappingsTable<P extends Containerable> extends Abs
 
     protected abstract Collection<? extends IColumn<PrismContainerValueWrapper<MappingType>, String>> createCustomColumns();
 
-    public static <IW extends ItemWrapper<?,?>> @NotNull IModel<Collection<VariableBindingDefinitionType>> createSourceMultiselectModel(
+    public static <IW extends ItemWrapper<?, ?>> @NotNull IModel<Collection<VariableBindingDefinitionType>> createSourceMultiselectModel(
             IModel<IW> rowModel, PageBase pageBase) {
         return new IModel<>() {
 
@@ -344,6 +347,38 @@ public abstract class AbstractMappingsTable<P extends Containerable> extends Abs
                 };
 
                 pageBase.showMainPopup(changePopup, target);
+            }
+        };
+    }
+
+    @Override
+    protected String getTableContainerAdditionalCssClasses() {
+        return super.getTableContainerAdditionalCssClasses() + " table-td-middle";
+    }
+
+    protected IColumn<PrismContainerValueWrapper<MappingType>, String> createTargetColumn() {
+        IModel<PrismContainerDefinition<MappingType>> mappingTypeDef =
+                getMappingTypeDefinition();
+        return new PrismPropertyWrapperColumn<MappingType, String>(
+                mappingTypeDef,
+                MappingType.F_TARGET,
+                AbstractItemWrapperColumn.ColumnType.VALUE,
+                getPageBase()) {
+            @SuppressWarnings("unchecked")
+            @Override
+            protected <IW extends ItemWrapper> Component createColumnPanel(String componentId, IModel<IW> rowModel) {
+                return new PrismPropertyWrapperColumnPanel<String>(
+                        componentId, (IModel<PrismPropertyWrapper<String>>) rowModel, getColumnType()) {
+                    @Override
+                    protected AjaxEventBehavior createEventBehavior(Component formComponent) {
+                        return new AjaxFormComponentUpdatingBehavior("change") {
+                            @Override
+                            protected void onUpdate(AjaxRequestTarget target) {
+                                refreshTable(target);
+                            }
+                        };
+                    }
+                };
             }
         };
     }

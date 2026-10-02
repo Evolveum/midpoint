@@ -365,7 +365,8 @@ public abstract class SchemaHandlingObjectsPanel<C extends Containerable> extend
                         onSuggestValue(createContainerModel(), target);
                     }
                 };
-                generateButton.add(new VisibleBehaviour(this::displayNoValuePanel));
+                generateButton.add(new VisibleBehaviour(() -> SmartIntegrationUtils.isSmartIntegrationAuthorized(getPageBase())
+                        && displayNoValuePanel()));
                 generateButton.add(AttributeModifier.append("class", "btn btn-purple btn-sm"));
                 generateButton.setOutputMarkupId(true);
                 generateButton.showTitleAsLabel(true);

@@ -313,7 +313,6 @@ public abstract class AssociationAttributeMappingsTable<C extends Containerable>
         return !row.getPath().containsNameExactly(AssociationConstructionExpressionEvaluatorType.F_OBJECT_REF);
     }
 
-    @SuppressWarnings({ "rawtypes", "unchecked" })
     @Override
     protected @NotNull List<IColumn<PrismContainerValueWrapper<MappingType>, String>> getColumns() {
         List<IColumn<PrismContainerValueWrapper<MappingType>, String>> columns = new ArrayList<>();
@@ -380,146 +379,14 @@ public abstract class AssociationAttributeMappingsTable<C extends Containerable>
                 : Model.of(PrismContext.get().getSchemaRegistry()
                 .findContainerDefinitionByCompileTimeClass(AttributeOutboundMappingsDefinitionType.class));
 
-        columns.add(new PrismPropertyWrapperColumn(
-                refDefModel,
-                AbstractAttributeMappingsDefinitionType.F_REF,
-                AbstractItemWrapperColumn.ColumnType.VALUE,
-                getPageBase()) {
-            @Override
-            public String getCssClass() {
-                return "col-2 header-border-end";
-            }
-
-        });
-
-        columns.add(new PrismPropertyWrapperColumn<>(
-                getMappingTypeDefinition(),
-                MappingType.F_EXPRESSION,
-                AbstractItemWrapperColumn.ColumnType.VALUE,
-                getPageBase()) {
-            @Override
-            public String getCssClass() {
-                return "col-2 header-border-end";
-            }
-        });
-
-        if (!isInboundRelated()) {
-            columns.add(new PrismPropertyWrapperColumn<MappingType, String>(
-                    getMappingTypeDefinition(),
-                    MappingType.F_SOURCE,
-                    AbstractItemWrapperColumn.ColumnType.VALUE,
-                    getPageBase()) {
-
-                @Override
-                protected <IW extends ItemWrapper> Component createColumnPanel(String componentId, IModel<IW> rowModel) {
-
-                    IModel<Collection<VariableBindingDefinitionType>> multiselectModel = new IModel<>() {
-
-                        @Override
-                        public Collection<VariableBindingDefinitionType> getObject() {
-
-                            return ((PrismPropertyWrapper<VariableBindingDefinitionType>) rowModel.getObject())
-                                    .getValues().stream()
-                                    .filter(value
-                                            -> !ValueStatus.DELETED.equals(value.getStatus()) && value.getRealValue() != null)
-                                    .map(PrismValueWrapperImpl::getRealValue)
-                                    .collect(Collectors.toList());
-                        }
-
-                        @SuppressWarnings("unchecked")
-                        @Override
-                        public void setObject(@NotNull Collection<VariableBindingDefinitionType> newValues) {
-
-                            PrismPropertyWrapper<VariableBindingDefinitionType> sourceItem =
-                                    ((PrismPropertyWrapper<VariableBindingDefinitionType>) rowModel.getObject());
-                            List<PrismPropertyValueWrapper<VariableBindingDefinitionType>> toRemoveValues
-                                    = sourceItem.getValues().stream()
-                                    .filter(v -> v.getRealValue() != null).collect(Collectors.toList());
-
-                            newValues.forEach(newValue -> {
-                                if (newValue.getPath() == null) {
-                                    return;
-                                }
-                                Optional<PrismPropertyValueWrapper<VariableBindingDefinitionType>> found = sourceItem.getValues().stream()
-                                        .filter(actualValue -> actualValue.getRealValue() != null
-                                                && actualValue.getRealValue().getPath() != null
-                                                && newValue.getPath().getItemPath().stripVariableSegment()
-                                                .equals(actualValue.getRealValue().getPath().getItemPath().stripVariableSegment()))
-                                        .findFirst();
-                                if (found.isPresent()) {
-                                    toRemoveValues.remove(found.get());
-                                    if (ValueStatus.DELETED.equals(found.get().getStatus())) {
-                                        found.get().setStatus(ValueStatus.NOT_CHANGED);
-                                    }
-                                } else {
-                                    try {
-                                        PrismPropertyValue<VariableBindingDefinitionType> newPrismValue
-                                                = getPrismContext().itemFactory().createPropertyValue();
-                                        newPrismValue.setValue(newValue);
-                                        sourceItem.add(newPrismValue, getPageBase());
-                                    } catch (SchemaException e) {
-                                        LOGGER.error("Couldn't initialize new value for Source item", e);
-                                    }
-                                }
-                            });
-
-                            toRemoveValues.forEach(toRemoveValue -> {
-                                try {
-                                    sourceItem.remove(toRemoveValue, getPageBase());
-                                } catch (SchemaException e) {
-                                    LOGGER.error("Couldn't remove old value for Source item", e);
-                                }
-                            });
-
-                            List<PrismPropertyValueWrapper<VariableBindingDefinitionType>> undeletedValues = sourceItem.getValues().stream()
-                                    .filter(value -> value.getStatus() != ValueStatus.DELETED)
-                                    .toList();
-                            if (undeletedValues.stream().filter(value -> value.getRealValue() != null).count() > 0) {
-                                sourceItem.getValues().removeIf(value -> value.getRealValue() == null);
-                            } else if (undeletedValues.isEmpty()) {
-                                try {
-                                    PrismPropertyValue<VariableBindingDefinitionType> newPrismValue
-                                            = getPrismContext().itemFactory().createPropertyValue();
-                                    newPrismValue.setValue(null);
-                                    sourceItem.add(newPrismValue, getPageBase());
-                                } catch (SchemaException e) {
-                                    LOGGER.error("Couldn't initialize new null value for Source item", e);
-                                }
-                            }
-
-                        }
-                    };
-
-                    FocusDefinitionsMappingProvider provider;
-                    if (isMappingForAssociation()) {
-                        provider = new FocusDefinitionsMappingProvider((IModel<PrismPropertyWrapper<VariableBindingDefinitionType>>) rowModel) {
-                            @Override
-                            protected PrismContainerDefinition<? extends Containerable> getFocusTypeDefinition(ResourceObjectTypeDefinitionType resourceObjectType) {
-                                return PrismContext.get().getSchemaRegistry().findContainerDefinitionByCompileTimeClass(AssignmentType.class);
-                            }
-                        };
-                    } else {
-                        provider = new FocusDefinitionsMappingProvider((IModel<PrismPropertyWrapper<VariableBindingDefinitionType>>) rowModel);
-                    }
-                    return new Select2MultiChoiceColumnPanel<>(componentId, multiselectModel, provider);
-                }
-
-                @Override
-                public String getCssClass() {
-                    return "col-2 header-border-end";
-                }
-            });
+        if (isInboundRelated()) {
+            initRefColumn(columns, refDefModel);
+            initExpressionColumn(columns);
+            initTargetColumn(columns);
         } else {
-            columns.add(new PrismPropertyWrapperColumn<MappingType, String>(
-                    getMappingTypeDefinition(),
-                    MappingType.F_TARGET,
-                    AbstractItemWrapperColumn.ColumnType.VALUE,
-                    getPageBase()) {
-                @Override
-                public String getCssClass() {
-                    return "col-2 header-border-end";
-                }
-            });
+            initSourceColumn(columns);
+            initExpressionColumn(columns);
+            initRefColumn(columns, refDefModel);
         }
 
         // lifecycle
@@ -531,6 +398,162 @@ public abstract class AssociationAttributeMappingsTable<C extends Containerable>
         });
 
         return columns;
+    }
+
+    private void initSourceColumn(List<IColumn<PrismContainerValueWrapper<MappingType>, String>> columns) {
+        columns.add(new PrismPropertyWrapperColumn<MappingType, String>(
+                getMappingTypeDefinition(),
+                MappingType.F_SOURCE,
+                AbstractItemWrapperColumn.ColumnType.VALUE,
+                getPageBase()) {
+
+            @SuppressWarnings("unchecked")
+            @Override
+            protected <IW extends ItemWrapper> Component createColumnPanel(String componentId, IModel<IW> rowModel) {
+
+                IModel<Collection<VariableBindingDefinitionType>> multiselectModel = new IModel<>() {
+
+                    @Override
+                    public Collection<VariableBindingDefinitionType> getObject() {
+
+                        return ((PrismPropertyWrapper<VariableBindingDefinitionType>) rowModel.getObject())
+                                .getValues().stream()
+                                .filter(value
+                                        -> !ValueStatus.DELETED.equals(value.getStatus()) && value.getRealValue() != null)
+                                .map(PrismValueWrapperImpl::getRealValue)
+                                .collect(Collectors.toList());
+                    }
+
+                    @SuppressWarnings("unchecked")
+                    @Override
+                    public void setObject(@NotNull Collection<VariableBindingDefinitionType> newValues) {
+
+                        PrismPropertyWrapper<VariableBindingDefinitionType> sourceItem =
+                                ((PrismPropertyWrapper<VariableBindingDefinitionType>) rowModel.getObject());
+                        List<PrismPropertyValueWrapper<VariableBindingDefinitionType>> toRemoveValues
+                                = sourceItem.getValues().stream()
+                                .filter(v -> v.getRealValue() != null).collect(Collectors.toList());
+
+                        newValues.forEach(newValue -> {
+                            if (newValue.getPath() == null) {
+                                return;
+                            }
+                            Optional<PrismPropertyValueWrapper<VariableBindingDefinitionType>> found = sourceItem.getValues().stream()
+                                    .filter(actualValue -> actualValue.getRealValue() != null
+                                            && actualValue.getRealValue().getPath() != null
+                                            && newValue.getPath().getItemPath().stripVariableSegment()
+                                            .equals(actualValue.getRealValue().getPath().getItemPath().stripVariableSegment()))
+                                    .findFirst();
+                            if (found.isPresent()) {
+                                toRemoveValues.remove(found.get());
+                                if (ValueStatus.DELETED.equals(found.get().getStatus())) {
+                                    found.get().setStatus(ValueStatus.NOT_CHANGED);
+                                }
+                            } else {
+                                try {
+                                    PrismPropertyValue<VariableBindingDefinitionType> newPrismValue
+                                            = getPrismContext().itemFactory().createPropertyValue();
+                                    newPrismValue.setValue(newValue);
+                                    sourceItem.add(newPrismValue, getPageBase());
+                                } catch (SchemaException e) {
+                                    LOGGER.error("Couldn't initialize new value for Source item", e);
+                                }
+                            }
+                        });
+
+                        toRemoveValues.forEach(toRemoveValue -> {
+                            try {
+                                sourceItem.remove(toRemoveValue, getPageBase());
+                            } catch (SchemaException e) {
+                                LOGGER.error("Couldn't remove old value for Source item", e);
+                            }
+                        });
+
+                        List<PrismPropertyValueWrapper<VariableBindingDefinitionType>> undeletedValues = sourceItem.getValues().stream()
+                                .filter(value -> value.getStatus() != ValueStatus.DELETED)
+                                .toList();
+                        if (undeletedValues.stream().filter(value -> value.getRealValue() != null).count() > 0) {
+                            sourceItem.getValues().removeIf(value -> value.getRealValue() == null);
+                        } else if (undeletedValues.isEmpty()) {
+                            try {
+                                PrismPropertyValue<VariableBindingDefinitionType> newPrismValue
+                                        = getPrismContext().itemFactory().createPropertyValue();
+                                newPrismValue.setValue(null);
+                                sourceItem.add(newPrismValue, getPageBase());
+                            } catch (SchemaException e) {
+                                LOGGER.error("Couldn't initialize new null value for Source item", e);
+                            }
+                        }
+
+                    }
+                };
+
+                FocusDefinitionsMappingProvider provider;
+                if (isMappingForAssociation()) {
+                    provider = new FocusDefinitionsMappingProvider((IModel<PrismPropertyWrapper<VariableBindingDefinitionType>>) rowModel) {
+                        @Override
+                        protected PrismContainerDefinition<? extends Containerable> getFocusTypeDefinition(ResourceObjectTypeDefinitionType resourceObjectType) {
+                            return PrismContext.get().getSchemaRegistry().findContainerDefinitionByCompileTimeClass(AssignmentType.class);
+                        }
+                    };
+                } else {
+                    provider = new FocusDefinitionsMappingProvider((IModel<PrismPropertyWrapper<VariableBindingDefinitionType>>) rowModel);
+                }
+                return new Select2MultiChoiceColumnPanel<>(componentId, multiselectModel, provider);
+            }
+
+            @Override
+            public String getCssClass() {
+                return "col-2 header-border-end";
+            }
+        });
+    }
+
+    private void initTargetColumn(List<IColumn<PrismContainerValueWrapper<MappingType>, String>> columns) {
+        columns.add(new PrismPropertyWrapperColumn<MappingType, String>(
+                getMappingTypeDefinition(),
+                MappingType.F_TARGET,
+                AbstractItemWrapperColumn.ColumnType.VALUE,
+                getPageBase()) {
+            @Override
+            public String getCssClass() {
+                return "col-2 header-border-end";
+            }
+        });
+    }
+
+    private void initExpressionColumn(List<IColumn<PrismContainerValueWrapper<MappingType>, String>> columns) {
+        columns.add(new PrismPropertyWrapperColumn<>(
+                getMappingTypeDefinition(),
+                MappingType.F_EXPRESSION,
+                AbstractItemWrapperColumn.ColumnType.VALUE,
+                getPageBase()) {
+            @Override
+            public String getCssClass() {
+                return "col-2 header-border-end";
+            }
+        });
+    }
+
+    @SuppressWarnings({ "unchecked", "rawtypes" })
+    private void initRefColumn(List<IColumn<PrismContainerValueWrapper<MappingType>, String>> columns, IModel<? extends PrismContainerDefinition<?>> refDefModel) {
+        columns.add(new PrismPropertyWrapperColumn(
+                refDefModel,
+                AbstractAttributeMappingsDefinitionType.F_REF,
+                AbstractItemWrapperColumn.ColumnType.VALUE,
+                getPageBase()) {
+            @Override
+            public String getCssClass() {
+                return "col-2 header-border-end";
+            }
+
+            @Override
+            protected Component createHeader(String componentId, IModel mainModel) {
+                String key = isInboundRelated() ? "From.resource.attribure" : "To.resource.attribute";
+                return createPropertyHeader(componentId, itemName, key, mainModel);
+            }
+
+        });
     }
 
     @Override

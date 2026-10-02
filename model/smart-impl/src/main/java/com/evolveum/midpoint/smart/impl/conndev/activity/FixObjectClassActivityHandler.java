@@ -81,8 +81,8 @@ public class FixObjectClassActivityHandler
                     getWorkDefinition().typedDefinition.getArtifact(),
                     skipCache);
             for (var artifact : resultObj.getArtifact()) {
-                if (artifact.getContent() != null) {
-                    // Mark as AI
+                if (artifact.getContent() != null && backend.isOnline()) {
+                    // Mark as AI (offline fixes return the current scripts unchanged)
                     SmartMetadataUtil.markAsAiProvided(artifact.asPrismContainerValue().findItem(ConnDevArtifactType.F_CONTENT).getValue());
                 }
             }

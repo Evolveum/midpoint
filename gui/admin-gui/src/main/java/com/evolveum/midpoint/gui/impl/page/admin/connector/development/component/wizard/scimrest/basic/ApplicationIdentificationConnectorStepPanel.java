@@ -57,7 +57,7 @@ import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component
         containerPath = "empty")
 public class ApplicationIdentificationConnectorStepPanel extends AbstractFormWizardStepPanel<ConnectorDevelopmentDetailsModel> {
 
-    private static final String PANEL_TYPE = "cdw-app-identification";
+    public static final String PANEL_TYPE = "cdw-app-identification";
 
     public ApplicationIdentificationConnectorStepPanel(WizardPanelHelper<? extends Containerable, ConnectorDevelopmentDetailsModel> helper) {
         super(helper);

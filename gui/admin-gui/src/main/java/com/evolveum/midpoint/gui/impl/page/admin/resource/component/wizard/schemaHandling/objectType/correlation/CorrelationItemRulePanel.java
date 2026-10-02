@@ -8,6 +8,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.sche
 
 import com.evolveum.midpoint.gui.api.component.BadgePanel;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
@@ -20,9 +21,12 @@ import com.evolveum.midpoint.smart.api.info.StatusInfo;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.component.prism.ItemVisibility;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.web.util.TooltipBehavior;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
+import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
@@ -100,12 +104,15 @@ public class CorrelationItemRulePanel<C extends Containerable> extends BasePanel
             efficiency = translate("SmartCorrelation.unknown");
         }
 
-        String tooltip = translate("SmartIntegration.badge.tooltip.ai");
+        String help = WebPrismUtil.getHelpText(getPageBase().getPrismContext(),
+                CorrelationSuggestionType.class, CorrelationSuggestionType.F_QUALITY);
+        String tooltip = StringUtils.isNotBlank(help) ? help : "";
         BadgePanel badge = new BadgePanel(ID_ALERT_BADGE,
                 getAiEfficiencyBadgeModel(
                         translate("SmartCorrelationTilePanel.unconfirmed.suggestion.efficiency", efficiency),
                         tooltip));
         badge.setOutputMarkupId(true);
+        badge.add(new TooltipBehavior());
         return badge;
     }
 
@@ -186,6 +193,10 @@ public class CorrelationItemRulePanel<C extends Containerable> extends BasePanel
         };
         table.setOutputMarkupId(true);
         return table;
+    }
+
+    public boolean validateCorrelationItems(AjaxRequestTarget target) {
+        return ((CorrelationItemRefsTable<?>) get(ID_TABLE)).validateCorrelationItems(target);
     }
 
     protected boolean isShowEmptyField() {

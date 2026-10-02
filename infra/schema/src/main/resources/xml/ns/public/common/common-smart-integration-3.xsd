@@ -703,7 +703,9 @@
             <xsd:element name="quality" type="xsd:double" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Estimated quality of this suggestion.
+                        Correlation quality/coverage based on a sample of resource objects.
+                        Indicates the proportion of objects in the sample that were successfully correlated
+                        with focus objects using the suggested correlation rule.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>

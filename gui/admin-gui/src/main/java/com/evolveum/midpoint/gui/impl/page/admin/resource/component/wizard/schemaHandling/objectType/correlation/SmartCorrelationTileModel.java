@@ -10,6 +10,9 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.impl.component.tile.TemplateTile;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CorrelationSuggestionType;
 import com.evolveum.midpoint.smart.api.SmartIntegrationService;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
 import com.evolveum.midpoint.task.api.Task;
@@ -45,7 +48,9 @@ public class SmartCorrelationTileModel<T extends PrismContainerValueWrapper<Item
     List<StateRecord> statesRecordList = new ArrayList<>();
 
     public record StateRecord(
-            @Nullable String value, @Nullable String label) implements Serializable {
+            @Nullable String value, @Nullable String label,
+            @NotNull Class<? extends Containerable> containerClass,
+            @NotNull ItemName itemName) implements Serializable {
 
         public String getValue() {
             return value;
@@ -92,11 +97,14 @@ public class SmartCorrelationTileModel<T extends PrismContainerValueWrapper<Item
     private void buildStateRecordList() {
         String weightLabel = (weight != null) ? weight.toString() : null;
         String tierLabel = (tier != null) ? tier.toString() : null;
-        statesRecordList.add(new StateRecord(weightLabel, translate("CorrelationItemRulePanel.weight")));
-        statesRecordList.add(new StateRecord(tierLabel, translate("CorrelationItemRulePanel.tier")));
+        statesRecordList.add(new StateRecord(weightLabel, translate("CorrelationItemRulePanel.weight"),
+                CorrelatorCompositionDefinitionType.class, CorrelatorCompositionDefinitionType.F_WEIGHT));
+        statesRecordList.add(new StateRecord(tierLabel, translate("CorrelationItemRulePanel.tier"),
+                CorrelatorCompositionDefinitionType.class, CorrelatorCompositionDefinitionType.F_TIER));
 
         if(efficiency != null) {
-            statesRecordList.add(new StateRecord(efficiency, translate("CorrelationItemRulePanel.efficiency")));
+            statesRecordList.add(new StateRecord(efficiency, translate("CorrelationItemRulePanel.efficiency"),
+                    CorrelationSuggestionType.class, CorrelationSuggestionType.F_QUALITY));
         }
     }
 

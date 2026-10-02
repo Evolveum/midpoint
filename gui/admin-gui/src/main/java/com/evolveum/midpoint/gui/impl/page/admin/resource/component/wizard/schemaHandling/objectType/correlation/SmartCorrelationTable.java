@@ -19,6 +19,7 @@ import java.io.Serial;
 import java.time.Duration;
 import java.util.*;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -351,12 +352,8 @@ public abstract class SmartCorrelationTable
             @Override
             protected String load() {
                 if (status.equals(OperationResultStatusType.SUCCESS)) {
-                    String name = realValue != null && realValue.getName() != null
+                    return realValue != null && realValue.getName() != null
                             ? realValue.getName() : createStringResource("SmartCorrelation.unnamed").getString();
-                    String efficiency = extractEfficiencyFromSuggestedCorrelationItemWrapper(wrapper);
-                    return efficiency != null
-                            ? createStringResource("SmartCorrelation.nameWithEfficiency", name, efficiency).getString()
-                            : name;
                 }
 
                 String textKey = SmartIntegrationUtils.SuggestionUiStyle.from(statusInfo, wrapper).textKey;
@@ -364,9 +361,29 @@ public abstract class SmartCorrelationTable
             }
         };
 
+        IModel<String> suggestionBadgeModel = new LoadableModel<>() {
+            @Override
+            protected String load() {
+                String suggestion = createStringResource("SmartIntegration.suggestion.text").getString();
+                String efficiency = status.equals(OperationResultStatusType.SUCCESS)
+                        ? extractEfficiencyFromSuggestedCorrelationItemWrapper(wrapper) : null;
+                return efficiency != null
+                        ? createStringResource("SmartCorrelation.badgeWithEfficiency", suggestion, efficiency).getString()
+                        : suggestion;
+            }
+        };
+
         String badgeTooltip = createStringResource("SmartIntegration.badge.tooltip.ai").getObject();
+        if (status == OperationResultStatusType.SUCCESS
+                && extractEfficiencyFromSuggestedCorrelationItemWrapper(wrapper) != null) {
+            String qualityHelp = WebPrismUtil.getHelpText(getPageBase().getPrismContext(),
+                    CorrelationSuggestionType.class, CorrelationSuggestionType.F_QUALITY);
+            if (StringUtils.isNotBlank(qualityHelp)) {
+                badgeTooltip += "\n" + qualityHelp;
+            }
+        }
         LabelWithBadgePanel labelWithBadgePanel = buildSuggestionNameLabel(componentId, statusInfo, displayNameModel,
-                createStringResource("SmartIntegration.suggestion.text"), badgeTooltip, status);
+                suggestionBadgeModel, badgeTooltip, status);
         cellItem.add(labelWithBadgePanel);
     }
 
