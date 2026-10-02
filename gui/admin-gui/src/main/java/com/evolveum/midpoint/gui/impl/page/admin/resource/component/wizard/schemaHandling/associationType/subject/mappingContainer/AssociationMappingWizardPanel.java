@@ -178,12 +178,7 @@ public class AssociationMappingWizardPanel<C extends Containerable> extends Abst
                 showTableFragment(target, initialTab);
             }
         });
-        steps.add(new InboundMappingRangeStepPanel(getAssignmentHolderModel(), valueModel) {
-            @Override
-            protected void onExitPerformed(AjaxRequestTarget target) {
-                showTableFragment(target, initialTab);
-            }
-        });
+
         steps.add(new InboundMappingOptionalConfigurationStepPanel(getAssignmentHolderModel(), valueModel) {
             @Override
             protected void onExitPerformed(AjaxRequestTarget target) {
@@ -210,12 +205,7 @@ public class AssociationMappingWizardPanel<C extends Containerable> extends Abst
                 showTableFragment(target, initialTab);
             }
         });
-        steps.add(new OutboundMappingRangeStepPanel<>(getAssignmentHolderModel(), valueModel) {
-            @Override
-            protected void onExitPerformed(AjaxRequestTarget target) {
-                showTableFragment(target, initialTab);
-            }
-        });
+
         steps.add(new OutboundMappingOptionalConfigurationStepPanel<>(getAssignmentHolderModel(), valueModel) {
             @Override
             protected void onExitPerformed(AjaxRequestTarget target) {
