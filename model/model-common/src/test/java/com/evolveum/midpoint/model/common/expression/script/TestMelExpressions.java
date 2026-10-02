@@ -74,6 +74,8 @@ import javax.xml.namespace.QName;
 
 import static com.evolveum.midpoint.prism.util.PrismTestUtil.createPolyStringType;
 
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.NS_C;
+
 import static org.testng.AssertJUnit.*;
 
 /**
@@ -436,6 +438,29 @@ public class TestMelExpressions extends AbstractScriptTest {
                 "expression-format-reference.xml",
                 createVariables("input", reference, definition),
                 "User: Jack Sparrow");
+    }
+
+    @Test
+    public void testReferenceTargetName() throws Exception {
+        var definition = prismContext.definitionFactory()
+                .newReferenceDefinition(
+                        new QName(NS_C, "anyRef"), ObjectReferenceType.COMPLEX_TYPE);
+        var referenceWithTargetName = new ObjectReferenceType()
+                .oid(USER_JACK_OID)
+                .type(UserType.COMPLEX_TYPE)
+                .targetName(createPolyStringType("Jack Sparrow"));
+        var referenceWithoutTargetName = new ObjectReferenceType()
+                .type(UserType.COMPLEX_TYPE)
+                .oid(USER_JACK_OID);
+
+        executeAndAssertStringScalarExpression(
+                "expression-reference-target-name.xml",
+                createVariables("input", referenceWithTargetName, definition),
+                "UserType:Jack Sparrow");
+        executeAndAssertStringScalarExpression(
+                "expression-reference-target-name.xml",
+                createVariables("input", referenceWithoutTargetName, definition),
+                "UserType:missing");
     }
 
     @Test
