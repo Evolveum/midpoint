@@ -369,6 +369,7 @@
                </source>
                <expression>
                   <script>
+                      <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
                      <code>
                                 name + iterationToken
                             </code>
@@ -399,6 +400,7 @@
                <expression>
                   <script>
                      <allowEmptyValues>true</allowEmptyValues>
+                      <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
                      <code>
                                 if (input?.contains('#')) {
                                     return null
@@ -431,7 +433,8 @@
                <expression>
                   <allowEmptyValues>false</allowEmptyValues>
                   <script>
-                     <code>'Came from ' + input</code>
+                      <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
+                      <code>'Came from ' + input</code>
                   </script>
                </expression>
                <target>
@@ -446,7 +449,8 @@
                <expression>
                   <script>
                      <allowEmptyValues>false</allowEmptyValues>
-                     <code>'The crew of ' + input</code>
+                      <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
+                      <code>'The crew of ' + input</code>
                   </script>
                </expression>
                <target>
@@ -454,7 +458,8 @@
                </target>
                <condition>
                   <script>
-                     <code>input != null</code>
+                      <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
+                      <code>input != null</code>
                   </script>
                </condition>
             </inbound>
@@ -467,7 +472,8 @@
                <channel>http://pirates.net/avast</channel>
                <expression>
                   <script>
-                     <code>9999 + 1</code>
+                      <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
+                      <code>9999 + 1</code>
                   </script>
                </expression>
             </outbound>
@@ -568,7 +574,8 @@
                   <strength>weak</strength>
                   <condition>
                      <script>
-                        <code>focus?.getActivation()?.getValidFrom() == null &amp;&amp; focus?.getActivation()?.getValidTo() == null</code>
+                         <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
+                         <code>focus?.getActivation()?.getValidFrom() == null &amp;&amp; focus?.getActivation()?.getValidTo() == null</code>
                      </script>
                   </condition>
                </inbound>
@@ -606,7 +613,8 @@
                </source>
                <expression>
                   <script>
-                     <code>
+                      <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
+                      <code>
                                 'T' + name + iterationToken
                             </code>
                   </script>
@@ -616,7 +624,8 @@
                <strength>weak</strength>
                <expression>
                   <script>
-                     <code>
+                      <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
+                      <code>
                                 input?.substring(1)
                             </code>
                   </script>
@@ -634,7 +643,8 @@
                </source>
                <expression>
                   <script>
-                     <code>fullName + ' (test)'</code>
+                      <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
+                      <code>fullName + ' (test)'</code>
                   </script>
                </expression>
             </outbound>
@@ -660,7 +670,8 @@
             <inbound>
                <expression>
                   <script>
-                     <code>'The crew of Titanicum ' + input + 'icum'</code>
+                      <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
+                      <code>'The crew of Titanicum ' + input + 'icum'</code>
                   </script>
                </expression>
                <target>
@@ -668,7 +679,8 @@
                </target>
                <condition>
                   <script>
-                     <code>input != null</code>
+                      <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
+                      <code>input != null</code>
                   </script>
                </condition>
             </inbound>
@@ -805,7 +817,8 @@
          <language>Logo</language>
          <argument>
             <script>
-               <code>
+                <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
+                <code>
                     'user: ' + user?.getName()
                     </code>
             </script>
@@ -813,7 +826,8 @@
          </argument>
          <argument>
             <script>
-               <code>
+                <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
+                <code>
                     'account: ' + account?.getActivation()?.getAdministrativeStatus()
                     </code>
             </script>
@@ -821,7 +835,8 @@
          </argument>
          <argument>
             <script>
-               <code>
+                <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
+                <code>
                     'resource: ' + resource?.getName()
                     </code>
             </script>
@@ -911,7 +926,8 @@ end
          <enabled>true</enabled>
          <condition>
             <script>
-               <code>!basic.getAttributeValue(shadow, 'http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3', 'name').startsWith("T")</code>
+                <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
+                <code>!basic.getAttributeValue(shadow, 'http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3', 'name').startsWith("T")</code>
             </script>
          </condition>
          <correlation>
@@ -955,7 +971,8 @@ end
          <enabled>true</enabled>
          <condition>
             <script>
-               <code>basic.getAttributeValue(shadow, 'http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3', 'name').startsWith("T")</code>
+                <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
+                <code>basic.getAttributeValue(shadow, 'http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3', 'name').startsWith("T")</code>
             </script>
          </condition>
          <correlation>
@@ -963,7 +980,8 @@ end
                <q:path>name</q:path>
                <expression>
                   <script>
-                     <code>basic.getAttributeValue(shadow, 'http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3', 'name').substring(1)</code>
+                      <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
+                      <code>basic.getAttributeValue(shadow, 'http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3', 'name').substring(1)</code>
                   </script>
                </expression>
             </q:equal>
