@@ -19,7 +19,6 @@ import com.evolveum.midpoint.gui.impl.component.input.expression.ExpressionPanel
 import com.evolveum.midpoint.gui.impl.component.wizard.collapse.DrawerModel;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.AttributeModifier;
@@ -46,10 +45,7 @@ import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapper
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapperColumnPanel;
 import com.evolveum.midpoint.gui.impl.component.input.FocusDefinitionsMappingProvider;
 import com.evolveum.midpoint.gui.impl.component.input.Select2MultiChoiceColumnPanel;
-import com.evolveum.midpoint.gui.impl.prism.panel.PrismPropertyHeaderPanel;
 import com.evolveum.midpoint.web.component.data.column.IconColumn;
-import com.evolveum.midpoint.web.model.PrismPropertyWrapperHeaderModel;
-import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 /**
  * Builds column definitions for {@link SmartMappingTable}.
@@ -137,7 +133,7 @@ final class SmartMappingColumns<P extends Containerable> implements Serializable
 
             @Override
             protected Component createHeader(String componentId, IModel mainModel) {
-                return createPropertyHeader(componentId, itemName,
+                return table.createPropertyHeader(componentId, itemName,
                         table.getMappingDirectionType().name() + "." + ResourceAttributeDefinitionType.F_REF,
                         mainModel);
             }
@@ -252,7 +248,7 @@ final class SmartMappingColumns<P extends Containerable> implements Serializable
 
             @Override
             protected Component createHeader(String componentId, IModel<? extends PrismContainerDefinition<MappingType>> mainModel) {
-                return createPropertyHeader(componentId, itemName, "SmartMappingColumns.midPoint.property", mainModel);
+                return table.createPropertyHeader(componentId, itemName, "SmartMappingColumns.midPoint.property", mainModel);
             }
 
             @Override
@@ -297,39 +293,12 @@ final class SmartMappingColumns<P extends Containerable> implements Serializable
 
             @Override
             protected Component createHeader(String componentId, IModel<? extends PrismContainerDefinition<MappingType>> mainModel) {
-                return createPropertyHeader(componentId, itemName, "SmartMappingColumns.midPoint.property", mainModel);
+                return table.createPropertyHeader(componentId, itemName, "SmartMappingColumns.midPoint.property", mainModel);
             }
 
             @Override
             public String getCssClass() {
                 return "col-2 header-border-end";
-            }
-        };
-    }
-
-    private @NotNull PrismPropertyHeaderPanel<ItemPathType> createPropertyHeader(
-            String componentId,
-            ItemPath itemName,
-            String headerLabelKey,
-            IModel<? extends PrismContainerDefinition<MappingType>> mainModel) {
-        return new PrismPropertyHeaderPanel<>(
-                componentId,
-                new PrismPropertyWrapperHeaderModel<>(mainModel, itemName, table.getPageBase())) {
-
-            @Override
-            protected boolean isAddButtonVisible() {
-                return false;
-            }
-
-            @Override
-            protected boolean isButtonEnabled() {
-                return false;
-            }
-
-            @Override
-            protected Component createTitle(IModel<String> label) {
-                return super.createTitle(table.getPageBase()
-                        .createStringResource(headerLabelKey));
             }
         };
     }

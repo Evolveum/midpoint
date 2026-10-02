@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.AbstractResourceWizardBasicPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.associationType.AssociationMappingEvaluatorModelBuilder;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -29,7 +30,6 @@ import com.evolveum.midpoint.gui.api.util.MappingDirection;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.AbstractResourceNavigationWizardBasicPanel;
 import com.evolveum.midpoint.gui.impl.util.AssociationChildWrapperUtil;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -57,7 +57,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
         applicableForType = ResourceType.class,
         applicableForOperation = OperationTypeType.WIZARD,
         display = @PanelDisplay(label = "AssociationMappingsTableWizardPanel.outboundTable", icon = "fa fa-arrow-right-from-bracket"))
-public abstract class AssociationMappingsTableWizardPanel<C extends Containerable> extends AbstractResourceNavigationWizardBasicPanel<C> {
+public abstract class AssociationMappingsTableWizardPanel<C extends Containerable> extends AbstractResourceWizardBasicPanel<C> {
 
     private static final Trace LOGGER = TraceManager.getTrace(AssociationMappingsTableWizardPanel.class);
 
@@ -126,12 +126,6 @@ public abstract class AssociationMappingsTableWizardPanel<C extends Containerabl
         return evalModel(ShadowAssociationDefinitionType.F_OUTBOUND);
     }
 
-    // TODO currently broken for empty inbound/outbound containers:
-    //  when no mapping value exists yet and we create the first one here,
-    //  midpoint persists only the evaluator expression, but not the mapping rows edited later.
-    //  Most likely cause: newly created value in this multivalue container is not fully tracked
-    //  in wrapper/delta processing (possibly value identity/ID handling).
-    //  Fix this here, then remove ensureMappingExists(...) from ResourceAssociationTypeWizardPanelNew.
     private @NotNull IModel<PrismContainerValueWrapper<AssociationSynchronizationExpressionEvaluatorType>> evalModel(
             @NotNull ItemPath containerPath) {
 
