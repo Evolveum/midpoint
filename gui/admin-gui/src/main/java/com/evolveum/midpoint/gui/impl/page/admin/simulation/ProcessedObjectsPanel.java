@@ -365,7 +365,7 @@ public abstract class ProcessedObjectsPanel extends ContainerableListPanel<Simul
                         IModel<SelectableBean<SimulationResultProcessedObjectType>> selected = getRowModel();
                         if (selected == null) {
                             warn(getString("MainObjectListPanel.message.noFocusSelected"));
-                            target.add(getPageBase().getFeedbackPanel());
+                            WebComponentUtil.refreshFeedbacks(getPage(), target);
                             return;
                         }
 
@@ -373,7 +373,7 @@ public abstract class ProcessedObjectsPanel extends ContainerableListPanel<Simul
 
                         if (focusModel.getObject() == null) {
                             warn(getString("ProcessedObjectsPanel.message.noObjectFound", selected.getObject().getValue().getOid()));
-                            target.add(getPageBase().getFeedbackPanel());
+                            WebComponentUtil.refreshFeedbacks(getPage(), target);
                             return;
                         }
 
@@ -383,6 +383,7 @@ public abstract class ProcessedObjectsPanel extends ContainerableListPanel<Simul
                             @Override
                             protected void onSave(AjaxRequestTarget target) {
                                 refreshTable(target);
+                                WebComponentUtil.refreshFeedbacks(getPage(), target);
                             }
                         };
 
@@ -566,7 +567,7 @@ public abstract class ProcessedObjectsPanel extends ContainerableListPanel<Simul
 
         if (selected == null || selected.isEmpty()) {
             page.warn(getString("ResourceContentPanel.message.markShadowPerformed.warning"));
-            target.add(page.getFeedbackPanel());
+            WebComponentUtil.refreshFeedbacks(getPage(), target);
             return;
         }
 
@@ -579,7 +580,7 @@ public abstract class ProcessedObjectsPanel extends ContainerableListPanel<Simul
         page.showResult(result);
 
         refreshTable(target);
-        target.add(page.getFeedbackPanel());
+        WebComponentUtil.refreshFeedbacks(getPage(), target);
     }
 
     private void markObjects(IModel<SelectableBean<SimulationResultProcessedObjectType>> model, AjaxRequestTarget target) {
