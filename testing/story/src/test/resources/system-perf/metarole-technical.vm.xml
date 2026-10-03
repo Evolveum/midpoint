@@ -17,6 +17,7 @@
                 <strength>strong</strength>
                 <expression>
                     <script>
+                        <language>$scriptingLanguage</language>
                         <code>
                             'R:' + assignmentPath[0].target.name + '-' + assignmentPath[1].target.name
                         </code>
@@ -27,8 +28,10 @@
                     <set>
                         <condition>
                             <script>
+                                <language>$scriptingLanguage</language>
                                 <code>
                                     input?.startsWith("R:")
+                                    #end
                                 </code>
                             </script>
                         </condition>

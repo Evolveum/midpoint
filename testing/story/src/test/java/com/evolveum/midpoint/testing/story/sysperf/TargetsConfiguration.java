@@ -48,13 +48,14 @@ class TargetsConfiguration {
     private final int singleValuedMappings;
     private final int multiValuedMappings;
     private final String mappingStrength;
+    private final ScriptingConfiguration scriptingConfiguration;
     @NotNull private final Associations associations;
 
     @NotNull private final OperationDelay operationDelay;
 
-    private final List<DummyTestResource> generatedResources;
+    private List<DummyTestResource> generatedResources;
 
-    private TargetsConfiguration() {
+    private TargetsConfiguration(ScriptingConfiguration scriptingConfiguration) {
         numberOfResources = Integer.parseInt(System.getProperty(PROP_RESOURCES, "0"));
         singleValuedMappings = Integer.parseInt(System.getProperty(PROP_SINGLE_MAPPINGS, "0"));
         multiValuedMappings = Integer.parseInt(System.getProperty(PROP_MULTI_MAPPINGS, "0"));
@@ -62,9 +63,7 @@ class TargetsConfiguration {
         associations = Associations.fromValue(System.getProperty(PROP_ASSOCIATIONS));
 
         operationDelay = OperationDelay.fromSystemProperties(PROP);
-
-        generatedResources = generateDummyTestResources();
-        generateRoleTargets();
+        this.scriptingConfiguration = scriptingConfiguration;
     }
 
     int getSingleValuedMappings() {
@@ -87,8 +86,9 @@ class TargetsConfiguration {
         return operationDelay;
     }
 
-    public static TargetsConfiguration setup() {
-        TargetsConfiguration configuration = new TargetsConfiguration();
+    public static TargetsConfiguration setup(ScriptingConfiguration scriptingConfiguration) {
+        TargetsConfiguration configuration = new TargetsConfiguration(scriptingConfiguration);
+        generateRoleTargets(configuration.generateDummyTestResources());
         System.out.println("Targets: " + configuration);
         return configuration;
     }
@@ -106,11 +106,14 @@ class TargetsConfiguration {
     }
 
     private List<DummyTestResource> generateDummyTestResources() {
-        List<DummyTestResource> resources = new ArrayList<>();
+        if (generatedResources != null) {
+            return generatedResources;
+        }
+        generatedResources = new ArrayList<>();
         for (int i = 0; i < numberOfResources; i++) {
             String oid = RandomSource.randomUUID().toString();
             String resourceDefinitionFile = createResourceDefinition(i, oid);
-            resources.add(new DummyTestResource(TARGET_DIR, resourceDefinitionFile, oid, getResourceInstance(i),
+            generatedResources.add(new DummyTestResource(TARGET_DIR, resourceDefinitionFile, oid, getResourceInstance(i),
                     controller -> {
                         DummyResource dummyResource = controller.getDummyResource();
                         createAttributes(controller, A_SINGLE_NAME, singleValuedMappings, false);
@@ -146,7 +149,7 @@ class TargetsConfiguration {
                         }
                     }));
         }
-        return resources;
+        return generatedResources;
     }
 
     private String createResourceDefinition(int index, String oid) {
@@ -160,7 +163,8 @@ class TargetsConfiguration {
                         "singleValuedIndexList", Util.createIndexList(singleValuedMappings),
                         "mappingStrength", mappingStrength,
                         "associationShortcut", associations.isAssociationShortcut(),
-                        "nativeReferences", associations.isNativeReferences()));
+                        "nativeReferences", associations.isNativeReferences(),
+                        "scriptingLanguage", scriptingConfiguration.language()));
 
         return generatedFileName;
     }
@@ -177,8 +181,12 @@ class TargetsConfiguration {
         }
     }
 
-    private void generateRoleTargets() {
-        List<String> targetOidList = generatedResources.stream()
+    List<DummyTestResource> getGeneratedResources() {
+        return generatedResources;
+    }
+
+    private static void generateRoleTargets(List<DummyTestResource> testResources) {
+        List<String> targetOidList = testResources.stream()
                 .map(r -> r.oid)
                 .toList();
         VelocityGenerator.generate(
@@ -186,7 +194,4 @@ class TargetsConfiguration {
                 Map.of("oidList", targetOidList));
     }
 
-    List<DummyTestResource> getGeneratedResources() {
-        return generatedResources;
-    }
 }
