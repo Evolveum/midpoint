@@ -10,6 +10,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import static com.evolveum.midpoint.smart.api.conndev.ConnectorDevelopmentArtifacts.KnownArtifactType.*;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.List;
 import java.util.function.Consumer;
 
@@ -38,6 +39,14 @@ public interface ConnectorDevelopmentOperation {
     StatusInfo<PrismContainer<ConnDevAuthInfoType>>  selectBaseApiInformation(String basicInfo);
 
     String submitCreateConnector(Task task, OperationResult result);
+
+    /**
+     * Copies the bundle of the existing low-code connector this development was imported from
+     * (see {@code connector/sourceConnectorRef}) to a new bundle directory with the development's
+     * connector coordinates (group, artifact, version) and installs the copy. Counterpart of
+     * {@link #submitCreateConnector} for the import flow - no framework template download.
+     */
+    String submitCopyConnector(Task task, OperationResult result);
 
     String submitExportConnector(Task task, OperationResult result);
 
@@ -213,6 +222,19 @@ public interface ConnectorDevelopmentOperation {
 
 
     void saveArtifact(ConnDevArtifactType endpoint, Task task, OperationResult result) throws IOException, CommonException;
+
+    /**
+     * Saves the uploaded documentation file to disk (tmp-docs).
+     *
+     * @param fileName original name of the uploaded file
+     * @param content file content
+     * @param contentType MIME type of the file
+     * @param task task of the operation
+     * @param result operation result
+     * @return generated UUID under which the file is stored
+     */
+    String saveDocumentationFile(String fileName, InputStream content, String contentType, Task task, OperationResult result)
+            throws IOException, CommonException;
 
     /**
      * Marks an already-deployed script as disabled in the manifest, so the connector skips it both

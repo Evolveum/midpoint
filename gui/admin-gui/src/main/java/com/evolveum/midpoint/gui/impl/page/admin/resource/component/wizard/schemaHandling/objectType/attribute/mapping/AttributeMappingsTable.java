@@ -57,9 +57,6 @@ public abstract class AttributeMappingsTable<P extends Containerable, AP extends
                 getPageBase(),
                 target);
 
-        if (newValue != null) {
-            MappingRangeUtils.initializeRange(newValue);
-        }
         return newValue;
     }
 

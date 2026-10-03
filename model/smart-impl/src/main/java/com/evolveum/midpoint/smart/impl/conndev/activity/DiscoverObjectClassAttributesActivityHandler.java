@@ -86,11 +86,16 @@ public class DiscoverObjectClassAttributesActivityHandler
 
             LOGGER.info("Discovering attributes for object class '{}' in task {}", objectClass, getRunningTask().getName());
             var backend = ConnectorDevelopmentBackend.backendFor(connectorDevelopmentOid, getRunningTask(), result);
-            backend.ensureDocumentationIsProcessed();
             backend.ensureObjectClass(objectClass);
 
-            var skipCache = Boolean.TRUE.equals(getWorkDefinition().typedDefinition.getSkipCache());
-            var attributes = backend.discoverObjectClassAttributes(objectClass, skipCache);
+            var attributes = backend.discoverObjectClassAttributesFromDevMode(objectClass);
+            if (attributes.isEmpty()) {
+                // No development-mode metadata for this object class - fall back to the
+                // documentation (AI digester) based discovery.
+                backend.ensureDocumentationIsProcessed();
+                var skipCache = Boolean.TRUE.equals(getWorkDefinition().typedDefinition.getSkipCache());
+                attributes = backend.discoverObjectClassAttributes(objectClass, skipCache);
+            }
             backend.updateConnectorObjectClassAttributes(objectClass, attributes);
             LOGGER.info("Successfully discovered attributes for object class '{}'", objectClass);
 

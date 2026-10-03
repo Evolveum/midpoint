@@ -18,9 +18,12 @@ import java.util.Set;
 import com.evolveum.midpoint.gui.impl.component.data.provider.BaseSortableDataProvider;
 import com.evolveum.midpoint.gui.impl.component.data.provider.MultivalueContainerListDataProvider;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils;
+import com.evolveum.midpoint.gui.impl.prism.panel.PrismPropertyHeaderPanel;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.util.SerializableFunction;
+import com.evolveum.midpoint.web.model.PrismPropertyWrapperHeaderModel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.Component;
@@ -40,7 +43,6 @@ import org.jetbrains.annotations.Nullable;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
-import com.evolveum.midpoint.gui.impl.component.input.range.MappingRangeUtils;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
 import com.evolveum.midpoint.gui.api.util.MappingDirection;
@@ -587,9 +589,6 @@ public abstract class SmartMappingTable<P extends Containerable> extends BasePan
                 getPageBase(),
                 target);
 
-        if (newValue != null) {
-            MappingRangeUtils.initializeRange(newValue);
-        }
         return newValue;
     }
 
@@ -710,5 +709,32 @@ public abstract class SmartMappingTable<P extends Containerable> extends BasePan
      */
     protected @NotNull List<InlineMenuItem> getCustomSettingsMenuItems() {
         return List.of();
+    }
+
+    public @NotNull PrismPropertyHeaderPanel<ItemPathType> createPropertyHeader(
+            String componentId,
+            ItemPath itemName,
+            String headerLabelKey,
+            IModel<? extends PrismContainerDefinition<MappingType>> mainModel) {
+        return new PrismPropertyHeaderPanel<>(
+                componentId,
+                new PrismPropertyWrapperHeaderModel<>(mainModel, itemName, getPageBase())) {
+
+            @Override
+            protected boolean isAddButtonVisible() {
+                return false;
+            }
+
+            @Override
+            protected boolean isButtonEnabled() {
+                return false;
+            }
+
+            @Override
+            protected Component createTitle(IModel<String> label) {
+                return super.createTitle(getPageBase()
+                        .createStringResource(headerLabelKey));
+            }
+        };
     }
 }

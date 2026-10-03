@@ -188,7 +188,10 @@ public class RestBackend extends ConnectorDevelopmentBackend {
         restoreRelations(client);
         restoreEndpoints(client);
         restoreAttributes(client);
+
+        // Artifacts needs to be stored
         restoreCodegenArtifacts(client);
+
     }
 
     @Override

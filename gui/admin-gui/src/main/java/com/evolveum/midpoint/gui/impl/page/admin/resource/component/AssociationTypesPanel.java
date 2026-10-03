@@ -60,6 +60,8 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Collections;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils;
+
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationStatusInfoUtils.loadAssociationTypeSuggestion;
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils.runAssociationSuggestionAction;
 
@@ -153,12 +155,13 @@ public class AssociationTypesPanel extends SchemaHandlingObjectsPanel<ShadowAsso
 
             @Override
             protected boolean isSuggestButtonVisible() {
-                return !isShowSuggestionsButtonVisible();
+                return SmartIntegrationUtils.isSmartIntegrationAuthorized(getPageBase())
+                        && !isShowSuggestionsButtonVisible();
             }
 
             @Override
             protected boolean isShowSuggestionsButtonVisible() {
-                return isSuggestionExists();
+                return SmartIntegrationUtils.isSmartIntegrationAuthorized(getPageBase()) && isSuggestionExists();
             }
 
             @Override

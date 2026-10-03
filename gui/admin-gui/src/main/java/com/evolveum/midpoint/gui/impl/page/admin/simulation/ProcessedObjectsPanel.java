@@ -298,11 +298,11 @@ public abstract class ProcessedObjectsPanel extends ContainerableListPanel<Simul
         return StringUtils.joinWith(", ", names);
     }
 
-    private List<InlineMenuItem> createRowMenuItems() {
+    private @NotNull List<InlineMenuItem> createRowMenuItems() {
         List<InlineMenuItem> items = new ArrayList<>();
 
         items.add(new ButtonInlineMenuItem(createStringResource("pageContentAccounts.menu.markProtected"), true) {
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public CompositedIconBuilder getIconCompositedBuilder() {
@@ -311,19 +311,38 @@ public abstract class ProcessedObjectsPanel extends ContainerableListPanel<Simul
 
             @Override
             public InlineMenuItemAction initAction() {
-                return new ColumnMenuAction<SelectableBean<SimulationResultProcessedObjectType>>() {
-                    private static final long serialVersionUID = 1L;
-
-                    @Override
-                    public void onSubmit(AjaxRequestTarget target) {
-                        markObjects(getRowModel(), target);
-                    }
-                };
+                return getMarkMenuAction(SystemObjectsType.MARK_PROTECTED);
             }
         });
 
+        items.add(markInlineMenuAction("pageContentAccounts.menu.markDoNotTouch", SystemObjectsType.MARK_DO_NOT_TOUCH));
+        items.add(markInlineMenuAction("pageContentAccounts.menu.markCorrelateLater", SystemObjectsType.MARK_CORRELATE_LATER));
+        items.add(markInlineMenuAction("pageContentAccounts.menu.markInvalidData", SystemObjectsType.MARK_INVALID_DATA));
         items.add(modifyMarkInlineMenuAction());
+
         return items;
+    }
+
+    private @NotNull ColumnMenuAction<SelectableBean<SimulationResultProcessedObjectType>> getMarkMenuAction(SystemObjectsType mark) {
+        return new ColumnMenuAction<>() {
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            public void onSubmit(AjaxRequestTarget target) {
+                markObjects(getRowModel(), Collections.singletonList(mark.value()), target);
+            }
+        };
+    }
+
+    private @NotNull InlineMenuItem markInlineMenuAction(final String key, final SystemObjectsType mark) {
+        return new InlineMenuItem(createStringResource(key), true) {
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            public InlineMenuItemAction initAction() {
+                return getMarkMenuAction(mark);
+            }
+        };
     }
 
     public InlineMenuItem modifyMarkInlineMenuAction() {
@@ -346,7 +365,7 @@ public abstract class ProcessedObjectsPanel extends ContainerableListPanel<Simul
                         IModel<SelectableBean<SimulationResultProcessedObjectType>> selected = getRowModel();
                         if (selected == null) {
                             warn(getString("MainObjectListPanel.message.noFocusSelected"));
-                            target.add(getPageBase().getFeedbackPanel());
+                            WebComponentUtil.refreshFeedbacks(getPage(), target);
                             return;
                         }
 
@@ -354,7 +373,7 @@ public abstract class ProcessedObjectsPanel extends ContainerableListPanel<Simul
 
                         if (focusModel.getObject() == null) {
                             warn(getString("ProcessedObjectsPanel.message.noObjectFound", selected.getObject().getValue().getOid()));
-                            target.add(getPageBase().getFeedbackPanel());
+                            WebComponentUtil.refreshFeedbacks(getPage(), target);
                             return;
                         }
 
@@ -364,6 +383,7 @@ public abstract class ProcessedObjectsPanel extends ContainerableListPanel<Simul
                             @Override
                             protected void onSave(AjaxRequestTarget target) {
                                 refreshTable(target);
+                                WebComponentUtil.refreshFeedbacks(getPage(), target);
                             }
                         };
 
@@ -547,7 +567,7 @@ public abstract class ProcessedObjectsPanel extends ContainerableListPanel<Simul
 
         if (selected == null || selected.isEmpty()) {
             page.warn(getString("ResourceContentPanel.message.markShadowPerformed.warning"));
-            target.add(page.getFeedbackPanel());
+            WebComponentUtil.refreshFeedbacks(getPage(), target);
             return;
         }
 
@@ -560,7 +580,7 @@ public abstract class ProcessedObjectsPanel extends ContainerableListPanel<Simul
         page.showResult(result);
 
         refreshTable(target);
-        target.add(page.getFeedbackPanel());
+        WebComponentUtil.refreshFeedbacks(getPage(), target);
     }
 
     private void markObjects(IModel<SelectableBean<SimulationResultProcessedObjectType>> model, AjaxRequestTarget target) {

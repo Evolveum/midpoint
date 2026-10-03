@@ -445,7 +445,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
             return oid;
         } catch (ObjectNotFoundException e) {
             throw new SystemException("Should not happen", e);
-        } catch (RepositoryException | RuntimeException e) {
+        } catch (RuntimeException e) {
             SqaleUtils.handlePostgresException(e);
             throw e;
         } finally {
@@ -506,15 +506,6 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
         try {
             return executeModifyObject(type, oidUuid, modifications, precondition, options, operationResult);
         } catch (RepositoryException | RuntimeException e) {
-
-            // Handle PostgreSQL errors explicitly to correctly mark the operation 'Modify Object' as failed.
-            try {
-                SqaleUtils.handlePostgresException(e);
-            } catch (SchemaException ex) {
-                recordFatalError(operationResult, ex);
-                throw ex;
-            }
-
             throw handledGeneralException(e, operationResult);
         } catch (Throwable t) {
             recordFatalError(operationResult, t);
@@ -533,7 +524,8 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
             @Nullable ModificationPrecondition<T> precondition,
             @Nullable RepoModifyOptions options,
             @NotNull OperationResult parentResult)
-            throws SchemaException, ObjectNotFoundException, PreconditionViolationException, RepositoryException {
+            throws SchemaException, ObjectNotFoundException, PreconditionViolationException, RepositoryException,
+            ObjectAlreadyExistsException {
         long opHandle = registerOperationStart(OP_MODIFY_OBJECT, type);
         try {
             return executeRetriable(OP_MODIFY_OBJECT, oidUuid, opHandle, () -> {
@@ -554,8 +546,6 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
                 throw pve;
             }
             throw e;
-        } catch (ObjectAlreadyExistsException e) {
-            throw new SystemException("Should not happen", e);
         } finally {
             registerOperationFinish(opHandle);
         }
@@ -620,7 +610,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
             @NotNull ModificationsSupplier<T> modificationsSupplier,
             @Nullable RepoModifyOptions modifyOptions,
             @NotNull OperationResult parentResult)
-            throws SchemaException, ObjectNotFoundException, RepositoryException {
+            throws SchemaException, ObjectNotFoundException, RepositoryException, ObjectAlreadyExistsException {
         try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startTransaction()) {
             RootUpdateContext<T, QObject<MObject>, MObject> updateContext =
                     prepareUpdateContext(jdbcSession, type, oidUuid, getOptions, modifyOptions);
@@ -645,7 +635,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
             @Nullable ModificationPrecondition<T> precondition,
             @Nullable RepoModifyOptions options,
             @NotNull OperationResult operationResult)
-            throws SchemaException, PreconditionViolationException, RepositoryException {
+            throws SchemaException, PreconditionViolationException, RepositoryException, ObjectAlreadyExistsException {
         try (var sqaleResult = SqlBaseOperationTracker.with(operationResult)) {
 
             if (options == null) {
@@ -684,13 +674,18 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
             // FIXME: If reindex needed is detected and this is partial update (without full object)
             // object needs to be reloaded.
 
-            if (reindex) {
-                // UpdateTables is false, we want only to process modifications on fullObject
-                // do not modify nested items.
-                modifications = updateContext.execute(modifications, false);
-                replaceObject(updateContext, updateContext.getPrismObject());
-            } else {
-                modifications = updateContext.execute(modifications);
+            try {
+                if (reindex) {
+                    // UpdateTables is false, we want only to process modifications on fullObject
+                    // do not modify nested items.
+                    modifications = updateContext.execute(modifications, false);
+                    replaceObject(updateContext, updateContext.getPrismObject());
+                } else {
+                    modifications = updateContext.execute(modifications);
+                }
+            } catch (RuntimeException e) {
+                SqaleUtils.handlePostgresException(e);
+                throw e;
             }
             logger.trace("OBJECT after:\n{}", prismObject.debugDumpLazily());
 
@@ -704,22 +699,17 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
     private <T extends ObjectType> void replaceObject(
             @NotNull RootUpdateContext<?, QObject<MObject>, MObject> updateContext,
             PrismObject<T> newObject)
-            throws RepositoryException {
+            throws SchemaException {
         // We delete original object and cascade of referenced tables, this will also
         // remove additional rows, which may not be present in full object
         // after desync
         updateContext.jdbcSession().newDelete(updateContext.entityPath())
                 .where(updateContext.entityPath().oid.eq(updateContext.objectOid()))
                 .execute();
-        try {
-            // We add object again, this will ensure recreation of all indices and correct
-            // table rows again
-            new AddObjectContext<>(sqlRepoContext, newObject)
-                    .executeReindexed(updateContext.jdbcSession());
-        } catch (SchemaException | ObjectAlreadyExistsException e) {
-            throw new RepositoryException("Update with reindex failed", e);
-        }
-
+        // We add object again, this will ensure recreation of all indices and correct
+        // table rows again
+        new AddObjectContext<>(sqlRepoContext, newObject)
+                .executeReindexed(updateContext.jdbcSession());
     }
 
     private <S extends ObjectType, Q extends QObject<R>, R extends MObject>

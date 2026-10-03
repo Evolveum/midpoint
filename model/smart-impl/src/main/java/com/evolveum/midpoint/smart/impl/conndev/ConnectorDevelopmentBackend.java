@@ -42,11 +42,13 @@ import javax.xml.namespace.QName;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Properties;
 import java.util.UUID;
 import java.util.function.BooleanSupplier;
@@ -88,6 +90,12 @@ public abstract class ConnectorDevelopmentBackend {
     protected record DevShadowDocument(String uuid, String uri, String contentType, String content) {}
 
     /**
+     * A {@code conndev_*} shadow read from the testing resource: its discovered name and the
+     * unwrapped (prism-stripped) content as JSON.
+     */
+    protected record DevShadow(String name, JsonNode content) {}
+
+    /**
      * Returns a supplier that operations must poll to implement cooperative cancellation.
      *
      * Because operations run in threads that cannot be forcibly killed, each operation is
@@ -103,7 +111,7 @@ public abstract class ConnectorDevelopmentBackend {
         var beans = ConnDevBeans.get();
         var connDev = beans.modelService.getObject(ConnectorDevelopmentType.class, connectorDevelopmentOid, null, task, result);
         if (beans.isOffline()) {
-            return new OfflineBackend(beans, connDev.asObjectable(), task, result);
+            return offlineBackendFor(connDev.asObjectable(), beans, task, result);
         }
         return backendFor(connDev.asObjectable(), task, result);
     }
@@ -113,15 +121,41 @@ public abstract class ConnectorDevelopmentBackend {
             case REST -> new RestBackend(beans, connDev, task, result);
             case SCIM -> new ScimBackend(beans, connDev, task, result);
             case SQL -> new SqlBackend(beans, connDev, task, result);
-            //case DUMMY -> new OfflineBackend(beans, connDev, task, result);
         };
 
+    }
+
+    /**
+     * The protocol-specific offline backend for the given development: SCIM and SQL get their own
+     * backends, everything else (REST, unknown) uses the REST one.
+     */
+    private static ConnectorDevelopmentBackend offlineBackendFor(ConnectorDevelopmentType connDev, ConnDevBeans beans, Task task, OperationResult result) {
+        var integrationType = resolveIntegrationType(connDev);
+        return switch (integrationType) {
+            case SCIM -> new OfflineScimBackend(beans, connDev, task, result);
+            case SQL -> new OfflineSqlBackend(beans, connDev, task, result);
+            default -> new OfflineRestBackend(beans, connDev, task, result);
+        };
+    }
+
+    /** The development's integration type: the connector's, then the application's, then {@code null}. */
+    private static ConnDevIntegrationType resolveIntegrationType(ConnectorDevelopmentType connDev) {
+        if (connDev.getConnector() != null && connDev.getConnector().getIntegrationType() != null) {
+            return connDev.getConnector().getIntegrationType();
+        }
+        if (connDev.getApplication() != null) {
+            return connDev.getApplication().getIntegrationType();
+        }
+        return null;
     }
 
     @NotNull
     public static ConnectorDevelopmentBackend backendFor(ConnectorDevelopmentType connDev, Task task, OperationResult result) {
         var beans = ConnDevBeans.get();
 
+        if (beans.isOffline()) {
+            return offlineBackendFor(connDev, beans, task, result);
+        }
         if (connDev.getConnector() != null && connDev.getConnector().getIntegrationType() != null) {
             return backendFor(connDev.getConnector().getIntegrationType(), connDev, beans, task, result);
         }
@@ -178,6 +212,26 @@ public abstract class ConnectorDevelopmentBackend {
         beans.modelService.executeChanges(List.of(delta), null, task, result);
         reload();
     };
+
+    /**
+     * Saves the uploaded documentation file to disk (tmp-docs).
+     *
+     * @param fileName original name of the uploaded file
+     * @param content file content
+     * @param contentType MIME type of the file
+     * @return generated UUID under which the file is stored
+     */
+    public String saveDocumentationFile(String fileName, InputStream content, String contentType) throws IOException {
+        String uuid = UUID.randomUUID().toString();
+        var documentation = new ProcessedDocumentation(uuid, fileName)
+                .contentType(contentType);
+        try (var output = documentation.asOutputStream()) {
+            content.transferTo(output);
+        }
+        // TODO: add the path of the saved file to the in-progress connector object
+        //  (ConnectorDevelopmentType.processedDocumentation).
+        return uuid;
+    }
 
     public ConnectorDevelopmentType developmentObject() {
         return development;
@@ -435,13 +489,60 @@ public abstract class ConnectorDevelopmentBackend {
     }
 
     /**
-     * Discovers object classes using connector functionality.
+     * Discovers object classes using the connector's own development-mode metadata: low-code
+     * frameworks (SCIM, REST, SQL) expose the shared {@code conndev_ObjectClass} object class when
+     * running in development mode, and its objects carry the framework's translated schema model.
      *
-     * Ideal for connector frameworks with protocols which supports dynamic discovery of schema, such as SCIM or Database.
-     * @return
+     * <p>Ideal for connector frameworks with protocols which support dynamic discovery of the
+     * schema, such as SCIM or databases. Returns an empty list when the development-mode metadata
+     * is not available (no testing resource, the connector doesn't expose {@code conndev_ObjectClass},
+     * or the resource can't be tested) - in that case the caller falls back to
+     * documentation-based discovery.
      */
     public List<ConnDevBasicObjectClassInfoType> discoverObjectClassesUsingConnector() {
-        return List.of();
+        return devModeObjectClassShadows().stream()
+                .map(shadow -> DevSchemaObjectClassParser.toBasicObjectClassInfo(shadow.name(), shadow.content()))
+                .filter(Objects::nonNull)
+                .toList();
+    }
+
+    /**
+     * Parses the attributes of the given object class from the development-mode metadata (the
+     * shared {@code conndev_ObjectClass} dev object class). Returns an empty list when the object
+     * class is not exposed by the development mode, so the caller can fall back to
+     * documentation-based attribute discovery.
+     */
+    public List<ConnDevAttributeInfoType> discoverObjectClassAttributesFromDevMode(String objectClass) {
+        return devModeObjectClassShadows().stream()
+                .filter(shadow -> objectClass.equalsIgnoreCase(shadow.name()))
+                .map(shadow -> DevSchemaObjectClassParser.toAttributes(shadow.content()))
+                .findFirst()
+                .orElse(List.of());
+    }
+
+    /**
+     * Loads the shadows of the shared {@code conndev_ObjectClass} dev object class from the testing
+     * resource, refreshing the resource first. Returns an empty list when the development-mode
+     * metadata is not available - no testing resource, the connector doesn't expose
+     * {@code conndev_ObjectClass}, or the resource can't be tested.
+     */
+    protected List<DevShadow> devModeObjectClassShadows() {
+        var testing = developmentObject().getTesting();
+        if (testing == null || testing.getTestingResource() == null || testing.getTestingResource().getOid() == null) {
+            return List.of();
+        }
+        var testingResourceOid = testing.getTestingResource().getOid();
+        try {
+            ResourceUtils.deleteSchema(testingResourceOid, beans.modelService, task, result);
+            beans.provisioningService.testResource(testingResourceOid, task, result);
+            if (!exposesConnDevObjectClass(testingResourceOid)) {
+                return List.of();
+            }
+            return loadDevShadows(testingResourceOid, CONNDEV_OBJECT_CLASS);
+        } catch (Exception e) {
+            LOGGER.warn("Couldn't read development-mode object classes from the testing resource", e);
+            return List.of();
+        }
     }
 
     public void updateApplicationObjectClasses(List<ConnDevBasicObjectClassInfoType> discovered) throws CommonException {
@@ -922,8 +1023,10 @@ public abstract class ConnectorDevelopmentBackend {
 
     protected void restoreCodegenArtifacts(ServiceClient.RestorationClient client) throws IOException {
         var connector = developmentObject().getConnector();
-        if (connector == null) return;
-
+        if (connector == null || connector.getDirectory() == null) {
+            // COnnector is not unpacked, we can not upload files.
+            return;
+        }
         for (var oc : connector.getObjectClass()) {
             var name = oc.getName();
             putCodegenArtifact(client, "codegen/{sessionId}/classes/" + name + "/native-schema", oc.getNativeSchemaScript());
@@ -1184,6 +1287,31 @@ public abstract class ConnectorDevelopmentBackend {
      * {@code conndev_ObjectClass} (SCIM, SQL, ...) works unchanged, including future fields.
      */
     protected List<DevShadowDocument> loadShadowsAsDocumentation(String resourceOid, String objectClassLocalName) {
+        var writer = MAPPER.writerWithDefaultPrettyPrinter();
+        var docs = new ArrayList<DevShadowDocument>();
+        for (var shadow : loadDevShadows(resourceOid, objectClassLocalName)) {
+            var uri = objectClassLocalName + "_" + shadow.name() + ".json";
+            var uuid = UUID.nameUUIDFromBytes(uri.getBytes(StandardCharsets.UTF_8)).toString();
+            try {
+                docs.add(new DevShadowDocument(uuid, uri, CONNDEV_CONTENT_TYPE,
+                        writer.writeValueAsString(shadow.content())));
+            } catch (IOException e) {
+                throw new SystemException("Couldn't serialize shadow documentation for " + shadow.name(), e);
+            }
+        }
+        return docs;
+    }
+
+    /**
+     * Loads the shadows of a {@code conndev_*} object class from a testing resource, unwrapping
+     * each one's content: the shadow content is only structurally unwrapped from prism
+     * serialization ({@link ConnDevShadowUnwrapper}), never interpreted — the connector owns the
+     * schema-mapping content (single source), midPoint reads only the name (see
+     * {@link #resolveDocName}). The result is an in-memory carrier: it becomes a persisted
+     * {@link ProcessedDocumentation} only in {@link #refreshConnDevDocumentation}, and feeds
+     * the development-mode object class/attribute parsing otherwise.
+     */
+    protected List<DevShadow> loadDevShadows(String resourceOid, String objectClassLocalName) {
         try {
             var objectClass = new QName(SchemaConstants.NS_RI, objectClassLocalName);
             var query = PrismContext.get().queryFor(ShadowType.class)
@@ -1202,10 +1330,8 @@ public abstract class ConnectorDevelopmentBackend {
             }
 
             var serializer = PrismContext.get().jsonSerializer();
-            var mapper = new ObjectMapper();
-            var writer = mapper.writerWithDefaultPrettyPrinter();
             var unwrapper = new ConnDevShadowUnwrapper();
-            var docs = new ArrayList<DevShadowDocument>();
+            var devShadows = new ArrayList<DevShadow>();
             for (var shadow : shadows) {
                 var attrs = shadow.findContainer(ShadowType.F_ATTRIBUTES);
                 if (attrs == null || attrs.isEmpty()) {
@@ -1213,22 +1339,17 @@ public abstract class ConnectorDevelopmentBackend {
                 }
 
                 var json = serializer.serialize(attrs.getValue());
-                var attributesContainer = mapper.readTree(json).get("attributes");
+                var attributesContainer = MAPPER.readTree(json).get("attributes");
                 if (attributesContainer == null) {
                     continue;
                 }
 
                 var document = unwrapper.unwrap(attributesContainer);
-                var content = writer.writeValueAsString(document);
-
-                var name = resolveDocName(shadow, document);
-                var uri = objectClassLocalName + "_" + name + ".json";
-                var uuid = UUID.nameUUIDFromBytes(uri.getBytes(StandardCharsets.UTF_8)).toString();
-                docs.add(new DevShadowDocument(uuid, uri, CONNDEV_CONTENT_TYPE, content));
+                devShadows.add(new DevShadow(resolveDocName(shadow, document), document));
             }
-            return docs;
+            return devShadows;
         } catch (Exception e) {
-            throw new SystemException("Could not load shadow documentation for " + objectClassLocalName, e);
+            throw new SystemException("Could not load shadows for " + objectClassLocalName, e);
         }
     }
 

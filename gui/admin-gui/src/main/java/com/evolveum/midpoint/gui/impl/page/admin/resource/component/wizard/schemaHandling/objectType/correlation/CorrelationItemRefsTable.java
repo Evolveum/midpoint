@@ -20,6 +20,7 @@ import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapper
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.component.input.ContainersDropDownPanel;
 import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardTable;
+import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismValueWrapperImpl;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.path.ItemName;
@@ -76,6 +77,45 @@ public abstract class CorrelationItemRefsTable<P extends Containerable> extends 
         super(id, valueModel, config, CorrelationItemType.class);
     }
 
+    public boolean validateCorrelationItems(AjaxRequestTarget target) {
+        boolean valid = isValidFormComponents(target);
+        boolean hasCorrelationItem = false;
+        boolean missingReference = false;
+        try {
+            PrismContainerWrapper<CorrelationItemType> correlationItems = getContainerModel().getObject();
+            if (correlationItems != null) {
+                for (PrismContainerValueWrapper<CorrelationItemType> correlationItem : correlationItems.getValues()) {
+                    if (correlationItem.getStatus() == ValueStatus.DELETED) {
+                        continue;
+                    }
+                    hasCorrelationItem = true;
+                    PrismPropertyWrapper<ItemPathType> reference = correlationItem.findProperty(CorrelationItemType.F_REF);
+                    boolean hasReference = reference != null && reference.getValues().stream()
+                            .filter(value -> value.getStatus() != ValueStatus.DELETED)
+                            .map(PrismValueWrapperImpl::getRealValue)
+                            .anyMatch(path -> path != null && !path.getItemPath().isEmpty());
+                    if (!hasReference) {
+                        missingReference = true;
+                    }
+                }
+            }
+        } catch (SchemaException e) {
+            LOGGER.error("Couldn't validate correlation items", e);
+            error(createStringResource("CorrelationItemRefsTable.validationFailed").getString());
+            return false;
+        }
+        if (!hasCorrelationItem) {
+            error(createStringResource("CorrelationItemRefsTable.itemsRequired").getString());
+            valid = false;
+        } else if (missingReference) {
+            if (valid) {
+                error(createStringResource("CorrelationItemRefsTable.referenceRequired").getString());
+            }
+            valid = false;
+        }
+        return valid;
+    }
+
     @Override
     protected ISelectableDataProvider<PrismContainerValueWrapper<CorrelationItemType>> createProvider() {
         return super.createProvider();
@@ -84,7 +124,7 @@ public abstract class CorrelationItemRefsTable<P extends Containerable> extends 
     @Override
     protected List<InlineMenuItem> createInlineMenu() {
         List<InlineMenuItem> menu = new ArrayList<>();
-        if(isViewMappingsItemMenuVisible()) {
+        if (isViewMappingsItemMenuVisible()) {
             menu.add(createViewMappingsItemMenu());
         }
 

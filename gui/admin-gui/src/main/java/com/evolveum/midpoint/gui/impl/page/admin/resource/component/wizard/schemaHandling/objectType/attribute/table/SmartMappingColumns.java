@@ -19,15 +19,17 @@ import com.evolveum.midpoint.gui.impl.component.input.expression.ExpressionPanel
 import com.evolveum.midpoint.gui.impl.component.wizard.collapse.DrawerModel;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
+import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.markup.html.panel.EmptyPanel;
+import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
@@ -35,17 +37,15 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
-import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
+import com.evolveum.midpoint.gui.api.util.MappingAuthorityDisplayResolver;
 import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperColumn;
 import com.evolveum.midpoint.gui.impl.component.data.column.LifecycleStateColumn;
 import com.evolveum.midpoint.gui.impl.component.data.column.MappingExpressionColumn;
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapperColumn;
+import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapperColumnPanel;
 import com.evolveum.midpoint.gui.impl.component.input.FocusDefinitionsMappingProvider;
 import com.evolveum.midpoint.gui.impl.component.input.Select2MultiChoiceColumnPanel;
-import com.evolveum.midpoint.gui.impl.prism.panel.PrismPropertyHeaderPanel;
 import com.evolveum.midpoint.web.component.data.column.IconColumn;
-import com.evolveum.midpoint.web.model.PrismPropertyWrapperHeaderModel;
-import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 /**
  * Builds column definitions for {@link SmartMappingTable}.
@@ -94,7 +94,7 @@ final class SmartMappingColumns<P extends Containerable> implements Serializable
             @Override
             protected DisplayType getIconDisplayType(
                     IModel<PrismContainerValueWrapper<MappingType>> rowModel) {
-                return GuiDisplayTypeUtil.getDisplayTypeForStrengthOfMapping(rowModel, "text-muted");
+                return MappingAuthorityDisplayResolver.resolveDisplay(rowModel.getObject().getRealValue(), "");
             }
 
             @Override
@@ -133,7 +133,7 @@ final class SmartMappingColumns<P extends Containerable> implements Serializable
 
             @Override
             protected Component createHeader(String componentId, IModel mainModel) {
-                return createPropertyHeader(componentId, itemName,
+                return table.createPropertyHeader(componentId, itemName,
                         table.getMappingDirectionType().name() + "." + ResourceAttributeDefinitionType.F_REF,
                         mainModel);
             }
@@ -248,7 +248,7 @@ final class SmartMappingColumns<P extends Containerable> implements Serializable
 
             @Override
             protected Component createHeader(String componentId, IModel<? extends PrismContainerDefinition<MappingType>> mainModel) {
-                return createPropertyHeader(componentId, itemName, "SmartMappingColumns.midPoint.property", mainModel);
+                return table.createPropertyHeader(componentId, itemName, "SmartMappingColumns.midPoint.property", mainModel);
             }
 
             @Override
@@ -265,45 +265,40 @@ final class SmartMappingColumns<P extends Containerable> implements Serializable
                 AbstractItemWrapperColumn.ColumnType.VALUE,
                 table.getPageBase()) {
             @Override
+            public void populateItem(Item<ICellPopulator<PrismContainerValueWrapper<MappingType>>> cellItem, String componentId, IModel<PrismContainerValueWrapper<MappingType>> rowModel) {
+                super.populateItem(cellItem, componentId, rowModel);
+            }
+
+            @SuppressWarnings("unchecked")
+            @Override
+            protected <IW extends ItemWrapper> Component createColumnPanel(String componentId, IModel<IW> rowModel) {
+                return new PrismPropertyWrapperColumnPanel<>(
+                        componentId, (IModel<PrismPropertyWrapper<String>>) rowModel, getColumnType()) {
+                    @Override
+                    protected AjaxEventBehavior createEventBehavior(Component formComponent) {
+                        return new AjaxFormComponentUpdatingBehavior("change") {
+                            @Override
+                            protected void onUpdate(AjaxRequestTarget target) {
+                                table.refreshAndDetach(target);
+                            }
+                        };
+                    }
+                };
+            }
+
+            @Override
             public String getSortProperty() {
                 return MappingType.F_TARGET.getLocalPart();
             }
 
             @Override
             protected Component createHeader(String componentId, IModel<? extends PrismContainerDefinition<MappingType>> mainModel) {
-                return createPropertyHeader(componentId, itemName, "SmartMappingColumns.midPoint.property", mainModel);
+                return table.createPropertyHeader(componentId, itemName, "SmartMappingColumns.midPoint.property", mainModel);
             }
 
             @Override
             public String getCssClass() {
                 return "col-2 header-border-end";
-            }
-        };
-    }
-
-    private @NotNull PrismPropertyHeaderPanel<ItemPathType> createPropertyHeader(
-            String componentId,
-            ItemPath itemName,
-            String headerLabelKey,
-            IModel<? extends PrismContainerDefinition<MappingType>> mainModel) {
-        return new PrismPropertyHeaderPanel<>(
-                componentId,
-                new PrismPropertyWrapperHeaderModel<>(mainModel, itemName, table.getPageBase())) {
-
-            @Override
-            protected boolean isAddButtonVisible() {
-                return false;
-            }
-
-            @Override
-            protected boolean isButtonEnabled() {
-                return false;
-            }
-
-            @Override
-            protected Component createTitle(IModel<String> label) {
-                return super.createTitle(table.getPageBase()
-                        .createStringResource(headerLabelKey));
             }
         };
     }

@@ -10,6 +10,9 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.impl.component.tile.TemplateTile;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CorrelationSuggestionType;
 import com.evolveum.midpoint.smart.api.SmartIntegrationService;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
 import com.evolveum.midpoint.task.api.Task;
@@ -25,6 +28,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.evolveum.midpoint.gui.api.util.LocalizationUtil.translate;
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationStatusInfoUtils.extractEfficiencyFromSuggestedCorrelationItemWrapper;
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationWrapperUtils.extractCorrelationItemListWrapper;
 
@@ -44,7 +48,9 @@ public class SmartCorrelationTileModel<T extends PrismContainerValueWrapper<Item
     List<StateRecord> statesRecordList = new ArrayList<>();
 
     public record StateRecord(
-            @Nullable String value, @Nullable String label) implements Serializable {
+            @Nullable String value, @Nullable String label,
+            @NotNull Class<? extends Containerable> containerClass,
+            @NotNull ItemName itemName) implements Serializable {
 
         public String getValue() {
             return value;
@@ -60,13 +66,13 @@ public class SmartCorrelationTileModel<T extends PrismContainerValueWrapper<Item
         setValue(valueWrapper);
 
         ItemsSubCorrelatorType realValue = valueWrapper.getRealValue();
-        this.name = realValue.getName() != null ? realValue.getName() : "-";
-        this.description = realValue.getDescription() != null ? realValue.getDescription() : "-";
+        this.name = realValue.getName();
+        this.description = realValue.getDescription();
         this.enabled = realValue.getEnabled() == null || realValue.getEnabled();
 
         CorrelatorCompositionDefinitionType composition = realValue.getComposition();
-        this.weight = composition.getWeight();
-        this.tier = composition.getTier();
+        this.weight = composition != null ? composition.getWeight() : null;
+        this.tier = composition != null ? composition.getTier() : null;
 
         this.resourceOid = resourceOid;
         this.statusInfoToken = statusInfoToken;
@@ -89,12 +95,17 @@ public class SmartCorrelationTileModel<T extends PrismContainerValueWrapper<Item
     }
 
     private void buildStateRecordList() {
-        String weightLabel = (weight != null) ? weight.toString() : "-";
-        String tierLabel = (tier != null) ? tier.toString() : "-";
-        statesRecordList.add(new StateRecord(weightLabel, "Weight"));
-        statesRecordList.add(new StateRecord(tierLabel, "Tier"));
+        String weightLabel = (weight != null) ? weight.toString() : null;
+        String tierLabel = (tier != null) ? tier.toString() : null;
+        statesRecordList.add(new StateRecord(weightLabel, translate("CorrelationItemRulePanel.weight"),
+                CorrelatorCompositionDefinitionType.class, CorrelatorCompositionDefinitionType.F_WEIGHT));
+        statesRecordList.add(new StateRecord(tierLabel, translate("CorrelationItemRulePanel.tier"),
+                CorrelatorCompositionDefinitionType.class, CorrelatorCompositionDefinitionType.F_TIER));
 
-        statesRecordList.add(new StateRecord(efficiency, "Efficiency"));
+        if(efficiency != null) {
+            statesRecordList.add(new StateRecord(efficiency, translate("CorrelationItemRulePanel.efficiency"),
+                    CorrelationSuggestionType.class, CorrelationSuggestionType.F_QUALITY));
+        }
     }
 
     @Override
@@ -147,11 +158,11 @@ public class SmartCorrelationTileModel<T extends PrismContainerValueWrapper<Item
         this.enabled = enabled;
     }
 
-    public @NotNull String getEfficiency() {
+    public @Nullable String getEfficiency() {
         return efficiency;
     }
 
-    public void setEfficiency(@NotNull String efficiency) {
+    public void setEfficiency(@Nullable String efficiency) {
         this.efficiency = efficiency;
     }
 

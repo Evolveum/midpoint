@@ -8,6 +8,8 @@ package com.evolveum.midpoint.gui.impl.component.input.expression;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
+
 import org.apache.wicket.MarkupContainer;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LambdaModel;
@@ -29,7 +31,11 @@ public class FilterExpressionPanel extends EvaluatorExpressionPanel {
 
     private static final String ID_FILTER_INPUT = "filterInput";
 
-    public FilterExpressionPanel(String id, IModel<ExpressionType> model, IModel<QName> expressionTargetTypeModel) {
+    public FilterExpressionPanel(
+            String id,
+            IModel<ExpressionType> model,
+            IModel<PrismPropertyWrapper<ExpressionType>> property,
+            IModel<QName> expressionTargetTypeModel) {
         super(id, model, expressionTargetTypeModel);
     }
 
@@ -47,7 +53,7 @@ public class FilterExpressionPanel extends EvaluatorExpressionPanel {
             protected StringResourceModel getConfigPanelTitle() {
                 return createStringResource("FilterExpressionPanel.configureFilter");
             }
-            
+
             @Override
             protected boolean addEmptyBlumBehaviourToTextField() {
                 return true;

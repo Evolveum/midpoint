@@ -1369,6 +1369,54 @@
             <xsd:appinfo>
                 <a:container/>
                 <a:since>4.5</a:since>
+                <a:schemaMigration>
+                    <a:element>tns:realm</a:element>
+                    <a:version>4.11</a:version>
+                    <a:operation>removed</a:operation>
+                    <a:comment>Use attribute in token definition instead.</a:comment>
+                </a:schemaMigration>
+                <a:schemaMigration>
+                    <a:element>tns:issuerUri</a:element>
+                    <a:version>4.11</a:version>
+                    <a:operation>removed</a:operation>
+                    <a:comment>Use attribute in token definition instead.</a:comment>
+                </a:schemaMigration>
+                <a:schemaMigration>
+                    <a:element>tns:jwkSetUri</a:element>
+                    <a:version>4.11</a:version>
+                    <a:operation>removed</a:operation>
+                    <a:comment>Use attribute in token definition instead.</a:comment>
+                </a:schemaMigration>
+                <a:schemaMigration>
+                    <a:element>tns:nameOfUsernameClaim</a:element>
+                    <a:version>4.11</a:version>
+                    <a:operation>removed</a:operation>
+                    <a:comment>Use attribute in token definition instead.</a:comment>
+                </a:schemaMigration>
+                <a:schemaMigration>
+                    <a:element>tns:singleSymmetricKey</a:element>
+                    <a:version>4.11</a:version>
+                    <a:operation>removed</a:operation>
+                    <a:comment>Use attribute in token definition instead.</a:comment>
+                </a:schemaMigration>
+                <a:schemaMigration>
+                    <a:element>tns:trustedAlgorithm</a:element>
+                    <a:version>4.11</a:version>
+                    <a:operation>removed</a:operation>
+                    <a:comment>Use attribute in token definition instead.</a:comment>
+                </a:schemaMigration>
+                <a:schemaMigration>
+                    <a:element>tns:trustingAsymmetricCertificate</a:element>
+                    <a:version>4.11</a:version>
+                    <a:operation>removed</a:operation>
+                    <a:comment>Use attribute in token definition instead.</a:comment>
+                </a:schemaMigration>
+                <a:schemaMigration>
+                    <a:element>tns:keyStoreTrustingAsymmetricKey</a:element>
+                    <a:version>4.11</a:version>
+                    <a:operation>removed</a:operation>
+                    <a:comment>Use attribute in token definition instead.</a:comment>
+                </a:schemaMigration>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -1388,128 +1436,6 @@
                     </xsd:annotation>
                 </xsd:element>
             </xsd:choice>
-            <xsd:element name="realm" type="xsd:string" minOccurs="0" maxOccurs="1">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Realm which Midpoint use for WWW-Authentication header
-                        <p>
-                            Deprecated use attribute in token definition instead
-                        </p>
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:deprecated/>
-                        <a:deprecatedSince>4.8</a:deprecatedSince>
-                        <a:plannedRemoval>4.9</a:plannedRemoval>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="issuerUri" type="xsd:string" minOccurs="0" maxOccurs="1">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Issuer identifier uri for the OpenID Connect provider.
-                        <p>
-                            Deprecated use attribute in token definition instead
-                        </p>
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:deprecated/>
-                        <a:deprecatedSince>4.8</a:deprecatedSince>
-                        <a:plannedRemoval>4.9</a:plannedRemoval>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="jwkSetUri" type="xsd:string" minOccurs="0" maxOccurs="1">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Uri for the JSON Web Key (JWK) Set endpoint.
-                        <p>
-                            Deprecated use attribute in token definition instead
-                        </p>
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:deprecated/>
-                        <a:deprecatedSince>4.8</a:deprecatedSince>
-                        <a:plannedRemoval>4.9</a:plannedRemoval>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="nameOfUsernameClaim" type="xsd:string" minOccurs="0" maxOccurs="1">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Name of claim in jwt, which value define name of user in Midpoint.
-                        <p>
-                            Deprecated use attribute in token definition instead
-                        </p>
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:deprecated/>
-                        <a:deprecatedSince>4.8</a:deprecatedSince>
-                        <a:plannedRemoval>4.9</a:plannedRemoval>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="singleSymmetricKey" type="t:ProtectedStringType" minOccurs="0" maxOccurs="1">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Trusting a Single Asymmetric Key.
-                        <p>
-                            Deprecated use attribute in token definition instead
-                        </p>
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:deprecated/>
-                        <a:deprecatedSince>4.8</a:deprecatedSince>
-                        <a:plannedRemoval>4.9</a:plannedRemoval>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="trustedAlgorithm" type="xsd:string" minOccurs="0" maxOccurs="1">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Trusted Algorithms. (RFC7518 section-3.1).
-                        <p>
-                            Deprecated use attribute in token definition instead
-                        </p>
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:deprecated/>
-                        <a:deprecatedSince>4.8</a:deprecatedSince>
-                        <a:plannedRemoval>4.9</a:plannedRemoval>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:choice>
-                <xsd:element name="trustingAsymmetricCertificate" type="t:ProtectedStringType" minOccurs="0">
-                    <xsd:annotation>
-                        <xsd:documentation>
-                            Certificate of trusting a single asymmetric RSA public key.
-                            <p>
-                                Deprecated use attribute in token definition instead
-                            </p>
-                        </xsd:documentation>
-                        <xsd:appinfo>
-                            <a:deprecated/>
-                            <a:deprecatedSince>4.8</a:deprecatedSince>
-                            <a:plannedRemoval>4.9</a:plannedRemoval>
-                        </xsd:appinfo>
-                    </xsd:annotation>
-                </xsd:element>
-                <xsd:element name="keyStoreTrustingAsymmetricKey" type="tns:AbstractKeyStoreKeyType" minOccurs="0">
-                    <xsd:annotation>
-                        <xsd:documentation>
-                            Key store with trusting a single asymmetric RSA public key.
-                            <p>
-                                Deprecated use attribute in token definition instead
-                            </p>
-                        </xsd:documentation>
-                        <xsd:appinfo>
-                            <a:deprecated/>
-                            <a:deprecatedSince>4.8</a:deprecatedSince>
-                            <a:plannedRemoval>4.9</a:plannedRemoval>
-                        </xsd:appinfo>
-                    </xsd:annotation>
-                </xsd:element>
-            </xsd:choice> <!--> can use only one of types, but all can be null<-->
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>

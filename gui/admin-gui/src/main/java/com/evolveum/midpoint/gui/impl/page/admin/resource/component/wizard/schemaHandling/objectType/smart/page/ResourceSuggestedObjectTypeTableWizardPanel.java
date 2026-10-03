@@ -26,6 +26,7 @@ import com.evolveum.midpoint.smart.api.info.AiInfo;
 import com.evolveum.midpoint.smart.api.info.HealthStatus;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationOption;
@@ -310,6 +311,7 @@ public abstract class ResourceSuggestedObjectTypeTableWizardPanel<P extends Cont
      */
     private void showRegenerateConfirmationDialog(AjaxRequestTarget target, @Nullable RegenerateMode regenerateMode) {
         SuggestionOption suggestionOption = SuggestionOption.aiOnly(ConfirmationOption.delineationPermissionsOptions());
+        IModel<AiInfo> aiInfoModel = createAiInfoModel();
 
         ConfirmationWithOptionsDto<DataAccessPermission> confirmationDto =
                 ConfirmationWithOptionsDto.<DataAccessPermission>builder()
@@ -317,18 +319,18 @@ public abstract class ResourceSuggestedObjectTypeTableWizardPanel<P extends Cont
                         .confirmationSubtitle(createStringResource("SmartSuggestConfirmationPanel.subtitle"))
                         .confirmationOptionsTitle(createStringResource(
                                 "SmartSuggestConfirmationPanel.request.component.title"))
-                        .infoEntries(createAiInfoModel())
+                        .infoEntries(aiInfoModel)
                         .errorMessage(() ->
                                 suggestionOption.requiresAiService()
                                         ? getAiUnavailableMessage(
-                                        createAiInfoModel(),
+                                        aiInfoModel,
                                         "SmartSuggestConfirmationPanel.serviceUnreachable.error")
                                         : null)
                         .warningMessage(() ->
                                 suggestionOption.requiresAiService()
                                         ? null
                                         : getAiUnavailableMessage(
-                                        createAiInfoModel(),
+                                        aiInfoModel,
                                         "SmartSuggestConfirmationPanel.serviceUnreachable.warning"))
                         .confirmationOptions(suggestionOption.confirmationOptions())
                         .requireAiService(suggestionOption.requiresAiService())
@@ -355,7 +357,7 @@ public abstract class ResourceSuggestedObjectTypeTableWizardPanel<P extends Cont
                     return getPageBase().getSmartIntegrationService()
                             .getAiInfo(task, task.getResult())
                             .orElse(null);
-                } catch (SystemException e) {
+                } catch (CommonException e) {
                     return null;
                 }
             }

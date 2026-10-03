@@ -17,6 +17,7 @@ import com.evolveum.midpoint.model.api.BulkActionExecutionOptions;
 import com.evolveum.midpoint.prism.PrismObjectValue;
 import com.evolveum.midpoint.schema.expression.MidPointTrustDescriptor;
 import com.evolveum.midpoint.schema.expression.TrustDescriptorSetter;
+import com.evolveum.midpoint.test.DummyDefaultScenario;
 import com.evolveum.midpoint.util.exception.*;
 
 import org.jetbrains.annotations.NotNull;
@@ -46,6 +47,7 @@ import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ExecuteScriptType;
  * . `test1xx`: auto-assigned roles
  * . `test2xx`: various expressions in explicitly-assigned roles
  * . `test3xx`: bulk actions
+ * . `test4xx`: safety of various expressions: `assignmentTargetSearch`, `associationTargetSearch`, and so on
  *
  * Expression profiles:
  *
@@ -73,7 +75,8 @@ public class TestExpressionProfiles extends AbstractEmptyModelIntegrationTest {
             TEST_DIR, "function-library-two.xml", "f28e0119-5dfe-4e6f-92d7-3a1ad5b1cc91");
 
     private static final DummyTestResource RESOURCE_SIMPLE_TARGET = new DummyTestResource(
-            TEST_DIR, "resource-simple-target.xml", "2003a0c3-62a3-413d-9941-6fecaef84a16", "simple-target");
+            TEST_DIR, "resource-simple-target.xml", "2003a0c3-62a3-413d-9941-6fecaef84a16", "simple-target",
+            c -> DummyDefaultScenario.on(c).initialize());
 
     private static final TestObject<RoleType> METAROLE_DUMMY = TestObject.file(
             TEST_DIR, "metarole-dummy.xml", "d9a263b7-b272-46d8-84dc-cdf96d79128e");
@@ -87,8 +90,8 @@ public class TestExpressionProfiles extends AbstractEmptyModelIntegrationTest {
 
     private static final TestObject<ArchetypeType> ARCHETYPE_RESTRICTED_ROLE = TestObject.file(
             TEST_DIR, "archetype-restricted-role.xml", "a2242707-43cd-4f18-b986-573cb468693d");
-    private static final TestObject<ArchetypeType> ARCHETYPE_SAFE_ROLE = TestObject.file(
-            TEST_DIR, "archetype-safe-role.xml", "2a68ff58-b009-11f0-9b5e-236da66bcdb4");
+    private static final TestObject<ArchetypeType> ARCHETYPE_SAFE = TestObject.file(
+            TEST_DIR, "archetype-safe.xml", "2a68ff58-b009-11f0-9b5e-236da66bcdb4");
     private static final TestObject<ArchetypeType> ARCHETYPE_NO_PRIVILEGE_ELEVATION = TestObject.file(
             TEST_DIR, "archetype-no-privilege-elevation.xml", "f2d01dd2-50b4-4d4d-babd-e00671923f2c");
     private static final TestObject<ArchetypeType> ARCHETYPE_TRUSTED_ROLE = TestObject.file(
@@ -151,6 +154,11 @@ public class TestExpressionProfiles extends AbstractEmptyModelIntegrationTest {
     private static final TestObject<RoleType> ROLE_SAFE_BAD_MEL = TestObject.file(
             TEST_DIR, "role-safe-bad-mel.xml", "9f78c6e2-124d-11f1-a7ec-8f778e084091");
 
+    private static final TestObject<?> OBJECT_TEMPLATE_PERSON = TestObject.file(
+            TEST_DIR, "object-template-person.xml", "80ee6e76-21a7-4687-b051-25ae77e9c891");
+    private static final TestObject<?> ARCHETYPE_PERSON = TestObject.file(
+            TEST_DIR, "archetype-person.xml", "efab2dc9-8959-4f24-bc61-110b6589f40e");
+
     private static final File FILE_SCRIPTING_EXECUTE_SCRIPT = new File(TEST_DIR, "scripting-execute-script.xml");
     private static final File FILE_SCRIPTING_EXPRESSION_EXECUTE_SCRIPT = new File(TEST_DIR, "scripting-expression-execute-script.xml");
     private static final File FILE_SCRIPTING_NOTIFICATION_CUSTOM_HANDLER = new File(TEST_DIR, "scripting-notification-custom-handler.xml");
@@ -186,10 +194,12 @@ public class TestExpressionProfiles extends AbstractEmptyModelIntegrationTest {
 
         initTestObjects(initTask, initResult,
                 VALUE_POLICY_TEST,
+
                 FUNCTION_LIBRARY_ONE,
                 FUNCTION_LIBRARY_TWO,
+
                 ARCHETYPE_RESTRICTED_ROLE,
-                ARCHETYPE_SAFE_ROLE,
+                ARCHETYPE_SAFE,
                 ARCHETYPE_NO_PRIVILEGE_ELEVATION,
                 ARCHETYPE_TRUSTED_ROLE,
                 ARCHETYPE_LITTLE_TRUSTED_ROLE,
@@ -197,6 +207,9 @@ public class TestExpressionProfiles extends AbstractEmptyModelIntegrationTest {
                 ARCHETYPE_LITTLE_TRUSTED_VARIANT_TWO_ROLE,
                 ARCHETYPE_FORBIDDEN_GENERATE_VALUE_ACTION_ROLE,
                 ARCHETYPE_FORBIDDEN_GENERATE_VALUE_ACTION_ALT_ROLE,
+                OBJECT_TEMPLATE_PERSON,
+                ARCHETYPE_PERSON,
+
                 METAROLE_DUMMY,
                 ROLE_UNRESTRICTED,
                 ROLE_SCRIPTING,
@@ -211,6 +224,19 @@ public class TestExpressionProfiles extends AbstractEmptyModelIntegrationTest {
                 ROLE_SAFE_GOOD,
                 ROLE_SAFE_BAD_GROOVY,
                 ROLE_SAFE_BAD_MEL);
+
+        createRoleWithGroup(initTask, initResult);
+    }
+
+    private void createRoleWithGroup(Task task, OperationResult result) throws CommonException {
+        RoleType roleWithGroup = new RoleType()
+                .name("test-role")
+                .assignment(RESOURCE_SIMPLE_TARGET.assignmentWithConstructionOf(ShadowKindType.ENTITLEMENT, "group"));
+
+        var oid = addObject(roleWithGroup.asPrismObject(), task, result);
+
+        assertRole(oid, "")
+                .display();
     }
 
     @Override
@@ -964,6 +990,89 @@ public class TestExpressionProfiles extends AbstractEmptyModelIntegrationTest {
                 originForArchetype(ARCHETYPE_FORBIDDEN_GENERATE_VALUE_ACTION_ALT_ROLE),
                 "Access to action 'generate-value' ('generateValue')",
                 "expression profile 'forbidden-generate-value-action-alt', actions profile 'forbidden-generate-value-action-alt'");
+    }
+
+    /** Are expressions in the search filter in `assignmentTargetSearch` treated correctly? */
+    @Test
+    public void test400AssignmentTargetSearchWithFilterExpression() throws CommonException {
+        testAddUserBlocked();
+    }
+
+    /** Are expressions in `populate` in `assignmentTargetSearch` treated correctly? */
+    @Test
+    public void test402AssignmentTargetSearchWithPopulateAssignmentItemExpression() throws CommonException {
+        testAddUserBlocked();
+    }
+
+    /** Are expressions in `populateObject` in `assignmentTargetSearch` treated correctly? */
+    @Test
+    public void test404AssignmentTargetSearchWithPopulateObjectItemExpression() throws CommonException {
+        testAddUserBlocked();
+    }
+
+    private void testAddUserBlocked() throws CommonException {
+        var task = getTestTask();
+        var result = task.getResult();
+
+        login(userAdministrator);
+
+        var userName = getTestNameShort();
+        var user = new UserType()
+                .name(userName)
+                .assignment(ARCHETYPE_PERSON.assignmentTo());
+
+        when("creating the user");
+        try {
+            addObject(user, task, result);
+            fail("unexpected success");
+        } catch (SecurityViolationException e) {
+            then("the exception should be thrown");
+            assertExpectedException(e)
+                    .hasMessageContaining("Script interpreter for language 'Groovy' is not allowed in expression profile 'safe'");
+        }
+        assertNoUserByUsername(userName);
+    }
+
+    /** Just checking that a range expression in `populate` in `assignmentTargetSearch` is not executed. */
+    @Test
+    public void test406AssignmentTargetSearchWithPopulateAssignmentItemRangeExpression() throws CommonException {
+        var task = getTestTask();
+        var result = task.getResult();
+
+        var userName = getTestNameShort();
+        var user = new UserType()
+                .name(userName)
+                .assignment(ARCHETYPE_PERSON.assignmentTo());
+
+        when("creating the user");
+        addObject(user, task, result);
+
+        then("the user should be created successfully - range expression is not used");
+        assertUserAfterByUsername(userName);
+    }
+
+    /** Are expressions in the search filter in `associationTargetSearch` treated correctly? */
+    @Test
+    public void test410AssociationTargetSearchWithSearchFilter() throws CommonException {
+        testAddUserBlocked();
+    }
+
+    /** Are expressions in `populate` in `associationTargetSearch` treated correctly? */
+    @Test
+    public void test412AssociationTargetSearchWithPopulateAssignmentItemExpression() throws CommonException {
+        testAddUserBlocked();
+    }
+
+    /** Are expressions in `populateObject` in `associationTargetSearch` treated correctly? */
+    @Test
+    public void test414AssociationTargetSearchWithPopulateObjectItemExpression() throws CommonException {
+        testAddUserBlocked();
+    }
+
+    /** Are expressions in `condition` for `associationTargetSearch` treated correctly? (Actually, it's outside of it.) */
+    @Test
+    public void test416AssociationTargetSearchWithCondition() throws CommonException {
+        testAddUserBlocked();
     }
 
     /**

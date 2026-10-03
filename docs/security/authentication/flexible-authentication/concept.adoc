@@ -16,6 +16,7 @@ There is a global level, when the security policy is defined in System Configura
 Since midPoint 4.7 it is also possible to define security policies for organizational unit and archetype.
 All security policies applicable for the user are merged together.
 The merging is performed after user identification, so after the first module which was able to find a user in the system.
+See xref:#_security_policies_of_organizational_units_and_archetypes[Security policies of organizational units and archetypes] for the rules and limitations.
 
 Base tag is _<authentication>_.  Configuration consists of modules and sequences.
 Element `module` is basic building block of the configuration.
@@ -180,6 +181,100 @@ No suffix specified.
 
 Channels for _rest_ and _actuator_ default don't create audit records about session creation or termination.
 You can turn it on via setting _System Configuration_ ->  _audit_ -> _eventRecording_ -> _recordSessionlessAccess_.
+
+[#_security_policies_of_organizational_units_and_archetypes]
+== Security policies of organizational units and archetypes
+
+Security policy referenced from an organizational unit or an archetype is merged with the global security policy.
+The result is used for users of that organizational unit or archetype.
+This section applies only if such security policies are used.
+If there is only the global security policy, nothing described here takes place.
+
+MidPoint does not know the user when the authentication starts.
+Authentication therefore always starts with a sequence of the global security policy.
+The merged security policy is applied as soon as a module identifies the user, e.g. after `focusIdentification` module or after `loginForm` module.
+Authentication then continues with the same sequence, as it is defined in the merged security policy.
+
+=== Merging rules
+
+* Modules are matched by `identifier`.
+Module defined in the more specific security policy is used.
+Modules of the global security policy which are not defined in the more specific one are added.
+
+* Sequences are matched by `identifier`.
+Sequence which exists only in one of the policies is used as it is.
+
+* When the sequence exists in both policies, modules of the sequence are matched by `identifier`.
+Module of the sequence from the more specific security policy is used, including its `order`, `necessity` and other properties.
+Modules of the global sequence which are not listed in the more specific one are added.
+
+.Example: TOTP is optional in global security policy
+[source,xml]
+----
+<sequence>
+    <identifier>admin-gui-default</identifier>
+    <channel>
+        <channelId>http://midpoint.evolveum.com/xml/ns/public/common/channels-3#user</channelId>
+        <default>true</default>
+        <urlSuffix>gui-default</urlSuffix>
+    </channel>
+    <module>
+        <identifier>loginForm</identifier>
+        <order>10</order>
+        <necessity>requisite</necessity>
+    </module>
+    <module>
+        <identifier>totp</identifier>
+        <order>20</order>
+        <necessity>requisite</necessity>
+        <acceptEmpty>true</acceptEmpty>
+    </module>
+</sequence>
+----
+
+.Example: security policy of archetype makes TOTP mandatory
+[source,xml]
+----
+<sequence>
+    <!-- the same identifier, channel and urlSuffix as in global security policy -->
+    <identifier>admin-gui-default</identifier>
+    <channel>
+        <channelId>http://midpoint.evolveum.com/xml/ns/public/common/channels-3#user</channelId>
+        <default>true</default>
+        <urlSuffix>gui-default</urlSuffix>
+    </channel>
+    <module>
+        <identifier>totp</identifier>
+        <order>20</order>
+        <necessity>requisite</necessity>
+        <acceptEmpty>false</acceptEmpty>
+    </module>
+</sequence>
+----
+
+Module `loginForm` is taken from the global sequence, module `totp` is replaced.
+
+=== Limitations
+
+* Security policy of organizational unit or archetype has to adjust the sequence of the global security policy under the same `identifier`.
+A sequence with different identifier which would handle the same requests as the sequence the user has started with is not supported.
+That is a sequence with the same `urlSuffix`, or a sequence which becomes the default one for the channel.
+Authentication of such user fails with a generic error message.
+Details are recorded in the log file, look for `AuthenticationWrapper` logger.
+
+* Use the same `channel` (`channelId`, `urlSuffix`, `default`) as the sequence of the global security policy has.
+Different `urlSuffix` leads to the failure described above, unless the sequence is the default one for the channel.
+Different `channelId` is not applied to the authentication which is already in progress.
+
+* Modules can be replaced or added, they can not be removed from the sequence of the global security policy.
+
+* Modules which were processed before the user was identified are not processed again.
+It makes no sense to redefine the module which identifies the user (e.g. `loginForm` as the first module).
+Only the modules which follow are affected.
+
+* The configuration is not validated when the security policy is saved.
+A problem shows up only during login of the user the security policy applies to.
+Test the login of such user after each change, and keep a sequence for emergency access, see xref:/midpoint/reference/security/authentication/flexible-authentication/configuration.adoc#_example_of_sequence_for_administrator_login[example of sequence for administrator login].
 
 == Logout
 

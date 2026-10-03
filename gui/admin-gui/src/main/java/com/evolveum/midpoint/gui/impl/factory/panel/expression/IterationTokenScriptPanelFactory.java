@@ -33,7 +33,7 @@ public class IterationTokenScriptPanelFactory extends AbstractGuiComponentFactor
 
     @Override
     protected Panel getPanel(PrismPropertyPanelContext<ExpressionType> panelCtx) {
-        return new ScriptExpressionPanel(panelCtx.getComponentId(), panelCtx.getRealValueModel());
+        return new ScriptExpressionPanel(panelCtx.getComponentId(), panelCtx.getRealValueModel(), panelCtx.getItemWrapperModel());
     }
 
     @Override

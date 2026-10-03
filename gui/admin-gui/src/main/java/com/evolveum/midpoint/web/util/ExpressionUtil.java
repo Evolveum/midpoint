@@ -8,10 +8,23 @@ package com.evolveum.midpoint.web.util;
 
 import java.util.*;
 
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
+import com.evolveum.midpoint.model.common.expression.ExpressionProfileManager;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemName;
 
+import com.evolveum.midpoint.repo.common.SystemObjectCache;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
+import com.evolveum.midpoint.schema.expression.ExpressionProfile;
+import com.evolveum.midpoint.schema.expression.MidPointTrustDescriptor;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ShadowAssociationsUtil;
+
+import com.evolveum.midpoint.schema.util.SystemConfigurationTypeUtil;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 
 import jakarta.xml.bind.JAXBElement;
 
@@ -19,6 +32,7 @@ import javax.xml.namespace.QName;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.model.IModel;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.PrismContainerValue;
@@ -49,29 +63,41 @@ public class ExpressionUtil {
     private static final Trace LOGGER = TraceManager.getTrace(ExpressionUtil.class);
 
     public enum ExpressionEvaluatorType {
-        LITERAL,
-        AS_IS,
-        PATH,
-        SCRIPT,
-        GENERATE,
-        ASSOCIATION_FROM_LINK,
-        SHADOW_OWNER_REFERENCE_SEARCH,
-        FILTER,
-        NULL
+        LITERAL(SchemaConstantsGenerated.C_VALUE),
+        AS_IS(SchemaConstantsGenerated.C_AS_IS),
+        PATH(SchemaConstantsGenerated.C_PATH),
+        SCRIPT(SchemaConstantsGenerated.C_SCRIPT),
+        GENERATE(SchemaConstantsGenerated.C_GENERATE),
+        ASSOCIATION_FROM_LINK(SchemaConstantsGenerated.C_ASSOCIATION_FROM_LINK),
+        SHADOW_OWNER_REFERENCE_SEARCH(SchemaConstantsGenerated.C_SHADOW_OWNER_REFERENCE_SEARCH),
+        FILTER(SchemaConstantsGenerated.C_FILTER),
+        NULL(SchemaConstantsGenerated.C_NULL);
+
+        private final ItemName itemName;
+
+        ExpressionEvaluatorType(ItemName itemName) {
+            this.itemName = itemName;
+        }
+
+        public ItemName getItemName() {
+            return itemName;
+        }
     }
 
     public enum Language {
-        GROOVY("http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy"),
-        PYTHON("http://midpoint.evolveum.com/xml/ns/public/expression/language#python"),
-        MEL("http://midpoint.evolveum.com/xml/ns/public/expression/language#mel"),
-        VELOCITY("http://midpoint.evolveum.com/xml/ns/public/expression/language#safe-velocity"),
-        SAFE_VELOCITY("http://midpoint.evolveum.com/xml/ns/public/expression/language#safe-velocity"),
-        JAVASCRIPT("http://midpoint.evolveum.com/xml/ns/public/expression/language#ECMAScript");
+        GROOVY("http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy", false),
+        PYTHON("http://midpoint.evolveum.com/xml/ns/public/expression/language#python", false),
+        MEL("http://midpoint.evolveum.com/xml/ns/public/expression/language#mel", true),
+        VELOCITY("http://midpoint.evolveum.com/xml/ns/public/expression/language#velocity", false),
+        SAFE_VELOCITY("http://midpoint.evolveum.com/xml/ns/public/expression/language#safe-velocity", true),
+        JAVASCRIPT("http://midpoint.evolveum.com/xml/ns/public/expression/language#ECMAScript", false);
 
         private final String language;
+        private final boolean safeLanguage;
 
-        Language(String language) {
+        Language(String language, boolean safeLanguage) {
             this.language = language;
+            this.safeLanguage = safeLanguage;
         }
 
         public String getLanguage() {
@@ -81,6 +107,10 @@ public class ExpressionUtil {
         public String getShortForm() {
             int hashIndex = language.indexOf('#');
             return hashIndex >= 0 ? language.substring(hashIndex + 1) : language;
+        }
+
+        public boolean isSafeLanguage() {
+            return safeLanguage;
         }
     }
 
@@ -101,24 +131,6 @@ public class ExpressionUtil {
     public static final String ELEMENT_NULL_WITH_NS = "<null";
 
     /**
-     * Element name of an evaluator paired with  corresponding type the GUI knows it as.
-     * @param name name of the element
-     * @param type type of the evaluator
-     */
-    private record EvaluatorElement(QName name, ExpressionEvaluatorType type) {}
-
-    private static final List<EvaluatorElement> EVALUATOR_ELEMENTS = List.of(
-            new EvaluatorElement(
-                    SchemaConstantsGenerated.C_SHADOW_OWNER_REFERENCE_SEARCH, ExpressionEvaluatorType.SHADOW_OWNER_REFERENCE_SEARCH),
-            new EvaluatorElement(SchemaConstantsGenerated.C_AS_IS, ExpressionEvaluatorType.AS_IS),
-            new EvaluatorElement(SchemaConstantsGenerated.C_GENERATE, ExpressionEvaluatorType.GENERATE),
-            new EvaluatorElement(SchemaConstantsGenerated.C_PATH, ExpressionEvaluatorType.PATH),
-            new EvaluatorElement(SchemaConstantsGenerated.C_SCRIPT, ExpressionEvaluatorType.SCRIPT),
-            new EvaluatorElement(SchemaConstantsGenerated.C_VALUE, ExpressionEvaluatorType.LITERAL),
-            new EvaluatorElement(SchemaConstantsGenerated.C_FILTER, ExpressionEvaluatorType.FILTER),
-            new EvaluatorElement(SchemaConstantsGenerated.C_ASSOCIATION_FROM_LINK, ExpressionEvaluatorType.ASSOCIATION_FROM_LINK));
-
-    /**
      * Recognizes the evaluator from the names of the evaluator elements. Preferred over the text based
      * variant - it does not serialize the expression, and it only looks at the top level evaluators, so
      * a nested element of the same name cannot fool it. Search evaluators, for one, contain a nested
@@ -136,9 +148,9 @@ public class ExpressionUtil {
             if (evaluator == null || evaluator.getName() == null) {
                 continue;
             }
-            for (EvaluatorElement element : EVALUATOR_ELEMENTS) {
-                if (QNameUtil.match(evaluator.getName(), element.name())) {
-                    return element.type();
+            for (ExpressionEvaluatorType evaluatorType : ExpressionEvaluatorType.values()) {
+                if (QNameUtil.match(evaluator.getName(), evaluatorType.getItemName())) {
+                    return evaluatorType;
                 }
             }
         }
@@ -176,12 +188,18 @@ public class ExpressionUtil {
         return null;
     }
 
-    @Nullable
-    public static Language converLanguage(String languageValue) {
-        if (StringUtils.isEmpty(languageValue)) {
-            return null;
+    @NotNull
+    public static Language converLanguage(String languageValue, SystemObjectCache systemObjectCache, boolean isScriptEmpty) {
+        if (StringUtils.isNotEmpty(languageValue)) {
+            Language language = convertLanguage(languageValue);
+            if (language != null) {
+                return language;
+            }
         }
+        return getDefaultLanguage(systemObjectCache, isScriptEmpty);
+    }
 
+    private static @Nullable Language convertLanguage(String languageValue) {
         for (Language language : Language.values()) {
             if (languageValue.equals(language.getLanguage())
                     || languageValue.equalsIgnoreCase(language.name())
@@ -189,7 +207,26 @@ public class ExpressionUtil {
                 return language;
             }
         }
+        return null;
+    }
 
+    @NotNull
+    public static Language getDefaultLanguage(SystemObjectCache systemObjectCache, boolean isScriptEmpty) {
+        try {
+            PrismObject<SystemConfigurationType> systemConfig = systemObjectCache.getSystemConfiguration(new OperationResult("load system configuration"));
+            String languageUri = SystemConfigurationTypeUtil.getDefaultScriptLanguage(systemConfig.asObjectable());
+            if (StringUtils.isNotEmpty(languageUri)) {
+                Language language = convertLanguage(languageUri);
+                if (language != null) {
+                    return language;
+                }
+            }
+        } catch (SchemaException e) {
+            LOGGER.error("Couldn't load system configuration", e);
+        }
+        if (isScriptEmpty) {
+            return Language.MEL;
+        }
         return Language.GROOVY;
     }
 
@@ -240,7 +277,6 @@ public class ExpressionUtil {
      * Tells whether the expression carries anything worth storing. Unlike {@link #isEmpty}, which only
      * asks whether an evaluator is there, this also asks the evaluator for its content, so that an
      * evaluator left blank by the user,  a script without code, does not count.
-
      *
      * @param expression expression to look at.
      * @return true when the expression should be kept.
@@ -785,6 +821,7 @@ public class ExpressionUtil {
 
     /**
      * Makes the "null" evaluator the only evaluator of the expression.
+     *
      * @param expression for which "null" evaluator should be set as sole evaluator.
      */
     public static void addNullExpressionValue(ExpressionType expression) {
@@ -877,5 +914,33 @@ public class ExpressionUtil {
         } catch (SchemaException e) {
             throw new IllegalStateException("Couldn't parse script expression.", e);
         }
+    }
+
+    public static ExpressionProfile getExpressionProfile(
+            ExpressionType expression, IModel<PrismPropertyWrapper<ExpressionType>> property, PageBase pageBase) {
+        MidPointTrustDescriptor trustDescriptor = null;
+        if (expression != null
+                && expression.getTrustDescriptor() instanceof MidPointTrustDescriptor) {
+            trustDescriptor = (MidPointTrustDescriptor) expression.getTrustDescriptor();
+        } else {
+            if (property != null && property.getObject() != null) {
+                PrismObjectWrapper<ObjectType> objectWrapper = property.getObject().findObjectWrapper();
+                if (objectWrapper != null && objectWrapper.getObject() != null) {
+                    trustDescriptor = MidPointTrustDescriptor.forAuthorizedObject(objectWrapper.getObject().asObjectable());
+                }
+            }
+        }
+
+        if (trustDescriptor != null) {
+            Task task = pageBase.createSimpleTask("getExpressionProfile");
+            ExpressionProfileManager expressionProfileManager = pageBase.getExpressionProfileManager();
+            try {
+                return expressionProfileManager.determineExpressionProfile(trustDescriptor, task, task.getResult());
+            } catch (SecurityViolationException e) {
+                LOGGER.error("Couldn't get expression profiles");
+                pageBase.error(pageBase.getString("ScriptExpressionPanel.error.getExpressionProfile"));
+            }
+        }
+        return null;
     }
 }

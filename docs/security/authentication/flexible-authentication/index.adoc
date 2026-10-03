@@ -135,6 +135,9 @@ Identity proxy or a similar technology may be needed.
 Multiple credentials are not supported.
 The reason for mentioning credential names the configuration schema is to have ability to extend midPoint functionality in the future.
 
+* Security policy of organizational unit or archetype can adjust authentication sequences of the global security policy only in a limited way.
+See xref:/midpoint/reference/security/authentication/flexible-authentication/concept.adoc#_security_policies_of_organizational_units_and_archetypes[Security policies of organizational units and archetypes].
+
 The implementation can be improved in the future.
 Please see xref:/midpoint/features/planned/flexible-authentication/[Flexible Authentication Improvements] for details.
 

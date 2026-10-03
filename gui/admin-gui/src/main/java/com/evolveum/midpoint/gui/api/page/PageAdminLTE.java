@@ -16,6 +16,8 @@ import java.util.Collection;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.common.expression.ExpressionProfileManager;
+import com.evolveum.midpoint.repo.common.SystemObjectCache;
 import com.evolveum.midpoint.web.security.BrowserWindowIdentifierFilter;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.web.security.MidPointAuthWebSession;
@@ -149,6 +151,7 @@ import com.evolveum.midpoint.wf.api.ApprovalsManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.util.UriComponentsBuilder;
 
 /**
@@ -313,6 +316,12 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
 
     @SpringBean
     private ConnectorDevelopmentService connectorService;
+
+    @SpringBean
+    private ExpressionProfileManager expressionProfileManager;
+
+    @SpringBean
+    private SystemObjectCache systemObjectCache;
 
     // No need for this to store in session. It is used only during single init and render.
     private transient Task pageTask;
@@ -1304,6 +1313,14 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
     @Override
     public ConnectorDevelopmentService getConnectorService() {
         return connectorService;
+    }
+
+    public ExpressionProfileManager getExpressionProfileManager() {
+        return expressionProfileManager;
+    }
+
+    public SystemObjectCache getSystemObjectCache() {
+        return systemObjectCache;
     }
 
     /**

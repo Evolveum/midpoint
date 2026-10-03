@@ -114,6 +114,11 @@ public class RepairObjectClassButton extends AjaxIconButton {
      * tell the browser.
      */
     private boolean hasPendingFixableError() {
+        // The fix (repair) is an AI-service operation - there is nothing to fix with offline, the
+        // user edits the skeleton scripts manually.
+        if (ConnectorDevelopmentWizardUtil.isOffline(hostStep.getDetailsModel())) {
+            return false;
+        }
         return objectClassModel.getObject() != null && findWaitingFixStep().isPresent() && !collectErrorMessages().isEmpty();
     }
 
