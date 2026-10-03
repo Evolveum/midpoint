@@ -69,6 +69,14 @@ The ticket is managed as a projection (a shadow of the `work` kind) of the midPo
 
 * Cases can now hold projections: the new `ProjectionHolderType` schema type is a common parent of `FocusType` and `CaseType`.
 
+* xref:/midpoint/reference/security/authentication/flexible-authentication/modules/totp/[TOTP support]: new `totp` authentication module brings multi-factor authentication based on time-based one-time passwords to flexible authentication.
+Users can set up and reset their authenticator application in the self-service user interface.
+See bug:MID-11049[].
+
+* xref:/midpoint/reference/tasks/focus-policies-in-activities/[Focus policies in activities]: focus-based policy rules can now be configured and evaluated per task activity, not only for the whole task.
+This allows separate focus-based thresholds for individual activities of composite tasks, including the `restartActivity` and `skipActivity` policy actions.
+See bug:MID-11051[].
+
 #TODO#
 
 === Other Improvements

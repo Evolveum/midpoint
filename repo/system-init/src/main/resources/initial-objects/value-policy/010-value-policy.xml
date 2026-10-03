@@ -21,12 +21,10 @@
                     <script>
                         <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                         <code><![CDATA[
-                            object == null || object.type() != qname(
-                                    'http://midpoint.evolveum.com/xml/ns/public/common/common-3', 'UserType')
-                            || (!containsIgnoreCase(input, object.name)
-                                    && !containsIgnoreCase(input, object.familyName)
-                                    && !containsIgnoreCase(input, object.givenName)
-                                    && !containsIgnoreCase(input, object.additionalName))
+                            !containsIgnoreCase(input, object.name)
+                                && !containsIgnoreCase(input, object.familyName)
+                                && !containsIgnoreCase(input, object.givenName)
+                                && !containsIgnoreCase(input, object.additionalName)
                         ]]></code>
                     </script>
                 </expression>

@@ -38,14 +38,6 @@ public class VelocityScriptExecutor extends AbstractVelocityScriptExecutor {
     }
 
     @Override
-    protected void checkProfileAndSafetyRestrictions(ScriptExecutionContext context) throws SecurityViolationException {
-        super.checkProfileAndSafetyRestrictions(context);
-        if (configuration.safeVelocityExpressionsOnly()) {
-            throw new SecurityViolationException("Unsafe velocity expressions are not allowed in this configuration");
-        }
-    }
-
-    @Override
     public String getLanguageName() {
         return MidPointConstants.EXPRESSION_LANGUAGE_VELOCITY_NAME;
     }

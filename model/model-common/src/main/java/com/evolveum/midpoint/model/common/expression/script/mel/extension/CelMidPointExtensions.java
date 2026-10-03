@@ -7,13 +7,21 @@ package com.evolveum.midpoint.model.common.expression.script.mel.extension;
 
 import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
 import com.evolveum.midpoint.model.common.expression.script.mel.CelTypeMapper;
+import com.evolveum.midpoint.model.common.expression.script.mel.value.ContainerValueCelValue;
+import com.evolveum.midpoint.model.common.expression.script.mel.value.ItemPathCelValue;
 import com.evolveum.midpoint.model.common.expression.script.mel.value.ObjectCelValue;
+import com.evolveum.midpoint.model.common.expression.script.mel.value.PrismCelValue;
 import com.evolveum.midpoint.model.common.expression.script.mel.value.QNameCelValue;
 import com.evolveum.midpoint.model.common.expression.script.mel.value.ReferenceCelValue;
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
+import com.evolveum.midpoint.schema.util.GetOperationOptionsUtil;
 import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -29,7 +37,7 @@ import dev.cel.common.values.CelValue;
 import dev.cel.common.values.NullValue;
 import dev.cel.extensions.CelExtensionLibrary;
 import dev.cel.runtime.CelFunctionBinding;
-import org.jetbrains.annotations.Nullable;
+import dev.cel.runtime.NullabilityProperties;
 
 import javax.xml.namespace.QName;
 import java.util.Collection;
@@ -241,10 +249,23 @@ public class CelMidPointExtensions extends AbstractMidPointCelExtensions {
                                         SimpleType.STRING, SimpleType.STRING)),
                         CelFunctionBinding.from(FUNCTION_NAME_PREFIX_DASH + "getObject-string", String.class, String.class,
                                 this::getObject)
-
                 ),
 
-                // TODO(maybe): getObject with options
+                // midpoint.getObject(string(type), oid, string(options))
+                new Function(
+                        CelFunctionDecl.newFunctionDeclaration(
+                                FUNCTION_NAME_PREFIX_DOT + "getObject",
+                                CelOverloadDecl.newGlobalOverload(
+                                        FUNCTION_NAME_PREFIX_DASH + "getObject-string-options",
+                                        "Returns object for provided OID. It retrieves the object from an appropriate source "
+                                                + "for an object type (e.g. internal repository, resource or both), merging data as necessary, "
+                                                + "processing any policies, caching mechanisms, etc..",
+                                        ObjectCelValue.CEL_TYPE,
+                                        SimpleType.STRING, SimpleType.STRING, SimpleType.STRING)),
+                        CelFunctionBinding.from(FUNCTION_NAME_PREFIX_DASH + "getObject-string-options",
+                                ImmutableList.of(String.class, Object.class, Object.class),
+                                this::getObject)
+                ),
 
                 // midpoint.getObjectsInConflictOnPropertyValue(object, propertyPathString, propertyValue, getAllConflicting)
                 new Function(
@@ -377,6 +398,52 @@ public class CelMidPointExtensions extends AbstractMidPointCelExtensions {
                                 this::isFocusDeleted)
                 ),
 
+                // midpoint.isCurrentProjectionActivated()
+                new Function(
+                        CelFunctionDecl.newFunctionDeclaration(
+                                FUNCTION_NAME_PREFIX_DOT + "isCurrentProjectionActivated",
+                                CelOverloadDecl.newGlobalOverload(
+                                        FUNCTION_NAME_PREFIX_DASH + "isCurrentProjectionActivated",
+                                        "Returns 'true' if the current clockwork operation brings the projection into existence and being effectively enabled, " +
+                                        "i.e. with 'administrativeState' set to 'null' or 'ENABLED'. " +
+                                        "(So, previously the projection was either non-existent or effectively disabled.) " +
+                                        "Loads the full shadow if necessary.",
+                                        SimpleType.BOOL)),
+                        CelFunctionBinding.from(FUNCTION_NAME_PREFIX_DASH + "isCurrentProjectionActivated",
+                                ImmutableList.of(),
+                                this::isCurrentProjectionActivated)
+                ),
+
+                // midpoint.isCurrentProjectionDeactivated()
+                new Function(
+                        CelFunctionDecl.newFunctionDeclaration(
+                                FUNCTION_NAME_PREFIX_DOT + "isCurrentProjectionDeactivated",
+                                CelOverloadDecl.newGlobalOverload(
+                                        FUNCTION_NAME_PREFIX_DASH + "isCurrentProjectionDeactivated",
+                                        "Returns 'true' if the current clockwork operation causes the current projection to have 'administrativeState' switched to "
+                                                + "a disabled value (e.g. 'DISABLED' or 'ARCHIVED'). "
+                                                + "Not always precise - the original value may not be known.",
+                                        SimpleType.BOOL)),
+                        CelFunctionBinding.from(FUNCTION_NAME_PREFIX_DASH + "isCurrentProjectionDeactivated",
+                                ImmutableList.of(),
+                                this::isCurrentProjectionDeactivated)
+                ),
+
+                // midpoint.getDefaultNameForResourceRelatedTask(taskTypeName, resourceObjectSet)
+                new Function(
+                        CelFunctionDecl.newFunctionDeclaration(
+                                FUNCTION_NAME_PREFIX_DOT + "getDefaultNameForResourceRelatedTask",
+                                CelOverloadDecl.newGlobalOverload(
+                                        FUNCTION_NAME_PREFIX_DASH + "getDefaultNameForResourceRelatedTask",
+                                        "Determines the default name for a task that executes an operation against given resource, like import or reconciliation.",
+                                        SimpleType.STRING,
+                                        SimpleType.STRING, NullableType.create(ContainerValueCelValue.CEL_TYPE))),
+                        CelFunctionBinding.from(FUNCTION_NAME_PREFIX_DASH + "getDefaultNameForResourceRelatedTask",
+                                String.class, Object.class,
+                                this::getDefaultNameForResourceRelatedTask,
+                                NullabilityProperties.NULLABLE)
+                ),
+
                 // midpoint.isUniquePropertyValue(object, propertyPathString, propertyValue)
                 new Function(
                         CelFunctionDecl.newFunctionDeclaration(
@@ -432,9 +499,10 @@ public class CelMidPointExtensions extends AbstractMidPointCelExtensions {
                                         "Resolves specified reference, returning an object that the reference references. "
                                                 + "If the referenced object does not exist, null is returned.",
                                         NullableType.create(ObjectCelValue.CEL_TYPE),
-                                        ReferenceCelValue.CEL_TYPE)),
-                        CelFunctionBinding.from(FUNCTION_NAME_PREFIX_DASH + "resolveReferenceIfExists", ReferenceCelValue.class,
-                                this::resolveReferenceIfExists)
+                                        NullableType.create(ReferenceCelValue.CEL_TYPE))),
+                        CelFunctionBinding.from(FUNCTION_NAME_PREFIX_DASH + "resolveReferenceIfExists", Object.class,
+                                this::resolveReferenceIfExists,
+                                NullabilityProperties.NULLABLE)
 
                 ),
 
@@ -468,6 +536,21 @@ public class CelMidPointExtensions extends AbstractMidPointCelExtensions {
 
                 ),
 
+                // midpoint.searchObjects(string(type), filter, string(options))
+                new Function(
+                        CelFunctionDecl.newFunctionDeclaration(
+                                FUNCTION_NAME_PREFIX_DOT + "searchObjects",
+                                CelOverloadDecl.newGlobalOverload(
+                                        FUNCTION_NAME_PREFIX_DASH + "searchObjects-string-options",
+                                        "Searches through all object of a specified type. Returns a list of objects that "
+                                                + "match search criteria.",
+                                        ListType.create(ObjectCelValue.CEL_TYPE),
+                                        SimpleType.STRING, SimpleType.STRING, SimpleType.STRING)),
+                        CelFunctionBinding.from(FUNCTION_NAME_PREFIX_DASH + "searchObjects-string-options",
+                                ImmutableList.of(String.class, Object.class, Object.class),
+                                this::searchObjects)
+                ),
+
                 // searchObjectsIterative: not implemented, at least not for now
                 // Could we even do that in CEL?
 
@@ -484,12 +567,65 @@ public class CelMidPointExtensions extends AbstractMidPointCelExtensions {
                         CelFunctionBinding.from(FUNCTION_NAME_PREFIX_DASH + "searchShadowOwner", String.class,
                                 this::searchShadowOwner)
 
+                ),
+
+                // midpoint.translateKeyInCurrentLocale(key)
+                new Function(
+                        CelFunctionDecl.newFunctionDeclaration(
+                                FUNCTION_NAME_PREFIX_DOT + "translateKeyInCurrentLocale",
+                                CelOverloadDecl.newGlobalOverload(
+                                        FUNCTION_NAME_PREFIX_DASH + "translateKeyInCurrentLocale",
+                                        "Translates message key in user's current locale.",
+                                        SimpleType.STRING,
+                                        SimpleType.STRING)),
+                        CelFunctionBinding.from(FUNCTION_NAME_PREFIX_DASH + "translateKeyInCurrentLocale",
+                                String.class,
+                                key -> midpointExpressionFunctions.translateKeyInCurrentLocale(key))
+                ),
+
+                // midpoint.selectIdentityItemValues(identities, source, itemPath)
+                new Function(
+                        CelFunctionDecl.newFunctionDeclaration(
+                                FUNCTION_NAME_PREFIX_DOT + "selectIdentityItemValues",
+                                CelOverloadDecl.newGlobalOverload(
+                                        FUNCTION_NAME_PREFIX_DASH + "selectIdentityItemValues",
+                                        "Selects identity item values from the requested authoritative source.",
+                                        ListType.create(PrismCelValue.CEL_TYPE),
+                                        NullableType.create(SimpleType.DYN),
+                                        NullableType.create(ContainerValueCelValue.CEL_TYPE),
+                                        ItemPathCelValue.CEL_TYPE)),
+                        CelFunctionBinding.from(
+                                FUNCTION_NAME_PREFIX_DASH + "selectIdentityItemValues",
+                                ImmutableList.of(
+                                        Object.class,
+                                        Object.class,
+                                        ItemPathCelValue.class),
+                                this::selectIdentityItemValues,
+                                NullabilityProperties.NULLABLE)
+                ),
+
+                // midpoint.getPrincipalRef()
+                new Function(
+                        CelFunctionDecl.newFunctionDeclaration(
+                                FUNCTION_NAME_PREFIX_DOT + "getPrincipalRef",
+                                CelOverloadDecl.newGlobalOverload(
+                                        FUNCTION_NAME_PREFIX_DASH + "getPrincipalRef",
+                                        "Returns a reference to the principal representing the user whose identity is used to execute the expression.",
+                                        NullableType.create(ReferenceCelValue.CEL_TYPE))),
+                        CelFunctionBinding.from(FUNCTION_NAME_PREFIX_DASH + "getPrincipalRef",
+                                ImmutableList.of(),
+                                this::getPrincipalRef,
+                                NullabilityProperties.NULLABLE)
                 )
-
-                // selectIdentityItemValues: not implemented yet.
-                // This would probably require some rework, as FocusIdentitySourceTypeUtil is not available in CEL.
-
         );
+    }
+
+    private CelValue getPrincipalRef(Object[] objects) {
+        try {
+            return toCelReference(midpointExpressionFunctions.getPrincipalRef());
+        } catch (CommonException e) {
+            throw createException(e);
+        }
     }
 
     private boolean isFocusActivated(Object[] objects) {
@@ -502,6 +638,32 @@ public class CelMidPointExtensions extends AbstractMidPointCelExtensions {
 
     private boolean isFocusDeleted(Object[] objects) {
         return midpointExpressionFunctions.isFocusDeleted();
+    }
+
+    private boolean isCurrentProjectionActivated(Object[] objects) {
+        try {
+            return midpointExpressionFunctions.isCurrentProjectionActivated();
+        } catch (CommonException e) {
+            throw createException(e);
+        }
+    }
+
+    private boolean isCurrentProjectionDeactivated(Object[] objects) {
+        try {
+            return midpointExpressionFunctions.isCurrentProjectionDeactivated();
+        } catch (CommonException e) {
+            throw createException(e);
+        }
+    }
+
+    private String getDefaultNameForResourceRelatedTask(String taskTypeName, Object set) {
+        try {
+            ResourceObjectSetType javaSet = isCelNull(set)
+                    ? null : toJavaContainerable((ContainerValueCelValue<ResourceObjectSetType>) set);
+            return midpointExpressionFunctions.getDefaultNameForResourceRelatedTask(taskTypeName, javaSet);
+        } catch (CommonException e) {
+            throw createException(e);
+        }
     }
 
     private CelValue getLinkedShadowRepo(ObjectCelValue<FocusType> celFocus, String oid) {
@@ -583,6 +745,29 @@ public class CelMidPointExtensions extends AbstractMidPointCelExtensions {
         }
     }
 
+    @SuppressWarnings("unchecked")
+    private List<Object> selectIdentityItemValues(Object[] args) {
+        Object identities = args[0];
+        Object source = args[1];
+        ItemPathCelValue itemPath = (ItemPathCelValue) args[2];
+
+        var identityBeans = isCelNull(identities)
+                ? List.<FocusIdentityType>of()
+                : ((Collection<?>) identities).stream()
+                .map(value -> toJavaContainerable((ContainerValueCelValue<FocusIdentityType>) value))
+                .toList();
+
+        var sourceBean = isCelNull(source)
+                ? null : toJavaContainerable((ContainerValueCelValue<FocusIdentitySourceType>) source);
+
+        return midpointExpressionFunctions
+                .selectIdentityItemValues(identityBeans, sourceBean, itemPath.getJavaValue())
+                .stream()
+                .map(PrismCelValue::create)
+                .map(Object.class::cast)
+                .toList();
+    }
+
     private CelValue getOrgByName(String name) {
         try {
             return toCelObject(midpointExpressionFunctions.getOrgByName(name));
@@ -613,18 +798,26 @@ public class CelMidPointExtensions extends AbstractMidPointCelExtensions {
     }
 
 
-    private <O extends ObjectType> CelValue getObject(String typeLocalPart, String oid) {
-        return getObject(new QName(ObjectFactory.NAMESPACE, typeLocalPart), oid);
+    private CelValue getObject(Object[] args) {
+        return getObject(new QName(ObjectFactory.NAMESPACE, (String) args[0]), (String) args[1], args[2]);
     }
 
-    private <O extends ObjectType> CelValue getObject(QNameCelValue celTypeQname, String oid) {
-        return getObject(celTypeQname.getQName(), oid);
+    private CelValue getObject(String typeLocalPart, String oid) {
+        return getObject(new QName(ObjectFactory.NAMESPACE, typeLocalPart), oid, null);
     }
 
-    private <O extends ObjectType> CelValue getObject(QName type, String oid) {
+    private CelValue getObject(QNameCelValue celTypeQname, String oid) {
+        return getObject(celTypeQname.getQName(), oid, null);
+    }
+
+    private <O extends ObjectType> CelValue getObject(QName type, String oid, Object optionsAsString) {
         Class<O> typeClass = prismContext.getSchemaRegistry().determineClassForType(type);
         try {
-            return toCelObject(midpointExpressionFunctions.getObject(typeClass, oid));
+            if (CelTypeMapper.isCelNull(optionsAsString)) {
+                return toCelObject(midpointExpressionFunctions.getObject(typeClass, oid));
+            } else {
+                return toCelObject(midpointExpressionFunctions.getObject(typeClass, oid, parseOptions(optionsAsString)));
+            }
         } catch (CommonException e) {
             throw createException(e);
         }
@@ -677,7 +870,11 @@ public class CelMidPointExtensions extends AbstractMidPointCelExtensions {
         }
     }
 
-    private <O extends ObjectType> CelValue resolveReferenceIfExists(ReferenceCelValue referenceCelValue) {
+    private CelValue resolveReferenceIfExists(Object reference) {
+        if (isCelNull(reference)) {
+            return NullValue.NULL_VALUE;
+        }
+        var referenceCelValue = (ReferenceCelValue) reference;
         try {
             return toCelObject(midpointExpressionFunctions.resolveReferenceIfExists((ObjectReferenceType)referenceCelValue.getObjectReferenceValue().asReferencable()));
         } catch (CommonException e) {
@@ -685,15 +882,19 @@ public class CelMidPointExtensions extends AbstractMidPointCelExtensions {
         }
     }
 
+    private <O extends ObjectType> List<CelValue> searchObjects(Object[] args) {
+        return searchObjects(new QName(ObjectFactory.NAMESPACE, (String) args[0]), args[1], args[2]);
+    }
+
     private <O extends ObjectType> List<CelValue> searchObjects(String typeLocalPart, Object filter) {
-        return searchObjects(new QName(ObjectFactory.NAMESPACE, typeLocalPart), filter);
+        return searchObjects(new QName(ObjectFactory.NAMESPACE, typeLocalPart), filter, null);
     }
 
     private <O extends ObjectType> List<CelValue> searchObjects(QNameCelValue celTypeQname, Object filter) {
-        return searchObjects(celTypeQname.getQName(), filter);
+        return searchObjects(celTypeQname.getQName(), filter, null);
     }
 
-    private <O extends ObjectType> List<CelValue> searchObjects(QName type, Object filter) {
+    private <O extends ObjectType> List<CelValue> searchObjects(QName type, Object filter, Object optionsAsString) {
         Class<O> typeClass = prismContext.getSchemaRegistry().determineClassForType(type);
         String filterString;
         if (CelTypeMapper.isCelNull(filter)) {
@@ -702,15 +903,27 @@ public class CelMidPointExtensions extends AbstractMidPointCelExtensions {
             filterString = (String) filter;
         }
         try {
-            return toCelObjectList(midpointExpressionFunctions.searchObjects(typeClass, filterString));
+            if (CelTypeMapper.isCelNull(optionsAsString)) {
+                return toCelObjectList(
+                        midpointExpressionFunctions.searchObjects(typeClass, filterString));
+            } else {
+                return toCelObjectList(
+                        midpointExpressionFunctions.searchObjects(typeClass, filterString, parseOptions(optionsAsString)));
+            }
         } catch (CommonException e) {
             throw createException(e);
         }
     }
 
+    private List<SelectorOptions<GetOperationOptions>> parseOptions(Object optionsAsString) throws SchemaException {
+        // We have to wrap the data because we don't have an equivalent of "serializePrismValueContent" in the parser.
+        // The parser expects a root element (in fact, ignored), so we wrap the options in a "dummy" element.
+        var wrappedString = "{ \"dummy\": %s }".formatted(optionsAsString);
+        var bean = prismContext.parserFor(wrappedString).json().parseRealValue(SelectorQualifiedGetOptionsType.class);
+        return GetOperationOptionsUtil.optionsBeanToOptions(bean);
+    }
 
-    @Nullable
-    private <F extends FocusType> Object searchShadowOwner(String accountOid) {
+    private Object searchShadowOwner(String accountOid) {
         try {
             return toCelObjectPrism(midpointExpressionFunctions.searchShadowOwner(accountOid));
         } catch (CommonException e) {
@@ -718,6 +931,12 @@ public class CelMidPointExtensions extends AbstractMidPointCelExtensions {
         }
     }
 
+    private static CelValue toCelReference(ObjectReferenceType reference) {
+        if (reference == null) {
+            return NullValue.NULL_VALUE;
+        }
+        return ReferenceCelValue.create(reference.asReferenceValue());
+    }
 
     private static <O extends ObjectType> CelValue toCelObject(O o) {
         if (o == null) {
@@ -731,7 +950,6 @@ public class CelMidPointExtensions extends AbstractMidPointCelExtensions {
         if (o == null) {
             return Optional.empty();
         }
-        //noinspection unchecked
         return ObjectCelValue.create(o);
     }
 
@@ -740,6 +958,16 @@ public class CelMidPointExtensions extends AbstractMidPointCelExtensions {
         return celObject.getObject().asObjectable();
     }
 
+    private <C extends Containerable> C toJavaContainerable(ContainerValueCelValue<C> celValue) {
+        if (celValue == null) {
+            return null;
+        }
+        var containerValue = celValue.getContainerValue();
+        if (containerValue == null) {
+            return null;
+        }
+        return containerValue.asContainerable();
+    }
 
     private static final class Library implements CelExtensionLibrary<CelMidPointExtensions> {
         private final CelMidPointExtensions version0;

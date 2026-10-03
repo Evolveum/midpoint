@@ -21,7 +21,15 @@
         <collection>
             <!-- Type is declared in the view element. -->
             <filter>
-                <q:text>. ownedByOid `simulationResultRef?.oid`</q:text>
+                <q:text>
+                    . ownedByOid yaml```
+                        queryInterpretationOfNoValue: filterAll
+                        script:
+                            language: http://midpoint.evolveum.com/xml/ns/public/expression/language#mel
+                            objectVariableMode: referencableWithoutResolution
+                            code: 'simulationResultRef.oid'
+                    ```
+                </q:text>
             </filter>
         </collection>
         <view>
@@ -38,6 +46,7 @@
                 <export>
                     <expression>
                         <script>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                             <code>object.id</code>
                         </script>
                     </expression>
@@ -105,7 +114,10 @@
                 <export>
                     <expression>
                         <script>
-                            <code>objectMarks</code>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
+                            <code>
+                                isPresent(objectMarks) ? objectMarks.map(ref, default(ref.targetName.orig, ref.oid)) : nil
+                            </code>
                         </script>
                     </expression>
                 </export>
@@ -140,11 +152,8 @@
                 <export>
                     <expression>
                         <script>
-                            <code>
-                                import static com.evolveum.midpoint.model.api.simulation.ProcessedObject.*
-
-                                (itemDelta as ProcessedObjectItemDelta)?.path
-                            </code>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
+                            <code>itemDelta.path</code>
                         </script>
                     </expression>
                 </export>
@@ -163,11 +172,8 @@
                 <export>
                     <expression>
                         <script>
-                            <code>
-                                import static com.evolveum.midpoint.model.api.simulation.ProcessedObject.*
-
-                                (valueWithState as ValueWithState)?.state
-                            </code>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
+                            <code>valueWithState.state</code>
                         </script>
                     </expression>
                 </export>
@@ -186,11 +192,8 @@
                 <export>
                     <expression>
                         <script>
-                            <code>
-                                import static com.evolveum.midpoint.model.api.simulation.ProcessedObject.*
-
-                                (valueWithState as ValueWithState)?.value
-                            </code>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
+                            <code>valueWithState.value</code>
                         </script>
                     </expression>
                 </export>
@@ -209,6 +212,7 @@
                 <export>
                     <expression>
                         <script>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                             <code>relatedAssignment</code>
                         </script>
                     </expression>
@@ -228,7 +232,8 @@
                 <export>
                     <expression>
                         <script>
-                            <code>relatedAssignment?.id</code>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
+                            <code>relatedAssignment.id</code>
                         </script>
                     </expression>
                 </export>
@@ -247,7 +252,8 @@
                 <export>
                     <expression>
                         <script>
-                            <code>relatedAssignment?.targetRef</code>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
+                            <code>relatedAssignment.targetRef</code>
                         </script>
                     </expression>
                 </export>
@@ -266,7 +272,10 @@
                 <export>
                     <expression>
                         <script>
-                            <code>relatedAssignment?.targetRef?.relation</code>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
+                            <code>
+                                relatedAssignment.targetRef.relation
+                            </code>
                         </script>
                     </expression>
                 </export>
@@ -285,7 +294,10 @@
                 <export>
                     <expression>
                         <script>
-                            <code>relatedAssignment?.construction?.resourceRef</code>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
+                            <code>
+                                relatedAssignment.construction.resourceRef
+                            </code>
                         </script>
                     </expression>
                 </export>
@@ -304,7 +316,10 @@
                 <export>
                     <expression>
                         <script>
-                            <code>relatedAssignment?.construction?.kind</code>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
+                            <code>
+                                relatedAssignment.construction.kind
+                            </code>
                         </script>
                     </expression>
                 </export>
@@ -323,7 +338,10 @@
                 <export>
                     <expression>
                         <script>
-                            <code>relatedAssignment?.construction?.intent</code>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
+                            <code>
+                                relatedAssignment.construction.intent
+                            </code>
                         </script>
                     </expression>
                 </export>
@@ -396,10 +414,11 @@
             <type>c:ObjectReferenceType</type>
             <expression>
                 <script>
+                    <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                     <code>
-                        import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationResultProcessedObjectType
-
-                        report.getObjectMarks(object as SimulationResultProcessedObjectType)
+                        cel.bind(markedObject,
+                            isPresent(object.before) ? object.before : object.after,
+                            markedObject.effectiveMarkRefs())
                     </code>
                 </script>
             </expression>
@@ -410,15 +429,13 @@
             <!-- Returns a list of non-prism ProcessedObjectItemDelta objects (EXPERIMENTAL, may change in the future) -->
             <expression>
                 <script>
+                    <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                     <code>
-                        import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationResultProcessedObjectType
-                        import static com.evolveum.midpoint.model.api.simulation.ProcessedObject.*
-
-                        report.getProcessedObjectItemDeltas(
-                                object as SimulationResultProcessedObjectType,
-                                pathsToInclude,
-                                pathsToExclude,
-                                includeOperationalItems)
+                        simulation.itemDeltas(
+                            object,
+                            pathsToInclude,
+                            pathsToExclude,
+                            includeOperationalItems)
                     </code>
                 </script>
             </expression>
@@ -432,11 +449,8 @@
             <!-- Returns a list of non-prism ValueWithState objects (EXPERIMENTAL, may change in the future) -->
             <expression>
                 <script>
-                    <code>
-                        import static com.evolveum.midpoint.model.api.simulation.ProcessedObject.*
-
-                        (itemDelta as ProcessedObjectItemDelta)?.valuesWithStates
-                    </code>
+                    <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
+                    <code>itemDelta.valuesWithStates</code>
                 </script>
             </expression>
             <order>20</order>
@@ -450,7 +464,8 @@
             <type>xsd:boolean</type>
             <expression>
                 <script>
-                    <code>showIfNoDetails != false || valueWithState != null ? true : null</code>
+                    <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
+                    <code>str(showIfNoDetails) != 'false' || isPresent(valueWithState) ? true : nil</code>
                 </script>
             </expression>
             <order>30</order>
@@ -463,7 +478,10 @@
             <type>AssignmentType</type>
             <expression>
                 <script>
-                    <code>report.getRelatedAssignment(itemDelta, valueWithState?.value)</code>
+                    <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
+                    <code>
+                        isPresent(itemDelta) ? itemDelta.relatedAssignment( valueWithState.value) : nil
+                    </code>
                 </script>
             </expression>
             <order>40</order>

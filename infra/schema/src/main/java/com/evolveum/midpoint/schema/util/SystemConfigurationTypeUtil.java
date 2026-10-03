@@ -166,4 +166,11 @@ public class SystemConfigurationTypeUtil {
         var smartIntegration = getSmartIntegrationConfiguration(systemConfiguration);
         return smartIntegration != null ? smartIntegration.getShadowSampling() : null;
     }
+
+    public static @Nullable String getDefaultScriptLanguage( @Nullable SystemConfigurationType systemConfiguration) {
+        if (systemConfiguration == null || systemConfiguration.getExpressions() == null) {
+            return null;
+        }
+        return systemConfiguration.getExpressions().getDefaultScriptLanguage();
+    }
 }

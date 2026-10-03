@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.smart.impl.conndev;
 
+import com.evolveum.midpoint.smart.api.conndev.DocumentationContentTypes;
 import com.evolveum.midpoint.smart.impl.conndev.activity.ConnDevBeans;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ProcessedDocumentationType;
 
@@ -61,6 +62,13 @@ public class ProcessedDocumentation {
         }
     }
 
+    /**
+     * Deletes the stored file. Returns false when there is no file to delete.
+     */
+    public boolean delete() {
+        return storage.exists() && storage.delete();
+    }
+
     public String uri() {
         return uri;
     }
@@ -69,15 +77,14 @@ public class ProcessedDocumentation {
         return uuid;
     }
 
+    /**
+     * The stored content type, detected from the file name when none was stored. May be {@code null}
+     * for a file whose suffix carries no format information; the generation-service upload then
+     * lets the service infer the type from the file name itself.
+     */
     String contentType() {
         if (mimeType == null) {
-            if (uri.endsWith(".json")) {
-                mimeType = "application/json";
-            } else if (uri.endsWith(".yml") || uri.endsWith(".yaml")) {
-                mimeType = "application/yaml";
-            } else {
-                mimeType = "text/html";
-            }
+            mimeType = DocumentationContentTypes.detect(uri);
         }
         return mimeType;
     }

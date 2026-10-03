@@ -11,6 +11,7 @@
 	</source>
 	<expression>
 		<script>
+		    <language>mel</language>
 			<code>
 				givenName + ' ' + familyName
 			</code>
@@ -21,8 +22,9 @@
 	</target>
 	<condition>
 		<script>
+		    <language>mel</language>
 			<code>
-				basic.stringify(name) != 'jack'
+				stringify(name) != 'jack'
 			</code>
 		</script>
 	</condition>

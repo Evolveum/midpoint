@@ -224,7 +224,9 @@ public interface ConnectorDevelopmentOperation {
     void saveArtifact(ConnDevArtifactType endpoint, Task task, OperationResult result) throws IOException, CommonException;
 
     /**
-     * Saves the uploaded documentation file to disk (tmp-docs).
+     * Saves the uploaded documentation file to disk (tmp-docs) and registers it as processed
+     * documentation of the development, so that the session restoration uploads it to the
+     * generation service - the same way the discovered schema documents are integrated.
      *
      * @param fileName original name of the uploaded file
      * @param content file content
@@ -235,6 +237,13 @@ public interface ConnectorDevelopmentOperation {
      */
     String saveDocumentationFile(String fileName, InputStream content, String contentType, Task task, OperationResult result)
             throws IOException, CommonException;
+
+    /**
+     * Removes the processed documentation (and its stored file) of an uploaded documentation file,
+     * identified by its original file name, so that the session restoration stops uploading it to
+     * the generation service. A no-op when the development carries no such processed documentation.
+     */
+    void removeDocumentationFile(String fileName, Task task, OperationResult result) throws CommonException;
 
     /**
      * Marks an already-deployed script as disabled in the manifest, so the connector skips it both

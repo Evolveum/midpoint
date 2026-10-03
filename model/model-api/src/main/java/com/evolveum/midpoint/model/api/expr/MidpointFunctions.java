@@ -31,6 +31,8 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
@@ -39,6 +41,7 @@ import com.evolveum.midpoint.model.api.context.Mapping;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.ModelElementContext;
 import com.evolveum.midpoint.model.api.context.ModelProjectionContext;
+import com.evolveum.midpoint.model.api.simulation.ProcessedObject;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -643,8 +646,12 @@ public interface MidpointFunctions {
      *             wrong query format
      */
     <T extends ObjectType> List<T> searchObjects(Class<T> type, String filter) throws SchemaException,
-            ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException;
+            ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException,
+            ExpressionEvaluationException, SubscriptionComplianceException;
 
+    <T extends ObjectType> List<T> searchObjects(Class<T> type, String filter, Collection<SelectorOptions<GetOperationOptions>> options)
+            throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException,
+            ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException;
 
     /**
      * <p>
@@ -1090,6 +1097,10 @@ public interface MidpointFunctions {
 
     OperationResult getCurrentResult(String operationName);
 
+    /** Parses a persisted simulation processed object. */
+    ProcessedObject<?> parseSimulationProcessedObject(
+            SimulationResultProcessedObjectType object) throws SchemaException;
+
     ModelContext<?> unwrapModelContext(LensContextType lensContextType)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
             ExpressionEvaluationException, SubscriptionComplianceException;
@@ -1308,6 +1319,12 @@ public interface MidpointFunctions {
      */
     MidPointPrincipal getPrincipal() throws SecurityViolationException;
 
+    /** Returns a reference to the principal representing the user whose identity is used to execute the expression. */
+    default ObjectReferenceType getPrincipalRef() throws SecurityViolationException {
+        var principal = getPrincipal();
+        return principal != null ? principal.toObjectReference() : null;
+    }
+
     /**
      * Returns OID of the current principal. After login is complete, the returned OID is the same as
      * getPrincipal().getOid(). However, during login process, this method returns the OID of the user that is
@@ -1405,6 +1422,11 @@ public interface MidpointFunctions {
      * @return translated string
      */
     String translate(LocalizableMessageType message, boolean useDefaultLocale);
+
+    /** Translates message key in user's current locale. */
+    default String translateKeyInCurrentLocale(String key) {
+        return translate(new SingleLocalizableMessageType().key(key), false);
+    }
 
     /**
      * Counts accounts having `attributeValue` of `attributeName`.
@@ -1745,6 +1767,23 @@ public interface MidpointFunctions {
         return describeResourceObjectSetShort(set);
     }
 
+    /**
+     * Determines the default name for a task that executes an operation against given resource, like import or reconciliation.
+     *
+     * @param taskTypeName name of the task type (e.g. "Import", "Reconciliation")
+     * @param set specification of the resource object set (typically, in the task activity work definition)
+     */
+    default @NotNull String getDefaultNameForResourceRelatedTask(
+            @NotNull String taskTypeName, @Nullable ResourceObjectSetType set)
+            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
+            ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
+        String description = describeResourceObjectSet(set);
+        if (StringUtils.isNotEmpty(description)) {
+            return taskTypeName + ": " + description;
+        } else {
+            return taskTypeName; // shouldn't occur
+        }
+    }
 
     /**
      * Selects specified values from all relevant identity data.

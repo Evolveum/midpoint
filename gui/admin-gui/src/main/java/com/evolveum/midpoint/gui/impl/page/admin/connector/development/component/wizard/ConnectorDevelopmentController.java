@@ -18,7 +18,9 @@ import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.basic.BasicInformationConnectorStepPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.basic.DocumentationConnectorStepPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.connection.ConnectionConnectorStepPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.connection.WaitingSchemaConnectorStepPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.ObjectClassesConnectorStepPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.WaitingObjectClassInformationStepPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.relation.RelationshipsConnectorStepPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.summary.ConnectorDevelopmentWizardSummaryPanel;
 import com.evolveum.midpoint.prism.Containerable;
@@ -76,7 +78,50 @@ public class ConnectorDevelopmentController extends AbstractWizardController<Con
     }
 
     public void initNewObjectClass(AjaxRequestTarget target) {
+        if (shouldStartObjectClassDiscovery()) {
+            startObjectClassDiscovery(target);
+            return;
+        }
         setPartItem(new InitObjectClassConnectorDevPartItem(getHelper()), target);
+    }
+
+    /**
+     * Whether the object class (schema) discovery should be started right now: the connection is
+     * established, the connector service is online, and the discovery has not run yet (no detected
+     * schema and no successful discovery task).
+     */
+    private boolean shouldStartObjectClassDiscovery() {
+        return !ConnectorDevelopmentWizardUtil.isOffline(getObjectDetailsModel())
+                && ConnectorDevelopmentWizardUtil.isConnectionComplete(getObjectDetailsModel())
+                && !ConnectorDevelopmentWizardUtil.isObjectClassDiscoveryComplete(getObjectDetailsModel());
+    }
+
+    /**
+     * Navigates the wizard to the first not-yet-finished waiting step of the init part (schema
+     * refresh, then object class discovery) so that its task is submitted and the discovery runs,
+     * instead of opening the manual object class creation flow.
+     */
+    private void startObjectClassDiscovery(AjaxRequestTarget target) {
+        List<AbstractWizardPartItem<ConnectorDevelopmentType, ConnectorDevelopmentDetailsModel>> partItems = getPartItems();
+        for (int i = 0; i < partItems.size(); i++) {
+            AbstractWizardPartItem<ConnectorDevelopmentType, ConnectorDevelopmentDetailsModel> part = partItems.get(i);
+            if (part.getIdentifierForWizardStatus() != ConnectorDevelopmentStatusType.INIT) {
+                continue;
+            }
+            if (part.setActiveStepById(WaitingSchemaConnectorStepPanel.PANEL_TYPE)
+                    || part.setActiveStepById(WaitingObjectClassInformationStepPanel.PANEL_TYPE)) {
+                setActiveWizardPartIndex(i);
+                fireActiveStepChanged(getActiveStep());
+                target.add(getPanel());
+                return;
+            }
+        }
+        // The init part is not in the part list - rebuild the parts (the init part is incomplete
+        // here, so it is included) and let the refresh activate the appropriate step.
+        setPartItems(createWizardPartItems());
+        refresh();
+        fireActiveStepChanged(getActiveStep());
+        target.add(getPanel());
     }
 
     public void initNewRelationship(AjaxRequestTarget target) {
@@ -132,7 +177,17 @@ public class ConnectorDevelopmentController extends AbstractWizardController<Con
     }
 
     public void showObjectClassesPanel(AjaxRequestTarget target) {
-        setActiveStepById(ObjectClassesConnectorStepPanel.PANEL_TYPE, target);
+        List<AbstractWizardPartItem<ConnectorDevelopmentType, ConnectorDevelopmentDetailsModel>> partItems = getPartItems();
+        for (int i = 0; i < partItems.size(); i++) {
+            if (partItems.get(i).setActiveStepById(ObjectClassesConnectorStepPanel.PANEL_TYPE)) {
+                setActiveWizardPartIndex(i);
+                fireActiveStepChanged(getActiveStep());
+                target.add(getPanel());
+                return;
+            }
+        }
+        // No part has an object classes step yet (no object classes exist) - start a new one.
+        initNewObjectClass(target);
     }
 
     public void showRelationshipsPanel(AjaxRequestTarget target) {

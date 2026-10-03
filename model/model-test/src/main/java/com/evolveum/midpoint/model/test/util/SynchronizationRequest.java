@@ -16,7 +16,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -148,14 +147,22 @@ public class SynchronizationRequest {
             ActivityTracingDefinitionType tracing = new ActivityTracingDefinitionType()
                     .tracingProfile(tracingProfile);
             if (tracingAccounts != null) {
-                // FIXME migrate to MEL! #12267
-                String script = String.format(
-                        "[%s].contains(item?.name?.orig)",
-                        tracingAccounts.stream()
-                                .map(s -> "'" + s + "'")
-                                .collect(Collectors.joining(",")));
-                tracing.getBeforeItemCondition().add(new BeforeItemConditionType()
-                        .expression(SimpleExpressionUtil.groovyExpression(script, MidPointTrustDescriptor.trusted())));
+                if (tracingAccounts.isEmpty()) {
+                    tracing.getBeforeItemCondition().add(new BeforeItemConditionType()
+                            .expression(SimpleExpressionUtil.melExpression(
+                                    "false",
+                                    MidPointTrustDescriptor.trusted())));
+                } else {
+                    tracingAccounts.stream()
+                            .distinct()
+                            .forEach(accountName -> tracing.getBeforeItemCondition().add(new BeforeItemConditionType()
+                                            .expression(SimpleExpressionUtil.melExpression(
+                                                    "item.name.orig == tracingAccount",
+                                                    MidPointTrustDescriptor.trusted())
+                                                    .variable(new ExpressionVariableDefinitionType()
+                                                            .name(new QName("tracingAccount"))
+                                                            .value(accountName)))));
+                }
             }
             reporting.tracing(tracing);
         }

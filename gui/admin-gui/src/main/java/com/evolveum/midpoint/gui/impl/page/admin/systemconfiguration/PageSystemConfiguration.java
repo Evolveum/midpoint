@@ -64,7 +64,9 @@ public class PageSystemConfiguration extends PageBase {
 
         ACCESS_CERTIFICATION("fa fa-certificate", PageAccessCertification.class),
 
-        SECRETS_PROVIDERS("fa fa-key", PageSystemSecretsProviders.class);
+        SECRETS_PROVIDERS("fa fa-key", PageSystemSecretsProviders.class),
+
+        SMART_INTEGRATION("fa fa-wand-magic-sparkles", PageSmartIntegration.class);
 
         String icon;
 
@@ -142,6 +144,11 @@ public class PageSystemConfiguration extends PageBase {
             @Override
             protected String getTitleOfEnum(SubPage type) {
                 return getString(type.getPage().getSimpleName() + ".title");
+            }
+
+            @Override
+            protected boolean isFeedbackContainerVisible() {
+                return false;
             }
         };
         add(choicePanel);

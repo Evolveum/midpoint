@@ -15,6 +15,7 @@ import com.evolveum.midpoint.smart.api.conndev.ConnDevArtifactValidationResult;
 import com.evolveum.midpoint.smart.api.conndev.ConnDevScriptFormat;
 import com.evolveum.midpoint.smart.api.conndev.ConnectorDevelopmentArtifacts;
 import com.evolveum.midpoint.smart.api.conndev.ConnectorDevelopmentOperation;
+import com.evolveum.midpoint.smart.api.conndev.DocumentationContentTypes;
 import com.evolveum.midpoint.smart.api.conndev.SupportedAuthorization;
 import com.evolveum.midpoint.smart.impl.conndev.activity.ConnDevBeans;
 import com.evolveum.midpoint.smart.impl.mappings.ConnDevJsonMapper;
@@ -33,8 +34,10 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.hc.client5.http.entity.EntityBuilder;
 import org.apache.hc.core5.http.ContentType;
+import org.apache.hc.core5.http.HttpStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -214,23 +217,59 @@ public abstract class ConnectorDevelopmentBackend {
     };
 
     /**
-     * Saves the uploaded documentation file to disk (tmp-docs).
+     * Saves the uploaded documentation file to disk (tmp-docs) and registers it as processed
+     * documentation of the development (see {@link #refreshConnDevDocumentation} for the same
+     * integration of the discovered schema), so that the session restoration uploads it to the
+     * generation service (see {@link #ensureDocumentationIsUploaded}).
      *
      * @param fileName original name of the uploaded file
      * @param content file content
      * @param contentType MIME type of the file
      * @return generated UUID under which the file is stored
      */
-    public String saveDocumentationFile(String fileName, InputStream content, String contentType) throws IOException {
+    public String saveDocumentationFile(String fileName, InputStream content, String contentType)
+            throws IOException, CommonException {
         String uuid = UUID.randomUUID().toString();
         var documentation = new ProcessedDocumentation(uuid, fileName)
-                .contentType(contentType);
+                .contentType(DocumentationContentTypes.resolve(contentType, fileName));
         try (var output = documentation.asOutputStream()) {
             content.transferTo(output);
         }
-        // TODO: add the path of the saved file to the in-progress connector object
-        //  (ConnectorDevelopmentType.processedDocumentation).
+
+        var delta = PrismContext.get().deltaFor(ConnectorDevelopmentType.class)
+                .item(ConnectorDevelopmentType.F_PROCESSED_DOCUMENTATION)
+                .addRealValues(List.of(documentation.toBean()))
+                .<ConnectorDevelopmentType>asObjectDelta(developmentObject().getOid());
+        beans.modelService.executeChanges(List.of(delta), null, task, result);
+        reload();
         return uuid;
+    }
+
+    /**
+     * Removes the processed documentation (and its stored file) of an uploaded documentation file,
+     * identified by its original file name (the processed documentation's uri), so that the session
+     * restoration stops uploading it to the generation service. A no-op when the development carries
+     * no such processed documentation.
+     */
+    public void removeDocumentationFile(String fileName) throws CommonException {
+        var toRemove = developmentObject().getProcessedDocumentation().stream()
+                .filter(documentation -> StringUtils.equals(fileName, documentation.getUri()))
+                // Clones: the live container values carry a parent, which the delta builder refuses to reset.
+                .map(ProcessedDocumentationType::clone)
+                .toList();
+        if (toRemove.isEmpty()) {
+            return;
+        }
+
+        var delta = PrismContext.get().deltaFor(ConnectorDevelopmentType.class)
+                .item(ConnectorDevelopmentType.F_PROCESSED_DOCUMENTATION)
+                .deleteRealValues(toRemove)
+                .<ConnectorDevelopmentType>asObjectDelta(developmentObject().getOid());
+        beans.modelService.executeChanges(List.of(delta), null, task, result);
+        for (var documentation : toRemove) {
+            new ProcessedDocumentation(documentation).delete();
+        }
+        reload();
     }
 
     public ConnectorDevelopmentType developmentObject() {
@@ -904,8 +943,9 @@ public abstract class ConnectorDevelopmentBackend {
     protected abstract void restoreSession(ServiceClient.RestorationClient client) throws IOException;
 
     protected void synchronizeSession(ServiceClient.RestorationClient client) throws IOException {
-        // FIXME: Implement session synchronization here
-        // ensureDocumentationIsUploaded(client);
+        // The session exists: make sure the documentation stored in the development (uploaded files,
+        // detected schemas) is present in it. Idempotent - a no-op when everything is already there.
+        ensureDocumentationIsUploaded(client);
     }
 
     protected void restoreObjectClasses(ServiceClient.RestorationClient client) throws IOException {
@@ -1066,23 +1106,75 @@ public abstract class ConnectorDevelopmentBackend {
 
     public void ensureDocumentationIsUploaded(ServiceClient.RestorationClient client) {
         try {
+            var sync = client().synchronizationClient();
             for (var documentation : getProcessedDocumentation()) {
-                client.putDocumentationIfMissing(
-                        "session/{sessionId}/documentation/" + documentation.uuid(), () -> {
-                            try {
-                                var body = new String(documentation.asInputStream().readAllBytes(), StandardCharsets.UTF_8);
-                                return EntityBuilder.create()
-                                        .setText(body)
-                                        .setContentType(ContentType.create(documentation.contentType(), StandardCharsets.UTF_8))
-                                        .build();
-                            } catch (IOException e) {
-                                throw new SystemException("Couldn't build documentation upload body", e);
-                            }
-                        });
+                if (isDocumentationBundle(documentation)) {
+                    // Pre-processed documentation (a {docId, chunks:[...]} bundle as returned by the
+                    // generation service): import it as-is through the PUT import endpoint, so the
+                    // service does not reprocess it.
+                    client.putDocumentationIfMissing(
+                            "session/{sessionId}/documentation/" + documentation.uuid(), () -> {
+                                try {
+                                    var body = new String(documentation.asInputStream().readAllBytes(), StandardCharsets.UTF_8);
+                                    return EntityBuilder.create()
+                                            .setText(body)
+                                            .setContentType(ContentType.APPLICATION_JSON)
+                                            .build();
+                                } catch (IOException e) {
+                                    throw new SystemException("Couldn't build documentation upload body", e);
+                                }
+                            });
+                } else {
+                    // Raw documentation file (uploaded in the wizard, or a detected schema stored as
+                    // its raw content): the service expects these through the multipart upload
+                    // endpoint, which (re)processes them. Skip the upload when the documentation (or
+                    // its processing) is already present in the session.
+                    var status = sync.documentationStatus(documentation.uuid());
+                    if (status != HttpStatus.SC_OK && status != HttpStatus.SC_NO_CONTENT && status != HttpStatus.SC_ACCEPTED) {
+                        sync.postDocumentation(
+                                documentation.uuid(),
+                                documentation.asInputStream(),
+                                documentationContentType(documentation),
+                                documentation.uri());
+                        sync.awaitDocumentation(documentation.uuid(), SLEEP_TIME, canRun());
+                    }
+                }
             }
         } catch (Exception e) {
             throw new SystemException("Couldn't upload documentation", e);
         }
+    }
+
+    /**
+     * Whether the stored documentation is a pre-processed documentation bundle ({@code {docId,
+     * chunks:[...]}}) as returned by the generation service, as opposed to a raw documentation file.
+     */
+    private boolean isDocumentationBundle(ProcessedDocumentation documentation) {
+        try {
+            return isDocumentationBundle(documentation.asInputStream().readAllBytes());
+        } catch (IOException e) {
+            return false;
+        }
+    }
+
+    static boolean isDocumentationBundle(byte[] content) {
+        JsonNode root;
+        try {
+            root = MAPPER.readTree(content);
+        } catch (IOException e) {
+            return false;
+        }
+        var chunks = root == null ? null : root.get("chunks");
+        return chunks != null && chunks.isArray();
+    }
+
+    private ContentType documentationContentType(ProcessedDocumentation documentation) {
+        var mimeType = documentation.contentType();
+        if (StringUtils.isBlank(mimeType)) {
+            // Let the service derive the content type from the file name.
+            return ContentType.DEFAULT_BINARY;
+        }
+        return ContentType.create(mimeType, StandardCharsets.UTF_8);
     }
 
     /**
@@ -1144,6 +1236,11 @@ public abstract class ConnectorDevelopmentBackend {
     protected String apiType() {
         var connector = developmentObject().getConnector();
         var integrationType = connector != null ? connector.getIntegrationType() : null;
+        if (integrationType != null) {
+            return integrationType.value();
+        }
+        var application = developmentObject().getApplication();
+        integrationType = application != null ? application.getIntegrationType() : null;
         return integrationType != null ? integrationType.value() : null;
     }
 

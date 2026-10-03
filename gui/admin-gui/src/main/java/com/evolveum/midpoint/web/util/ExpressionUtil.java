@@ -12,13 +12,17 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
 import com.evolveum.midpoint.model.common.expression.ExpressionProfileManager;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemName;
 
+import com.evolveum.midpoint.repo.common.SystemObjectCache;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.expression.MidPointTrustDescriptor;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ShadowAssociationsUtil;
 
+import com.evolveum.midpoint.schema.util.SystemConfigurationTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 
@@ -70,6 +74,7 @@ public class ExpressionUtil {
         NULL(SchemaConstantsGenerated.C_NULL);
 
         private final ItemName itemName;
+
         ExpressionEvaluatorType(ItemName itemName) {
             this.itemName = itemName;
         }
@@ -83,7 +88,7 @@ public class ExpressionUtil {
         GROOVY("http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy", false),
         PYTHON("http://midpoint.evolveum.com/xml/ns/public/expression/language#python", false),
         MEL("http://midpoint.evolveum.com/xml/ns/public/expression/language#mel", true),
-        VELOCITY("http://midpoint.evolveum.com/xml/ns/public/expression/language#safe-velocity", false),
+        VELOCITY("http://midpoint.evolveum.com/xml/ns/public/expression/language#velocity", false),
         SAFE_VELOCITY("http://midpoint.evolveum.com/xml/ns/public/expression/language#safe-velocity", true),
         JAVASCRIPT("http://midpoint.evolveum.com/xml/ns/public/expression/language#ECMAScript", false);
 
@@ -183,12 +188,18 @@ public class ExpressionUtil {
         return null;
     }
 
-    @Nullable
-    public static Language converLanguage(String languageValue) {
-        if (StringUtils.isEmpty(languageValue)) {
-            return null;
+    @NotNull
+    public static Language converLanguage(String languageValue, SystemObjectCache systemObjectCache, boolean isScriptEmpty) {
+        if (StringUtils.isNotEmpty(languageValue)) {
+            Language language = convertLanguage(languageValue);
+            if (language != null) {
+                return language;
+            }
         }
+        return getDefaultLanguage(systemObjectCache, isScriptEmpty);
+    }
 
+    private static @Nullable Language convertLanguage(String languageValue) {
         for (Language language : Language.values()) {
             if (languageValue.equals(language.getLanguage())
                     || languageValue.equalsIgnoreCase(language.name())
@@ -196,7 +207,26 @@ public class ExpressionUtil {
                 return language;
             }
         }
+        return null;
+    }
 
+    @NotNull
+    public static Language getDefaultLanguage(SystemObjectCache systemObjectCache, boolean isScriptEmpty) {
+        try {
+            PrismObject<SystemConfigurationType> systemConfig = systemObjectCache.getSystemConfiguration(new OperationResult("load system configuration"));
+            String languageUri = SystemConfigurationTypeUtil.getDefaultScriptLanguage(systemConfig.asObjectable());
+            if (StringUtils.isNotEmpty(languageUri)) {
+                Language language = convertLanguage(languageUri);
+                if (language != null) {
+                    return language;
+                }
+            }
+        } catch (SchemaException e) {
+            LOGGER.error("Couldn't load system configuration", e);
+        }
+        if (isScriptEmpty) {
+            return Language.MEL;
+        }
         return Language.GROOVY;
     }
 
@@ -247,7 +277,6 @@ public class ExpressionUtil {
      * Tells whether the expression carries anything worth storing. Unlike {@link #isEmpty}, which only
      * asks whether an evaluator is there, this also asks the evaluator for its content, so that an
      * evaluator left blank by the user,  a script without code, does not count.
-
      *
      * @param expression expression to look at.
      * @return true when the expression should be kept.
@@ -792,6 +821,7 @@ public class ExpressionUtil {
 
     /**
      * Makes the "null" evaluator the only evaluator of the expression.
+     *
      * @param expression for which "null" evaluator should be set as sole evaluator.
      */
     public static void addNullExpressionValue(ExpressionType expression) {

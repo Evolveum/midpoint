@@ -317,7 +317,7 @@ public class CorrelationItem implements DebugDumpable {
             return null;
         }
         if (fuzzyDef.getLevenshtein() != null) {
-            return createConfidenceExpression("1/(input+1)");
+            return createConfidenceExpression("1.0 / (input + 1.0)");
         } else if (fuzzyDef.getSimilarity() != null) {
             return createConfidenceExpression("input");
         } else {
@@ -326,8 +326,7 @@ public class CorrelationItem implements DebugDumpable {
     }
 
     private ExpressionType createConfidenceExpression(String code) {
-        // TODO migrate to MEL #12267
-        return SimpleExpressionUtil.groovyExpression(code, MidPointTrustDescriptor.trusted());
+        return SimpleExpressionUtil.melExpression(code, MidPointTrustDescriptor.trusted());
     }
 
     /** Returns the values of given metric (e.g. Levenshtein distance) for given candidate for this item. No nulls on return. */

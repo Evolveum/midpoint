@@ -38,6 +38,7 @@ import javax.xml.stream.events.XMLEvent;
 
 import com.evolveum.midpoint.cases.api.CorrelationCaseManager;
 import com.evolveum.midpoint.model.api.*;
+import com.evolveum.midpoint.model.api.simulation.ProcessedObject;
 import com.evolveum.midpoint.common.AvailableLocale;
 import com.evolveum.midpoint.model.common.expression.script.ScriptExecutionContext;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
@@ -973,6 +974,15 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
         }
     }
 
+    @Override
+    public ProcessedObject<?> parseSimulationProcessedObject(
+            SimulationResultProcessedObjectType object) throws SchemaException {
+        return modelService.parseProcessedObject(
+                object,
+                getCurrentTaskRequired(),
+                getCurrentResult(CLASS_DOT + "parseSimulationProcessedObject"));
+    }
+
     // functions working with ModelContext
 
     @Override
@@ -1250,8 +1260,15 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     }
 
     @Override
+    public <T extends ObjectType> List<T> searchObjects(Class<T> type, String filter)
+            throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException,
+            ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException {
+        return searchObjects(type, filter, getDefaultGetOptionCollection());
+    }
+
+    @Override
     public <T extends ObjectType> List<T> searchObjects(
-            Class<T> type, String filter) throws SchemaException,
+            Class<T> type, String filter, Collection<SelectorOptions<GetOperationOptions>> options) throws SchemaException,
             ObjectNotFoundException, SecurityViolationException,
             CommunicationException, ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException {
         ObjectFilter objectFilter;
@@ -1263,8 +1280,8 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
         }
         ObjectQuery query = prismContext.queryFactory().createQuery(objectFilter);
         return MiscSchemaUtil.toObjectableList(
-                modelService.searchObjects(type, query,
-                        getDefaultGetOptionCollection(), getCurrentTask(), getCurrentResult()));
+                modelService.searchObjects(
+                        type, query, options, getCurrentTask(), getCurrentResult()));
     }
 
     private PrismNamespaceContext getNamespaceContext() {

@@ -2194,6 +2194,7 @@
     <!--</roleAnalysis>-->
 
     <expressions>
+        <defaultScriptLanguage>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</defaultScriptLanguage>
         <expressionProfile id="218">
             <identifier>safe</identifier>
             <description>

@@ -34,7 +34,13 @@ public class InitConnectorDevPartItem extends AbstractWizardPartItem<ConnectorDe
 
     @Override
     public boolean isComplete() {
-        return ConnectorDevelopmentWizardUtil.isConnectionComplete(getObjectDetailsModel());
+        if (!ConnectorDevelopmentWizardUtil.isConnectionComplete(getObjectDetailsModel())) {
+            return false;
+        }
+        if (ConnectorDevelopmentWizardUtil.isOffline(getObjectDetailsModel())) {
+            return true;
+        }
+        return ConnectorDevelopmentWizardUtil.isObjectClassDiscoveryComplete(getObjectDetailsModel());
     }
 
     @Override

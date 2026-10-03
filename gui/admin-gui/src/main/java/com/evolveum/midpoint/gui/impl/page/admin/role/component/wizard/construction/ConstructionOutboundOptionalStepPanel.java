@@ -6,12 +6,14 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.role.component.wizard.construction;
 
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.attribute.mapping.OutboundMappingOptionalConfigurationStepPanel;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationTypeType;
 
 import org.apache.wicket.model.IModel;
@@ -26,7 +28,7 @@ public class ConstructionOutboundOptionalStepPanel<AHD extends AssignmentHolderD
 
     private static final String PANEL_TYPE = "arw-construction-mapping-optional";
 
-    public ConstructionOutboundOptionalStepPanel(AHD model, IModel newValueModel) {
+    public ConstructionOutboundOptionalStepPanel(AHD model, IModel<PrismContainerValueWrapper<MappingType>> newValueModel) {
         super(model, newValueModel);
     }
 

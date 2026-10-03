@@ -1,10 +1,10 @@
 /*
- * Copyright (C) 2010-2024 Evolveum and contributors
+ * Copyright (C) 2010-2026 Evolveum and contributors
  *
  * Licensed under the EUPL-1.2 or later.
  */
 
-package com.evolveum.midpoint.gui.impl.factory.panel;
+package com.evolveum.midpoint.gui.impl.factory.panel.protectedstring;
 
 import java.io.Serializable;
 import javax.xml.namespace.QName;
@@ -13,6 +13,8 @@ import com.evolveum.midpoint.gui.api.component.password.ProtectedStringPanel;
 import com.evolveum.midpoint.gui.api.factory.GuiComponentFactory;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
 import com.evolveum.midpoint.gui.api.registry.GuiComponentRegistry;
+import com.evolveum.midpoint.gui.impl.factory.panel.ItemRealValueModel;
+import com.evolveum.midpoint.gui.impl.factory.panel.PrismPropertyPanelContext;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismPropertyValueWrapper;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -54,10 +56,21 @@ public class ProtectedStringPanelFactory implements Serializable, GuiComponentFa
                 (IModel<PrismPropertyValueWrapper<ProtectedStringType>>) panelCtx.getValueWrapperModel(),
                 showProviderPanel(panelCtx.getRealValueModel()),
                 isShowedOneLinePasswordPanel(),
-                useGlobalValuePolicy);
+                useGlobalValuePolicy,
+                getPasswordPlaceholder(panelCtx),
+                getRepeatPasswordPlaceholder(panelCtx)
+                );
         panel.setFeedback(panelCtx.getFeedback());
         panel.setOutputMarkupId(true);
         return panel;
+    }
+
+    protected IModel<String> getRepeatPasswordPlaceholder(PrismPropertyPanelContext<ProtectedStringType> panelCtx) {
+        return null;
+    }
+
+    protected IModel<String> getPasswordPlaceholder(PrismPropertyPanelContext<ProtectedStringType> panelCtx) {
+        return null;
     }
 
     protected boolean isShowedOneLinePasswordPanel() {
@@ -81,7 +94,7 @@ public class ProtectedStringPanelFactory implements Serializable, GuiComponentFa
         return true;
     }
 
-    private boolean useGlobalValuePolicy(IModel<PrismPropertyWrapper<ProtectedStringType>> wrapperModel) {
+    protected boolean useGlobalValuePolicy(IModel<PrismPropertyWrapper<ProtectedStringType>> wrapperModel) {
         ItemPath itemPath = wrapperModel == null || wrapperModel.getObject() == null ? null : wrapperModel.getObject().getPath();
         return itemPath == null || !itemPath.startsWith(ItemPath.create(ObjectType.F_EXTENSION));
     }
