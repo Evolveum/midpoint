@@ -1144,6 +1144,11 @@ public abstract class ConnectorDevelopmentBackend {
     protected String apiType() {
         var connector = developmentObject().getConnector();
         var integrationType = connector != null ? connector.getIntegrationType() : null;
+        if (integrationType != null) {
+            return integrationType.value();
+        }
+        var application = developmentObject().getApplication();
+        integrationType = application != null ? application.getIntegrationType() : null;
         return integrationType != null ? integrationType.value() : null;
     }
 
