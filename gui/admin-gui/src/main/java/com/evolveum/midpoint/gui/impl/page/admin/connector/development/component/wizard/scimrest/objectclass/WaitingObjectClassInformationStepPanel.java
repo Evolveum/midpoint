@@ -38,7 +38,7 @@ import com.evolveum.midpoint.web.application.PanelType;
         containerPath = "empty")
 public class WaitingObjectClassInformationStepPanel extends WaitingConnectorStepPanel implements WizardParentStep {
 
-    private static final String PANEL_TYPE = "cdw-connector-waiting-object-class";
+    public static final String PANEL_TYPE = "cdw-connector-waiting-object-class";
 
     public WaitingObjectClassInformationStepPanel(WizardPanelHelper<? extends Containerable, ConnectorDevelopmentDetailsModel> helper) {
         super(helper);
