@@ -235,6 +235,18 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
         type = "ActivityPoliciesType",
         expanded = true
 )
+@PanelInstance(
+        identifier = "smartIntegrationPanel",
+        applicableForType = SmartIntegrationConfigurationType.class,
+        display = @PanelDisplay(
+                label = "SmartIntegrationPanel.label",
+                icon = GuiStyleConstants.CLASS_CIRCLE_FULL,
+                order = 40
+        ),
+        containerPath = "smartIntegration",
+        type = "SmartIntegrationConfigurationType",
+        expanded = true
+)
 public class GenericSingleContainerPanel<C extends Containerable, O extends ObjectType> extends AbstractObjectMainPanel<O, ObjectDetailsModels<O>> {
 
     private static final String ID_DETAILS = "details";
