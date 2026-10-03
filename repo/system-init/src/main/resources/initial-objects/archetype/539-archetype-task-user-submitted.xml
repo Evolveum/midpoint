@@ -1,0 +1,22 @@
+<!--
+  ~ Copyright (c) 2020 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<archetype oid="d515f699-b7dd-4649-9703-a7c02afa1537"
+           xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <name>User-submitted task</name>
+    <description>A task submitted explicitly by a user without requiring authorizations.</description>
+    <documentation>
+        This archetype denotes a task submitted explicitly by a user without any authorizations.
+        This means that all expressions should run under ##currentPrincipal expression profile.
+
+        This is to allow the superuser to run trusted code, even if the standard profile for single-run action tasks has less trusted profile.
+        And vice versa, it blocks unprivileged users from running dangerous code, even if the standard profile for single-run action tasks has more trusted profile.
+    </documentation>
+    <archetypeType>auxiliary</archetypeType>
+    <archetypePolicy>
+        <expressionProfile>##currentPrincipal</expressionProfile>
+    </archetypePolicy>
+</archetype>

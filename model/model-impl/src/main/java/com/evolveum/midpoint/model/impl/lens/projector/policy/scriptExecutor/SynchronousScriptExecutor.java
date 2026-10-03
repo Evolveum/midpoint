@@ -52,7 +52,12 @@ class SynchronousScriptExecutor {
             VariablesMap initialVariables = createInitialVariables();
             //todo parse from initialVariables and create (BulkAction)ExecutionOptions here? e.g. parse runPrivileged?
             actx.beans.bulkActionsExecutor.execute(
-                    updatedScriptCI, initialVariables, BulkActionExecutionOptions.create(), actx.task, result);
+                    updatedScriptCI,
+                    initialVariables,
+                    BulkActionExecutionOptions.create()
+                            .withExecutionPhase(),
+                    actx.task,
+                    result);
         } catch (Throwable t) {
             result.recordException("Couldn't execute script policy action: " + t.getMessage(), t);
             LoggingUtils.logUnexpectedException(
