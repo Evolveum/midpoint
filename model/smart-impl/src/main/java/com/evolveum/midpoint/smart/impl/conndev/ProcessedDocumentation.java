@@ -61,6 +61,13 @@ public class ProcessedDocumentation {
         }
     }
 
+    /**
+     * Deletes the stored file. Returns false when there is no file to delete.
+     */
+    public boolean delete() {
+        return storage.exists() && storage.delete();
+    }
+
     public String uri() {
         return uri;
     }

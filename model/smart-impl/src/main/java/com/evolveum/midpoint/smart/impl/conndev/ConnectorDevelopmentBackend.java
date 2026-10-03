@@ -33,6 +33,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.hc.client5.http.entity.EntityBuilder;
 import org.apache.hc.core5.http.ContentType;
 import org.jetbrains.annotations.NotNull;
@@ -214,23 +215,59 @@ public abstract class ConnectorDevelopmentBackend {
     };
 
     /**
-     * Saves the uploaded documentation file to disk (tmp-docs).
+     * Saves the uploaded documentation file to disk (tmp-docs) and registers it as processed
+     * documentation of the development (see {@link #refreshConnDevDocumentation} for the same
+     * integration of the discovered schema), so that the session restoration uploads it to the
+     * generation service (see {@link #ensureDocumentationIsUploaded}).
      *
      * @param fileName original name of the uploaded file
      * @param content file content
      * @param contentType MIME type of the file
      * @return generated UUID under which the file is stored
      */
-    public String saveDocumentationFile(String fileName, InputStream content, String contentType) throws IOException {
+    public String saveDocumentationFile(String fileName, InputStream content, String contentType)
+            throws IOException, CommonException {
         String uuid = UUID.randomUUID().toString();
         var documentation = new ProcessedDocumentation(uuid, fileName)
                 .contentType(contentType);
         try (var output = documentation.asOutputStream()) {
             content.transferTo(output);
         }
-        // TODO: add the path of the saved file to the in-progress connector object
-        //  (ConnectorDevelopmentType.processedDocumentation).
+
+        var delta = PrismContext.get().deltaFor(ConnectorDevelopmentType.class)
+                .item(ConnectorDevelopmentType.F_PROCESSED_DOCUMENTATION)
+                .addRealValues(List.of(documentation.toBean()))
+                .<ConnectorDevelopmentType>asObjectDelta(developmentObject().getOid());
+        beans.modelService.executeChanges(List.of(delta), null, task, result);
+        reload();
         return uuid;
+    }
+
+    /**
+     * Removes the processed documentation (and its stored file) of an uploaded documentation file,
+     * identified by its original file name (the processed documentation's uri), so that the session
+     * restoration stops uploading it to the generation service. A no-op when the development carries
+     * no such processed documentation.
+     */
+    public void removeDocumentationFile(String fileName) throws CommonException {
+        var toRemove = developmentObject().getProcessedDocumentation().stream()
+                .filter(documentation -> StringUtils.equals(fileName, documentation.getUri()))
+                // Clones: the live container values carry a parent, which the delta builder refuses to reset.
+                .map(ProcessedDocumentationType::clone)
+                .toList();
+        if (toRemove.isEmpty()) {
+            return;
+        }
+
+        var delta = PrismContext.get().deltaFor(ConnectorDevelopmentType.class)
+                .item(ConnectorDevelopmentType.F_PROCESSED_DOCUMENTATION)
+                .deleteRealValues(toRemove)
+                .<ConnectorDevelopmentType>asObjectDelta(developmentObject().getOid());
+        beans.modelService.executeChanges(List.of(delta), null, task, result);
+        for (var documentation : toRemove) {
+            new ProcessedDocumentation(documentation).delete();
+        }
+        reload();
     }
 
     public ConnectorDevelopmentType developmentObject() {

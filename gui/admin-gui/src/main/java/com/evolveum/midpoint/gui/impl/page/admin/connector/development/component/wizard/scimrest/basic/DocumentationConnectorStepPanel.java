@@ -102,12 +102,20 @@ public class DocumentationConnectorStepPanel extends AbstractWizardStepPanel<Con
         }
 
         Task removeTask = getPageBase().createSimpleTask(OP_REMOVE_DISCOVERED_DOCUMENTATION);
-        String token = ConnectorDevelopmentWizardUtil.getTaskToken(
-                WorkDefinitionsType.F_DISCOVER_DOCUMENTATION,
-                getDetailsModel().getObjectWrapper().getOid(),
-                getDetailsModel().getPageAssignmentHolder());
-        getDetailsModel().getServiceLocator().getConnectorService()
-                .removeDiscoveredDocumentation(token, value.getRealValue().getName(), removeTask, removeTask.getResult());
+        ConnDevDocumentationSourceType source = value.getRealValue();
+        if (StringUtils.isEmpty(source.getUri())) {
+            // An uploaded file: also drop its processed documentation and the stored file, so the
+            // session restoration stops uploading it to the generation service.
+            getDetailsModel().getConnectorDevelopmentOperation()
+                    .removeDocumentationFile(source.getName(), removeTask, removeTask.getResult());
+        } else {
+            String token = ConnectorDevelopmentWizardUtil.getTaskToken(
+                    WorkDefinitionsType.F_DISCOVER_DOCUMENTATION,
+                    getDetailsModel().getObjectWrapper().getOid(),
+                    getDetailsModel().getPageAssignmentHolder());
+            getDetailsModel().getServiceLocator().getConnectorService()
+                    .removeDiscoveredDocumentation(token, source.getName(), removeTask, removeTask.getResult());
+        }
     }
 
     @Override
