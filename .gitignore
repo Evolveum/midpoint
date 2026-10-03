@@ -40,3 +40,6 @@ _mess
 
 # midPoint Studio temporary files
 /scratches/
+
+# local agent instructions (personal)
+/AGENTS.local.md
