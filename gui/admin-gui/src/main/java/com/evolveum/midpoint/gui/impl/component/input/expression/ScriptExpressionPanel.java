@@ -261,11 +261,11 @@ public class ScriptExpressionPanel extends EvaluatorExpressionPanel {
     }
 
     private List<ExpressionUtil.Language> getAllowedLanguage() {
-        boolean safeExpressionsOnly = getMidpointConfiguration().isSafeExpressionsOnly();
+        boolean safeLanguagesOnly = getMidpointConfiguration().isSafeScriptingLanguagesOnly();
 
         List<ExpressionUtil.Language> list = new ArrayList<>();
-        Arrays.asList(ExpressionUtil.Language.class.getEnumConstants()).stream()
-                .filter(language -> !safeExpressionsOnly || language.isSafeLanguage())
+        Arrays.stream(ExpressionUtil.Language.class.getEnumConstants())
+                .filter(language -> !safeLanguagesOnly || language.isSafeLanguage())
                 .filter(language -> allowedLanguageByProfiles.isEmpty() || allowedLanguageByProfiles.contains(language))
                 .forEach(list::add);
         return list;
@@ -310,7 +310,7 @@ public class ScriptExpressionPanel extends EvaluatorExpressionPanel {
                 if (lang != null) {
                     editor.setModeForDataLanguage(lang.getLanguage());
                 } else {
-                    editor.setMode(AceEditor.Mode.GROOVY);
+                    editor.setMode(AceEditor.Mode.GROOVY); // TODO what if the system default is MEL?
                 }
                 add(editor);
                 return editor;

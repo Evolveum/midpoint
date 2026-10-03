@@ -91,7 +91,7 @@ public abstract class AbstractScriptTest extends AbstractUnitTest
     protected PrismContext prismContext;
     protected ScriptFactory scriptFactory;
     protected ScriptExecutor scriptExecutor;
-    /** As {@link #scriptExecutor} but having {@link ExpressionsConfigurationSection#safeExpressionsOnly()} set to `true`. */
+    /** As {@link #scriptExecutor} but having {@link ExpressionsConfigurationSection#safeScriptingLanguagesOnly()} set to `true`. */
     protected ScriptExecutor scriptExecutorInRestrictedMode;
     protected LocalizationService localizationService;
     protected final Clock clock = new Clock();

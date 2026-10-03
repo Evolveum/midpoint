@@ -87,8 +87,7 @@ The drawback is that you won't be able to use new `#safe-velocity` language.
 Required Upgrade Steps:
 
 - Check if you need above-mentioned features; if yes, set `legacyVelocityEngine` to `true` or migrate your templates.
-- It is recommended to gradually migrate all your scripts to `#safe-velocity` language, and then disable the full (unsafe) `#velocity` language completely.
-It is done by setting `safeVelocityExpressionsOnly` to `true` in `config.xml`.
+- It is recommended to gradually migrate all your scripts to `#safe-velocity` language, and then disable the full (unsafe) `#velocity` language completely via expression profiles.
 
 Notes & References:
 

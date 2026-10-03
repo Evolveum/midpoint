@@ -4569,7 +4569,7 @@ public class TestMelExpressions extends AbstractScriptTest {
         }
     }
 
-    /** MEL scripts should be executable even with `safeExpressionsOnly = true` */
+    /** MEL scripts should be executable even with `safeScriptingLanguagesOnly = true` */
     @Test
     public void testInRestrictedMode() throws CommonException, IOException {
         switchToRestrictedMode();
