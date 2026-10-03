@@ -48,6 +48,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptExpressionEval
  */
 public class ScriptFactory {
 
+    /** Applies if the default is not present in the system configuration. */
     private static final String DEFAULT_LANGUAGE = "http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy";
 
     private static final Trace LOGGER = TraceManager.getTrace(ScriptFactory.class);
@@ -195,24 +196,22 @@ public class ScriptFactory {
         return executorMap.get(languageUri);
     }
 
-    private String determineLanguage(ScriptExpressionEvaluatorType expressionBean, OperationResult result) {
+    private @NotNull String determineLanguage(ScriptExpressionEvaluatorType expressionBean, OperationResult result) {
         var explicitLanguage = expressionBean.getLanguage();
         if (explicitLanguage != null) {
             return explicitLanguage;
-        } else {
-            return getDefaultLanguageFromSystemConfiguration(result);
         }
+        var defaultFromSystemConfiguration = getDefaultLanguageFromSystemConfiguration(result);
+        return Objects.requireNonNullElse(defaultFromSystemConfiguration, DEFAULT_LANGUAGE);
     }
 
-    private String getDefaultLanguageFromSystemConfiguration(OperationResult result) {
+    private @Nullable String getDefaultLanguageFromSystemConfiguration(OperationResult result) {
         SystemConfigurationExpressionsType expressionsConfig = getExpressionsConfig(result);
         if (expressionsConfig != null) {
-            var configured = expressionsConfig.getDefaultScriptLanguage();
-            if (configured != null) {
-                return configured;
-            }
+            return expressionsConfig.getDefaultScriptLanguage();
+        } else {
+            return null;
         }
-        return DEFAULT_LANGUAGE;
     }
 
     private @Nullable SystemConfigurationExpressionsType getExpressionsConfig(OperationResult result) {
