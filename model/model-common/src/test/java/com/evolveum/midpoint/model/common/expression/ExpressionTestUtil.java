@@ -173,16 +173,16 @@ public class ExpressionTestUtil {
     }
 
     public static ExpressionsConfigurationSection testingExpressionsConfiguration() {
-        return new TestingExpressionConfiguration(false, false, List.of());
+        return new TestingExpressionConfiguration(false, List.of());
     }
 
     public static ExpressionsConfigurationSection testingExpressionsConfiguration(boolean restrictedMode) {
-        return new TestingExpressionConfiguration(restrictedMode, restrictedMode, List.of());
+        return new TestingExpressionConfiguration(restrictedMode, List.of());
     }
 
     public static ExpressionsConfigurationSection testingExpressionsConfiguration(
             boolean restrictedMode, Collection<String> javaMethodEvaluatorPackageNames) {
-        return new TestingExpressionConfiguration(restrictedMode, restrictedMode, List.copyOf(javaMethodEvaluatorPackageNames));
+        return new TestingExpressionConfiguration(restrictedMode, List.copyOf(javaMethodEvaluatorPackageNames));
     }
 
     public static SystemObjectCache.ExpressionsConfigurationView testingExpressionsConfigurationView() {

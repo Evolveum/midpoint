@@ -16,7 +16,7 @@ import java.util.Collection;
 /** Simulates "config.xml" section for expressions. Used in tests to override the default configuration. */
 @NullMarked
 public record TestingExpressionConfiguration(
-        boolean safeExpressionsOnly, boolean safeVelocityExpressionsOnly, Collection<String> javaMethodEvaluatorPackageNames)
+        boolean safeScriptingLanguagesOnly, Collection<String> javaMethodEvaluatorPackageNames)
         implements ExpressionsConfigurationSection {
 
     @Override

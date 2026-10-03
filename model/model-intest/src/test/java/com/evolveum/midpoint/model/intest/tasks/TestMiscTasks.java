@@ -18,6 +18,7 @@ import java.io.File;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.test.CommonInitialObjects;
 import com.evolveum.midpoint.test.DummyTestResource;
 
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
@@ -94,11 +95,18 @@ public class TestMiscTasks extends AbstractInitializedModelIntegrationTest {
             TEST_DIR, "resource-dummy-refreshed.xml", "e5eeccc7-a0bb-4961-9edf-a8693c6e9004", "refreshed");
     private static final TestTask TASK_SHADOW_REFRESH_ALL = new TestTask(
             TEST_DIR, "task-shadow-refresh-all.xml", "8c359fe6-a643-49b1-819c-c9f3351baae4");
+    private static final TestTask TASK_SHADOW_CLEANUP_ALL = new TestTask(
+            TEST_DIR, "task-shadow-cleanup-all.xml", "cdd14021-20c3-4610-8390-c45b2bd40002");
+    private static final TestTask TASK_SHADOW_CLEANUP_SINGLE_RESOURCE = new TestTask(
+            TEST_DIR, "task-shadow-cleanup-single-resource.xml", "b0271f87-61f4-4db8-872b-b322e0e7b526");
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
+
         initTestObjects(initTask, initResult,
+                CommonInitialObjects.ARCHETYPE_SHADOWS_DELETE_LONG_TIME_NOT_UPDATED_TASK,
+                CommonInitialObjects.ARCHETYPE_UTILITY_TASK,
                 ROLE_APPLICATION_1, ROLE_APPLICATION_2, ROLE_BUSINESS_1,
                 USER_1, USER_2);
 
@@ -767,5 +775,25 @@ public class TestMiscTasks extends AbstractInitializedModelIntegrationTest {
                 .singleLink()
                 .resolveTarget()
                 .assertNoPassword();
+    }
+
+    /** Checks that "shadow cleanup" archetype provides the correct names for the task. */
+    @Test
+    public void test510NamesProvidedByArchetype() throws Exception {
+        var task = getTestTask();
+        var result = task.getResult();
+
+        when("tasks are created");
+        initTestObjects(
+                task, result,
+                TASK_SHADOW_CLEANUP_ALL, TASK_SHADOW_CLEANUP_SINGLE_RESOURCE);
+
+        then("names are OK");
+        assertTask(TASK_SHADOW_CLEANUP_ALL.oid, "after")
+                .display()
+                .assertName("Delete long time not updated shadows task");
+        assertTask(TASK_SHADOW_CLEANUP_SINGLE_RESOURCE.oid, "after")
+                .display()
+                .assertName("Delete long time not updated shadows task: refreshed"); // resource name is "refreshed"
     }
 }

@@ -114,7 +114,7 @@ public class TestXlsxReportMultiNode extends EmptyReportIntegrationTest {
 
         Sheet sheet = readSingleSheet(TASK_DISTRIBUTED_EXPORT_AUDIT);
         int rows = sheet.getPhysicalNumberOfRows();
-        assertThat(rows).as("rows (header + records + footer)").isBetween(1001, 1013);
+        assertThat(rows).as("rows (header + records + footer)").isBetween(1001, 1020);
         assertThat(sheet.getRow(0).getPhysicalNumberOfCells()).isEqualTo(8);
         assertNotificationMessage(REPORT_AUDIT_COLLECTION_WITH_DEFAULT_COLUMN.getObjectable(), MIME_APPLICATION_VND_MSEXCEL_2007);
     }

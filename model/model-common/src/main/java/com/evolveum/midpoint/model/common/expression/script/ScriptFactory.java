@@ -48,6 +48,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptExpressionEval
  */
 public class ScriptFactory {
 
+    /** Applies if the default is not present in the system configuration. */
     private static final String DEFAULT_LANGUAGE = "http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy";
 
     private static final Trace LOGGER = TraceManager.getTrace(ScriptFactory.class);
@@ -66,8 +67,6 @@ public class ScriptFactory {
 
     /** Initialized at startup. The collection is immutable. */
     @NotNull private final Collection<FunctionLibraryBinding> builtInLibraryBindings;
-
-    private String systemDefaultLanguage = null;
 
     // Invoked by Spring
     public ScriptFactory(
@@ -197,28 +196,34 @@ public class ScriptFactory {
         return executorMap.get(languageUri);
     }
 
-    private String determineLanguage(ScriptExpressionEvaluatorType expressionBean, OperationResult result) {
-        if (systemDefaultLanguage == null) {
-            initDefaultLanguage(result);
+    private @NotNull String determineLanguage(ScriptExpressionEvaluatorType expressionBean, OperationResult result) {
+        var explicitLanguage = expressionBean.getLanguage();
+        if (explicitLanguage != null) {
+            return explicitLanguage;
         }
-        return Objects.requireNonNullElse(expressionBean.getLanguage(), systemDefaultLanguage);
+        var defaultFromSystemConfiguration = getDefaultLanguageFromSystemConfiguration(result);
+        return Objects.requireNonNullElse(defaultFromSystemConfiguration, DEFAULT_LANGUAGE);
     }
 
-    private void initDefaultLanguage(OperationResult result) {
-        if (systemObjectCache != null) {
-            SystemConfigurationExpressionsType expressionsConfig = null;
-            try {
-                var systemConfiguration = systemObjectCache.getSystemConfiguration(result);
-                expressionsConfig = systemConfiguration != null ? systemConfiguration.asObjectable().getExpressions() : null;
-            } catch (SchemaException e) {
-                LoggingUtils.logUnexpectedException(LOGGER, "Schema error when determining default scripting language", e);
-            }
-            if (expressionsConfig != null) {
-                systemDefaultLanguage = expressionsConfig.getDefaultScriptLanguage();
-            }
+    private @Nullable String getDefaultLanguageFromSystemConfiguration(OperationResult result) {
+        SystemConfigurationExpressionsType expressionsConfig = getExpressionsConfig(result);
+        if (expressionsConfig != null) {
+            return expressionsConfig.getDefaultScriptLanguage();
+        } else {
+            return null;
         }
-        if (systemDefaultLanguage == null) {
-            systemDefaultLanguage = DEFAULT_LANGUAGE;
+    }
+
+    private @Nullable SystemConfigurationExpressionsType getExpressionsConfig(OperationResult result) {
+        if (systemObjectCache == null) {
+            return null; // maybe in tests
+        }
+        try {
+            var systemConfiguration = systemObjectCache.getSystemConfigurationBean(result);
+            return systemConfiguration != null ? systemConfiguration.getExpressions() : null;
+        } catch (SchemaException e) {
+            LoggingUtils.logUnexpectedException(LOGGER, "Schema error when determining default scripting language", e);
+            return null;
         }
     }
 }

@@ -121,11 +121,11 @@ public interface MidpointConfiguration {
     @NotNull ExpressionsConfigurationSection getExpressionsSection();
 
     /**
-     * Returns {@code true} if unsafe expressions (Groovy, full Velocity, Python, etc) are disallowed globally for this system.
-     * It is to prevent even system administrators from using unsafe expressions.
+     * Returns {@code true} if unsafe scripting languages (Groovy, full Velocity, Python, etc) are disallowed globally
+     * for this system. It is to prevent even system administrators from using them and compromise the system integrity.
      */
-    default boolean isSafeExpressionsOnly() {
-        return getExpressionsSection().safeExpressionsOnly();
+    default boolean isSafeScriptingLanguagesOnly() {
+        return getExpressionsSection().safeScriptingLanguagesOnly();
     }
 
     /**

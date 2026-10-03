@@ -22,10 +22,11 @@
             <filter>
                 <q:text>
                     . ownedByOid yaml```
-                        queryInterpretationOfNoValue: filterAll
-                        script:
-                            objectVariableMode: prismReference
-                            code: campaignRef?.oid
+                    queryInterpretationOfNoValue: filterAll
+                    script:
+                        language: http://midpoint.evolveum.com/xml/ns/public/expression/language#mel
+                        objectVariableMode: referencableWithoutResolution
+                        code: 'campaignRef.oid'
                     ```
                 </q:text>
             </filter>
@@ -48,13 +49,9 @@
                 <export>
                     <expression>
                         <script>
-                            <objectVariableMode>prismReference</objectVariableMode>
-                            <code>
-                                import com.evolveum.midpoint.report.impl.ReportUtils
-
-                                // Provides the type plus object name
-                                ReportUtils.prettyPrintForReport(input)
-                            </code>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
+                            <objectVariableMode>referencableWithoutResolution</objectVariableMode>
+                            <code>format.reference(input)</code>
                         </script>
                     </expression>
                 </export>
@@ -74,13 +71,9 @@
                 <export>
                     <expression>
                         <script>
-                            <objectVariableMode>prismReference</objectVariableMode>
-                            <code>
-                                import com.evolveum.midpoint.report.impl.ReportUtils
-
-                                // Provides the type plus object name
-                                ReportUtils.prettyPrintForReport(input)
-                            </code>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
+                            <objectVariableMode>referencableWithoutResolution</objectVariableMode>
+                            <code>format.reference(input)</code>
                         </script>
                     </expression>
                 </export>
@@ -99,11 +92,10 @@
                 <export>
                     <expression>
                         <script>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                             <code>
-                                import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil
-                                import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType
-
-                                CertCampaignTypeUtil.getCampaign(object as AccessCertificationCaseType)?.name?.orig
+                                cel.bind(campaign, object.containingObject(),
+                                campaign.name.orig)
                             </code>
                         </script>
                     </expression>
@@ -123,11 +115,8 @@
                 <export>
                     <expression>
                         <script>
-                            <code><![CDATA[
-                                import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationWorkItemType
-
-                                (workItems as Collection<AccessCertificationWorkItemType>)[0].iteration
-                            ]]></code>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
+                            <code>workItems.iteration</code>
                         </script>
                     </expression>
                 </export>
@@ -146,11 +135,8 @@
                 <export>
                     <expression>
                         <script>
-                            <code><![CDATA[
-                                import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationWorkItemType
-
-                                (workItems as Collection<AccessCertificationWorkItemType>)[0].stageNumber
-                            ]]></code>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
+                            <code>workItems.stageNumber</code>
                         </script>
                     </expression>
                 </export>
@@ -169,11 +155,11 @@
                 <export>
                     <expression>
                         <script>
-                            <code><![CDATA[
-                                import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationWorkItemType
-
-                                (workItems as Collection<AccessCertificationWorkItemType>)[0].originalAssigneeRef
-                            ]]></code>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
+                            <code>
+                                cel.bind(ref, workItems.originalAssigneeRef,
+                                default(ref.targetName.orig, ref.oid))
+                            </code>
                         </script>
                     </expression>
                 </export>
@@ -192,11 +178,8 @@
                 <export>
                     <expression>
                         <script>
-                            <code><![CDATA[
-                                import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationWorkItemType
-
-                                (workItems as Collection<AccessCertificationWorkItemType>)[0].deadline
-                            ]]></code>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
+                            <code>workItems.deadline</code>
                         </script>
                     </expression>
                 </export>
@@ -215,11 +198,11 @@
                 <export>
                     <expression>
                         <script>
-                            <code><![CDATA[
-                                import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationWorkItemType
-
-                                (workItems as Collection<AccessCertificationWorkItemType>)[0].assigneeRef
-                            ]]></code>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
+                            <code>
+                                workItems.assigneeRef.map(ref,
+                                default(ref.targetName.orig, ref.oid))
+                            </code>
                         </script>
                     </expression>
                 </export>
@@ -238,11 +221,10 @@
                 <export>
                     <expression>
                         <script>
-                            <code><![CDATA[
-                                import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationWorkItemType
-
-                                (workItems as Collection<AccessCertificationWorkItemType>)[0].escalationLevel?.number
-                            ]]></code>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
+                            <code>
+                                workItems.escalationLevel.number
+                            </code>
                         </script>
                     </expression>
                 </export>
@@ -261,11 +243,11 @@
                 <export>
                     <expression>
                         <script>
-                            <code><![CDATA[
-                                import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationWorkItemType
-
-                                (workItems as Collection<AccessCertificationWorkItemType>)[0].performerRef
-                            ]]></code>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
+                            <code>
+                                cel.bind(ref, workItems.performerRef,
+                                default(ref.targetName.orig, ref.oid))
+                            </code>
                         </script>
                     </expression>
                 </export>
@@ -284,13 +266,10 @@
                 <export>
                     <expression>
                         <script>
-                            <code><![CDATA[
-                                import com.evolveum.midpoint.report.impl.ReportUtils
-                                import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationWorkItemType
-
-                                def output = (workItems as Collection<AccessCertificationWorkItemType>)[0].output
-                                ReportUtils.prettyPrintCertOutcomeForReport(output, false)
-                            ]]></code>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
+                            <code>
+                                format.certificationOutcome(workItems.output.outcome)
+                            </code>
                         </script>
                     </expression>
                 </export>
@@ -309,11 +288,10 @@
                 <export>
                     <expression>
                         <script>
-                            <code><![CDATA[
-                                import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationWorkItemType
-
-                                (workItems as Collection<AccessCertificationWorkItemType>)[0].output?.comment
-                            ]]></code>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
+                            <code>
+                                workItems.output.comment
+                            </code>
                         </script>
                     </expression>
                 </export>
@@ -332,11 +310,8 @@
                 <export>
                     <expression>
                         <script>
-                            <code><![CDATA[
-                                import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationWorkItemType
-
-                                (workItems as Collection<AccessCertificationWorkItemType>)[0].outputChangeTimestamp
-                            ]]></code>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
+                            <code>workItems.outputChangeTimestamp</code>
                         </script>
                     </expression>
                 </export>
@@ -355,11 +330,8 @@
                 <export>
                     <expression>
                         <script>
-                            <code><![CDATA[
-                                import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationWorkItemType
-
-                                (workItems as Collection<AccessCertificationWorkItemType>)[0].closeTimestamp
-                            ]]></code>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
+                            <code>workItems.closeTimestamp</code>
                         </script>
                     </expression>
                 </export>
@@ -411,16 +383,11 @@
             <type>AccessCertificationWorkItemType</type>
             <expression>
                 <script>
+                    <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                     <code>
-
-                        import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil
-                        import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType
-
-                        def aCase = object as AccessCertificationCaseType
-                        aCase.workItem
-                            .findAll { stageNumber == null || it.stageNumber == stageNumber }
-                            .findAll { iteration == null || CertCampaignTypeUtil.norm(iteration) == iteration }
-                            .collect()
+                        object.workItem.filter(w,
+                            (!isPresent(stageNumber) || w.stageNumber == stageNumber)
+                                &amp;&amp; (!isPresent(iteration) || default(w.iteration, 1) == iteration))
                     </code>
                 </script>
             </expression>

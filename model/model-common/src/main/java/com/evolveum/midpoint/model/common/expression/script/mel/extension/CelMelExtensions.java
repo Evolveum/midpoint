@@ -8,6 +8,7 @@ package com.evolveum.midpoint.model.common.expression.script.mel.extension;
 import com.evolveum.midpoint.model.common.expression.functions.BasicExpressionFunctions;
 import com.evolveum.midpoint.model.common.expression.script.mel.CelTypeMapper;
 import com.evolveum.midpoint.model.common.expression.script.mel.value.*;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -37,9 +38,11 @@ import dev.cel.common.Operator;
 import dev.cel.runtime.*;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Strings;
+import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.xml.namespace.QName;
 import java.time.*;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -1043,6 +1046,21 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
                             this::qname,
                             NullabilityProperties.NULLABLE)
 
+            ),
+
+            // objectReference(oid, type)
+            new Function(
+                    CelFunctionDecl.newFunctionDeclaration(
+                            "objectReference",
+                            CelOverloadDecl.newGlobalOverload(
+                                    "mel-objectReference-string-qname",
+                                    "Creates an object reference with the given OID and target type.",
+                                    ReferenceCelValue.CEL_TYPE,
+                                    SimpleType.STRING, QNameCelValue.CEL_TYPE)),
+                    CelFunctionBinding.from(
+                            "mel-objectReference-string-qname", String.class, QNameCelValue.class,
+                            CelMelExtensions::objectReference,
+                            NullabilityProperties.NULLABLE)
             ),
 
             // string.quote()
@@ -2335,6 +2353,16 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
 
     private QNameCelValue qname(String localPart) {
         return QNameCelValue.create(localPart);
+    }
+
+    public static ReferenceCelValue objectReference(String oid, QNameCelValue type) {
+        Validate.notEmpty(oid, "Oid must not be null or empty.");
+        Validate.notNull(type, "Object type must not be null.");
+
+        QName typeName = Validate.notNull(type.getQName(), "Object type must not be null.");
+
+        return ReferenceCelValue.create(
+                PrismContext.get().itemFactory().createReferenceValue(oid, typeName));
     }
 
     private static Instant longAgo(Object[] args) {

@@ -8,20 +8,30 @@ package com.evolveum.midpoint.model.common.expression.script;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Proxy;
 import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
+import java.util.function.Function;
 
 import com.evolveum.midpoint.common.Clock;
+import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
 import com.evolveum.midpoint.model.common.expression.ExpressionTestUtil;
 import com.evolveum.midpoint.model.common.expression.functions.BasicExpressionFunctions;
+import com.evolveum.midpoint.model.common.expression.functions.FunctionLibrary;
 import com.evolveum.midpoint.model.common.expression.functions.FunctionLibraryBinding;
 import com.evolveum.midpoint.model.common.expression.functions.FunctionLibraryUtil;
 import com.evolveum.midpoint.model.common.expression.functions.LogExpressionFunctions;
+import com.evolveum.midpoint.model.common.expression.script.mel.CelTypeMapper;
+import com.evolveum.midpoint.model.common.expression.script.mel.FunctionLibraryProcessor;
 import com.evolveum.midpoint.model.common.expression.script.mel.MelScriptExecutor;
+import com.evolveum.midpoint.model.common.expression.script.mel.value.ContainerValueCelValue;
+import com.evolveum.midpoint.model.common.expression.script.mel.value.ReferenceCelValue;
 
 import com.evolveum.midpoint.prism.*;
 
@@ -49,6 +59,8 @@ import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 import com.google.common.collect.ImmutableList;
+import dev.cel.common.types.SimpleType;
+import dev.cel.compiler.CelCompilerFactory;
 import org.jetbrains.annotations.Nullable;
 import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
@@ -62,6 +74,8 @@ import javax.xml.namespace.QName;
 
 import static com.evolveum.midpoint.prism.util.PrismTestUtil.createPolyStringType;
 
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.NS_C;
+
 import static org.testng.AssertJUnit.*;
 
 /**
@@ -71,18 +85,491 @@ public class TestMelExpressions extends AbstractScriptTest {
 
     private static final String FULL_NAME_RS = "Ing. Radovan \"Gildir\" Semančík, PhD.";
 
+    private static MidpointFunctions createMidpointFunctions(
+            IdentityValueSelector selector) {
+
+        return (MidpointFunctions) Proxy.newProxyInstance(
+                MidpointFunctions.class.getClassLoader(),
+                new Class<?>[] { MidpointFunctions.class },
+                (proxy, method, args) -> {
+                    if (method.getName().equals("selectIdentityItemValues")
+                            && method.getParameterCount() == 3) {
+                        //noinspection unchecked
+                        return selector.select(
+                                (Collection<FocusIdentityType>) args[0],
+                                (FocusIdentitySourceType) args[1],
+                                (ItemPath) args[2]);
+                    }
+
+                    if (method.getDeclaringClass() == Object.class) {
+                        return switch (method.getName()) {
+                            case "toString" -> "MidpointFunctions test proxy";
+                            case "hashCode" -> System.identityHashCode(proxy);
+                            case "equals" -> proxy == args[0];
+                            default -> throw new AssertionError(
+                                    "Unexpected Object method: " + method);
+                        };
+                    }
+
+                    throw new AssertionError(
+                            "Unexpected MidpointFunctions call: " + method);
+                });
+    }
+
+
     @Override
     protected ScriptExecutor createExecutor(PrismContext prismContext, Protector protector, Clock clock, boolean restrictedMode) {
+        return createExecutor(prismContext, protector, clock, restrictedMode, null);
+    }
+
+    private ScriptExecutor createExecutor(PrismContext prismContext, Protector protector, Clock clock, boolean restrictedMode, MidpointFunctions midpointFunctions) {
         FunctionLibraryBinding basicFunctionLibraryBinding = FunctionLibraryUtil.createBasicFunctionLibraryBinding(prismContext, protector, clock);
         return new MelScriptExecutor(prismContext, protector, localizationService,
                 ExpressionTestUtil.testingExpressionsConfiguration(restrictedMode),
                 (BasicExpressionFunctions) basicFunctionLibraryBinding.getImplementation(),
-                null, null);
+                midpointFunctions, null);
     }
 
     @Override
     protected File getTestDir() {
         return new File(BASE_TEST_DIR, "mel");
+    }
+
+    @Test
+    public void testContainerQNameToCelTypeMapping() {
+        assertSame(
+                ContainerValueCelValue.CEL_TYPE,
+                CelTypeMapper.toCelType(AssignmentType.COMPLEX_TYPE));
+    }
+
+    @Test
+    public void testReferenceQNameToCelTypeMapping() {
+        assertSame(
+                ReferenceCelValue.CEL_TYPE,
+                CelTypeMapper.toCelType(ObjectReferenceType.COMPLEX_TYPE));
+    }
+
+    @Test
+    public void testComplexQNameToCelTypeMapping() {
+        assertSame(
+                SimpleType.DYN,
+                CelTypeMapper.toCelType(SingleLocalizableMessageType.COMPLEX_TYPE));
+    }
+
+    @Test
+    public void testCompileWithUnusedCustomFunctionReturningContainer() throws Exception {
+        var library = FunctionLibrary.of(
+                new FunctionLibraryType()
+                        .oid("20f8468d-737d-4a81-a0d4-765d70dcec6a")
+                        .name("testLibrary")
+                        .function(
+                                new ExpressionType()
+                                        .name("unused")
+                                        .returnType(AssignmentType.COMPLEX_TYPE)
+                                        .returnMultiplicity(ExpressionReturnMultiplicityType.SINGLE)));
+        var binding = new FunctionLibraryBinding("testLibrary", new Object(), library);
+        var builder = CelCompilerFactory.standardCelCompilerBuilder();
+        builder.setTypeProvider(new CelTypeMapper(prismContext));
+        new FunctionLibraryProcessor().addCompilerCustomLibraryDeclarations(builder, null, binding);
+
+        var validationResult = builder.build().compile("true", getTestName());
+
+        assertFalse(validationResult.getErrorString(), validationResult.hasError());
+    }
+
+    @FunctionalInterface
+    private interface IdentityValueSelector {
+
+        Collection<PrismValue> select(
+                Collection<FocusIdentityType> identities,
+                FocusIdentitySourceType source,
+                ItemPath itemPath);
+    }
+
+    @Test
+    public void testSelectIdentityItemValues() throws Exception {
+        var firstIdentity = new FocusIdentityType().source(new FocusIdentitySourceType().tag("first"));
+        var secondIdentity = new FocusIdentityType().source(new FocusIdentitySourceType().tag("second"));
+        var authoritativeSource = new FocusIdentitySourceType().tag("second");
+
+        PrismPropertyValue<Object> firstValue = prismContext.itemFactory().createPropertyValue((Object) "first value");
+        PrismPropertyValue<Object> secondValue = prismContext.itemFactory().createPropertyValue((Object) "second value");
+        firstValue.setUserData("marker", "preserved");
+
+        IdentityValueSelector selector = (identities, source, path) -> {
+            assertTrue("Wrong item path", path.equivalent(UserType.F_FAMILY_NAME));
+
+            if (identities.isEmpty()) {
+                assertNull("Null source should be preserved", source);
+                return List.of();
+            }
+
+            assertEquals("Wrong number of identities", 2, identities.size());
+            assertEquals("Wrong first identity", "first", identities.iterator().next().getSource().getTag());
+
+            if (source == null) {
+                return new HashSet<>(List.of(firstValue, firstValue, secondValue));
+            }
+
+            assertEquals("Wrong authoritative source", "second", source.getTag());
+
+            return List.of(secondValue);
+        };
+
+        var midpointFunctions = createMidpointFunctions(selector);
+        var testExecutor = createExecutor(
+                prismContext,
+                protector,
+                clock,
+                true,
+                midpointFunctions);
+
+        scriptFactory.replaceExecutor(testExecutor);
+
+        try {
+            var emptyValues = executeIdentityItemSelection(null, null);
+            assertTrue("Expected no selected values", emptyValues.isEmpty());
+
+            var allValues = executeIdentityItemSelection(List.of(firstIdentity, secondIdentity), null);
+
+            assertEquals("Wrong number of returned values", 2, allValues.size());
+            assertTrue("First PrismValue instance was not preserved",
+                    allValues.stream().anyMatch(value -> value == firstValue));
+            assertTrue("Second PrismValue instance was not preserved",
+                    allValues.stream().anyMatch(value -> value == secondValue));
+
+            var returnedFirstValue = allValues.stream()
+                    .filter(value -> value == firstValue)
+                    .findFirst()
+                    .orElseThrow();
+
+            assertEquals("PrismValue metadata was not preserved",
+                    "preserved", returnedFirstValue.getUserData("marker"));
+
+            var selectedValues = executeIdentityItemSelection(
+                    List.of(firstIdentity, secondIdentity),
+                    authoritativeSource);
+
+            assertEquals("Wrong number of selected values", 1, selectedValues.size());
+            assertSame("Selected PrismValue instance was not preserved",
+                    secondValue, selectedValues.get(0));
+        } finally {
+            switchToUnrestrictedMode();
+        }
+    }
+
+    private List<PrismPropertyValue<Object>> executeIdentityItemSelection(Collection<FocusIdentityType> identities,
+            FocusIdentitySourceType source) throws Exception {
+
+        return executeScript(
+                parseScriptType("expression-select-identity-item-values.xml"),
+                null,
+                createVariables(
+                        "identity", identities, FocusIdentityType.class,
+                        "defaultAuthoritativeSource", source, FocusIdentitySourceType.class),
+                getTestName(),
+                createOperationResult());
+    }
+
+    @Test
+    public void testReferenceValueMetadata() throws Exception {
+        var definition = prismContext.getSchemaRegistry()
+                .findObjectDefinitionByCompileTimeClass(UserType.class)
+                .findReferenceDefinition(UserType.F_ROLE_MEMBERSHIP_REF);
+        var referenceValue = new ObjectReferenceType()
+                .oid("00000000-0000-0000-0000-000000000001")
+                .type(RoleType.COMPLEX_TYPE)
+                .asReferenceValue();
+        var reference = definition.instantiate();
+        reference.add(referenceValue);
+        referenceValue.getValueMetadata().addMetadataValue(
+                new ValueMetadataType()
+                        .storage(new StorageMetadataType().createChannel("first"))
+                        .asPrismContainerValue());
+        referenceValue.getValueMetadata().addMetadataValue(
+                new ValueMetadataType()
+                        .storage(new StorageMetadataType().createChannel("second"))
+                        .asPrismContainerValue());
+
+        switchToRestrictedMode();
+        try {
+            executeAndAssertStringScalarExpression(
+                    "expression-reference-value-metadata.xml",
+                    createVariables("input", referenceValue, definition),
+                    "first,second");
+            executeAndAssertStringScalarExpression(
+                    "expression-reference-value-metadata.xml",
+                    createVariables("input", null, definition),
+                    "");
+        } finally {
+            switchToUnrestrictedMode();
+        }
+    }
+
+    @Test
+    public void testTracingAccountCondition() throws Exception {
+        var accountName = "O'Brien\\operations\nnight";
+        var item = new ShadowType().name(accountName);
+
+        switchToRestrictedMode();
+        try {
+            evaluateAndAssertBooleanScalarExpression(
+                    "expression-tracing-account-condition.xml",
+                    createVariables(
+                            ExpressionConstants.VAR_ITEM, item, ShadowType.class,
+                            "tracingAccount", accountName, PrimitiveType.STRING),
+                    true);
+
+            evaluateAndAssertBooleanScalarExpression(
+                    "expression-tracing-account-condition.xml",
+                    createVariables(
+                            ExpressionConstants.VAR_ITEM, item, ShadowType.class,
+                            "tracingAccount", "different", PrimitiveType.STRING),
+                    false);
+
+            evaluateAndAssertBooleanScalarExpression(
+                    "expression-tracing-account-condition.xml",
+                    createVariables(
+                            ExpressionConstants.VAR_ITEM, new ShadowType(), ShadowType.class,
+                            "tracingAccount", accountName, PrimitiveType.STRING),
+                    false);
+        } finally {
+            switchToUnrestrictedMode();
+        }
+    }
+
+    @Test
+    public void testFormatReferenceNamed() throws Exception {
+        var definition = createNewReferenceDefinition();
+        var reference = new ObjectReferenceType()
+                .oid(USER_JACK_OID)
+                .type(UserType.COMPLEX_TYPE)
+                .targetName(createPolyStringType("Jack Sparrow"));
+
+        executeAndAssertStringScalarExpression(
+                "expression-format-reference.xml",
+                createVariables("input", reference, definition),
+                "User: Jack Sparrow");
+    }
+
+    @Test
+    public void testReferenceTargetName() throws Exception {
+        var definition = createNewReferenceDefinition();
+        var referenceWithTargetName = new ObjectReferenceType()
+                .oid(USER_JACK_OID)
+                .type(UserType.COMPLEX_TYPE)
+                .targetName(createPolyStringType("Jack Sparrow"));
+        var referenceWithoutTargetName = new ObjectReferenceType()
+                .type(UserType.COMPLEX_TYPE)
+                .oid(USER_JACK_OID);
+
+        executeAndAssertStringScalarExpression(
+                "expression-reference-target-name.xml",
+                createVariables("input", referenceWithTargetName, definition),
+                "UserType:Jack Sparrow");
+        executeAndAssertStringScalarExpression(
+                "expression-reference-target-name.xml",
+                createVariables("input", referenceWithoutTargetName, definition),
+                "UserType:missing");
+    }
+
+    private PrismReferenceDefinition createNewReferenceDefinition() {
+        return prismContext.definitionFactory()
+                .newReferenceDefinition(
+                        new QName(NS_C, "anyRef"), ObjectReferenceType.COMPLEX_TYPE);
+    }
+
+    @Test
+    public void testFormatReferenceOidFallback() throws Exception {
+        var definition = createNewReferenceDefinition();
+        var reference = new ObjectReferenceType()
+                .oid(USER_JACK_OID)
+                .type(UserType.COMPLEX_TYPE);
+
+        executeAndAssertStringScalarExpression(
+                "expression-format-reference.xml",
+                createVariables("input", reference, definition),
+                "User: " + USER_JACK_OID);
+    }
+
+    @Test
+    public void testFormatReferenceNull() throws Exception {
+        var definition = createNewReferenceDefinition();
+
+        executeAndAssertStringScalarExpression(
+                "expression-format-reference.xml",
+                createVariables("input", null, definition),
+                "");
+    }
+
+    @Test
+    public void testObjectReference() throws Exception {
+        switchToRestrictedMode();
+        try {
+            executeAndAssertStringScalarExpression(
+                    "expression-object-reference.xml",
+                    createVariables(),
+                    USER_JACK_OID);
+        } finally {
+            switchToUnrestrictedMode();
+        }
+    }
+
+    @Test
+    public void testFormatCertificationOutcomeAccept() throws Exception {
+        executeAndAssertStringScalarExpression(
+                "expression-format-certification-outcome.xml",
+                createVariables(
+                        "input",
+                        SchemaConstants.MODEL_CERTIFICATION_OUTCOME_ACCEPT,
+                        PrimitiveType.STRING),
+                "Accept");
+    }
+
+    @Test
+    public void testFormatCertificationOutcomeNoResponse() throws Exception {
+        executeAndAssertStringScalarExpression(
+                "expression-format-certification-outcome.xml",
+                createVariables(
+                        "input",
+                        SchemaConstants.MODEL_CERTIFICATION_OUTCOME_NO_RESPONSE,
+                        PrimitiveType.STRING),
+                "");
+    }
+
+    @Test
+    public void testFormatCertificationOutcomeNull() throws Exception {
+        executeAndAssertStringScalarExpression(
+                "expression-format-certification-outcome.xml",
+                createVariables("input", null, PrimitiveType.STRING),
+                "");
+    }
+
+    @Test
+    public void testFormatCertificationOutcomeInvalid() throws Exception {
+        try {
+            evaluateStringScalarExpression(
+                    "expression-format-certification-outcome.xml",
+                    createVariables("input", "invalid", PrimitiveType.STRING));
+            fail("Unexpected success");
+        } catch (ExpressionEvaluationException e) {
+            displayExpectedException(e);
+            assertTrue(
+                    "Unexpected exception message: " + e.getMessage(),
+                    e.getMessage().contains("format_certificationOutcome"));
+        }
+    }
+
+    @Test
+    public void testContainingObjectAttached() throws Exception {
+        PrismObject<UserType> userJack = prismContext.parseObject(USER_JACK_FILE);
+        PrismContainer<ActivationType> activation =
+                userJack.findContainer(UserType.F_ACTIVATION);
+
+        executeAndAssertStringScalarExpression(
+                "expression-containing-object-oid.xml",
+                createVariables("input", activation.getValue(), activation.getDefinition()),
+                USER_JACK_OID);
+    }
+
+    @Test
+    public void testContainingObjectDetached() throws Exception {
+        PrismObject<UserType> userJack = prismContext.parseObject(USER_JACK_FILE);
+        PrismContainer<ActivationType> activation =
+                userJack.findContainer(UserType.F_ACTIVATION);
+        PrismContainerValue<ActivationType> detached = activation.getValue().clone();
+        detached.setParent(null);
+
+        executeAndAssertStringScalarExpression(
+                "expression-containing-object-oid.xml",
+                createVariables("input", detached, activation.getDefinition()),
+                null);
+    }
+
+    @Test
+    public void testEffectiveMarkRefs() throws Exception {
+        var user = new UserType();
+        user.getEffectiveMarkRef().addAll(List.of(
+                new ObjectReferenceType()
+                        .oid("mark-first")
+                        .type(MarkType.COMPLEX_TYPE)
+                        .relation(SchemaConstants.ORG_DEFAULT),
+                new ObjectReferenceType()
+                        .oid("mark-inactive")
+                        .type(MarkType.COMPLEX_TYPE)
+                        .relation(SchemaConstants.ORG_RELATED),
+                new ObjectReferenceType()
+                        .oid("mark-second")
+                        .type(MarkType.COMPLEX_TYPE)
+                        .relation(SchemaConstants.ORG_DEFAULT)));
+        var processedObject = new SimulationResultProcessedObjectType().before(user);
+        PrismContainer<ObjectType> before = processedObject.asPrismContainerValue()
+                .findContainer(SimulationResultProcessedObjectType.F_BEFORE);
+
+        List<PrismPropertyValue<String>> result = executeScript(
+                "expression-effective-mark-refs.xml",
+                DOMUtil.XSD_STRING,
+                false,
+                createVariables("input", before.getValue(), before.getDefinition()));
+
+        assertEquals(
+                List.of("mark-first", "mark-second"),
+                new ArrayList<>(getPropertyValues(result)));
+    }
+
+    @Test
+    public void testWorkItemEscalationLevelNumber() throws Exception {
+        var definition = prismContext.getSchemaRegistry()
+                .findContainerDefinitionByType(AccessCertificationWorkItemType.COMPLEX_TYPE);
+        var workItemWithEscalation = new AccessCertificationWorkItemType()
+                .escalationLevel(new WorkItemEscalationLevelType()
+                        .number(2)
+                        .name("second-level"));
+
+        evaluateAndAssertIntegerScalarExpression(
+                "expression-work-item-escalation-level-number.xml",
+                createVariables("workItems", workItemWithEscalation.asPrismContainerValue(), definition),
+                2);
+        evaluateAndAssertIntegerScalarExpression(
+                "expression-work-item-escalation-level-number.xml",
+                createVariables(
+                        "workItems",
+                        new AccessCertificationWorkItemType().asPrismContainerValue(),
+                        definition),
+                null);
+    }
+
+    @Test
+    public void testWorkItemAssigneeNames() throws Exception {
+        var definition = prismContext.getSchemaRegistry()
+                .findContainerDefinitionByType(AccessCertificationWorkItemType.COMPLEX_TYPE);
+        var workItem = new AccessCertificationWorkItemType();
+        workItem.getAssigneeRef().addAll(List.of(
+                new ObjectReferenceType()
+                        .oid(USER_JACK_OID)
+                        .type(UserType.COMPLEX_TYPE)
+                        .targetName(createPolyStringType("Jack Sparrow")),
+                new ObjectReferenceType()
+                        .oid(USER_BARBOSSA_OID)
+                        .type(UserType.COMPLEX_TYPE)));
+
+        evaluateAndAssertStringListExpression(
+                "expression-work-item-assignee-names.xml",
+                createVariables("workItems", workItem.asPrismContainerValue(), definition),
+                "Jack Sparrow", USER_BARBOSSA_OID);
+    }
+
+    @Test
+    public void testContainerId() throws Exception {
+        var definition = prismContext.getSchemaRegistry()
+                .findContainerDefinitionByType(AssignmentType.COMPLEX_TYPE);
+        var assignment = new AssignmentType();
+        assignment.setId(123L);
+
+        evaluateAndAssertLongScalarExpression(
+                "expression-container-id.xml",
+                createVariables("input", assignment, definition),
+                123L);
     }
 
     @Test
@@ -1860,6 +2347,22 @@ public class TestMelExpressions extends AbstractScriptTest {
                 // This is not very good generator
                 // TODO: improve
                 "nullnull");
+    }
+
+    @Test
+    public void testPersonTemplateUsernameGeneratorInRestrictedMode() throws Exception {
+        switchToRestrictedMode();
+        try {
+            var expression = "expression-username-generator-jsmith.xml";
+            usernameGenerator(expression, "John", "Smith", "", "jsmith");
+            usernameGenerator(expression, "John", "De La", "", "jdela");
+            usernameGenerator(expression, "Alexander", "Longlastname", "", "alonglas");
+            usernameGenerator(expression, "Alexander", "Longlastname", "2", "alonglas2");
+            usernameGenerator(expression, null, "Smith", "", "smith");
+            usernameGenerator(expression, "", "Smith", "", "smith");
+        } finally {
+            switchToUnrestrictedMode();
+        }
     }
 
     @SuppressWarnings("SameParameterValue")
@@ -3818,6 +4321,58 @@ public class TestMelExpressions extends AbstractScriptTest {
                 "Captain");
     }
 
+    @Test
+    public void testProportionalPercentageWithFullDefinition() throws Exception {
+        Function<Float, VariablesMap> vars = value -> createVariables(
+                "proportional",
+                new IntegerStatType().percentage(value),
+                prismContext.getSchemaRegistry().findContainerDefinitionByCompileTimeClass(IntegerStatType.class));
+        evaluateAndAssertBooleanScalarExpression("expression-proportional-percentage.xml", vars.apply(7.0f), true);
+        evaluateAndAssertBooleanScalarExpression("expression-proportional-percentage.xml", vars.apply(3.0f), false);
+    }
+
+    @Test
+    public void testProportionalPercentageWithSimpleDefinition() throws Exception {
+        Function<Float, VariablesMap> vars = value -> createVariables(
+                "proportional",
+                new IntegerStatType().percentage(value),
+                IntegerStatType.class);
+        evaluateAndAssertBooleanScalarExpression("expression-proportional-percentage.xml", vars.apply(7.0f), true);
+        evaluateAndAssertBooleanScalarExpression("expression-proportional-percentage.xml", vars.apply(3.0f), false);
+    }
+
+    @Test
+    public void testProportionalValueWithSimpleDefinition() throws Exception {
+        Function<Integer, VariablesMap> vars = value -> createVariables(
+                "proportional",
+                new IntegerStatType().value(value),
+                IntegerStatType.class);
+        evaluateAndAssertBooleanScalarExpression("expression-proportional-value.xml", vars.apply(7), true);
+        evaluateAndAssertBooleanScalarExpression("expression-proportional-value.xml", vars.apply(3), false);
+    }
+
+    @Test void testPasswordPolicy() throws Exception {
+        testPasswordPolicySingle(USER_JACK_FILE, "jack", false); // matches name & given name
+        testPasswordPolicySingle(USER_JACK_FILE, "sparrow", false); // matches family name
+        testPasswordPolicySingle(USER_JACK_FILE, "jackie", false); // matches additional name
+        testPasswordPolicySingle(USER_JACK_FILE, "nbusr123", true); // doesn't match any
+        testPasswordPolicySingle(USER_JACK_FILE, "", true); // "containsIgnoreCase" treats empty string as not contained in anything
+        testPasswordPolicySingle(USER_JACK_FILE, null, true); // probably correct, code path is the same as above
+        testPasswordPolicySingle(USER_BARBOSSA_FILE, "aaa", true); // barbossa has no additional name
+        testPasswordPolicySingle(GENERIC_OBJECT_FILE, "aaa", true); // not a user
+        testPasswordPolicySingle(GENERIC_OBJECT_FILE, "generic123", false); // not a user, but matches name
+        testPasswordPolicySingle(null, "test", true);
+    }
+
+    private void testPasswordPolicySingle(File objectFile, String inputValue, boolean expectedResult) throws Exception {
+        PrismObject<?> object = objectFile != null ? prismContext.parseObject(objectFile) : null;
+        evaluateAndAssertBooleanScalarExpression(
+                "expression-password-policy.xml",
+                createVariables(
+                        ExpressionConstants.VAR_OBJECT, object, object != null ? object.getDefinition() : ObjectType.class,
+                        ExpressionConstants.VAR_INPUT, inputValue, String.class),
+                expectedResult);
+    }
 
     @FunctionalInterface
     public interface DeltaProducer<O extends ObjectType> {
@@ -4014,7 +4569,7 @@ public class TestMelExpressions extends AbstractScriptTest {
         }
     }
 
-    /** MEL scripts should be executable even with `safeExpressionsOnly = true` */
+    /** MEL scripts should be executable even with `safeScriptingLanguagesOnly = true` */
     @Test
     public void testInRestrictedMode() throws CommonException, IOException {
         switchToRestrictedMode();

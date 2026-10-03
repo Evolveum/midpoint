@@ -1,0 +1,24 @@
+<!--
+  ~ Copyright (C) 2010-2023 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+    oid="d6d03e9a-a9a8-418a-b796-fafcfee3d648">
+    <name>simple-approval</name>
+    <assignment>
+        <policyRule>
+            <policyConstraints>
+                <assignment>
+                    <operation>add</operation>
+                </assignment>
+            </policyConstraints>
+            <policyActions>
+                <approval>
+                    <approverRef oid="00000000-0000-0000-0000-000000000002" type="UserType"/>
+                </approval>
+            </policyActions>
+        </policyRule>
+    </assignment>
+</role>

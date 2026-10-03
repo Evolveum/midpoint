@@ -394,14 +394,13 @@ public class TemplateMappingsEvaluation<F extends AssignmentHolderType, T extend
         if (explicitMapping != null) {
             selectionMapping = explicitMapping.clone();
         } else {
-            // TODO rewrite into MEL, as Groovy can be disabled in some environments #12267
             String code = String.format(
                     "midpoint.selectIdentityItemValues("
-                            + "identity, defaultAuthoritativeSource, prismContext.itemPathParser().asItemPath('%s'))",
+                            + "identity, defaultAuthoritativeSource, itemPath('%s'))",
                     ref.toStringStandalone()
                             .replace("'", "\\'"));
             var mappingBean = new ObjectTemplateMappingType().expression(
-                    SimpleExpressionUtil.groovyExpression(code, MidPointTrustDescriptor.trusted()));
+                    SimpleExpressionUtil.melExpression(code, MidPointTrustDescriptor.trusted()));
             selectionMapping = ObjectTemplateMappingConfigItem.of(mappingBean, OriginProvider.generated());
         }
         selectionMapping.setDefaultStrong();
