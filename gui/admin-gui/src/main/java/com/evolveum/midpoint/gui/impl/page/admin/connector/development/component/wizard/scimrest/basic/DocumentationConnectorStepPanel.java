@@ -48,6 +48,7 @@ import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.SmartMetadataUtil;
+import com.evolveum.midpoint.smart.api.conndev.DocumentationContentTypes;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommonException;
@@ -509,7 +510,10 @@ public class DocumentationConnectorStepPanel extends AbstractWizardStepPanel<Con
     private void addUploadedFileDocumentationSource(FileUpload fileUpload) throws SchemaException {
         PrismContainerValueWrapper<ConnDevDocumentationSourceType> newItemWrapper = addNewDocumentationSourceValue();
         newItemWrapper.findProperty(ConnDevDocumentationSourceType.F_NAME).getValue().setRealValue(fileUpload.getClientFileName());
-        newItemWrapper.findProperty(ConnDevDocumentationSourceType.F_CONTENT_TYPE).getValue().setRealValue(fileUpload.getContentType());
+        // The same resolved content type the processed-documentation element carries (see
+        // saveDocumentationFile), so both elements describe the file identically.
+        newItemWrapper.findProperty(ConnDevDocumentationSourceType.F_CONTENT_TYPE).getValue()
+                .setRealValue(DocumentationContentTypes.resolve(fileUpload.getContentType(), fileUpload.getClientFileName()));
     }
 
     private boolean uploadDocumentationFile(FileUpload fileUpload, AjaxRequestTarget target) {

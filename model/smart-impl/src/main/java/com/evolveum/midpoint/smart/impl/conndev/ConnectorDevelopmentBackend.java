@@ -15,6 +15,7 @@ import com.evolveum.midpoint.smart.api.conndev.ConnDevArtifactValidationResult;
 import com.evolveum.midpoint.smart.api.conndev.ConnDevScriptFormat;
 import com.evolveum.midpoint.smart.api.conndev.ConnectorDevelopmentArtifacts;
 import com.evolveum.midpoint.smart.api.conndev.ConnectorDevelopmentOperation;
+import com.evolveum.midpoint.smart.api.conndev.DocumentationContentTypes;
 import com.evolveum.midpoint.smart.api.conndev.SupportedAuthorization;
 import com.evolveum.midpoint.smart.impl.conndev.activity.ConnDevBeans;
 import com.evolveum.midpoint.smart.impl.mappings.ConnDevJsonMapper;
@@ -36,6 +37,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.hc.client5.http.entity.EntityBuilder;
 import org.apache.hc.core5.http.ContentType;
+import org.apache.hc.core5.http.HttpStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -229,7 +231,7 @@ public abstract class ConnectorDevelopmentBackend {
             throws IOException, CommonException {
         String uuid = UUID.randomUUID().toString();
         var documentation = new ProcessedDocumentation(uuid, fileName)
-                .contentType(contentType);
+                .contentType(DocumentationContentTypes.resolve(contentType, fileName));
         try (var output = documentation.asOutputStream()) {
             content.transferTo(output);
         }
@@ -941,8 +943,9 @@ public abstract class ConnectorDevelopmentBackend {
     protected abstract void restoreSession(ServiceClient.RestorationClient client) throws IOException;
 
     protected void synchronizeSession(ServiceClient.RestorationClient client) throws IOException {
-        // FIXME: Implement session synchronization here
-        // ensureDocumentationIsUploaded(client);
+        // The session exists: make sure the documentation stored in the development (uploaded files,
+        // detected schemas) is present in it. Idempotent - a no-op when everything is already there.
+        ensureDocumentationIsUploaded(client);
     }
 
     protected void restoreObjectClasses(ServiceClient.RestorationClient client) throws IOException {
@@ -1103,23 +1106,75 @@ public abstract class ConnectorDevelopmentBackend {
 
     public void ensureDocumentationIsUploaded(ServiceClient.RestorationClient client) {
         try {
+            var sync = client().synchronizationClient();
             for (var documentation : getProcessedDocumentation()) {
-                client.putDocumentationIfMissing(
-                        "session/{sessionId}/documentation/" + documentation.uuid(), () -> {
-                            try {
-                                var body = new String(documentation.asInputStream().readAllBytes(), StandardCharsets.UTF_8);
-                                return EntityBuilder.create()
-                                        .setText(body)
-                                        .setContentType(ContentType.create(documentation.contentType(), StandardCharsets.UTF_8))
-                                        .build();
-                            } catch (IOException e) {
-                                throw new SystemException("Couldn't build documentation upload body", e);
-                            }
-                        });
+                if (isDocumentationBundle(documentation)) {
+                    // Pre-processed documentation (a {docId, chunks:[...]} bundle as returned by the
+                    // generation service): import it as-is through the PUT import endpoint, so the
+                    // service does not reprocess it.
+                    client.putDocumentationIfMissing(
+                            "session/{sessionId}/documentation/" + documentation.uuid(), () -> {
+                                try {
+                                    var body = new String(documentation.asInputStream().readAllBytes(), StandardCharsets.UTF_8);
+                                    return EntityBuilder.create()
+                                            .setText(body)
+                                            .setContentType(ContentType.APPLICATION_JSON)
+                                            .build();
+                                } catch (IOException e) {
+                                    throw new SystemException("Couldn't build documentation upload body", e);
+                                }
+                            });
+                } else {
+                    // Raw documentation file (uploaded in the wizard, or a detected schema stored as
+                    // its raw content): the service expects these through the multipart upload
+                    // endpoint, which (re)processes them. Skip the upload when the documentation (or
+                    // its processing) is already present in the session.
+                    var status = sync.documentationStatus(documentation.uuid());
+                    if (status != HttpStatus.SC_OK && status != HttpStatus.SC_NO_CONTENT && status != HttpStatus.SC_ACCEPTED) {
+                        sync.postDocumentation(
+                                documentation.uuid(),
+                                documentation.asInputStream(),
+                                documentationContentType(documentation),
+                                documentation.uri());
+                        sync.awaitDocumentation(documentation.uuid(), SLEEP_TIME, canRun());
+                    }
+                }
             }
         } catch (Exception e) {
             throw new SystemException("Couldn't upload documentation", e);
         }
+    }
+
+    /**
+     * Whether the stored documentation is a pre-processed documentation bundle ({@code {docId,
+     * chunks:[...]}}) as returned by the generation service, as opposed to a raw documentation file.
+     */
+    private boolean isDocumentationBundle(ProcessedDocumentation documentation) {
+        try {
+            return isDocumentationBundle(documentation.asInputStream().readAllBytes());
+        } catch (IOException e) {
+            return false;
+        }
+    }
+
+    static boolean isDocumentationBundle(byte[] content) {
+        JsonNode root;
+        try {
+            root = MAPPER.readTree(content);
+        } catch (IOException e) {
+            return false;
+        }
+        var chunks = root == null ? null : root.get("chunks");
+        return chunks != null && chunks.isArray();
+    }
+
+    private ContentType documentationContentType(ProcessedDocumentation documentation) {
+        var mimeType = documentation.contentType();
+        if (StringUtils.isBlank(mimeType)) {
+            // Let the service derive the content type from the file name.
+            return ContentType.DEFAULT_BINARY;
+        }
+        return ContentType.create(mimeType, StandardCharsets.UTF_8);
     }
 
     /**
