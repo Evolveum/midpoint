@@ -8,20 +8,20 @@ doc-type: config
 
 - In order to prohibit unsafe (Groovy, Velocity, JavaScript, Python) expressions, it is possible to disable their execution right in the system configuration
 (so even midPoint administrator cannot enable their execution)
-- This is done by setting `safeExpressionsOnly` to `true` like this:
+- This is done by setting `safeScriptingLanguagesOnly` to `true` like this:
 +
 [source,xml]
 ----
 <configuration>
     <midpoint>
 	    <expressions>
-	        <safeExpressionsOnly>true</safeExpressionsOnly>
+	        <safeScriptingLanguagesOnly>true</safeScriptingLanguagesOnly>
     	</expressions>
     </midpoint>
 </configuration>
 ----
 +
-Any attempt to execute Groovy, Velocity, JavaScript, or Python expressions will result in an error being signalled.
+Any attempt to execute Groovy, full Velocity, JavaScript, or Python expressions will result in an error being signalled.
 +
 NOTE: This does not cover executing Groovy code in connectors!
 

@@ -50,6 +50,21 @@ Overall, midPoint 4.10 opens up the world of identity management and governance 
 ** Correlators simulation.
 ** Inbound mappings simulation.
 ** Dedicated `#smartIntegration` authorization for suggestion operations.
+* **Connector generator wizard**: AI-assisted, low-code wizard that generates a working manifest-based connector JAR for an external application without hand-writing connector code.
+** Supports SCIM, REST and SQL protocols.
+** Guided workflow using wizard:
+*** start from scratch or import an existing low-code connector
+*** basic information (application identification, connector coordinates)
+*** application documentation discovery with AI processing
+*** connection setup (base URL, authentication methods, AI-generated authentication scripts, credentials, connectivity endpoint discovery and testing)
+*** object class discovery, schema generation
+*** Support for per-operation code generation
+scripts (search all, search by ID, search filter)
+*** Limited support for create, update, delete, relationships
+** Runs in a limited offline mode (skeleton scripts, no documentation processing, no relationships) when the Connector Generator microservice is not configured.
+** In-progress connector developments are tracked as `ConnectorDevelopmentType` objects, listed under *Connectors* > *Connector developments*.
+** Protected by the dedicated `#connectorWizard` authorization, not granted by any out-of-the-box role (Superuser reaches it only via `#all`), because the wizard generates and executes connector code.
+
 * UI/UX improvements:
 ** Improved Object Type wizard.
 ** Improved Mappings page.
@@ -68,6 +83,14 @@ The ticket is managed as a projection (a shadow of the `work` kind) of the midPo
 * New `work` shadow kind for work items (issues, tickets, cases, work packages).
 
 * Cases can now hold projections: the new `ProjectionHolderType` schema type is a common parent of `FocusType` and `CaseType`.
+
+* xref:/midpoint/reference/security/authentication/flexible-authentication/modules/totp/[TOTP support]: new `totp` authentication module brings multi-factor authentication based on time-based one-time passwords to flexible authentication.
+Users can set up and reset their authenticator application in the self-service user interface.
+See bug:MID-11049[].
+
+* xref:/midpoint/reference/tasks/focus-policies-in-activities/[Focus policies in activities]: focus-based policy rules can now be configured and evaluated per task activity, not only for the whole task.
+This allows separate focus-based thresholds for individual activities of composite tasks, including the `restartActivity` and `skipActivity` policy actions.
+See bug:MID-11051[].
 
 #TODO#
 

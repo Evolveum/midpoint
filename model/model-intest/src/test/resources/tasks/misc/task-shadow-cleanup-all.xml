@@ -1,0 +1,24 @@
+<!--
+  ~ Copyright (C) 2010-2024 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        oid="cdd14021-20c3-4610-8390-c45b2bd40002">
+    <!-- name should be provided by an archetype -->
+    <assignment>
+        <targetRef oid="00000000-0000-0000-0000-000000000516" type="ArchetypeType"/>
+    </assignment>
+    <assignment>
+        <targetRef oid="00000000-0000-0000-0000-000000000528" type="ArchetypeType"/>
+    </assignment>
+    <executionState>closed</executionState>
+    <activity>
+        <work>
+            <shadowCleanup>
+                <interval>P1M</interval>
+            </shadowCleanup>
+        </work>
+    </activity>
+</task>

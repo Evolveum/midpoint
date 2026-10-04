@@ -44,6 +44,7 @@ public class MidPointConstants {
     public static final String MEL_EXTENSION_FORMAT_NAME = "format";
     public static final String MEL_EXTENSION_LDAP_NAME = "ldap";
     public static final String MEL_EXTENSION_OBJECT_NAME = "object";
+    public static final String MEL_EXTENSION_SIMULATION_NAME = "simulation";
     public static final String MEL_EXTENSION_LOG_NAME = "log";
 
     public static final List<String> SAFE_MEL_EXTENSIONS = List.of(
@@ -58,6 +59,7 @@ public class MidPointConstants {
             MEL_EXTENSION_FORMAT_NAME,
             MEL_EXTENSION_LDAP_NAME,
             MEL_EXTENSION_OBJECT_NAME,
+            MEL_EXTENSION_SIMULATION_NAME,
             MEL_EXTENSION_LOG_NAME);
 
     // These are considered to be unsafe (at least in some contexts); but let's keep them here for consistency

@@ -9,9 +9,11 @@ package com.evolveum.midpoint.model.common.expression;
 import com.evolveum.midpoint.model.common.expression.evaluator.transformation.ValueTransformationContext;
 import com.evolveum.midpoint.model.common.expression.functions.BasicExpressionFunctions;
 import com.evolveum.midpoint.model.common.expression.functions.LogExpressionFunctions;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
 public class SampleJavaLibrary {
 
@@ -36,5 +38,11 @@ public class SampleJavaLibrary {
 
     public static String nonExistingVariable(String wrong) {
         return "Hello, " + wrong;
+    }
+
+    public static PrismReferenceValue prismReferenceValue() {
+        return new ObjectReferenceType()
+                .oid("reference-from-java-method")
+                .asReferenceValue();
     }
 }

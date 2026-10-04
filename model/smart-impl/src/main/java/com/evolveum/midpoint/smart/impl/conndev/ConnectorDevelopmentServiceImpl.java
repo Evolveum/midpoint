@@ -596,9 +596,15 @@ public class ConnectorDevelopmentServiceImpl implements ConnectorDevelopmentServ
 
         @Override
         public String saveDocumentationFile(String fileName, InputStream content, String contentType, Task task, OperationResult result)
-                throws IOException {
+                throws IOException, CommonException {
             return ConnectorDevelopmentBackend.backendFor(stateObject, task, result)
                     .saveDocumentationFile(fileName, content, contentType);
+        }
+
+        @Override
+        public void removeDocumentationFile(String fileName, Task task, OperationResult result) throws CommonException {
+            ConnectorDevelopmentBackend.backendFor(stateObject, task, result)
+                    .removeDocumentationFile(fileName);
         }
 
         @Override

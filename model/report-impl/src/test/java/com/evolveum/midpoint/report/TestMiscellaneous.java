@@ -28,8 +28,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.FileFormatConfigurat
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FileFormatTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportDataType;
 
+import static com.evolveum.midpoint.model.test.CommonInitialObjects.*;
+
 /**
- * Tests e.g. {@link ReportManager#runReport(PrismObject, PrismContainer, Task, OperationResult)} method.
+ * Tests e.g. {@link ReportManager#runReport(PrismObject, PrismContainer, Task, OperationResult)} method - besides others.
  */
 @ContextConfiguration(locations = { "classpath:ctx-report-test-main.xml" })
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
@@ -70,8 +72,10 @@ public class TestMiscellaneous extends EmptyReportIntegrationTest {
         waitForTaskCloseOrSuspend(taskOid);
         assertTask(taskOid, "after")
                 .display()
-                .assertArchetypeRef(ARCHETYPE_TASK_REPORT_EXPORT_CLASSIC.oid)
-                .assertDescription("export")
+                .assertArchetypeRefs(2)
+                .assertHasArchetype(ARCHETYPE_TASK_REPORT_EXPORT_CLASSIC.oid)
+                .assertHasArchetype(ARCHETYPE_TASK_REPORT.oid)
+                .asTask()
                 .assertClosed()
                 .assertSuccess();
     }
@@ -105,8 +109,10 @@ public class TestMiscellaneous extends EmptyReportIntegrationTest {
         waitForTaskCloseOrSuspend(taskOid);
         assertTask(taskOid, "after")
                 .display()
-                .assertArchetypeRef(ARCHETYPE_TASK_REPORT_IMPORT_CLASSIC.oid)
-                .assertDescription("import")
+                .assertArchetypeRefs(2)
+                .assertHasArchetype(ARCHETYPE_TASK_REPORT_IMPORT_CLASSIC.oid)
+                .assertHasArchetype(ARCHETYPE_TASK_REPORT.oid)
+                .asTask()
                 .assertClosed()
                 .assertSuccess();
 

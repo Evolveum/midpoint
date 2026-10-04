@@ -7550,4 +7550,25 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
                         .build(),
                 null, getTestTask(), getTestOperationResult());
     }
+
+    protected void setDefaultExpressionProfile(String identifier, Task task, OperationResult result) throws CommonException {
+        executeChanges(
+                prismContext.deltaFor(SystemConfigurationType.class)
+                        .item(SystemConfigurationType.F_EXPRESSIONS,
+                                SystemConfigurationExpressionsType.F_DEFAULTS,
+                                DefaultExpressionProfilesConfigurationType.F_AUTHORIZED_OBJECTS)
+                        .replaceRealValues(MiscUtil.singletonOrEmptyList(identifier))
+                        .asObjectDelta(SystemObjectsType.SYSTEM_CONFIGURATION.value()),
+                null, task, result);
+    }
+
+    protected void setDefaultExpressionLanguage(String languageUri, Task task, OperationResult result) throws CommonException {
+        executeChanges(
+                prismContext.deltaFor(SystemConfigurationType.class)
+                        .item(SystemConfigurationType.F_EXPRESSIONS,
+                                SystemConfigurationExpressionsType.F_DEFAULT_SCRIPT_LANGUAGE)
+                        .replaceRealValues(MiscUtil.singletonOrEmptyList(languageUri))
+                        .asObjectDelta(SystemObjectsType.SYSTEM_CONFIGURATION.value()),
+                null, task, result);
+    }
 }

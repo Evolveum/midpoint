@@ -10,6 +10,7 @@
 	</source>
 	<expression>
 		<script>
+		    <!-- TODO migrate to MEL -->
 			<code>
 				org1 = parentOrgRef != null ? midpoint.getOrgByOid(parentOrgRef?.oid) : null
 				org2 = org1?.parentOrgRef ? midpoint.getOrgByOid(org1?.parentOrgRef.get(0).oid) : null

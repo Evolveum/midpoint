@@ -151,11 +151,8 @@ public class ScriptExpressionPanel extends EvaluatorExpressionPanel {
         ScriptExpressionWrapper evaluator = getEvaluatorValue();
         ExpressionUtil.Language defaultLanguage = evaluator.language;
         if (defaultLanguage == null) {
-            if (evaluator.isEmpty()) {
-                defaultLanguage = ExpressionUtil.Language.MEL;
-            } else {
-                defaultLanguage = ExpressionUtil.Language.GROOVY;
-            }
+            defaultLanguage = ExpressionUtil.getDefaultLanguage(
+                    getPageBase().getSystemObjectCache(), StringUtils.isBlank(evaluator.code));
         }
 
         return Model.of(defaultLanguage);
@@ -264,11 +261,11 @@ public class ScriptExpressionPanel extends EvaluatorExpressionPanel {
     }
 
     private List<ExpressionUtil.Language> getAllowedLanguage() {
-        boolean safeExpressionsOnly = getMidpointConfiguration().isSafeExpressionsOnly();
+        boolean safeLanguagesOnly = getMidpointConfiguration().isSafeScriptingLanguagesOnly();
 
         List<ExpressionUtil.Language> list = new ArrayList<>();
-        Arrays.asList(ExpressionUtil.Language.class.getEnumConstants()).stream()
-                .filter(language -> !safeExpressionsOnly || language.isSafeLanguage())
+        Arrays.stream(ExpressionUtil.Language.class.getEnumConstants())
+                .filter(language -> !safeLanguagesOnly || language.isSafeLanguage())
                 .filter(language -> allowedLanguageByProfiles.isEmpty() || allowedLanguageByProfiles.contains(language))
                 .forEach(list::add);
         return list;
@@ -313,7 +310,7 @@ public class ScriptExpressionPanel extends EvaluatorExpressionPanel {
                 if (lang != null) {
                     editor.setModeForDataLanguage(lang.getLanguage());
                 } else {
-                    editor.setMode(AceEditor.Mode.GROOVY);
+                    editor.setMode(AceEditor.Mode.GROOVY); // TODO what if the system default is MEL?
                 }
                 add(editor);
                 return editor;
@@ -334,9 +331,7 @@ public class ScriptExpressionPanel extends EvaluatorExpressionPanel {
 
     private void updateEvaluatorValue(ExpressionUtil.Language language) {
         ScriptExpressionWrapper wrapper = getEvaluatorValue();
-        if ((ExpressionUtil.Language.GROOVY.equals(language) && wrapper.language == null)
-                || (language == null && wrapper.language == null)
-                || language.equals(wrapper.language)) {
+        if ((language == null && wrapper.language == null) || language.equals(wrapper.language)) {
             return;
         }
         try {
@@ -427,7 +422,9 @@ public class ScriptExpressionPanel extends EvaluatorExpressionPanel {
 
         private ScriptExpressionWrapper(ScriptExpressionEvaluatorType evaluator) {
             if (evaluator.getLanguage() != null) {
-                this.language = ExpressionUtil.converLanguage(evaluator.getLanguage());
+                this.language = ExpressionUtil.converLanguage(
+                        evaluator.getLanguage(), getPageBase().getSystemObjectCache(),
+                        StringUtils.isBlank(evaluator.getCode()));
             }
             this.code = evaluator.getCode();
         }

@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.certification.api;
 
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.util.SchemaDisplayUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
@@ -64,21 +65,7 @@ public class OutcomeUtils {
     }
 
     public static AccessCertificationResponseType fromUri(String uri) {
-        if (uri == null) {
-            return null;
-        } else if (QNameUtil.matchUri(uri, SchemaConstants.MODEL_CERTIFICATION_OUTCOME_ACCEPT)) {
-            return AccessCertificationResponseType.ACCEPT;
-        } else if (QNameUtil.matchUri(uri, SchemaConstants.MODEL_CERTIFICATION_OUTCOME_REVOKE)) {
-            return AccessCertificationResponseType.REVOKE;
-        } else if (QNameUtil.matchUri(uri, SchemaConstants.MODEL_CERTIFICATION_OUTCOME_REDUCE)) {
-            return AccessCertificationResponseType.REDUCE;
-        } else if (QNameUtil.matchUri(uri, SchemaConstants.MODEL_CERTIFICATION_OUTCOME_NOT_DECIDED)) {
-            return AccessCertificationResponseType.NOT_DECIDED;
-        } else if (QNameUtil.matchUri(uri, SchemaConstants.MODEL_CERTIFICATION_OUTCOME_NO_RESPONSE)) {
-            return AccessCertificationResponseType.NO_RESPONSE;
-        } else {
-            throw new IllegalArgumentException("Unrecognized URI: " + uri);
-        }
+        return SchemaDisplayUtil.certificationOutcomeFromUri(uri);
     }
 
     @SuppressWarnings("unused")

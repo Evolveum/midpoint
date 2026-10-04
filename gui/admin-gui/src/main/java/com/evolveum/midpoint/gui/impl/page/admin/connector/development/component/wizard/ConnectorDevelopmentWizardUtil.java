@@ -671,6 +671,37 @@ public class ConnectorDevelopmentWizardUtil {
         return false;
     }
 
+    /**
+     * Whether the object class discovery has finished: either the discovered schema has already
+     * been stored on the development, or the latest discovery task completed successfully.
+     * Used to keep the init part of the wizard active so that a discovery not yet run
+     * (e.g. because the wizard was interrupted after a successful connection test) is started
+     * automatically when the wizard is reopened.
+     */
+    public static boolean isObjectClassDiscoveryComplete(ConnectorDevelopmentDetailsModel detailsModel) {
+        if (existContainerValue(
+                detailsModel.getObjectWrapper(),
+                ItemPath.create(ConnectorDevelopmentType.F_APPLICATION,
+                        ConnDevApplicationInfoType.F_DETECTED_SCHEMA,
+                        ConnDevSchemaType.F_OBJECT_CLASS))) {
+            return true;
+        }
+        try {
+            PrismObject<TaskType> task = getTask(
+                    WorkDefinitionsType.F_DISCOVER_OBJECT_CLASS_INFORMATION,
+                    null,
+                    null,
+                    detailsModel.getObjectWrapper().getOid(),
+                    detailsModel.getPageAssignmentHolder());
+            return task != null
+                    && task.asObjectable().getExecutionState() == TaskExecutionStateType.CLOSED
+                    && task.asObjectable().getResultStatus() == OperationResultStatusType.SUCCESS;
+        } catch (CommonException e) {
+            LOGGER.error("Couldn't check the object class discovery task.", e);
+            return false;
+        }
+    }
+
     public static boolean isInitObjectClassSchemaOperationComplete(ConnectorDevelopmentDetailsModel detailsModel) {
         return isInitObjectClassOperationComplete(detailsModel, ConnDevObjectClassInfoType.F_NATIVE_SCHEMA_SCRIPT);
     }

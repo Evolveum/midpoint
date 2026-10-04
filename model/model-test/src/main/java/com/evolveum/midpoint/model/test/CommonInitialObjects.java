@@ -73,6 +73,10 @@ public interface CommonInitialObjects {
             ARCHETYPES, "509-archetype-task-iterative-bulk-action.xml",
             SystemObjectsType.ARCHETYPE_ITERATIVE_BULK_ACTION_TASK.value());
 
+    TestObject<ArchetypeType> ARCHETYPE_SHADOWS_DELETE_LONG_TIME_NOT_UPDATED_TASK = TestObject.classPath(
+            ARCHETYPES, "516-archetype-task-shadows-delete-long-time-not-updated.xml",
+            SystemObjectsType.ARCHETYPE_SHADOWS_DELETE_LONG_TIME_NOT_UPDATED_TASK.value());
+
     TestObject<ArchetypeType> ARCHETYPE_UTILITY_TASK = TestObject.classPath(
             ARCHETYPES, "528-archetype-task-util.xml",
             SystemObjectsType.ARCHETYPE_UTILITY_TASK.value());
@@ -100,6 +104,23 @@ public interface CommonInitialObjects {
     TestObject<ArchetypeType> ARCHETYPE_APPROVAL_CASE = TestObject.classPath(
             ARCHETYPES, "025-archetype-approval-case.xml",
             SystemObjectsType.ARCHETYPE_APPROVAL_CASE.value());
+
+    //Report tasks
+    TestObject<ArchetypeType> ARCHETYPE_TASK_REPORT = TestObject.classPath(
+            ARCHETYPES, "507-archetype-task-report.xml",
+            SystemObjectsType.ARCHETYPE_REPORT_TASK.value());
+
+    TestObject<ArchetypeType> ARCHETYPE_TASK_REPORT_IMPORT_CLASSIC = TestObject.classPath(
+            ARCHETYPES, "510-archetype-task-report-import-classic.xml",
+            SystemObjectsType.ARCHETYPE_REPORT_IMPORT_CLASSIC_TASK.value());
+
+    TestObject<ArchetypeType> ARCHETYPE_TASK_REPORT_EXPORT_CLASSIC = TestObject.classPath(
+            ARCHETYPES, "511-archetype-task-report-export-classic.xml",
+            SystemObjectsType.ARCHETYPE_REPORT_EXPORT_CLASSIC_TASK.value());
+
+    TestObject<ArchetypeType> ARCHETYPE_TASK_REPORT_EXPORT_DISTRIBUTED = TestObject.classPath(
+            ARCHETYPES, "512-archetype-task-report-export-distributed.xml",
+            SystemObjectsType.ARCHETYPE_REPORT_EXPORT_DISTRIBUTED_TASK.value());
 
     //Certification tasks
     TestObject<ArchetypeType> ARCHETYPE_CERTIFICATION_TASK_PARENT = TestObject.classPath(
@@ -311,11 +332,23 @@ public interface CommonInitialObjects {
 //    TestObject<PolicyType> POLICY_INFORMATION_SECURITY_RESPONSIBILITY = TestObject.classPath(
 //            POLICIES, "333-classification-information-security-responsibility.xml", SystemObjectsType.CLASSIFICATION_INFORMATION_SECURITY_RESPONSIBILITY.value());
 
+    String PARAM_RESOURCE_REF = "resourceRef";
+    String PARAM_OBJECT_CLASS = "objectClass";
     String PARAM_SIMULATION_RESULT_REF = "simulationResultRef";
     String PARAM_PATHS_TO_INCLUDE = "pathsToInclude";
     String PARAM_PATHS_TO_EXCLUDE = "pathsToExclude";
     String PARAM_INCLUDE_OPERATIONAL_ITEMS = "includeOperationalItems";
     String PARAM_SHOW_IF_NO_DETAILS = "showIfNoDetails";
+
+    TestReport REPORT_RECONCILIATION = TestReport.classPath(
+            REPORTS,
+            "100-report-reconciliation.xml",
+            SystemObjectsType.REPORT_RECONCILIATION.value());
+
+    TestReport REPORT_USER_LIST = TestReport.classPath(
+            REPORTS,
+            "110-report-user-list.xml",
+            SystemObjectsType.REPORT_USERS.value());
 
     TestReport REPORT_SIMULATION_OBJECTS = TestReport.classPath(
             REPORTS,
@@ -350,6 +383,16 @@ public interface CommonInitialObjects {
             OBJECT_COLLECTION,
             "280-object-collection-certification-campaign-all.xml",
             "00000000-0000-0000-0001-000000000280");
+
+    TestObject<ObjectCollectionType> OBJECT_COLLECTION_SHADOW_ALL = TestObject.classPath(
+            OBJECT_COLLECTION,
+            "290-object-collection-shadow-all.xml",
+            "00000000-0000-0000-0001-000000000008");
+
+    TestObject<ObjectCollectionType> OBJECT_COLLECTION_MY_CASES = TestObject.classPath(
+            OBJECT_COLLECTION,
+            "330-object-collection-my-cases.xml",
+            "00000000-0000-0000-0000-000000000344");
 
     TestReport REPORT_CERTIFICATION_DEFINITIONS = TestReport.classPath(
             REPORTS,

@@ -418,9 +418,9 @@ public class TestPasswordPolicy extends AbstractInternalModelIntegrationTest {
         then();
     }
 
-    /**The shipped default password policy must retain its semantics in safe-expression mode. See bug MID-12370 */
+    /** The shipped default password policy must retain its semantics in safe-scripting-languages mode. See bug MID-12370 */
     @Test
-    public void testDefaultPasswordPolicyMelInSafeExpressionsMode() throws Exception {
+    public void testDefaultPasswordPolicyMelInSafeScriptingLanguagesMode() throws Exception {
         ValuePolicyType policy = parseDefaultPasswordPolicy();
         PrismObject<UserType> user = createUserAb();
 
@@ -428,7 +428,7 @@ public class TestPasswordPolicy extends AbstractInternalModelIntegrationTest {
                 prismContext,
                 protector,
                 localizationService,
-                new TestingExpressionConfiguration(true, true, java.util.List.of()),
+                new TestingExpressionConfiguration(true, java.util.List.of()),
                 basicExpressionFunctions,
                 libraryMidpointFunctions,
                 null);

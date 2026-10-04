@@ -25,12 +25,14 @@ import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
+import com.evolveum.midpoint.gui.api.component.wizard.TileEnum;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.component.data.provider.MultivalueContainerListDataProvider;
 import com.evolveum.midpoint.gui.impl.component.dialog.OnePanelPopupPanel;
+import com.evolveum.midpoint.gui.impl.component.tile.EnumTileChoicePanel;
 import com.evolveum.midpoint.gui.impl.component.tile.MultiSelectContainerActionTileTablePanel;
 import com.evolveum.midpoint.gui.impl.component.tile.ViewToggle;
 import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardStepPanel;
@@ -46,6 +48,7 @@ import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.SmartMetadataUtil;
+import com.evolveum.midpoint.smart.api.conndev.DocumentationContentTypes;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommonException;
@@ -87,6 +90,8 @@ public class DocumentationConnectorStepPanel extends AbstractWizardStepPanel<Con
 
     private static final String ID_PANEL = "panel";
     private static final String ID_AI_ALERT = "aiAlert";
+    // The id must match the "noValuePanel" placeholder in TileTablePanel.html.
+    private static final String ID_NO_VALUE_PANEL = "noValuePanel";
 
     private LoadableModel<List<PrismContainerValueWrapper<ConnDevDocumentationSourceType>>> valuesModel;
 
@@ -102,12 +107,20 @@ public class DocumentationConnectorStepPanel extends AbstractWizardStepPanel<Con
         }
 
         Task removeTask = getPageBase().createSimpleTask(OP_REMOVE_DISCOVERED_DOCUMENTATION);
-        String token = ConnectorDevelopmentWizardUtil.getTaskToken(
-                WorkDefinitionsType.F_DISCOVER_DOCUMENTATION,
-                getDetailsModel().getObjectWrapper().getOid(),
-                getDetailsModel().getPageAssignmentHolder());
-        getDetailsModel().getServiceLocator().getConnectorService()
-                .removeDiscoveredDocumentation(token, value.getRealValue().getName(), removeTask, removeTask.getResult());
+        ConnDevDocumentationSourceType source = value.getRealValue();
+        if (StringUtils.isEmpty(source.getUri())) {
+            // An uploaded file: also drop its processed documentation and the stored file, so the
+            // session restoration stops uploading it to the generation service.
+            getDetailsModel().getConnectorDevelopmentOperation()
+                    .removeDocumentationFile(source.getName(), removeTask, removeTask.getResult());
+        } else {
+            String token = ConnectorDevelopmentWizardUtil.getTaskToken(
+                    WorkDefinitionsType.F_DISCOVER_DOCUMENTATION,
+                    getDetailsModel().getObjectWrapper().getOid(),
+                    getDetailsModel().getPageAssignmentHolder());
+            getDetailsModel().getServiceLocator().getConnectorService()
+                    .removeDiscoveredDocumentation(token, source.getName(), removeTask, removeTask.getResult());
+        }
     }
 
     @Override
@@ -324,6 +337,44 @@ public class DocumentationConnectorStepPanel extends AbstractWizardStepPanel<Con
             }
 
             @Override
+            protected WebMarkupContainer createHeaderContainer() {
+                WebMarkupContainer headerContainer = super.createHeaderContainer();
+                // The generic "create new" button has no behaviour in this panel - the documentation
+                // sources are added through the "add URL" / "upload file" buttons instead.
+                headerContainer.get("newObjectButton").add(new VisibleBehaviour(() -> false));
+                return headerContainer;
+            }
+
+            @Override
+            protected Component createPanelForNoValue() {
+                // When no documentation source is present, replace the generic "no value" panel
+                // with big tiles offering to add a documentation URL or upload a documentation
+                // file - otherwise these actions are only reachable from the hidden header.
+                EnumTileChoicePanel<DocumentationSourceAction> emptyStateTiles =
+                        new EnumTileChoicePanel<>(ID_NO_VALUE_PANEL, DocumentationSourceAction.class) {
+
+                            @Serial private static final long serialVersionUID = 1L;
+
+                            @Override
+                            protected String getDescriptionForTile(DocumentationSourceAction type) {
+                                return getString(type.getDescription());
+                            }
+
+                            @Override
+                            protected void onTemplateChosePerformed(DocumentationSourceAction action, AjaxRequestTarget target) {
+                                switch (action) {
+                                    case ADD_URL -> onAddUrlPerformed(target);
+                                    case UPLOAD -> onUploadFilePerformed(target);
+                                }
+                            }
+                        };
+                emptyStateTiles.setOutputMarkupId(true);
+                emptyStateTiles.setOutputMarkupPlaceholderTag(true);
+                emptyStateTiles.add(new VisibleBehaviour(this::displayNoValuePanel));
+                return emptyStateTiles;
+            }
+
+            @Override
             public void updateRowCssBasedValueStatus(@NotNull Component component, @NotNull PrismContainerValueWrapper<ConnDevDocumentationSourceType> value, boolean isTile) {
             }
 
@@ -459,7 +510,10 @@ public class DocumentationConnectorStepPanel extends AbstractWizardStepPanel<Con
     private void addUploadedFileDocumentationSource(FileUpload fileUpload) throws SchemaException {
         PrismContainerValueWrapper<ConnDevDocumentationSourceType> newItemWrapper = addNewDocumentationSourceValue();
         newItemWrapper.findProperty(ConnDevDocumentationSourceType.F_NAME).getValue().setRealValue(fileUpload.getClientFileName());
-        newItemWrapper.findProperty(ConnDevDocumentationSourceType.F_CONTENT_TYPE).getValue().setRealValue(fileUpload.getContentType());
+        // The same resolved content type the processed-documentation element carries (see
+        // saveDocumentationFile), so both elements describe the file identically.
+        newItemWrapper.findProperty(ConnDevDocumentationSourceType.F_CONTENT_TYPE).getValue()
+                .setRealValue(DocumentationContentTypes.resolve(fileUpload.getContentType(), fileUpload.getClientFileName()));
     }
 
     private boolean uploadDocumentationFile(FileUpload fileUpload, AjaxRequestTarget target) {
@@ -572,5 +626,34 @@ public class DocumentationConnectorStepPanel extends AbstractWizardStepPanel<Con
     @Override
     protected List<HelpTab> computeHelpTabs() {
         return ConnectorDevelopmentWizardUtil.helpTabs(getDetailsModel(), ConnectorWizardHelpTopics.DOCUMENTATION_SOURCE, null);
+    }
+
+    /**
+     * Actions offered when no documentation source is present yet.
+     */
+    public enum DocumentationSourceAction implements TileEnum {
+
+        ADD_URL("fa fa-globe bg-blue-100 text-primary",
+                "DocumentationSourceAction.ADD_URL.description"),
+        UPLOAD("fa fa-upload bg-teal-100 text-success",
+                "DocumentationSourceAction.UPLOAD.description");
+
+        private final String icon;
+        private final String descriptionKey;
+
+        DocumentationSourceAction(String icon, String descriptionKey) {
+            this.icon = icon;
+            this.descriptionKey = descriptionKey;
+        }
+
+        @Override
+        public String getIcon() {
+            return icon;
+        }
+
+        @Override
+        public String getDescription() {
+            return descriptionKey;
+        }
     }
 }

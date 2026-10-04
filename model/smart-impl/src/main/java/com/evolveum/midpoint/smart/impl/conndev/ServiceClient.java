@@ -45,6 +45,14 @@ public class ServiceClient {
     private final String apiBase;
 
     private static SSLContext trustAllContext;
+
+    /**
+     * Reentrancy guard for the session restoration/synchronization callbacks: they may themselves
+     * trigger {@link #ensureSessionExists()} (e.g. a documentation upload), which must not run the
+     * callback again on the same thread.
+     */
+    private static final ThreadLocal<Boolean> SESSION_CALLBACK_IN_PROGRESS = ThreadLocal.withInitial(() -> false);
+
     private final String apiKey;
     private final String sessionId;
     private final CloseableHttpClient client;
@@ -320,7 +328,12 @@ public class ServiceClient {
         }
         if (HttpStatus.SC_NOT_FOUND == code) {
             createSession();
-        } else if (HttpStatus.SC_OK != code && HttpStatus.SC_NO_CONTENT != code) {
+        } else if (HttpStatus.SC_OK == code || HttpStatus.SC_NO_CONTENT == code) {
+            // The session exists, but its session-scoped state (documentation, ...) may be stale or
+            // incomplete (e.g. files uploaded to the development after the session was created). The
+            // synchronization callback is idempotent and (re)establishes whatever is missing.
+            runSessionCallback(synchronization);
+        } else {
             throw new IOException("Could not determine code-generation session at " + apiBase + ". Status code " + code);
         }
     }
@@ -331,11 +344,21 @@ public class ServiceClient {
             code = response.getCode();
         }
         if (code == HttpStatus.SC_OK || code == HttpStatus.SC_CREATED) {
-            if (restoration != null) {
-                restoration.restore(new RestorationClient());
-            }
+            runSessionCallback(restoration);
         } else {
             throw new IOException("Could not create code-generation session at " + sessionEndpoint + ". Status code " + code);
+        }
+    }
+
+    private void runSessionCallback(SessionRestoration callback) throws IOException {
+        if (callback == null || Boolean.TRUE.equals(SESSION_CALLBACK_IN_PROGRESS.get())) {
+            return;
+        }
+        SESSION_CALLBACK_IN_PROGRESS.set(true);
+        try {
+            callback.restore(new RestorationClient());
+        } finally {
+            SESSION_CALLBACK_IN_PROGRESS.remove();
         }
     }
 
@@ -344,6 +367,23 @@ public class ServiceClient {
             return MAPPER.readValue(content, ObjectNode.class);
         } finally {
             content.close();
+        }
+    }
+
+    /**
+     * Reads (up to a few hundred bytes of) the response body of a failed response, for
+     * diagnostics. Returns {@code null} when there is no readable body.
+     */
+    private String failureDetail(CloseableHttpResponse response) {
+        if (response.getEntity() == null) {
+            return null;
+        }
+        try (var content = response.getEntity().getContent()) {
+            var bytes = content.readNBytes(1024);
+            var text = new String(bytes, StandardCharsets.UTF_8).trim();
+            return text.isEmpty() ? null : (text.length() > 512 ? text.substring(0, 512) + "…" : text);
+        } catch (IOException e) {
+            return null;
         }
     }
 
@@ -363,7 +403,11 @@ public class ServiceClient {
                 if (uploadResponse.getCode() >= 200 && uploadResponse.getCode() < 300) {
                     return;
                 }
-                throw new IOException("Problem uploading content to " + uri + ". Status code " + uploadResponse.getCode());
+                // Surface the service's response body (e.g. validation errors of a 422) so failures
+                // are diagnosable instead of a bare status code.
+                var detail = failureDetail(uploadResponse);
+                throw new IOException("Problem uploading content to " + uri + ". Status code " + uploadResponse.getCode()
+                        + (detail == null ? "" : ". Response: " + detail));
             }
         }
 
@@ -411,25 +455,34 @@ public class ServiceClient {
             request.setEntity(builder.build());
             try (var response = execute(request)) {
                 if (response.getCode() < 200 || response.getCode() >= 300) {
-                    throw new IOException("Could not upload documentation " + docId + " to " + uri + ". Status code " + response.getCode());
+                    var detail = failureDetail(response);
+                    throw new IOException("Could not upload documentation " + docId + " to " + uri + ". Status code "
+                            + response.getCode() + (detail == null ? "" : ". Response: " + detail));
                 }
             }
         }
 
         /**
-         * Waits until an uploaded documentation has finished processing, by polling {@code HEAD
-         * documentation/{docId}}. Unlike the module job endpoints, the documentation endpoint has no
+         * One-shot probe of a documentation item ({@code HEAD documentation/{docId}}). Returns
+         * {@code 204} (or {@code 200}) once the chunks are persisted, {@code 202} while the upload job
+         * is still running, and {@code 404} when neither items nor a pending job exist.
+         */
+        public int documentationStatus(String docId) throws IOException {
+            try (var response = execute(new HttpHead(documentationUri(docId)))) {
+                return response.getCode();
+            }
+        }
+
+        /**
+         * Waits until an uploaded documentation has finished processing, by polling
+         * {@link #documentationStatus}. Unlike the module job endpoints, the documentation endpoint has no
          * {@code ?jobId=} status envelope; the HEAD status is the contract instead: {@code 204} once the
          * chunks are persisted, {@code 202} while the upload job is still running, and {@code 404} when
          * neither items nor a pending job exist (i.e. the upload failed).
          */
         public void awaitDocumentation(String docId, long sleepTime, BooleanSupplier canRun) throws IOException {
-            var uri = documentationUri(docId);
             while (true) {
-                int code;
-                try (var response = execute(new HttpHead(uri))) {
-                    code = response.getCode();
-                }
+                var code = documentationStatus(docId);
                 if (code == HttpStatus.SC_NO_CONTENT || code == HttpStatus.SC_OK) {
                     return;
                 }
