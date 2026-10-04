@@ -293,8 +293,7 @@ class AuthenticationWrapper {
         if (processingDifferentSequence && isSequenceReplacedByPrincipalPolicy(mpAuthentication, httpRequest, taskManager)) {
             reportSequenceReplacedByPrincipalPolicy(mpAuthentication, httpRequest);
         }
-        // The definition of the processed sequence can change when the security policy of the principal is applied.
-        if (processingDifferentSequence || !sequence.equals(mpAuthentication.getSequence())
+        if (processingDifferentSequence || isSequenceChangedDuringAuthentication(mpAuthentication)
                 || StringUtils.isNotEmpty(mpAuthentication.getArchetypeOid())) {
             authenticationManager.getProviders().clear();
             //noinspection unchecked
@@ -315,6 +314,17 @@ class AuthenticationWrapper {
             authModules = mpAuthentication.getAuthModules();
         }
         return authModules;
+    }
+
+    /**
+     * The definition of the processed sequence can change when the security policy of the principal is applied.
+     *
+     * Authenticated user stays on the modules built during the login, they are kept in the authentication
+     * stored in the session. Their filters process the requests of the user even if the security policy was
+     * changed in the meantime and does not define them anymore. New policy applies after the next login.
+     */
+    private boolean isSequenceChangedDuringAuthentication(MidpointAuthentication mpAuthentication) {
+        return !mpAuthentication.isAuthenticated() && !sequence.equals(mpAuthentication.getSequence());
     }
 
     /**
