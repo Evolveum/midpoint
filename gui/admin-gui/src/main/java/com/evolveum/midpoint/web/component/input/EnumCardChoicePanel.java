@@ -15,6 +15,7 @@ import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormChoiceComponentUpdatingBehavior;
 import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.form.Radio;
@@ -43,6 +44,7 @@ public class EnumCardChoicePanel<T extends Enum<?>> extends InputPanel {
 
     private static final String ID_INPUT = "input";
     private static final String ID_PANEL = "panel";
+    private static final String ID_CARD = "card";
     private static final String ID_RADIO = "radio";
     private static final String ID_NAME = "name";
     private static final String ID_DESCRIPTION = "description";
@@ -109,18 +111,23 @@ public class EnumCardChoicePanel<T extends Enum<?>> extends InputPanel {
                 CardOption<T> option = item.getModelObject();
                 item.add(AttributeAppender.append("class", getCardCssClass()));
 
+                WebMarkupContainer card = new WebMarkupContainer(ID_CARD);
+                card.add(AttributeAppender.append("class",
+                        () -> option.getValue() == valueModel.getObject() ? getSelectedCardCssClass() : null));
+                item.add(card);
+
                 Radio<T> radio = new Radio<>(ID_RADIO, Model.of(option.getValue()), radioGroup);
                 radio.setOutputMarkupId(true);
                 radio.setEnabled(!readOnly);
-                item.add(radio);
+                card.add(radio);
 
                 Label name = new Label(ID_NAME, option.getTitle());
                 name.setOutputMarkupId(true);
-                item.add(name);
+                card.add(name);
 
                 Label description = new Label(ID_DESCRIPTION, option.getDescription());
                 description.setOutputMarkupId(true);
-                item.add(description);
+                card.add(description);
 
                 item.add(AttributeAppender.append("style", "cursor: pointer;"));
                 item.add(new AjaxEventBehavior("click") {
@@ -135,6 +142,7 @@ public class EnumCardChoicePanel<T extends Enum<?>> extends InputPanel {
                         }
                         valueModel.setObject(option.getValue());
                         target.add(radioGroup);
+                        onSelectionChanged(target);
                     }
                 });
             }
@@ -149,10 +157,24 @@ public class EnumCardChoicePanel<T extends Enum<?>> extends InputPanel {
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
                 target.add(radioGroup);
+                onSelectionChanged(target);
             }
         });
 
         add(radioGroup);
+    }
+
+    /**
+     * Called after the user selects a card.
+     */
+    protected void onSelectionChanged(AjaxRequestTarget target) {
+    }
+
+    /**
+     * CSS classes added to the card of the selected option. Allows to customize selection style. Default is null.
+     */
+    protected String getSelectedCardCssClass() {
+        return null;
     }
 
     private String getCardCssClass() {
