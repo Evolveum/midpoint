@@ -22,6 +22,7 @@ import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.cases.api.util.QueryUtils;
+import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.model.api.BulkActionExecutionOptions;
 import com.evolveum.midpoint.model.impl.scripting.BulkActionsExecutor;
 import com.evolveum.midpoint.schema.config.ExecuteScriptConfigItem;
@@ -161,6 +162,7 @@ public class ModelController implements ModelService, TaskService, CaseService, 
     @Autowired private ClockworkMedic clockworkMedic;
     @Autowired private ClockworkAuditHelper clockworkAuditHelper;
     @Autowired private EventDispatcher dispatcher;
+    @Autowired private MidpointConfiguration midpointConfiguration;
     @Autowired
     @Qualifier("cacheRepositoryService")
     private RepositoryService cacheRepositoryService;
@@ -1791,6 +1793,8 @@ public class ModelController implements ModelService, TaskService, CaseService, 
 
             provisioning.postInit(result);
 
+            checkDefaultExpressionProfile(result);
+
         } catch (SchemaException e) {
             result.recordFatalError(e);
             throw new SystemException(e.getMessage(), e);
@@ -1798,6 +1802,37 @@ public class ModelController implements ModelService, TaskService, CaseService, 
             exitModelMethod();
             result.close();
             result.cleanup();
+        }
+    }
+
+    private void checkDefaultExpressionProfile(OperationResult result) throws SchemaException {
+        var sysconfig = systemObjectCache.getSystemConfigurationBean(result);
+        var expressionConfig = sysconfig != null ? sysconfig.getExpressions() : null;
+        var defaults = expressionConfig != null ? expressionConfig.getDefaults() : null;
+        var defaultProfileForAuthorizedObjects = defaults != null ? defaults.getAuthorizedObjects() : null;
+        if (defaultProfileForAuthorizedObjects == null) {
+            if (midpointConfiguration.isSafeScriptingLanguagesOnly()) {
+                LOGGER.warn("No default expression profile is configured for objects in the repository. "
+                        + "Even if the scripting languages themselves are currently restricted to safe languages only, "
+                        + "it is still recommended to set a default expression profile for objects in the repository. "
+                        + "See https://docs.evolveum.com/midpoint/reference/expressions/expressions/profiles/configuration/ "
+                        + "for more information.");
+            } else {
+                LOGGER.warn("""
+
+                        ****************************************************************************************************
+                        ***                                            WARNING                                           ***
+                        ***                                                                                              ***
+                        *** No default expression profile is configured for objects in the repository. The unrestricted  ***
+                        *** expression profile is therefore used by default. Consider configuring a more restrictive     ***
+                        *** default expression profile. For more information, see:                                       ***
+                        ***                                                                                              ***
+                        *** https://docs.evolveum.com/midpoint/reference/expressions/expressions/profiles/configuration/ ***
+                        ****************************************************************************************************""");
+            }
+        } else {
+            LOGGER.info("Default expression profile for authorized objects is configured as '{}'.",
+                    defaultProfileForAuthorizedObjects);
         }
     }
 
