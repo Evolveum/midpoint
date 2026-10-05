@@ -14,7 +14,7 @@
 
             var defaults = {
                 container: input.parent(),
-                base: 250,
+                base: 80,
                 hierarchy: {
                     '0': ['progress-bar-danger', 'Very weak'],
                     '25': ['progress-bar-danger', 'Weak'],
