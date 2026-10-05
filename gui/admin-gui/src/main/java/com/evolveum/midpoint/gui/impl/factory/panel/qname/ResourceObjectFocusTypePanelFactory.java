@@ -16,11 +16,11 @@ import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schem
 import com.evolveum.midpoint.gui.impl.validator.ResourceObjectFocusTypeValidator;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.smart.api.InsufficientPermissionsException;
 import com.evolveum.midpoint.smart.api.SmartIntegrationService;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationOption;
+import com.evolveum.midpoint.web.component.dialog.SuggestionOption;
 import com.evolveum.midpoint.web.component.dialog.privacy.DataAccessPermission;
 import com.evolveum.midpoint.web.component.input.DropDownChoiceSuggestPanel;
 
@@ -99,6 +99,11 @@ public class ResourceObjectFocusTypePanelFactory extends AbstractInputGuiCompone
                     @Override
                     protected boolean isSuggestContainerVisible() {
                         return SmartIntegrationUtils.isSmartIntegrationAuthorized(getPageBase());
+                    }
+
+                    @Override
+                    public SuggestionOption getSuggestionOption() {
+                        return SuggestionOption.aiOnly(List.of(ConfirmationOption.selectedOf(DataAccessPermission.SCHEMA_ACCESS)));
                     }
 
                     @Override
