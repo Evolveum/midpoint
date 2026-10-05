@@ -45,6 +45,7 @@ public class DefaultServiceClientImpl implements ServiceClient {
 
     /** @see #getPath(Method) */
     private static final String URL_PREFIX = "/api/v1/";
+    private static final String API_KEY_HEADER = "X-Gravitee-Api-Key";
     private static final String METHOD_SUGGEST_OBJECT_TYPES = "objectType/suggestObjectType"; // TODO This should be plural!
     private static final String METHOD_SUGGEST_FOCUS_TYPE = "focusType/suggestFocusType";
     private static final String METHOD_MATCH_SCHEMA = "matching/matchSchema";
@@ -54,6 +55,9 @@ public class DefaultServiceClientImpl implements ServiceClient {
     /** The client used to access the remote service. */
     private final WebClient webClient;
 
+    /** API key sent with every request; null if not configured. */
+    @Nullable private final String apiKey;
+
     /** Thread pool for async invocations. */
     private final ExecutorService executorService;
 
@@ -62,8 +66,9 @@ public class DefaultServiceClientImpl implements ServiceClient {
     /** Default thread pool size for parallel AI service calls. */
     private static final int DEFAULT_THREAD_POOL_SIZE = 20;
 
-    DefaultServiceClientImpl(@Nullable SmartIntegrationConfigurationType configurationBean) throws ConfigurationException {
+    DefaultServiceClientImpl(@Nullable SmartIntegrationConfigurationType configurationBean, @Nullable String apiKey) throws ConfigurationException {
         webClient = WebClient.create(getServiceUrl(configurationBean), true);
+        this.apiKey = apiKey;
 
         var conduit = WebClient.getConfig(webClient).getHttpConduit();
         var policy = new HTTPClientPolicy();
@@ -110,9 +115,17 @@ public class DefaultServiceClientImpl implements ServiceClient {
         return getServiceUrlOverride() != null;
     }
 
+    /** Resets the client state (including headers) and re-applies headers common to all requests. */
+    private void resetWebClient() {
+        webClient.reset();
+        if (apiKey != null) {
+            webClient.header(API_KEY_HEADER, apiKey);
+        }
+    }
+
     @Override
     public Optional<AiInfo> getAiInfo() {
-        webClient.reset();
+        resetWebClient();
         webClient.accept(MediaType.APPLICATION_JSON);
         webClient.path("/health");
         LOGGER.trace("Calling health endpoint: /health");
@@ -147,7 +160,7 @@ public class DefaultServiceClientImpl implements ServiceClient {
         //  So we serialize/deserialize the data ourselves.
         var requestText = SmartServiceSerialization.serializeRequest(request);
         LOGGER.trace("Calling {} with request (class: {}):\n{}", method, request.getClass().getName(), requestText);
-        webClient.reset();
+        resetWebClient();
         webClient.type(MediaType.APPLICATION_JSON);
         webClient.accept(MediaType.APPLICATION_JSON);
         webClient.path(getPath(method));
