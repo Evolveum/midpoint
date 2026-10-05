@@ -69,6 +69,7 @@ public class VariableBindingDefinitionTypePanel extends BasePanel<VariableBindin
                     VariableBindingDefinitionTypePanel.this.getModel().setObject(var);
                 }
                 VariableBindingDefinitionTypePanel.this.getModelObject().setPath(newPathtype);
+                VariableBindingDefinitionTypePanel.this.getModel().setObject(VariableBindingDefinitionTypePanel.this.getModelObject());
             }
         };
         pathPanel.setOutputMarkupId(true);

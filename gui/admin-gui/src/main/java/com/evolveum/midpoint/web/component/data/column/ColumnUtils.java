@@ -26,6 +26,7 @@ import com.evolveum.midpoint.gui.api.util.*;
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismContainerWrapperColumn;
 import com.evolveum.midpoint.gui.impl.component.data.column.icon.CompositedIconColumn;
 import com.evolveum.midpoint.gui.impl.component.data.column.icon.CompositedIconWithLabelColumn;
+import com.evolveum.midpoint.gui.impl.event.FormComponentUpdatingEvent;
 import com.evolveum.midpoint.gui.impl.page.admin.certification.PageMyCertItems;
 import com.evolveum.midpoint.gui.impl.page.admin.certification.component.CampaignActionButton;
 import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
@@ -58,6 +59,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.event.IEvent;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -2003,5 +2005,41 @@ public class ColumnUtils {
             LOGGER.error("Unable to find association container in the construction: {}", ex.getLocalizedMessage());
         }
         return null;
+    }
+
+    public static IColumn<PrismContainerValueWrapper<MappingType>, String> createStrengthIconColumn(String additionalCssClass) {
+        return new IconColumn<>(Model.of()) {
+
+            @Override
+            public void populateItem(Item<ICellPopulator<PrismContainerValueWrapper<MappingType>>> cellItem, String componentId, IModel<PrismContainerValueWrapper<MappingType>> rowModel) {
+                ImagePanel panel = new ImagePanel(componentId, new ReadOnlyModel<>(() -> getIconDisplayType(rowModel))) {
+                    @Override
+                    public void onEvent(IEvent<?> event) {
+                        super.onEvent(event);
+
+                        if (event.getPayload() instanceof FormComponentUpdatingEvent formComponentUpdatingEvent) {
+                            AjaxRequestTarget target = formComponentUpdatingEvent.AjaxRequestTarget();
+
+                            target.add(this);
+                        }
+                    }
+                };
+                panel.setOutputMarkupId(true);
+                panel.setIconRole(ImagePanel.IconRole.IMAGE);
+                cellItem.add(panel);
+
+                cellItem.add(AttributeAppender.append("class", "text-center " + additionalCssClass));
+            }
+
+            @Override
+            protected DisplayType getIconDisplayType(IModel<PrismContainerValueWrapper<MappingType>> rowModel) {
+                return MappingAuthorityDisplayResolver.resolveDisplay(rowModel.getObject().getRealValue(), null);
+            }
+
+            @Override
+            public String getCssClass() {
+                return "px-0";
+            }
+        };
     }
 }

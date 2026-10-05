@@ -67,7 +67,7 @@ public class RangeAwareMappingTargetValueWrapper
     }
 
     private boolean shouldApplyDefaultRange(VariableBindingDefinitionType target) {
-        if (target == null) {
+        if (target == null || target.getPath() == null) {
             return false;
         }
         if (target.getSet() == null) {
