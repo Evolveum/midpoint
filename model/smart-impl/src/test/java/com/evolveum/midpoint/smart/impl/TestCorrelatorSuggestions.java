@@ -117,14 +117,14 @@ public class TestCorrelatorSuggestions extends AbstractSmartIntegrationTest {
         return computer.getStatistics();
     }
 
-    @Test
+    @Test(enabled = false) // multivalued UserType.F_EMAIL no longer exists, and F_EMAIL_ADDRESS is single-valued: TODO adapt the test
     public void test001MultiValuedAttributeCorrelationScore() throws Exception {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
         refreshShadows();
 
-        ItemPath focusPath = ItemPath.create(UserType.F_EMAIL);
+        ItemPath focusPath = ItemPath.create(UserType.F_EMAIL_ADDRESS);
         ItemPath shadowPath = EMAIL.path();
         CorrelatorSuggestion suggestion = new CorrelatorSuggestion(focusPath, shadowPath, null, false);
 

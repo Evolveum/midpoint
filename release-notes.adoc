@@ -136,11 +136,6 @@ See xref:/midpoint/guides/account-activation-sequence/[Account Activation Authen
 * Added support for filter expressions and conditions in GUI. See bug:MID-11865[].
 * Improved handling of conditions in GUI. See bug:MID-11864[].
 * Added support for value expression returning null in GUI. See bug:MID-11768[].
-* Connector Generator: added context aware documentation in the drawer. See bug:MID-12033[].
-* Connector Generator: processed exceptions are shown in the drawer. See bug:MID-11804[].
-* Connector Generator: connector log messages are shown in the side panel. See bug:MID-11484[].
-* Connector Generator: added upload of documentation files in the documentation step. See bug:MID-11794[].
-* Connector Generator: added testing of the GET operation, including selection of the test object and review of the retrieved object. See bug:MID-11802[].
 
 #TODO#
 
