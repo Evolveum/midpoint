@@ -31,7 +31,6 @@
                                 <language>$scriptingLanguage</language>
                                 <code>
                                     input?.startsWith("R:")
-                                    #end
                                 </code>
                             </script>
                         </condition>
