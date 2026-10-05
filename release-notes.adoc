@@ -131,6 +131,16 @@ See xref:/midpoint/guides/account-activation-sequence/[Account Activation Authen
 * Fixed object marks not being removed immediately after unassigning the policy that induces them. See bug:MID-10641[].
 * Registration confirmation notifier doesn't send cleartext username and password by default.
 * Password hint is now hidden by default in the self-service user interface.
+* Added GUI editor for role auto-assignment, including the condition. See bug:MID-4684[].
+* Added support for range in mappings in GUI. See bug:MID-11767[].
+* Added support for filter expressions and conditions in GUI. See bug:MID-11865[].
+* Improved handling of conditions in GUI. See bug:MID-11864[].
+* Added support for value expression returning null in GUI. See bug:MID-11768[].
+* Connector Generator: added context aware documentation in the drawer. See bug:MID-12033[].
+* Connector Generator: processed exceptions are shown in the drawer. See bug:MID-11804[].
+* Connector Generator: connector log messages are shown in the side panel. See bug:MID-11484[].
+* Connector Generator: added upload of documentation files in the documentation step. See bug:MID-11794[].
+* Connector Generator: added testing of the GET operation, including selection of the test object and review of the retrieved object. See bug:MID-11802[].
 
 #TODO#
 
