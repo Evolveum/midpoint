@@ -5,6 +5,7 @@ import com.evolveum.midpoint.model.test.CommonInitialObjects;
 import com.evolveum.midpoint.model.test.smart.MockServiceClientImpl;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -117,14 +118,21 @@ public class TestCorrelatorSuggestions extends AbstractSmartIntegrationTest {
         return computer.getStatistics();
     }
 
-    @Test(enabled = false) // multivalued UserType.F_EMAIL no longer exists, and F_EMAIL_ADDRESS is single-valued: TODO adapt the test
+    @Test
     public void test001MultiValuedAttributeCorrelationScore() throws Exception {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
+        modifyUserReplace(USER1.oid, UserType.F_ORGANIZATIONAL_UNIT,
+                PolyString.fromOrig("user1@acme.com"), PolyString.fromOrig("user1@other.com"));
+        modifyUserReplace(USER2.oid, UserType.F_ORGANIZATIONAL_UNIT,
+                PolyString.fromOrig("user2@acme.com"), PolyString.fromOrig("user2@other.com"));
+        modifyUserReplace(USER3.oid, UserType.F_ORGANIZATIONAL_UNIT,
+                PolyString.fromOrig("user3@acme.com"), PolyString.fromOrig("user3@other.com"));
+
         refreshShadows();
 
-        ItemPath focusPath = ItemPath.create(UserType.F_EMAIL_ADDRESS);
+        ItemPath focusPath = ItemPath.create(UserType.F_ORGANIZATIONAL_UNIT);
         ItemPath shadowPath = EMAIL.path();
         CorrelatorSuggestion suggestion = new CorrelatorSuggestion(focusPath, shadowPath, null, false);
 
