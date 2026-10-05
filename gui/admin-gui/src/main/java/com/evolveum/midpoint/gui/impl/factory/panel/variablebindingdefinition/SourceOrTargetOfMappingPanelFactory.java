@@ -21,12 +21,13 @@ import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 import org.springframework.stereotype.Component;
@@ -127,8 +128,14 @@ public class SourceOrTargetOfMappingPanelFactory extends VariableBindingDefiniti
                 UniformItemPath path = ItemPathHolder.parseFromString(
                         object,
                         PrismContext.get().getSchemaRegistry().getNamespacePrefixMapper().getNamespacesDeclaredByDefault());
-                VariableBindingDefinitionType def = new VariableBindingDefinitionType()
-                        .path(new ItemPathType(path));
+                VariableBindingDefinitionType current = panelCtx.getRealValueModel().getObject();
+                if (current != null && current.getPath() != null
+                        && path.equivalent(current.getPath().getItemPath())) {
+                    return;
+                }
+                VariableBindingDefinitionType def = current != null
+                        ? current.clone() : new VariableBindingDefinitionType();
+                def.setPath(new ItemPathType(path));
                 panelCtx.getRealValueModel().setObject(def);
             }
         };
@@ -140,8 +147,22 @@ public class SourceOrTargetOfMappingPanelFactory extends VariableBindingDefiniti
                 return getAvailableVariables(input, panelCtx.getItemWrapperModel(), panelCtx.getPageBase()).iterator();
             }
         };
-        panel.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
+        // Autocomplete emits change after applying the selected value; blur can submit the search prefix.
+        initAjaxBehavior(panel);
         return panel;
+    }
+
+    /**
+     * Updates the model after the input changes or an autocomplete suggestion is selected.
+     * Using blur could submit partial text, such as "org", before clicking a suggestion
+     * replaces it with the selected value, such as "organizationalUnit".
+     */
+    private static void initAjaxBehavior(AutoCompleteTextPanel<String> panel) {
+        panel.getBaseFormComponent().add(new AjaxFormComponentUpdatingBehavior("change") {
+            @Override
+            protected void onUpdate(AjaxRequestTarget target) {
+            }
+        });
     }
 
     protected boolean stripVariableSegment() {
@@ -150,7 +171,7 @@ public class SourceOrTargetOfMappingPanelFactory extends VariableBindingDefiniti
 
     protected List<String> getAvailableVariables(String input,
             IModel<PrismPropertyWrapper<VariableBindingDefinitionType>> itemWrapperModel, PageAdminLTE pageBase) {
-        FocusDefinitionsMappingProvider provider = new FocusDefinitionsMappingProvider(itemWrapperModel){
+        FocusDefinitionsMappingProvider provider = new FocusDefinitionsMappingProvider(itemWrapperModel) {
             @Override
             protected boolean showContainerChoices() {
                 return true;
