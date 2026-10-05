@@ -1978,23 +1978,6 @@
                         </xsd:annotation>
                     </xsd:element>
 
-                    <xsd:element name="email" type="tns:EmailAddressType" minOccurs="0" maxOccurs="unbounded">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                <p>
-                                    E-Mail addresses of the user, org. unit, etc.
-
-                                    TODO how to distinguish these addresses from the primary "emailAddress"?
-                                </p>
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:displayName>FocusType.email</a:displayName>
-                                <a:displayOrder>305</a:displayOrder>
-                                <a:since>4.11</a:since>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-
                     <xsd:element name="telephoneNumber" type="xsd:string" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -2005,36 +1988,6 @@
                             <xsd:appinfo>
                                 <a:displayName>FocusType.telephoneNumber</a:displayName>
                                 <a:displayOrder>310</a:displayOrder>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-
-                    <xsd:element name="phoneNumber" type="tns:PhoneNumberType" minOccurs="0" maxOccurs="unbounded">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                <p>
-                                    The phone numbers of the user, org. unit, etc.
-
-                                    TODO how to distinguish these numbers from the primary "telephoneNumber"?
-                                </p>
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:displayName>FocusType.telephoneNumber</a:displayName>
-                                <a:displayOrder>310</a:displayOrder>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-
-                    <xsd:element name="physicalAddress" type="tns:PhysicalMailingAddressType" minOccurs="0" maxOccurs="unbounded">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                <p>
-                                    Physical mailing addresses of the user, org. unit, etc.
-                                </p>
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:displayName>FocusType.physicalAddress</a:displayName>
-                                <a:since>4.11</a:since>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -23089,12 +23042,15 @@
         <xsd:annotation>
             <xsd:documentation>
                 Information about a particular email address.
+
+                Unsupported, experimental.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container>true</a:container>
                 <a:since>4.11</a:since>
                 <a:naturalKey>tns:type</a:naturalKey>
                 <a:naturalKey>tns:value</a:naturalKey>
+                <a:experimental>true</a:experimental>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -23128,12 +23084,15 @@
         <xsd:annotation>
             <xsd:documentation>
                 Information about a phone number.
+
+                Unsupported, experimental.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container>true</a:container>
                 <a:since>4.11</a:since>
                 <a:naturalKey>tns:type</a:naturalKey>
                 <a:naturalKey>tns:value</a:naturalKey>
+                <a:experimental>true</a:experimental>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -23168,6 +23127,8 @@
             <xsd:documentation>
                 Information about a particular physical mailing address.
                 It is modeled after RFC 7643 (System for Cross-domain Identity Management: Core Schema).
+
+                Unsupported, experimental.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container>true</a:container>
@@ -23179,6 +23140,7 @@
                 <a:naturalKey>tns:region</a:naturalKey>
                 <a:naturalKey>tns:postalCode</a:naturalKey>
                 <a:naturalKey>tns:country</a:naturalKey>
+                <a:experimental>true</a:experimental>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
