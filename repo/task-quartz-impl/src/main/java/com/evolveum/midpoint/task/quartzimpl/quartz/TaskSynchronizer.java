@@ -369,8 +369,7 @@ public class TaskSynchronizer {
                     Synchronization of midpoint and Quartz tasks store finished. Processing of %d task(s) existing in \
                     midPoint repository has been successful, while processing of %d task(s) has failed. %d task(s) has \
                     been updated and %d task(s) has been removed from Quartz job store, because they are not present \
-                    in midPoint repository."
-                    """.formatted(this.processed, this.changed, this.removed, this.errors);
+                    in midPoint repository.""".formatted(this.processed, this.changed, this.removed, this.errors);
         }
     }
 }
