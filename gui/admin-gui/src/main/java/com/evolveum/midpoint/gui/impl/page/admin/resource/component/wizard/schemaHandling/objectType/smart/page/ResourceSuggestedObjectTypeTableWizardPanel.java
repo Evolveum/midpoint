@@ -357,7 +357,7 @@ public abstract class ResourceSuggestedObjectTypeTableWizardPanel<P extends Cont
                     return getPageBase().getSmartIntegrationService()
                             .getAiInfo(task, task.getResult())
                             .orElse(null);
-                } catch (CommonException e) {
+                } catch (CommonException | SystemException e) {
                     return null;
                 }
             }

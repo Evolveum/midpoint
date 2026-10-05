@@ -608,6 +608,7 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:since>4.11</a:since>
+                        <a:experimental>true</a:experimental>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -7654,6 +7655,7 @@
                 <a:container/>
                 <a:since>4.11</a:since>
                 <a:naturalKey>tns:name</a:naturalKey>
+                <a:experimental>true</a:experimental>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -7704,6 +7706,7 @@
             <xsd:appinfo>
                 <a:container>true</a:container>
                 <a:since>4.11</a:since>
+                <a:experimental>true</a:experimental>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>

@@ -35,9 +35,7 @@ public class ServiceClient {
 
     private static final String SESSION_PATTERN = "{sessionId}";
     private static final String RELATIVE_SESSION_ENDPOINT = "session/{sessionId}";
-    private static final String API_KEY_HEADER = "X-API-Key";
-
-
+    private static final String API_KEY_HEADER = "X-Gravitee-Api-Key";
 
     private static final JsonNodeFactory JSON_FACTORY = JsonNodeFactory.instance;
     private static final ObjectMapper MAPPER = new ObjectMapper();

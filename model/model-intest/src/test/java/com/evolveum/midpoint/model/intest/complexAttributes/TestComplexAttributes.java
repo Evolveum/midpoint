@@ -14,6 +14,8 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindTyp
 import java.io.File;
 
 import com.evolveum.midpoint.prism.ValueSelector;
+import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.test.DummyAddressBookScenario.Address;
 import com.evolveum.midpoint.test.DummyAddressBookScenario.Email;
 import com.evolveum.midpoint.util.Holder;
@@ -54,6 +56,9 @@ public class TestComplexAttributes extends AbstractEmptyModelIntegrationTest {
     private static final String TYPE_PERSONAL = "personal";
 
     private static final String PERSON_JOHN_NAME = "john";
+
+    private static final String NS_COMPLEX_ITEMS = "http://midpoint.evolveum.com/xml/ns/samples/complex-items";
+    private static final ItemPath PATH_EMAIL_EXTENSION = ItemPath.create(UserType.F_EXTENSION, ItemName.from(NS_COMPLEX_ITEMS, "email"));
 
     private static DummyAddressBookScenario addressBookScenario;
 
@@ -205,7 +210,7 @@ public class TestComplexAttributes extends AbstractEmptyModelIntegrationTest {
                     .assertTargetOid(ARCHETYPE_PERSON.oid)
                 .end()
                 .end()
-                .container(UserType.F_EMAIL)
+                .container(PATH_EMAIL_EXTENSION)
                     .assertSize(2)
                     .value(ValueSelector.itemEquals(EmailAddressType.F_TYPE, TYPE_PERSONAL))
                         .assertPropertyValuesEqual(EmailAddressType.F_VALUE, "john@doe.org")
@@ -258,7 +263,7 @@ public class TestComplexAttributes extends AbstractEmptyModelIntegrationTest {
                     .assertTargetOid(ARCHETYPE_PERSON.oid)
                 .end()
                 .end()
-                .container(UserType.F_EMAIL)
+                .container(PATH_EMAIL_EXTENSION)
                     .assertSize(2)
                     .value(ValueSelector.itemEquals(EmailAddressType.F_TYPE, TYPE_PERSONAL))
                         .assertPropertyValuesEqual(EmailAddressType.F_VALUE, "john-new@doe.com")

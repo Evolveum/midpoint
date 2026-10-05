@@ -8,12 +8,9 @@
 <script xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
     <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
     <code>
-        cel.bind(tmpGivenName, trim(norm(stringify(givenName))),
-        cel.bind(tmpFamilyName, trim(norm(stringify(familyName))),
-        cel.bind(tmpGivenNameInitial, tmpGivenName.size() == 0
-                ? '' : tmpGivenName.substring(0, 1),
-        cel.bind(baseName, tmpGivenNameInitial + tmpFamilyName.replace(' ', ''),
-            (baseName.size() > 8 ? baseName.substring(0, 8) : baseName)
-                + iterationToken))))
+        '%s%s'.format([
+            stringify(givenName.norm).replace(' ','').substring(0,1),
+            stringify(familyName.norm).replace(' ','')
+        ]).substring(0,8) + iterationToken
     </code>
 </script>
