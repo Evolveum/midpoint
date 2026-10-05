@@ -82,9 +82,7 @@ public abstract class AbstractWizardPartItem<AH extends AssignmentHolderType, AD
         });
 
         String stepId = this.controller.getStepIdFromParams(page);
-        if (stepId != null) {
-            setActiveStepById(stepId);
-        } else {
+        if (stepId == null || !setActiveStepById(stepId)) {
             for (int i = 0; i < getParentSteps().size(); i++) {
                 WizardParentStep parentStep = getParentSteps().get(i);
 
@@ -359,10 +357,11 @@ public abstract class AbstractWizardPartItem<AH extends AssignmentHolderType, AD
     }
 
     public WizardStep getActiveStep() {
-        if (activeStepIndex == -1) {
+        List<WizardStep> childrenSteps = getActiveChildrenSteps();
+        if (activeStepIndex < 0 || activeStepIndex >= childrenSteps.size()) {
             return getParentSteps().get(activeParentStepIndex);
         }
-        return getActiveChildrenSteps().get(activeStepIndex);
+        return childrenSteps.get(activeStepIndex);
     }
 
     public List<WizardStep> getActiveChildrenSteps() {

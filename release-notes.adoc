@@ -50,6 +50,21 @@ Overall, midPoint 4.10 opens up the world of identity management and governance 
 ** Correlators simulation.
 ** Inbound mappings simulation.
 ** Dedicated `#smartIntegration` authorization for suggestion operations.
+* **Connector generator wizard**: AI-assisted, low-code wizard that generates a working manifest-based connector JAR for an external application without hand-writing connector code.
+** Supports SCIM, REST and SQL protocols.
+** Guided workflow using wizard:
+*** start from scratch or import an existing low-code connector
+*** basic information (application identification, connector coordinates)
+*** application documentation discovery with AI processing
+*** connection setup (base URL, authentication methods, AI-generated authentication scripts, credentials, connectivity endpoint discovery and testing)
+*** object class discovery, schema generation
+*** Support for per-operation code generation
+scripts (search all, search by ID, search filter)
+*** Limited support for create, update, delete, relationships
+** Runs in a limited offline mode (skeleton scripts, no documentation processing, no relationships) when the Connector Generator microservice is not configured.
+** In-progress connector developments are tracked as `ConnectorDevelopmentType` objects, listed under *Connectors* > *Connector developments*.
+** Protected by the dedicated `#connectorWizard` authorization, not granted by any out-of-the-box role (Superuser reaches it only via `#all`), because the wizard generates and executes connector code.
+
 * UI/UX improvements:
 ** Improved Object Type wizard.
 ** Improved Mappings page.
@@ -124,6 +139,16 @@ See xref:/midpoint/guides/account-activation-sequence/[Account Activation Authen
 * Added a configurable Smart Integration service response timeout using smartIntegration/serviceResponseTimeout. See bug:MID-11902[].
 * Improved object class search in Smart Integration to support case-insensitive matching and searching object class documentation. See bug:MID-11394[].
 * Improved default mapping range initialization based on target cardinality while preserving custom ranges. See bug:MID-12404[].
+* Added GUI editor for role auto-assignment, including the condition. See bug:MID-4684[].
+* Added support for range in mappings in GUI. See bug:MID-11767[].
+* Added support for filter expressions and conditions in GUI. See bug:MID-11865[].
+* Improved handling of conditions in GUI. See bug:MID-11864[].
+* Added support for value expression returning null in GUI. See bug:MID-11768[].
+* Connector Generator: added context aware documentation in the drawer. See bug:MID-12033[].
+* Connector Generator: processed exceptions are shown in the drawer. See bug:MID-11804[].
+* Connector Generator: connector log messages are shown in the side panel. See bug:MID-11484[].
+* Connector Generator: added upload of documentation files in the documentation step. See bug:MID-11794[].
+* Connector Generator: added testing of the GET operation, including selection of the test object and review of the retrieved object. See bug:MID-11802[].
 
 #TODO#
 

@@ -191,7 +191,17 @@ public class ConnectorDevelopmentController extends AbstractWizardController<Con
     }
 
     public void showRelationshipsPanel(AjaxRequestTarget target) {
-        setActiveStepById(RelationshipsConnectorStepPanel.PANEL_TYPE, target);
+        List<AbstractWizardPartItem<ConnectorDevelopmentType, ConnectorDevelopmentDetailsModel>> partItems = getPartItems();
+        for (int i = 0; i < partItems.size(); i++) {
+            if (partItems.get(i).setActiveStepById(RelationshipsConnectorStepPanel.PANEL_TYPE)) {
+                setActiveWizardPartIndex(i);
+                fireActiveStepChanged(getActiveStep());
+                target.add(getPanel());
+                return;
+            }
+        }
+        // No part has a relationships step yet (no relationships exist) - start a new one.
+        initNewRelationship(target);
     }
 
     private void setActiveStepById(String stepId, AjaxRequestTarget target) {
