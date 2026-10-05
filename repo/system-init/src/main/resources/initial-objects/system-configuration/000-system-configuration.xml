@@ -62,6 +62,12 @@
             <level>ERROR</level>
             <package>org.springframework.context.support.ResourceBundleMessageSource</package>
         </classLogger>
+        <classLogger id="12">
+            <!-- disabled because we don't need to see every log message for every key
+            when resource bundle doesn't exist for specific locale (unnecessary log pollution) -->
+            <level>ERROR</level>
+            <package>com.evolveum.midpoint.common.CachedResourceBundleMessageSource</package>
+        </classLogger>
         <classLogger id="8">
             <!-- Standard useful logger -->
             <level>INFO</level>

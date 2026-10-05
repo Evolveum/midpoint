@@ -614,7 +614,13 @@ Modified:
 * 050-user-administrator.xml - Added displayName.
 * 300-policy-require-classification.xml - Added archetype.
 * 300-policy-require-owner.xml - Added archetype.
-* 000-system-configuration.xml - Poly-string translation keys added. Added `smartIntegration` configuration. Added `rw-type-delineation` panel to resource wizard configuration. Added search items for Persons view. Allowed `null` expression evaluator in `safe` expression profile. SQL logger in `functional-sql-logging` tracing profile changed to `com.evolveum.midpoint.repo.sqlbase.querydsl.SqlLogger`.
+* 000-system-configuration.xml - Poly-string translation keys added.
+Added `smartIntegration` configuration.
+Added `rw-type-delineation` panel to resource wizard configuration.
+Added search items for Persons view.
+Allowed `null` expression evaluator in `safe` expression profile.
+SQL logger in `functional-sql-logging` tracing profile changed to `com.evolveum.midpoint.repo.sqlbase.querydsl.SqlLogger`.
+Added new logger `com.evolveum.midpoint.common.CachedResourceBundleMessageSource` with level `ERROR` to avoid log pollution.
 * 041-role-approver.xml - Removed obsolete authorization item references and added `personalNumber` alongside deprecated `employeeNumber`.
 * 042-role-reviewer.xml - Removed obsolete authorization item references and added `personalNumber` alongside deprecated `employeeNumber`.
 * 010-value-policy.xml - Replaced the default Groovy password policy expression with MEL for safe-expression compatibility.
