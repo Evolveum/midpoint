@@ -287,7 +287,7 @@ public class SmartIntegrationUtils {
                 "badge text-bg-ai opaque d-flex align-items-center",
                 "fa fa fas fa-bolt",
                 text,
-                "text-white",
+                "",
                 tooltip);
         return Model.of(aiBadge);
     }

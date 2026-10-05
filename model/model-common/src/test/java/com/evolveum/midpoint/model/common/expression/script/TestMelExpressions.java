@@ -2355,6 +2355,7 @@ public class TestMelExpressions extends AbstractScriptTest {
         try {
             var expression = "expression-username-generator-jsmith.xml";
             usernameGenerator(expression, "John", "Smith", "", "jsmith");
+            usernameGenerator(expression, " J o  h n   ", "     S     mith", "", "jsmith");
             usernameGenerator(expression, "John", "De La", "", "jdela");
             usernameGenerator(expression, "Alexander", "Longlastname", "", "alonglas");
             usernameGenerator(expression, "Alexander", "Longlastname", "2", "alonglas2");

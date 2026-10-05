@@ -127,8 +127,10 @@ public class NextStepsActionsPanel extends BasePanel {
                 switch (action) {
                     case NEW_OBJECT_CLASS -> createNewObjectClass(target);
                     case ADD_RELATIONSHIP -> createNewRelationship(target);
-                    case EXPORT_CONNECTOR -> exportConnector(target);
-                    case UPLOAD -> uploadConnector(target);
+                    case EXPORT_CONNECTOR_JAR -> exportConnectorAsJar(target);
+                    case EXPORT_CONNECTOR_ZIP -> exportConnectorAsZip(target);
+//                    case EXPORT_CONNECTOR -> exportConnector(target);
+//                    case UPLOAD -> uploadConnector(target);
                     case CREATE_RESOURCE -> {
                         ResourceCreationPopup popup = new ResourceCreationPopup(getPageBase().getMainPopupBodyId()) {
                             @Override
@@ -170,11 +172,11 @@ public class NextStepsActionsPanel extends BasePanel {
         controller.initNewObjectClass(target);
     }
 
-    private void exportConnector(AjaxRequestTarget target) {
+    private void exportConnectorAsJar(AjaxRequestTarget target) {
         controller.exportConnector(target);
     }
 
-    private void uploadConnector(AjaxRequestTarget target) {
+    private void exportConnectorAsZip(AjaxRequestTarget target) {
         controller.uploadConnector(target);
     }
 
@@ -182,10 +184,14 @@ public class NextStepsActionsPanel extends BasePanel {
 
         CREATE_RESOURCE("fa fa-plus bg-teal-100 text-success",
                 "ConnectorAction.CREATE_RESOURCE.description"),
-        UPLOAD("fa-solid fa-gears bg-cyan-100 text-info",
-                "ConnectorAction.UPLOAD.description"),
-        EXPORT_CONNECTOR("fa-solid fa-download bg-purple-100 text-purple",
-                "ConnectorAction.EXPORT_CONNECTOR.description"),
+        EXPORT_CONNECTOR_JAR("fa-solid fa-download bg-purple-100 text-purple",
+                "ConnectorAction.EXPORT_CONNECTOR_JAR.description"),
+        EXPORT_CONNECTOR_ZIP("fa-solid fa-download bg-cyan-100 text-info",
+                "ConnectorAction.EXPORT_CONNECTOR_ZIP.description"),
+//        UPLOAD("fa-solid fa-gears bg-cyan-100 text-info",
+//                "ConnectorAction.UPLOAD.description"),
+//        EXPORT_CONNECTOR("fa-solid fa-download bg-purple-100 text-purple",
+//                "ConnectorAction.EXPORT_CONNECTOR.description"),
         NEW_OBJECT_CLASS("fa-solid fa-shapes bg-orange-100 text-warning",
                 "ConnectorAction.NEW_OBJECT_CLASS.description"),
         ADD_RELATIONSHIP("fa fa-code-compare bg-pink-100 text-pink",

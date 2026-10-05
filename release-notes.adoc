@@ -132,7 +132,19 @@ See xref:/midpoint/guides/account-activation-sequence/[Account Activation Authen
 * Registration confirmation notifier doesn't send cleartext username and password by default.
 * Password hint is now hidden by default in the self-service user interface.
 * Added option to relax email address validation when sending notifications (`mail.mime.address.strict` JVM property). See bug:MID-11048[].
-* Simulation results offer more marking options. See bug:MID-11583[].
+* Added mapping authoritativeness indicators based on mapping strength and range to mapping tables and previews. See bug:MID-12021[].
+* Added quick actions to apply Correlate later, Do not touch, and Invalid data marks directly from simulation results. See bug:MID-11583[].
+* Improved correlation configuration with selection and creation of inbound mappings directly from correlation items. See bug:MID-12036[] and bug:MID-11920[].
+* Improved reporting of Smart Integration suggestion errors, including access to operation details and the related task. See bug:MID-11393[].
+* Added GUI support for configuring mapping iteration settings and reviewing iteration settings in mapping suggestions. See bug:MID-11712[] and bug:MID-11753[].
+* Added a configurable Smart Integration service response timeout using smartIntegration/serviceResponseTimeout. See bug:MID-11902[].
+* Improved object class search in Smart Integration to support case-insensitive matching and searching object class documentation. See bug:MID-11394[].
+* Improved default mapping range initialization based on target cardinality while preserving custom ranges. See bug:MID-12404[].
+* Added GUI editor for role auto-assignment, including the condition. See bug:MID-4684[].
+* Added support for range in mappings in GUI. See bug:MID-11767[].
+* Added support for filter expressions and conditions in GUI. See bug:MID-11865[].
+* Improved handling of conditions in GUI. See bug:MID-11864[].
+* Added support for value expression returning null in GUI. See bug:MID-11768[].
 
 #TODO#
 
@@ -276,6 +288,15 @@ See xref:/midpoint/guides/account-activation-sequence/[Account Activation Authen
 * Fixed duplicate trigger on task unpause that could leave task trees suspended or frozen. See bug:MID-10496[].
 * Fixed model loading for unassign action popup. See bug:MID-11584[].
 * Fixed report import for big data file. Report import uses streaming processing and has a maximal file size limit. See bug:MID-11009[].
+* Fixed operational-only shadow changes being incorrectly reported as affecting resource objects in simulations. See bug:MID-11912[].
+* Fixed viewing historical simulation results when referenced shadows have been deleted, and correlation simulation results when naming attributes are unavailable. See bug:MID-11980[] and bug:MID-12273[].
+* Fixed mapping suggestion actions failing after page deserialization. See bug:MID-11627[].
+* Fixed returning from a task to an empty resource page during resource creation. See bug:MID-12073[].
+* Fixed JavaScript escaping of operation result messages and localized date/time picker messages. See bug:MID-12262[].
+* Fixed incompatible discovered connector configuration value types that prevented returning to the Discovery step. See bug:MID-11459[].
+* Fixed script expression description updates and preservation when editing scripts or changing their language. See bug:MID-11779[] and bug:MID-11988[].
+* Fixed autocomplete filtering in numeric input fields when suggested values are provided as strings. See bug:MID-12237[].
+* Fixed correlation rule validation to require at least one correlation item before saving. See bug:MID-12421[].
 
 === Releases Of Other Components
 

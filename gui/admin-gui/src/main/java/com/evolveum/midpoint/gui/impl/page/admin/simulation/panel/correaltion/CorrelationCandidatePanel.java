@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
 
 import org.apache.wicket.AttributeModifier;
@@ -273,6 +274,7 @@ public class CorrelationCandidatePanel extends BasePanel<ProcessedObject<?>> {
         };
         manualCorrelationButton.setOutputMarkupId(true);
         manualCorrelationButton.showTitleAsLabel(true);
+        manualCorrelationButton.add(new VisibleBehaviour(() -> false));
         container.add(manualCorrelationButton);
 
         final String correlatedOwnerOid = getCorrelatedOwner(shadowAfterChanges).orElse("");
