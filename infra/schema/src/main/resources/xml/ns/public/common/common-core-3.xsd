@@ -10514,15 +10514,18 @@
                             Specifies a profile for expression execution.
                             The profile mostly specifies restrictions for execution of expressions
                             and scripts. This applies to expressions in archetyped objects.
-                            Please note that no expression execution restriction means that all evaluators
+                        </p>
+                        <p>
+                            Please note that no expression execution restriction means that the default profile
+                            (from the system configuration) is applied. And if there's no configured default
+                            (as was the case before the initial system configuration in 4.11), all evaluators
                             and scripting languages are allowed and there are no restrictions for evaluation
                             of expressions.
                         </p>
                         <p>
-                            Implementation note: implementation of those restriction in midPoint 4.0 is very
-                            limited. There is no guarantee that this will work for archetypes at all.
-                            The only supported option in 4.0 is application of the restrictions to reports
-                            (ReportType) and only if it is configured in global system configuration.
+                            The profile must be defined in the system configuration.
+                            An exception is "##currentPrincipal" that denotes the profile derived from the authorizations
+                            of the currently logged-in principal and is reserved for internal Evolveum use.
                         </p>
                     </xsd:documentation>
                     <xsd:appinfo>
@@ -13379,7 +13382,7 @@
                         DEPRECATED. Please replace the use of this setting by the following two:
 
                          - for actions in repository objects: use expression profiles based on types/archetypes
-                         - for actions provided by user via GUI or REST: use new "unprivilegedPrincipal" setting.
+                         - for actions provided by user via GUI or REST: use new "principal" setting.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:displayName>DefaultExpressionProfilesConfigurationType.bulkActions</a:displayName>
@@ -13399,7 +13402,7 @@
                         DEPRECATED. Please replace the use of this setting by the following two:
 
                         - for actions in repository objects: use expression profiles based on types/archetypes
-                        - for actions provided by user via GUI or REST: use new "privilegedPrincipal" setting.
+                        - for actions provided by user via GUI or REST: use new "principal"/"privilegedPrincipal" setting.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:displayName>DefaultExpressionProfilesConfigurationType.privilegedBulkActions</a:displayName>
@@ -13408,15 +13411,16 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="unprivilegedPrincipal" type="xsd:string" minOccurs="0">
+            <xsd:element name="principal" type="xsd:string" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Expression profile for expressions with trust derived from being run under an unprivileged principal.
+                        Expression profile for expressions with trust derived from being run under an unprivileged
+                        or privileged principal (if privilegedPrincipal is not specified).
 
                         Applies to all expressions and midPoint actions obtained via REST or GUI.
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <a:displayName>DefaultExpressionProfilesConfigurationType.unprivilegedPrincipal</a:displayName>
+                        <a:displayName>DefaultExpressionProfilesConfigurationType.principal</a:displayName>
                         <a:since>4.11</a:since>
                     </xsd:appinfo>
                 </xsd:annotation>
@@ -13424,7 +13428,7 @@
             <xsd:element name="privilegedPrincipal" type="xsd:string" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Expression profile for expressions with trust derived from being run under an unprivileged principal.
+                        Expression profile for expressions with trust derived from being run under an privileged principal.
 
                         Applies to all expressions and midPoint actions obtained via REST or GUI.
                     </xsd:documentation>
@@ -13460,12 +13464,9 @@
                         are stored in repository or processed by the clockwork (after authorization was carried out).
 
                         Should be set to something that is safe to execute.
-
-                        Note that midPoint actions (bulk actions) are currently not covered by this. Their default profile
-                        is driven by bulkActionsInAuthorizedObjects and (deprecated) bulkActions/privilegedBulkActions settings.
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <a:displayName>DefaultExpressionProfilesConfigurationType.default</a:displayName>
+                        <a:displayName>DefaultExpressionProfilesConfigurationType.authorizedObjects</a:displayName>
                         <a:since>4.11</a:since>
                     </xsd:appinfo>
                 </xsd:annotation>
@@ -13479,9 +13480,17 @@
                         Should be set to something that is safe to execute.
 
                         TEMPORARY MEASURE for migration. You should plan to set this to the same value as "authorizedObjects".
+
+                        So, the order of checking for bulk actions in authorized objects is:
+
+                        - bulkActionsInAuthorizedObjects
+                        - authorizedObjects
+                        - privilegedBulkActions (if privileged principal is logged in)
+                        - bulkActions
+                        - ##full (if privileged) or ##legacyUnprivilegedBulkActions (if unprivileged)
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <a:displayName>DefaultExpressionProfilesConfigurationType.default</a:displayName>
+                        <a:displayName>DefaultExpressionProfilesConfigurationType.bulkActionsInAuthorizedObjects</a:displayName>
                         <a:since>4.11</a:since>
                     </xsd:appinfo>
                 </xsd:annotation>
@@ -17924,6 +17933,13 @@
                 <xsd:annotation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="ARCHETYPE_CERTIFICATION_REITERATE_CAMPAIGN_TASK"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="d515f699-b7dd-4649-9703-a7c02afa1537">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ARCHETYPE_USER_SUBMITTED_TASK"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
