@@ -8,15 +8,12 @@ This section describes the Integration catalog, a standalone collection of integ
 
 == Introduction
 
-//TODO I wouldn’t say that, because you can’t even browse the connectors directly, and you have to go via IM to download them.
-The Integration catalog (IC) serves as a readily available library of xref:/connectors/[connectors].
+The Integration catalog (IC) serves as a readily available library of integration methods that allow you to connect midPoint with your target applications using xref:/connectors/[connectors] that are part of the individual integration methods.
 
 The catalog is available at link:https://integrations.evolveum.com[https://integrations.evolveum.com] and has the following major levels:
 
 * *Applications* - The target application or application type that you are connecting to midPoint, such as LDAP server, Google Apps, or Open Project.
 Each application can be connected to midPoint through one or more different _integration methods_.
-//TODO I wouldn’t go into that much detail right now either, because in future we’d like it to be a collection of objects, with the application represented as a separate object.
-When applications are integrated with, i.e., connected to, midPoint, they serve as xref:/midpoint/reference/resources/[resources].
 * *Integration methods* - Wrappers that define using which protocols, such as SCIM or REST API,  applications are integrated and contain one or more _connectors_.
 * *Connectors* - The actual connector binaries that connect to target application.
 These are modules that you upload into midPoint and configure them to integrate the target application as intended.
@@ -33,8 +30,28 @@ The catalog features that are available to you are based on your permissions:
 * Not logged in - You can browse the Integration catalog (IC) and download integration methods even if you do not log into the catalog.
 * Standard logged-in user - In addition to browsing and downloading integration methods, you can request adding of integrations of applications that you have not found in the catalog.
 * Contributor permissions (individual or organization) - You can submit new applications and integration methods to the catalog.
-//TODO That’s not the case; we were actually discussing that they’ll have individual contributor rights by default.
-To be able to contribute, request permissions in the link:https://support.evolveum.com[Evolveum Support portal].
+
+
+== Support tiers
+
+Integration catalog integration methods are assigned to support tiers.
+The support tier determines which integration methods are covered by your support subscription.
+
+A subscription covers the integration methods assigned to its own tier and to all lower tiers:
+
+* Standard covers Standard integration methods.
+* Advanced covers Standard and Advanced integration methods.
+* Premium covers Standard, Advanced, and Premium integration methods.
+
+To see the complete list of integration methods based on their support tiers:
+
+. Click btn:[Support tiers] to the right of the search field on the Integration catalog landing page.
+
++
+image::ic-support-tiers-landing-page.webp["Integration methods classified by support tiers"]
+
+. Click any of the btn:[All], btn:[Standard], btn:[Advanced], or btn:[Premium] buttons to see the integration methods assigned to the respective support tier.
+
 
 [[features]]
 == Integration catalog features
@@ -43,6 +60,6 @@ The major features of the Integration catalog are:
 
 * xref:/midpoint/reference/interfaces/integration-catalog/download-integrations[Downloading integration methods]
 * xref:/midpoint/reference/interfaces/integration-catalog/share-connectors[Open sourcing of custom connectors]
-* xref:/midpoint/reference/interfaces/integration-catalog/share-connectors/validate-connector/[Validating custom connectors]
+* xref:/midpoint/reference/interfaces/integration-catalog/share-connectors/validate-connector/[Open-sourcing custom connectors]
 * xref:/midpoint/reference/interfaces/integration-catalog/share-connectors/upgrade-integration/[Upgrading existing integration methods]
 * xref:/midpoint/reference/interfaces/integration-catalog/request-integration[Requesting new integration methods]

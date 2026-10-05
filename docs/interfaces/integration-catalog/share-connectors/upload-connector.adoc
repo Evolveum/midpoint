@@ -65,21 +65,21 @@ They include the most common protocols, such as REST API, integration via a file
 
 The following integration methods are available:
 
-* *Native API* - Integrate the target application directly using an API the application itself exposes for managing accounts, groups, and other identity-related objects.
+* *Native/Proprietary API* - Integrate the target application directly using an API the application itself exposes for managing accounts, groups, and other identity-related objects.
 It may be the standard first-party API of the application, or an older or closed-source vendor-specific protocol.
 MidPoint calls that API directly; there is no other system in between.
 
 +
 Example: Keycloak admin REST API; SAP RFC/BAPI interface (illustrates the more closed vendor-specific end of this category).
 
-* *Universal API* - Integrate using a vendor-agnostic API based on an open standard that the application implements.
+* *Standardized API* - Integrate using a vendor-agnostic API based on an open standard that the application implements.
 This includes, e.g., managing a directory server (LDAP/AD) as the target application since LDAP is a standardized protocol.
 This is in contrast to the "directory proxy" type where the directory (e.g., LDAP) merely maintains the identity data for the target application, which does not communicate with midPoint directly.
 
 +
 Example: SCIM 2.0; direct management of an LDAP/AD server as the target application.
 
-* *Directory proxy* - MidPoint manages identity data in an intermediary directory service (LDAP or Active Directory).
+* *Intermediary directory service* - MidPoint manages identity data in an intermediary directory service (LDAP or Active Directory).
 The integrated target application exchanges identity data with that directory.
 The directory is a proxy, not the integrated target.
 The application integration with midPoint is indirect.
@@ -94,13 +94,13 @@ This type is limited to the data model of the directory.
 Application-native objects that do not exist in the LDAP (e.g., Keycloak realm roles, client roles, OAuth clients) cannot be managed this way.
 ====
 
-* *Direct data store* - Connect straight to the data store of the application (typically a relational database) and manage records there directly.
+* *Direct repository access* - Connect straight to the data store of the application (typically a relational database) and manage records there directly.
 Bypass the (business) API layer of the application entirely.
 
 +
 Example: direct database access.
 
-* *File-based storage* - Exchange identity data through files (e.g., CSV) instead of a live connection to the application.
+* *File-based integration* - Exchange identity data through files (e.g., CSV) instead of a live connection to the application.
 For periodic synchronization, the identity data are exported from the target application and imported into midPoint, and vice versa. +
 Changes made by midPoint are reflected in the application when a separate process picks up the exported file.
 This process may be a scheduled job, a built-in import feature of the application, or the connector itself.
@@ -109,7 +109,7 @@ Changes made in the application follow the same path in reverse: they are export
 +
 Example: CSV bulk import/export as offered by many applications (e.g., Jira, ServiceNow).
 
-* *Data store proxy* - MidPoint does not communicate with the integrated target application directly, but exchanges data with it via a proxy placed between midPoint and the application.
+* *Intermediary repository* - MidPoint does not communicate with the integrated target application directly, but exchanges data with it via a proxy placed between midPoint and the application.
 The proxy can be a database, object store, or message queue or broker.
 MidPoint and the target application are both connected to the proxy and never communicate with each other directly.
 This type covers both simple shared data stores and event-driven messaging systems which follow the same underlying pattern.
@@ -117,7 +117,7 @@ This type covers both simple shared data stores and event-driven messaging syste
 +
 Example: a shared staging database between midPoint and the application; message queue-based integration (e.g., Kafka).
 
-* *Manual (ITSM)* - Manual (offline) resources are not connected to midPoint using any integration.
+* *Manual/ITSM integration* - Manual (offline) resources are not connected to midPoint using any integration.
 All identity management is handled via an ITSM ticketing workflow manually:
 a human operator manually caries out changes in the target application based on cases (tickets) created by midPoint.
 
@@ -134,30 +134,28 @@ Example: SSH.
 
 Typically, only one integration method type is selected, however, you can create hybrid integrations in which multiple protocols complement each other.
 
-// image needs updating
 .Select integration method type
 image::../ic-select-integration-method-type.webp["select integration method type"]
-//TODO change screen
 
 [[define-integration-method]]
 === Define integration method
-//TODO no connector supports but integration supports ... this is different
+
 In this step, you define the details for the selected integration method type.
-This describes how your connector is deployed and what xref:/midpoint/reference/admin-gui/resource-wizard/object-type/capability/[capabilities] it supports.
+This describes how your connector is deployed and what xref:/midpoint/reference/admin-gui/resource-wizard/object-type/capability/[capabilities] the integration method that features the connector supports.
 In essence, this defines which features of the target application are accessible in midPoint for particular resource object classes.
 
 Configure the following:
 
 * *Integration method name* - Name the method.
 * *Description* - Describe the integration method.
-//TODO change it (now we use only specific capabilities and for 'object')
-* *Define capabilities for* - Select the capabilities that the integration method has on two distinctive levels:
-** All object classes - The selected capabilities apply globally for the connected application irrespective of a particular xref:/midpoint/reference/resources/shadow/kind-intent-objectclass/#object-class[object class].
-** Specific object classes - Select capabilities that apply only to a specific object class.
+* *Object capabilities* - Select the capabilities that the integration method will support for specific xref:/midpoint/reference/resources/shadow/kind-intent-objectclass/#object-class[object classes].
 
 +
 .Example capabilities definition for object classes
 image::../ic-define-capabilities-object-class.webp["Define capabilities for object classes",height=66%]
+
++
+Add more object classes by clicking the [.nowrap]#icon:plus[] *Add object*# button.
 
 * *Integration Tutorial* - Enables you to upload documentation, setup guides, or other relevant information related to the deployment of the integration method.
 You can either input the text directly into the text field, or you can upload documents in one of the following formats: PDF, XML, JSON, YAML, TXT.
@@ -196,7 +194,6 @@ You will provide the link to the specific version further down this page in the 
 * *Maintainer* - Specify the person (or team) responsible for the development of the connector.
 
 [[licenses]]
-//TODO add CDDL
 * *License type* - Specify the type of license under which the connector is distributed.
 The following options are available:
 ** *MIT* - A permissive open-source license that allows the connector to be used, modified and redistributed, including proprietary software.
@@ -208,13 +205,9 @@ They allow the connector to be used, modified, and redistributed, including comm
 The exact obligations depend on the specific BSD variant.
 ** *EUPL 1.2* - A copyleft open-source license created by the European Commission.
 It allows the connector to be used, modified, and redistributed, but redistribution of modified or combined software under the conditions of the license generally requires the derivative work to be made available under the EUPL or a compatible license.
+** *CDDL* - A weak copyleft open-source license that allows the connector to be used, modified, and redistributed, including commercially.
+When distributing modified versions of CDDL-licensed files, the modified files must generally remain available under the CDDL. The license and applicable copyright notices must be retained.
 * *Connector description* - Describe the connector.
-//TODO it's not true, this is only display name for bundle
-* *Connector bundle name* - Specify the symbolic name that identifies the connector bundle in the ConnId framework.
-This name is used by midPoint and ConnId to identify the connector bundle.
-It is defined in the connector JAR's manifest, i.e., in the `MANIFEST.MF` file.
-For example, for the Database table connector, it looks as follows: +
-`ConnectorBundle-Name: com.evolveum.polygon.connector-databasetable`
 * *Define capabilities*
 ** All object classes - The selected capabilities apply globally for the connected application irrespective of a particular xref:/midpoint/reference/resources/shadow/kind-intent-objectclass/#object-class[object class].
 ** Specific object classes - Select capabilities that apply only to a specific object class.
@@ -246,10 +239,11 @@ image::../ic-tag.webp["Go to Tags in the repository"]
 image::../ic-tag-commit-hash.webp["Copy the commit hash"]
 * *Project folder path* - Specify the folder where the connector source code is located.
 Leave this field empty if the code is in the main (root) directory of the repository.
-//TODO can describe that .java file contains java annotation '@ConnectorClass'
 * *Class name* - Specify the full Java class name that implements the connector.
-This tells midPoint which part of the code to execute.
-For example, the class name of the midPoint LDAP connector is `com.evolveum.polygon.connector.ldap.LdapConnector`, i.e., a concatenation of the `package` and the `public class` located in the connector `.JAVA` file.
+This tells midPoint which Java class to use when executing the connector.
+For example, the class name of the midPoint LDAP connector is `com.evolveum.polygon.connector.ldap.LdapConnector`.
+It consists of the package name (`com.evolveum.polygon.connector.ldap`) and the public class name (`LdapConnector`) defined in the Java source file.
+The connector class is annotated with `@ConnectorClass`, which identifies it as a ConnId connector and provides additional connector metadata.
 
 
 [[compatibility-settings]]
@@ -258,12 +252,14 @@ For example, the class name of the midPoint LDAP connector is `com.evolveum.poly
 This step specifies which midPoint and connector versions the integration method supports.
 Compatibility settings help classify and search for integration methods.
 
-//TODO add Application versions
+//Check the label for System version is correct
 * *Supported midPoint version* - Defines the supported version range of midPoint by defining *From version* (mandatory) and *To version*. +
 Only specify versions that you have actively tested and verified work with the integration method.
 If you later verify another version of midPoint works with the integration method, you can add that version to the supported range.
 * *Connector version ranges* - Defines the supported version of the connector by selecting the *From version* (mandatory) and *To version*. +
 If you expect your integration method will remain compatible with future versions of the connector, leave the *To version* filled empty.
+* *System version* - The version of the application for which you need an integration.
+While not mandatory, this may be relevant as various application versions may use different protocols.
 
 
 [[review]]

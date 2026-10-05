@@ -1,4 +1,4 @@
-= Open sourcing of custom connector
+= Open-sourcing custom connector
 :experimental:
 :page-toc: top
 :page-description: This page describes how to share your custom connectors in the Integration catalog with other users of the catalog.
@@ -31,8 +31,9 @@ Before you decide to open source your custom connector, make sure:
 [[share-connector]]
 == Share connector
 
-// TODO I would write this to share the integration along with the connector
-Sharing connectors as integration methods in the Integration catalog (IC) is an alternative to obtaining a xref:/support/subscription-sponsoring/[midPoint Support Subscription] to ensure you will be able to use your custom connector after 90 days after its deployment.
+As an alternative to obtaining a xref:/support/subscription-sponsoring/[midPoint Support Subscription] to ensure you will be able to use your custom connector after 90 days after its deployment, you can create a new integration method featuring your custom connector in the https://integrations.evolveum.com/[Integration catalog].
+
+This way, you will make your custom connector available to all midPoint users, and you will be able to continue using it without limitations.
 
 To share a connector and make it available to all midPoint users:
 

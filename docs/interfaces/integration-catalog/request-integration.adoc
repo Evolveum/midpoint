@@ -21,8 +21,7 @@ image::ic-request-tailored-solution.webp["Request tailored solution"]
 
 . Fill in the following information:
 ** Integration application name - The name of the application for which you need a new integration method.
-//TODO fix example of protocol
-** Integration method - Select the protocol that should be used for the integration, such as REST API or SCIM.
+** Integration method - Select the protocol that should be used for the integration, such as Standardized API, or Direct repository access.
 ** Short description of the requested integration with the specific use case (required capabilities) you need it for.
 The description should be descriptive and specific enough for the implementation team to best understand your intentions.
 ** System version - The version of the application for which you need an integration.
@@ -35,8 +34,8 @@ While not mandatory, this may be relevant as various application versions may us
 .Request application integration
 image::ic-request-application.webp["Request application integration form"]
 
-//TODO That sounds far too binding to me… We’ll look into it, but it mustn’t sound binding on our part, and the community might react to it as well.
-. Click [.nowrap]#btn:[Submit request]# and wait for the Evolveum team to review your request and get back to you.
+. Click [.nowrap]#btn:[Submit request]#. +
+At this point, your request may be addressed by the Evolveum team or by the community, and you will be contacted if further details are needed.
 
 == See also
 
