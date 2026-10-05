@@ -279,7 +279,7 @@ final class SmartMappingColumns<P extends Containerable> implements Serializable
                         return new AjaxFormComponentUpdatingBehavior("change") {
                             @Override
                             protected void onUpdate(AjaxRequestTarget target) {
-                                table.refreshAndDetach(target);
+                                table.refresh(target);
                             }
                         };
                     }
