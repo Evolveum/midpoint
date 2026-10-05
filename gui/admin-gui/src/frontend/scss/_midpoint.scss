@@ -2555,6 +2555,11 @@ footer.app-footer a {
 }
 //end .select2 overrides
 
+.input-group > :not(.dropdown-menu):has(:is(.form-control, .form-select):focus, .select2-container--focus) {
+  position: relative;
+  z-index: 5;
+}
+
 //.bootstrap-multiselect overrides
 .multiselect-native-select .dropdown .dropdown-menu {
   padding-top: 0px !important;
