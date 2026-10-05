@@ -108,87 +108,228 @@ It is no big trouble to do it manually anyway.
 A connector is not upgraded every day.
 
 
-=== Example Upgrade Procedure
+=== Upgrade Procedure
 
+This procedure describes the steps that an administrator has to take when a new version of a connector is released and it should be used in an existing deployment.
+It applies to unbundled connectors as well as to bundled connectors (e.g. LDAP or Active Directory connector) that were released separately from midPoint, for example because of a security fix.
+MidPoint itself is not upgraded in this procedure.
 
-==== Backup First
+The procedure is safe to do gradually.
+The old and the new version of the connector work side by side, and each resource uses the version that its `connectorRef` points to.
+Nothing changes for a resource until its `connectorRef` is updated.
 
-Before doing anything, backup your resource in _Configuration_ -_ Repository Objects_ - _Resource_, click on the resource and copy/paste the data to a file.
-Then write down your existing connector version.
-Go to _Configuration_ - _Repository objects_ - _Connectors_ or click _Resources_ and check your resource details.
-For this page, assume that you have "ICF org.identityconnectors.ldap.LdapConnector v1.1.0.0-e1" LDAP connector installed.
+[TIP]
+====
+Try the procedure in a test environment first.
+Read the release notes of the connector before the upgrade.
+A new connector version may bring changes in connector configuration or resource schema.
+Some connectors have dedicated migration guides, see <<See Also>>.
+====
 
+The procedure is slightly different depending on where the currently used (old) version of the connector comes from:
 
-==== Prepare New Connector
-
-Prepare (download, build etc.) the new version of the connector and copy it to the $midPoint.home/icf-connectors directory.
-Then, restart your application server.
-
-
-==== Update Resource(s)
-
-After restart, check if your new connector was discovered.
-Go to _Configuration_ - _Repository objects_ - _Connectors_ and look for the connector.
-For example, you may see:
-
-* ICF org.identityconnectors.ldap.LdapConnector v1.1.0.0-e1 (this is the original version of the LDAP connector)
-
-* ICF org.identityconnectors.ldap.LdapConnector v1.1.0.e6320d (this is the new version of the LDAP connector)
-
-Please check both Connectors and write down the following information (the table contains example values):
-
-[%autowidth,cols="h,1,1,1"]
+[%autowidth,cols="h,1,1"]
 |===
-| Parameter (Connector Object) | Original (Old) Connector | Upgraded (New) Connector | Notes
+| | Old version is unbundled | Old version is bundled
 
-| oid
-| 5e8a944b-8e7d-4f7b-bc64-6838b804353f
-| c80f9e96-cead-4a41-a846-999f27d94099
-| The old "oid" attribute is referenced by existing resources and must be updated to the new connector "oid".
+| Typical connectors
+| Any connector that was deployed manually to the midPoint home directory.
+| LDAP, Active Directory, CSV and DatabaseTable connectors that are a part of midPoint distribution.
 
+| Where the old code is
+| JAR file in the midPoint home directory.
+| Inside midPoint itself.
+There is no JAR file in the midPoint home directory.
 
-| namespace
-| http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.forgerock.openicf.connectors.ldap.ldap/org.identityconnectors.ldap.LdapConnector
-| http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.forgerock.openicf.connectors.ldap-connector/org.identityconnectors.ldap.LdapConnector
-| The "namespace" attribute may occasionaly change (as in this example, notice the "." replaced with "-").
+| Removing the old version
+| The administrator removes the JAR file and the connector object.
+| Not possible.
+The old version stays present until midPoint is upgraded.
 
-
-| connectorType
-| org.identityconnectors.ldap.LdapConnector
-| org.identityconnectors.ldap.LdapConnector
-| The "connectorType" attribute is unlikely to change.
-
-
-| connectorVersion
-| 1.1.0.0-e1
-| 1.1.0.e6320d
-| The "connectorVersion" should indicate old/new version.
-
-
-| connectorBundle
-| org.forgerock.openicf.connectors.ldap.ldap
-| org.forgerock.openicf.connectors.ldap-connector
-| The "connectorBundle" attribute may occasionally change (as in this example, notice the "." replaced with "-").
-
-
+| Effect of the next midPoint upgrade
+| None.
+The deployed JAR files stay as they are.
+| The bundled version changes.
+The resources that still use the old bundled version stop working until their `connectorRef` is updated.
+The resources that were switched to a version deployed in the midPoint home directory are not affected.
 |===
 
-Now you have to edit your resource objecs(s) using _Configuration_ - _Repository Objects_ - _Resource_.
+The steps 1 to 5 are the same for both cases.
+The differences are in the step 6 and in what happens during the next midPoint upgrade.
 
-Replace the connector "oid" in the connectorRef element with the upgraded connector "oid" value (do not change the resource "oid" attribute)!
+==== 1. Record the Current State
 
-Check all occurences of the old "namespace" value such as "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.forgerock.openicf.connectors.ldap.ldap/org.identityconnectors.ldap.LdapConnector" with the new "namespace" value, such as "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.forgerock.openicf.connectors.ldap-connector/org.identityconnectors.ldap.LdapConnector". Be patient
+. Go to _Configuration_ > _Repository objects_, select the _Connector_ type and find the connector that is currently used.
+Write down its name, version (`connectorVersion`) and OID.
+. Find all the resources that use the connector.
+In the _Resources_ list, switch the search to the advanced (query) mode and use the OID of the current connector:
++
+[source,midpoint-query]
+----
+connectorRef matches (oid = "5e8a944b-8e7d-4f7b-bc64-6838b804353f")
+----
++
+Resource templates and resources with xref:/midpoint/reference/resources/multi-connector-resource/[additional connectors] reference connectors as well.
+Check `connectorRef` in those too.
+. Back up the definitions of the affected resources, e.g. export them from _Configuration_ > _Repository objects_.
 
-Click _Save_.
+==== 2. Deploy the New Connector Version
 
-Now you can check your resource in _Resources_. The connector version should indicate the upgraded version is in use.
-You should also test the resource connection.
+. Download the JAR file of the new connector version.
+Download links are listed on the page of the particular connector in the xref:/connectors/connectors/[connectors] list.
+. Copy the JAR file to the `connid-connectors` subdirectory of the xref:/midpoint/reference/deployment/midpoint-home-directory/[midPoint home directory].
+The legacy `icf-connectors` subdirectory works as well.
+In a clustered deployment, copy the file to every node.
+In a containerized deployment, make sure that the file is placed on a persistent volume or that it is part of the image, otherwise it is lost when the container is re-created.
+. Do not remove or overwrite the JAR file of the old connector version.
+If the old version is bundled, there is no such file in the midPoint home directory at all.
+. Wait about a minute.
+There is no need to restart midPoint.
+MidPoint watches the connector directories, it loads the new JAR file and creates the connector object automatically.
+In a clustered deployment, each node loads the file from its own midPoint home directory.
 
+WARNING: Only adding a new JAR file is safe while midPoint is running.
+Never replace or delete a JAR file of a connector that is already loaded by a running midPoint.
+Always deploy the new version as a new file next to the old one.
 
-==== Remove Old Connector
+If the connector is deployed in a xref:/connectors/connid/1.x/connector-server/[connector server], deploy the new JAR file to the connector server instead, restart the connector server and run the connector discovery on the corresponding connector host in midPoint.
 
-If all works well, you may eventually remove the original (old) Connector objects in _Configuration_ - _Repository Objects_ - _Connector_ and the connector JAR file from $midpoint.home/icf-connectors directory.
-After that you have to restart your application server.
+==== 3. Check That the New Connector Was Discovered
+
+Go to _Configuration_ > _Repository objects_ and select the _Connector_ type.
+There should be two connector objects now, one for each version, for example:
+
+* `ConnId com.evolveum.polygon.connector.ldap.LdapConnector v3.9` (the old version)
+* `ConnId com.evolveum.polygon.connector.ldap.LdapConnector v3.9.1` (the new version)
+
+Write down the OID of the new connector object.
+
+If the new connector object is not there, look for errors related to the connector bundle in the midPoint log file.
+The usual causes are a JAR file placed in a wrong directory, insufficient file permissions, or a connector that is not compatible with the ConnId framework version used by midPoint.
+
+==== 4. Update the Resources
+
+Change the `connectorRef` of the resource to the OID of the new connector object.
+Start with a single, non-critical resource.
+
+Open the resource in _Configuration_ > _Repository objects_ (or in midPoint Studio) and replace the OID in the `connectorRef` element:
+
+.Before
+[source,xml]
+----
+<connectorRef oid="5e8a944b-8e7d-4f7b-bc64-6838b804353f" type="c:ConnectorType"/>
+----
+
+.After
+[source,xml]
+----
+<connectorRef oid="c80f9e96-cead-4a41-a846-999f27d94099" type="c:ConnectorType"/>
+----
+
+Change only the OID of the reference.
+Do not change the OID of the resource itself.
+The connector configuration (`connectorConfiguration`) usually does not need any change, as the configuration namespace does not depend on the connector version.
+The namespace changes only if the connector bundle name or the connector class name has changed, which is rare and it is always described in the release notes of the connector.
+
+If the resource definitions are maintained outside midPoint (e.g. in a version control system) and they use a search filter in `connectorRef`, make sure that the filter selects the new version, e.g. by adding a condition for `connectorVersion`, remove `connectorRef` oid, and re-import the resource.
+The filter is resolved only during the import if oid is not defined.
+It is never re-evaluated for a resource that is already stored in the repository.
+While two versions of the same connector are installed, a filter that specifies only `connectorType` matches both of them and it is not reliable.
+
+.Connector reference using a filter with connector version
+[source,xml]
+----
+<connectorRef type="c:ConnectorType">
+    <filter>
+        <q:text>
+            connectorType = "com.evolveum.polygon.connector.ldap.LdapConnector"
+            and connectorVersion = "3.9.1"
+            and available = true
+        </q:text>
+    </filter>
+</connectorRef>
+----
+
+==== 5. Test the Resource
+
+. Open the resource and run _Test connection_.
+All the steps of the test should be successful.
+. Check that the resource page shows the new connector version.
+. If the release notes of the connector mention changes in the resource schema, refresh the resource schema.
+. Verify the basic operations.
+List the accounts on the resource, then preview or xref:/midpoint/reference/simulation/[simulate] a change of a test account, or reconcile a single test user.
+. Watch the midPoint log file for errors.
+
+When the first resource works well, repeat the steps 4 and 5 for the remaining resources.
+
+To return a resource to the old connector version, simply put the OID of the old connector object back to its `connectorRef`.
+This works as long as the old connector version is still installed.
+
+==== 6. Remove the Old Connector Version
+
+This step applies only when no resource uses the old connector version any more.
+Use the query from the step 1 to verify that.
+
+*Old version is unbundled*
+
+. Stop midPoint.
+Unlike adding a JAR file, removing a loaded JAR file requires midPoint to be stopped.
+. Remove the JAR file of the old version from the midPoint home directory on all the nodes.
+. Start midPoint.
+. MidPoint does not delete the old connector object.
+It only marks it as not available (`available` is set to `false`).
+Delete the old connector object manually in _Configuration_ > _Repository objects_.
+
+This can wait for the next planned maintenance window.
+An unused connector version does no harm.
+
+*Old version is bundled*
+
+There is nothing to do at this point.
+The old version is a part of midPoint and it cannot be removed.
+Do not delete its connector object.
+MidPoint would create the object again during the next start, with a different OID.
+Both versions stay available until midPoint is upgraded.
+
+==== After the Next MidPoint Upgrade
+
+A connector JAR file placed in the midPoint home directory stays there when midPoint is upgraded.
+The resources that use it keep working without any change.
+This is different from the resources that use a bundled connector, which need their `connectorRef` updated after each midPoint upgrade that changes the bundled version, see xref:/midpoint/reference/upgrade/upgrade-guide/[].
+
+Review the manually deployed versions of bundled connectors after each midPoint upgrade:
+
+* The connector object of the old bundled version is marked as not available after the upgrade, because the new midPoint release bundles a different version.
+If no resource uses it, it can be deleted now.
+* If the new midPoint release bundles exactly the same connector version as the one deployed in the midPoint home directory, midPoint uses the existing connector object for it.
+The resources keep working and no `connectorRef` change is needed.
+The JAR file in the midPoint home directory is redundant now.
+Remove it while midPoint is stopped.
+* If the new midPoint release bundles a later version, switch the resources to it using this same procedure.
+Then remove the manually deployed JAR file and its connector object as described in the step 6 for unbundled connectors.
+* If the new midPoint release bundles an earlier version than the one deployed manually, keep the manually deployed version.
+
+==== Troubleshooting
+
+[%autowidth]
+|===
+| Symptom | Likely cause
+
+| Resource operations fail with `The classes (JAR) of connector ... were not found by the ICF framework`.
+| The `connectorRef` of the resource points to a connector object whose code is no longer installed, e.g. the JAR file was removed or a bundled connector version has changed during midPoint upgrade.
+Point the `connectorRef` to an available connector object, or deploy the missing connector version to the midPoint home directory.
+
+| The new connector object is not created.
+| The JAR file was not loaded.
+See the step 3.
+
+| The resource works on some cluster nodes only.
+| The JAR file is not present on all the nodes.
+
+| Connector configuration validation fails after the change of `connectorRef`.
+| The configuration properties of the connector have changed between the versions.
+Check the release notes of the connector and adjust `connectorConfiguration`.
+|===
 
 
 == Future
@@ -208,3 +349,9 @@ Evolveum offers xref:/support/subscription-sponsoring/[subscription programs] th
 * xref:/midpoint/reference/resources/connector-setup/[Connector Setup]
 
 * xref:/midpoint/reference/resources/resource-schema/explanation/[Resource and Connector Schema Explanation]
+
+* xref:/midpoint/reference/upgrade/connectors/ldap-connector-migration/[LDAP Connector Migration]
+
+* xref:/midpoint/reference/upgrade/connectors/csvfile-connector-migration/[CSVFile Connector Migration]
+
+* xref:/midpoint/reference/upgrade/upgrade-guide/[]

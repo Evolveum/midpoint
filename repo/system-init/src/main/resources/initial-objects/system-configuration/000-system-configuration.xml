@@ -185,8 +185,8 @@
         <statisticsTtl>P1D</statisticsTtl>
         <schemaMatchTtl>P1D</schemaMatchTtl>
         <mappingSuggestionRetryCount>1</mappingSuggestionRetryCount>
-        <connectorFrameworkUrl>https://nexus.evolveum.com/nexus/service/rest/v1/search/assets/download?repository=snapshots&amp;maven.groupId=com.evolveum.polygon.scimrest&amp;maven.artifactId=connector-scimrest-template&amp;maven.extension=jar&amp;maven.classifier=&amp;sort=version&amp;direction=desc</connectorFrameworkUrl>
-        <connectorSqlFrameworkUrl>https://nexus.evolveum.com/nexus/service/rest/v1/search/assets/download?repository=snapshots&amp;maven.groupId=com.evolveum.polygon.sql&amp;maven.artifactId=connector-sql-template&amp;maven.extension=jar&amp;maven.classifier=&amp;sort=version&amp;direction=desc</connectorSqlFrameworkUrl>
+        <connectorFrameworkUrl>https://nexus.evolveum.com/nexus/repository/releases/com/evolveum/polygon/scimrest/connector-scimrest-template/0.2.0-RC2/connector-scimrest-template-0.2.0-RC2.jar</connectorFrameworkUrl>
+        <connectorSqlFrameworkUrl>https://nexus.evolveum.com/nexus/repository/releases/com/evolveum/polygon/sql/connector-sql-template/0.2.0-RC2/connector-sql-template-0.2.0-RC2.jar</connectorSqlFrameworkUrl>
     </smartIntegration>
     <adminGuiConfiguration>
         <homePage id="21">
