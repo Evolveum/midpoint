@@ -605,10 +605,19 @@ public abstract class SmartMappingTable<P extends Containerable> extends BasePan
         actions.deleteItemPerform(value);
     }
 
+    /* Refreshes the table and detaches the model. If target is null, only the model is detached.
+     * NOTE: it can execute sorting and filtering.
+     * */
     public void refreshAndDetach(@Nullable AjaxRequestTarget target) {
         noValuePanelModel.reset();
         if (target != null) {
             getTable().refreshAndDetach(target);
+        }
+    }
+
+    public void refresh(@Nullable AjaxRequestTarget target) {
+        if (target != null) {
+            getTable().refresh(target);
         }
     }
 
