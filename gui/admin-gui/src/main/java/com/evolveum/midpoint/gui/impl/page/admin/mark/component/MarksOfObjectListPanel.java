@@ -309,7 +309,13 @@ public class MarksOfObjectListPanel<O extends ObjectType> extends MainObjectList
             @Override
             protected Component createComponent(String componentId, IModel<String> labelModel, IModel<SelectableBean<MarkType>> rowModel) {
                 EffectiveMarkDto<O> dto = getEffectiveMarkDto(rowModel);
-                if (dto.isAddedByPolicyStatement()) {
+                // Editing markRef in place produces a delta on policyStatement/<id>/markRef. For shadows,
+                // ShadowDeltaComputerRelative#computeShadowModifications recomputes effectiveMarkRef only when
+                // path.equivalent(ShadowType.F_POLICY_STATEMENT), i.e. when a whole statement is added or deleted.
+                // The effective mark therefore stays the old one. Delete + add of the statement is handled correctly.
+                // TODO: should provisioning use path.startsWith(ShadowType.F_POLICY_STATEMENT) instead? Then in-place
+                //  changes (markRef, but also type apply/exclude) would recompute effective marks as well.
+                if (dto.isAddedByPolicyStatement() && isNewPolicyStatement(dto)) {
                     return new PrismReferenceWrapperColumnPanel<>(
                             componentId,
                             PrismReferenceWrapperModel.fromContainerValueWrapper(
@@ -333,6 +339,11 @@ public class MarksOfObjectListPanel<O extends ObjectType> extends MainObjectList
                 }
             }
         };
+    }
+
+    private boolean isNewPolicyStatement(EffectiveMarkDto<O> dto) {
+        PrismContainerValueWrapper<PolicyStatementType> policyStatement = dto.getPolicyStatement();
+        return policyStatement != null && policyStatement.getStatus() == ValueStatus.ADDED;
     }
 
     private IModel<PrismContainerValueWrapper<PolicyStatementType>> getModelPolicyStatement(IModel<SelectableBean<MarkType>> rowModel) {
