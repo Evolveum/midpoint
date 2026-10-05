@@ -26,7 +26,7 @@ public class TestServiceClientFactory implements ServiceClientFactory {
         // transparently fall back to the default HTTP client using the override.
         if (DefaultServiceClientImpl.hasServiceUrlOverride()) {
             // Passing null makes DefaultServiceClientImpl use the URL from the system property override.
-            return new DefaultServiceClientImpl(null);
+            return new DefaultServiceClientImpl(null, null);
         }
 
         // No mock configured and no URL override -> misconfiguration for tests.
