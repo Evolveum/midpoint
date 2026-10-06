@@ -12,6 +12,9 @@ public class AuthConstants {
     public static final String DEFAULT_PATH_AFTER_LOGIN = "/home/default";
     public static final String DEFAULT_PATH_AFTER_LOGOUT = "/";
 
+    /** Page where user is forced to set up TOTP credential (emptyCredentialsPolicy = forceSetup). */
+    public static final String PATH_TOTP_SETUP = "/self/totpSetup";
+
     public static final String AUTH_CONFIGURATION_ALL = AuthorizationConstants.AUTZ_UI_CONFIGURATION_ALL_URL;
     public static final String AUTH_CONFIGURATION_ALL_LABEL = "PageAdminConfiguration.auth.configurationAll.label";
     public static final String AUTH_CONFIGURATION_ALL_DESCRIPTION = "PageAdminConfiguration.auth.configurationAll.description";

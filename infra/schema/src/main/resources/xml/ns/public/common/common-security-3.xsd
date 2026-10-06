@@ -2174,7 +2174,32 @@
                             In case the module can be skipped, accept empty must be set to 'true'. After module is set, it is
                             marked as CALLED_OFF in the sequence.
                         </p>
+                        <p>
+                            Deprecated, use emptyCredentialsPolicy instead. Value 'true' is equivalent to
+                            emptyCredentialsPolicy 'skip'.
+                        </p>
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:deprecated>true</a:deprecated>
+                        <a:deprecatedSince>4.11</a:deprecatedSince>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="emptyCredentialsPolicy" type="tns:EmptyCredentialsPolicyType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Specifies what should happen when the user does not have credentials required by this module
+                            (e.g. no hint, no security question answers, no TOTP credential).
+                        </p>
+                        <p>
+                            If not specified, the module is evaluated as usual and the authentication fails.
+                            If specified, it takes precedence over acceptEmpty.
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.11</a:since>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="action" type="tns:GuiActionType" minOccurs="0">
@@ -2193,6 +2218,45 @@
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
+
+    <xsd:simpleType name="EmptyCredentialsPolicyType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Behavior of authentication module when the user does not have credentials required by the module.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.11</a:since>
+                <jaxb:typesafeEnumClass/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="skip">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The module is skipped. It is marked as CALLED_OFF in the sequence and it is considered
+                        successful.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="SKIP"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="forceSetup">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The module is skipped during authentication, but the user is forced to set up the missing
+                        credentials right after the authentication sequence is successfully finished. Until the
+                        credentials are set up, the user can't access anything else.
+                        Currently supported only by TOTP module in GUI (user) channel. In other cases
+                        the module behaves as if the policy was not specified.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="FORCE_SETUP"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
 
     <xsd:simpleType name="AuthenticationSequenceModuleNecessityType">
         <xsd:annotation>

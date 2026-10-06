@@ -94,6 +94,17 @@ public interface ModuleAuthentication {
     boolean applicable();
 
     /**
+     * True if the module was called off because of missing credentials, and the user is required
+     * to set them up right after authentication (emptyCredentialsPolicy = forceSetup).
+     */
+    default boolean isCredentialSetupRequired() {
+        return false;
+    }
+
+    default void credentialSetupCompleted() {
+    }
+
+    /**
      * Very bad name :)
      *
      * Specify is the module on its own is considered as sufficient for the

@@ -13,16 +13,17 @@ import com.evolveum.midpoint.authentication.api.AutheticationFailedData;
 import com.evolveum.midpoint.authentication.api.config.ModuleAuthentication;
 import com.evolveum.midpoint.authentication.impl.util.ModuleType;
 import com.evolveum.midpoint.authentication.api.AuthenticationModuleState;
+import com.evolveum.midpoint.schema.util.AuthenticationSequenceTypeUtil;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequenceModuleNecessityType;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequenceModuleType;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.EmptyCredentialsPolicyType;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiActionType;
 
-import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.Validate;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
@@ -66,10 +67,12 @@ public class ModuleAuthenticationImpl implements ModuleAuthentication {
     private boolean sufficient = true;
 
     /**
-     * Indicates, if it is allowed to skip a module when no such credentials (required
-     * by module) are defined.
+     * What to do when no such credentials (required by module) are defined,
+     * null if the module should be evaluated as usual.
      */
-    private boolean acceptEmpty;
+    private final EmptyCredentialsPolicyType emptyCredentialsPolicy;
+
+    private boolean credentialSetupCompleted;
 
     private AutheticationFailedData failureData;
 
@@ -79,22 +82,33 @@ public class ModuleAuthenticationImpl implements ModuleAuthentication {
         this.sequenceModule = sequenceModule;
         this.necessity = sequenceModule.getNecessity();
         this.order = sequenceModule.getOrder();
-        this.acceptEmpty = getAcceptEmpty(sequenceModule);
+        this.emptyCredentialsPolicy = AuthenticationSequenceTypeUtil.getEmptyCredentialsPolicy(sequenceModule);
         resolveDefaults();
     }
 
-    private boolean getAcceptEmpty(AuthenticationSequenceModuleType sequenceModule) {
-        if (sequenceModule == null) {
-            //TODO should this happen?
-            return false;
-        }
-        return BooleanUtils.isTrue(sequenceModule.isAcceptEmpty());
-    }
-
+    /**
+     * Indicates, if it is allowed to skip a module when no such credentials (required
+     * by module) are defined.
+     */
     public boolean canSkipWhenEmptyCredentials() {
-        return acceptEmpty;
+        return emptyCredentialsPolicy == EmptyCredentialsPolicyType.SKIP;
     }
 
+    protected boolean isForceSetupWhenEmptyCredentials() {
+        return emptyCredentialsPolicy == EmptyCredentialsPolicyType.FORCE_SETUP;
+    }
+
+    @Override
+    public boolean isCredentialSetupRequired() {
+        return isForceSetupWhenEmptyCredentials()
+                && state == AuthenticationModuleState.CALLED_OFF
+                && !credentialSetupCompleted;
+    }
+
+    @Override
+    public void credentialSetupCompleted() {
+        credentialSetupCompleted = true;
+    }
 
     private void resolveDefaults() {
         setState(AuthenticationModuleState.LOGIN_PROCESSING);
@@ -195,6 +209,7 @@ public class ModuleAuthenticationImpl implements ModuleAuthentication {
         module.setPrefix(this.getPrefix());
         module.setFocusType(this.getFocusType());
         module.setSufficient(this.isSufficient());
+        module.credentialSetupCompleted = this.credentialSetupCompleted;
     }
 
     public void setInternalLogout(boolean internalLogout) {

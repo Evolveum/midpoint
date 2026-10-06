@@ -16,7 +16,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
 import jakarta.servlet.http.HttpServletRequest;
-import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
@@ -352,12 +351,27 @@ public class MidpointAuthentication extends AbstractAuthenticationToken implemen
             return true;
         }
 
-        if (AuthenticationModuleState.CALLED_OFF == ma.getState() && BooleanUtils.isTrue(m.isAcceptEmpty())) {
-            // authentication was called off, but sequence module configuration allows "empty" auth via acceptEmpty = true
+        if (AuthenticationModuleState.CALLED_OFF == ma.getState()
+                && AuthenticationSequenceTypeUtil.getEmptyCredentialsPolicy(m) != null) {
+            // authentication was called off, but sequence module configuration allows "empty" auth
+            // via emptyCredentialsPolicy (or deprecated acceptEmpty = true)
             return true;
         }
 
         return false;
+    }
+
+    /**
+     * True if some module was skipped because of missing credentials and the user has to set them up
+     * before being allowed to do anything else (emptyCredentialsPolicy = forceSetup).
+     */
+    public boolean isCredentialSetupRequired() {
+        return authentications.stream().anyMatch(ModuleAuthentication::isCredentialSetupRequired);
+    }
+
+    /** To be called after the user has successfully set up missing credentials. */
+    public void credentialSetupCompleted() {
+        authentications.forEach(ModuleAuthentication::credentialSetupCompleted);
     }
 
     private ModuleAuthentication getAuthenticationByIdentifier(AuthenticationSequenceModuleType module) {

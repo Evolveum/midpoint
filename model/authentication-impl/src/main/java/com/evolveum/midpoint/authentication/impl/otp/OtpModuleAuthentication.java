@@ -6,15 +6,23 @@
 
 package com.evolveum.midpoint.authentication.impl.otp;
 
+import org.apache.commons.lang3.BooleanUtils;
+
+import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
+import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.authentication.api.util.AuthenticationModuleNameConstants;
 import com.evolveum.midpoint.authentication.impl.module.authentication.CredentialModuleAuthenticationImpl;
 import com.evolveum.midpoint.authentication.impl.module.authentication.ModuleAuthenticationImpl;
 import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
-import com.evolveum.midpoint.security.api.MidPointPrincipal;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 public class OtpModuleAuthentication extends CredentialModuleAuthenticationImpl {
+
+    private static final Trace LOGGER = TraceManager.getTrace(OtpModuleAuthentication.class);
 
     private OtpAuthenticationModuleType module;
 
@@ -49,7 +57,8 @@ public class OtpModuleAuthentication extends CredentialModuleAuthenticationImpl 
 
     @Override
     public boolean applicable() {
-        if (!canSkipWhenEmptyCredentials()) {
+        boolean forceSetup = isForceSetupWhenEmptyCredentials();
+        if (!canSkipWhenEmptyCredentials() && !forceSetup) {
             return super.applicable();
         }
 
@@ -58,21 +67,34 @@ public class OtpModuleAuthentication extends CredentialModuleAuthenticationImpl 
             return true;
         }
 
-        if (!(principal instanceof MidPointPrincipal)) {
-            return false;
+        if (hasVerifiedTotp(principal.getFocus())) {
+            return true;
         }
 
-        FocusType focus = principal.getFocus();
+        if (forceSetup && !isGuiUserChannel()) {
+            // There's no place where the setup could be enforced, this is most probably a misconfiguration.
+            LOGGER.debug("Empty credentials policy 'forceSetup' of module '{}' is supported only in GUI (user) channel, "
+                    + "authentication will fail for users without TOTP credentials.", getModuleIdentifier());
+            return true;
+        }
+
+        return false;
+    }
+
+    private boolean hasVerifiedTotp(FocusType focus) {
         CredentialsType credentials = focus.getCredentials();
-        if (credentials == null) {
-            return false;
-        }
-
-        OtpCredentialsType otpCredentials = credentials.getOtps();
+        OtpCredentialsType otpCredentials = credentials != null ? credentials.getOtps() : null;
         if (otpCredentials == null) {
             return false;
         }
 
-        return !otpCredentials.getTotp().isEmpty();
+        return otpCredentials.getTotp().stream().anyMatch(otp -> BooleanUtils.isTrue(otp.isVerified()));
+    }
+
+    private boolean isGuiUserChannel() {
+        MidpointAuthentication authentication = AuthUtil.getMidpointAuthenticationNotRequired();
+        AuthenticationChannel channel = authentication != null ? authentication.getAuthenticationChannel() : null;
+
+        return channel != null && SchemaConstants.CHANNEL_USER_URI.equals(channel.getChannelId());
     }
 }

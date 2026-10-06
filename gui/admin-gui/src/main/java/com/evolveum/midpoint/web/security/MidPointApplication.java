@@ -79,6 +79,7 @@ import org.springframework.web.servlet.resource.ResourceUrlProvider;
 
 import com.evolveum.midpoint.authentication.api.OtpManager;
 import com.evolveum.midpoint.authentication.api.authorization.DescriptorLoader;
+import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.cases.api.CaseManager;
 import com.evolveum.midpoint.common.ActivationComputer;
@@ -91,6 +92,7 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.converter.*;
 import com.evolveum.midpoint.gui.impl.page.login.module.PageLogin;
+import com.evolveum.midpoint.gui.impl.page.self.credentials.PageTotpSetup;
 import com.evolveum.midpoint.gui.impl.page.self.dashboard.PageSelfDashboard;
 import com.evolveum.midpoint.gui.impl.validation.ValidatorFactoryRegistry;
 import com.evolveum.midpoint.model.api.*;
@@ -200,6 +202,11 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
 
     @Override
     public Class<? extends PageAdminLTE> getHomePage() {
+        MidpointAuthentication authentication = AuthUtil.getMidpointAuthenticationNotRequired();
+        if (authentication != null && authentication.isCredentialSetupRequired()) {
+            return PageTotpSetup.class;
+        }
+
         if (AuthUtil.isPostAuthenticationEnabled(getTaskManager(), getModelInteractionService())) {
             return PagePostAuthentication.class;
         }

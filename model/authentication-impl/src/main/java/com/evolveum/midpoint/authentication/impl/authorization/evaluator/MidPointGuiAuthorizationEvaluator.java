@@ -9,6 +9,8 @@ package com.evolveum.midpoint.authentication.impl.authorization.evaluator;
 import java.util.*;
 
 import com.evolveum.midpoint.authentication.api.authorization.AuthorizationActionValue;
+import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
+import com.evolveum.midpoint.authentication.api.util.AuthConstants;
 import com.evolveum.midpoint.authentication.impl.authorization.DescriptorLoaderImpl;
 import com.evolveum.midpoint.authentication.impl.util.AuthSequenceUtil;
 import com.evolveum.midpoint.authentication.api.authorization.EndPointsUrlMapping;
@@ -196,6 +198,18 @@ public class MidPointGuiAuthorizationEvaluator implements SecurityEnforcer, Secu
             LOGGER.trace("DECIDE: authentication={}, object={}: ALLOW ALL (/)",
                     authentication, object);
             return;
+        }
+
+        if (authentication instanceof MidpointAuthentication mpAuthentication && mpAuthentication.isCredentialSetupRequired()) {
+            // User has to set up missing credentials first, nothing else is accessible until then.
+            if (pathMatcher(AuthConstants.PATH_TOTP_SETUP).matches(request)) {
+                LOGGER.trace("DECIDE: authentication={}, object={}: ALLOW (credential setup page)", authentication, object);
+                return;
+            }
+
+            LOGGER.trace("DECIDE: authentication={}, object={}: DENY (credential setup required)", authentication, object);
+            SecurityUtil.logSecurityDeny(object, ": Not authorized (credential setup required)");
+            throw new AccessDeniedException("Not authorized");
         }
 
         Set<String> requiredActions = new HashSet<>();

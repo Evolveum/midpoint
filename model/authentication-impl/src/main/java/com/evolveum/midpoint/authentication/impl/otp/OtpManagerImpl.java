@@ -180,6 +180,12 @@ public class OtpManagerImpl implements OtpManager {
         try {
             SecurityPolicyType securityPolicy;
             if (isCurrentPrincipal(focus)) {
+                // Credential has to match the module that verifies it (or forces its setup) during login.
+                OtpAuthenticationModuleType module = findOtpModuleInCurrentAuthentication();
+                if (module != null) {
+                    return module;
+                }
+
                 // Take security policy type from currently authenticated user
                 securityPolicy = getCurrentPrincipalSecurityPolicy();
             } else {
@@ -193,6 +199,22 @@ public class OtpManagerImpl implements OtpManager {
         } catch (SchemaException ex) {
             throw new SystemException("Couldn't find OTP authentication module", ex);
         }
+    }
+
+    /**
+     * @return configuration of OTP module used in authentication sequence of current session, null if there's none
+     */
+    private OtpAuthenticationModuleType findOtpModuleInCurrentAuthentication() {
+        if (!(SecurityContextHolder.getContext().getAuthentication() instanceof MidpointAuthentication ma)) {
+            return null;
+        }
+
+        return ma.getAuthentications().stream()
+                .filter(OtpModuleAuthentication.class::isInstance)
+                .map(a -> ((OtpModuleAuthentication) a).getModule())
+                .filter(Objects::nonNull)
+                .findFirst()
+                .orElse(null);
     }
 
     private boolean isCurrentPrincipal(PrismObject<? extends FocusType> focus) {

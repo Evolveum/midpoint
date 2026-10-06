@@ -8,6 +8,8 @@ package com.evolveum.midpoint.authentication.impl.channel;
 
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
+import com.evolveum.midpoint.authentication.api.util.AuthConstants;
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.security.api.Authorization;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
@@ -35,6 +37,10 @@ public class GuiAuthenticationChannel extends AuthenticationChannelImpl {
     }
 
     public String getPathAfterSuccessfulAuthentication() {
+        if (isCredentialSetupRequired()) {
+            return AuthConstants.PATH_TOTP_SETUP;
+        }
+
         if (isPostAuthenticationEnabled()) {
                 return "/self/postAuthentication";
         }
@@ -44,12 +50,18 @@ public class GuiAuthenticationChannel extends AuthenticationChannelImpl {
 
     @Override
     public boolean isPostAuthenticationEnabled() {
-        return AuthUtil.isPostAuthenticationEnabled(taskManager, modelInteractionService);
+        return isCredentialSetupRequired()
+                || AuthUtil.isPostAuthenticationEnabled(taskManager, modelInteractionService);
+    }
+
+    private boolean isCredentialSetupRequired() {
+        MidpointAuthentication authentication = AuthUtil.getMidpointAuthenticationNotRequired();
+        return authentication != null && authentication.isCredentialSetupRequired();
     }
 
     @Override
     public Authorization getAdditionalAuthority() {
-        if (isPostAuthenticationEnabled()) {
+        if (AuthUtil.isPostAuthenticationEnabled(taskManager, modelInteractionService)) {
             return new Authorization(new AuthorizationType().action(AuthorizationConstants.AUTZ_UI_SELF_POST_AUTHENTICATION_URL));
         }
         return super.getAdditionalAuthority();
