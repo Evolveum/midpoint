@@ -32,6 +32,7 @@ import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
 import com.evolveum.midpoint.authentication.api.config.ModuleAuthentication;
 import com.evolveum.midpoint.authentication.impl.FocusAuthenticationResultRecorder;
 import com.evolveum.midpoint.authentication.impl.channel.AccountActivationAuthenticationChannel;
+import com.evolveum.midpoint.authentication.impl.channel.AuthenticationChannelImpl;
 import com.evolveum.midpoint.authentication.impl.filter.SequenceCompletionFilter;
 import com.evolveum.midpoint.authentication.impl.module.authentication.LoginFormModuleAuthenticationImpl;
 import com.evolveum.midpoint.authentication.impl.module.authentication.MailNonceModuleAuthenticationImpl;
@@ -108,7 +109,8 @@ public class TestAccountActivationNonce extends AbstractModelImplementationInteg
                         .password(new PasswordType()
                                 .value(protectedString(PASSWORD_GOOD)))
                         .nonce(new NonceType()
-                                .value(protectedString(NONCE))));
+                                .value(protectedString(NONCE))
+                                .sequenceIdentifier(SEQUENCE_IDENTIFIER)));
     }
 
     private ProtectedStringType protectedString(String clearValue) {
@@ -272,6 +274,51 @@ public class TestAccountActivationNonce extends AbstractModelImplementationInteg
         assertUserHasNonce(USER_LOCKER_OID);
     }
 
+    /** The activation nonce must not open another sequence that starts with a mail nonce module, e.g. password reset. */
+    @Test
+    public void test200ActivationNonceRefusedByOtherSequence() throws Exception {
+        given("user with nonce issued for the activation sequence");
+        setupNonce(USER_ACTIVATOR_OID);
+
+        Authentication previousAuthentication = SecurityContextHolder.getContext().getAuthentication();
+        try {
+            when("the token is used in the password reset sequence");
+            try {
+                openResetLink(USER_ACTIVATOR_NAME, NONCE);
+                fail("Unexpected success with nonce of another sequence");
+            } catch (BadCredentialsException e) {
+                displayExpectedException(e);
+            }
+        } finally {
+            SecurityContextHolder.getContext().setAuthentication(previousAuthentication);
+        }
+
+        then("nonce is kept for the activation sequence");
+        assertUserHasNonce(USER_ACTIVATOR_OID);
+    }
+
+    /** A nonce issued before 4.11 carries no sequence identifier and is accepted, so links in flight keep working. */
+    @Test
+    public void test210NonceWithoutSequenceIdentifierAccepted() throws Exception {
+        given("user with nonce without sequence identifier");
+        setupNonce(USER_ACTIVATOR_OID, null);
+
+        Authentication previousAuthentication = SecurityContextHolder.getContext().getAuthentication();
+        try {
+            when("activation link is opened and correct password submitted");
+            MidpointAuthentication mpAuthentication = openActivationLink(USER_ACTIVATOR_NAME, NONCE);
+            submitPassword(mpAuthentication, USER_ACTIVATOR_NAME, PASSWORD_GOOD);
+
+            then("sequence is authenticated");
+            assertTrue(mpAuthentication.isAuthenticated());
+        } finally {
+            SecurityContextHolder.getContext().setAuthentication(previousAuthentication);
+        }
+
+        and("nonce is spent");
+        assertUserHasNoNonce(USER_ACTIVATOR_OID);
+    }
+
     /**
      * Opens the activation link: the mail nonce module authenticates, the request ends as in the real flow
      * and the login form module becomes the processing one.
@@ -318,6 +365,40 @@ public class TestAccountActivationNonce extends AbstractModelImplementationInteg
 
         mpAuthentication.addAuthentication(loginFormModule);
         return mpAuthentication;
+    }
+
+    /** Opens a link of a password reset like sequence: mail nonce module only, in the reset password channel. */
+    private void openResetLink(String username, String nonce) {
+        AuthenticationSequenceModuleType mailNonceModuleType = new AuthenticationSequenceModuleType()
+                .identifier(MODULE_MAIL_NONCE)
+                .order(10)
+                .necessity(AuthenticationSequenceModuleNecessityType.SUFFICIENT);
+        AuthenticationSequenceType sequence = new AuthenticationSequenceType()
+                .identifier("password-reset")
+                .channel(new AuthenticationSequenceChannelType()
+                        .channelId(SchemaConstants.CHANNEL_RESET_PASSWORD_URI)
+                        .urlSuffix("resetPassword"))
+                .module(mailNonceModuleType);
+
+        MidpointAuthentication mpAuthentication = new MidpointAuthentication(sequence);
+        mpAuthentication.setAuthenticationChannel(new AuthenticationChannelImpl(sequence.getChannel()));
+
+        MailNonceModuleAuthenticationImpl mailNonceModule = new MailNonceModuleAuthenticationImpl(mailNonceModuleType);
+        mailNonceModule.setNameOfModule(MODULE_MAIL_NONCE);
+        mailNonceModule.setCredentialType(NonceCredentialsPolicyType.class);
+        mpAuthentication.setAuthModules(List.of(
+                authModule(new MailNonceAuthenticationModuleType().identifier(MODULE_MAIL_NONCE),
+                        mailNonceModule, autowired(new MailNonceProvider()))));
+        mpAuthentication.addAuthentication(mailNonceModule);
+        SecurityContextHolder.getContext().setAuthentication(mpAuthentication);
+
+        try {
+            providerOf(mpAuthentication, 0).authenticate(new MailNonceAuthenticationToken(username, nonce));
+            finishRequest(mpAuthentication, null);
+        } catch (AuthenticationException e) {
+            finishRequest(mpAuthentication, e);
+            throw e;
+        }
     }
 
     private AuthModule<?> authModule(
@@ -375,11 +456,16 @@ public class TestAccountActivationNonce extends AbstractModelImplementationInteg
     }
 
     private void setupNonce(String userOid) throws Exception {
+        setupNonce(userOid, SEQUENCE_IDENTIFIER);
+    }
+
+    /** Nonce as issued by createAccountActivationLink; null sequence identifier = nonce issued before 4.11. */
+    private void setupNonce(String userOid, String sequenceIdentifier) throws Exception {
         Task task = getTestTask();
         executeChanges(
                 prismContext.deltaFor(UserType.class)
                         .item(SchemaConstants.PATH_NONCE)
-                        .replace(new NonceType().value(protectedString(NONCE)))
+                        .replace(new NonceType().value(protectedString(NONCE)).sequenceIdentifier(sequenceIdentifier))
                         .asObjectDelta(userOid),
                 null, task, task.getResult());
         assertUserHasNonce(userOid);

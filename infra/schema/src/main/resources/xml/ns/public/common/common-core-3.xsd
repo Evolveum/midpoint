@@ -2649,6 +2649,11 @@
                         <p>
                             Identifier of the authentication sequence within which current authentication attempt was processed.
                         </p>
+                        <p>
+                            In a nonce credential (credentials/nonce) it is the sequence the nonce was issued for.
+                            The nonce is accepted only by the mail nonce module of that sequence; a nonce without
+                            the identifier is accepted by any sequence.
+                        </p>
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:operational>true</a:operational>

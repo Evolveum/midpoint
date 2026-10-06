@@ -150,6 +150,7 @@ public class TestPasswordDefaultHashing extends AbstractPasswordTest {
                 .as("nonce stored in user " + username)
                 .isNotNull();
         assertThat(protector.decryptString(nonce.getValue())).as("stored nonce").isEqualTo(token);
+        assertThat(nonce.getSequenceIdentifier()).as("sequence the nonce was issued for").isEqualTo("account-activation");
     }
 
     /**
