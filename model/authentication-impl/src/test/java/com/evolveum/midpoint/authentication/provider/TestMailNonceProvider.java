@@ -30,7 +30,7 @@ import com.evolveum.midpoint.authentication.api.config.ModuleAuthentication;
 import com.evolveum.midpoint.authentication.impl.FocusAuthenticationResultRecorder;
 import com.evolveum.midpoint.authentication.TestAccountActivationNonce;
 import com.evolveum.midpoint.authentication.impl.channel.SelfRegistrationAuthenticationChannel;
-import com.evolveum.midpoint.authentication.impl.filter.SequenceAuditFilter;
+import com.evolveum.midpoint.authentication.impl.filter.SequenceCompletionFilter;
 import com.evolveum.midpoint.authentication.impl.module.authentication.FocusIdentificationModuleAuthenticationImpl;
 import com.evolveum.midpoint.authentication.impl.module.authentication.MailNonceModuleAuthenticationImpl;
 import com.evolveum.midpoint.authentication.impl.module.authentication.token.MailNonceAuthenticationToken;
@@ -56,7 +56,7 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
  * A leftover nonce later blocks the password reset flow, which considers the reset
  * mail as already sent. See #12082.
  *
- * The nonce is spent by {@link SequenceAuditFilter} at the end of the sequence, not by
+ * The nonce is spent by {@link SequenceCompletionFilter} at the end of the sequence, not by
  * {@link MailNonceProvider} itself, see issue 5490 and {@link TestAccountActivationNonce}.
  */
 @ContextConfiguration(locations = "classpath:ctx-authentication-test-main.xml")
@@ -222,13 +222,13 @@ public class TestMailNonceProvider extends AbstractModelImplementationIntegratio
     }
 
     /**
-     * What the success handler and {@link SequenceAuditFilter} do at the end of the request
+     * What the success handler and {@link SequenceCompletionFilter} do at the end of the request
      * that completed the sequence.
      */
     private void finishSequence(MidpointAuthentication mpAuthentication) {
         mpAuthentication.getProcessingModuleAuthentication().setState(AuthenticationModuleState.SUCCESSFULLY);
         assertTrue("Sequence is not authenticated, test setup is broken", mpAuthentication.isAuthenticated());
-        new SequenceAuditFilter(authenticationRecorder).writeRecord(new MockHttpServletRequest(), mpAuthentication);
+        new SequenceCompletionFilter(authenticationRecorder).writeRecord(new MockHttpServletRequest(), mpAuthentication);
     }
 
     private void setupNonce() throws Exception {

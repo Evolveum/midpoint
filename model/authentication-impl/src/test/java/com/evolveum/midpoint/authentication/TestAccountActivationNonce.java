@@ -32,7 +32,7 @@ import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
 import com.evolveum.midpoint.authentication.api.config.ModuleAuthentication;
 import com.evolveum.midpoint.authentication.impl.FocusAuthenticationResultRecorder;
 import com.evolveum.midpoint.authentication.impl.channel.AccountActivationAuthenticationChannel;
-import com.evolveum.midpoint.authentication.impl.filter.SequenceAuditFilter;
+import com.evolveum.midpoint.authentication.impl.filter.SequenceCompletionFilter;
 import com.evolveum.midpoint.authentication.impl.module.authentication.LoginFormModuleAuthenticationImpl;
 import com.evolveum.midpoint.authentication.impl.module.authentication.MailNonceModuleAuthenticationImpl;
 import com.evolveum.midpoint.authentication.impl.module.authentication.token.MailNonceAuthenticationToken;
@@ -348,7 +348,7 @@ public class TestAccountActivationNonce extends AbstractModelImplementationInteg
     }
 
     /**
-     * What the success or failure handler and {@link SequenceAuditFilter} do at the end of a request
+     * What the success or failure handler and {@link SequenceCompletionFilter} do at the end of a request
      * that processed the current module.
      */
     private void finishRequest(MidpointAuthentication mpAuthentication, AuthenticationException failure) {
@@ -358,7 +358,7 @@ public class TestAccountActivationNonce extends AbstractModelImplementationInteg
         } else {
             module.recordFailure(failure);
         }
-        new SequenceAuditFilter(authenticationRecorder).writeRecord(new MockHttpServletRequest(), mpAuthentication);
+        new SequenceCompletionFilter(authenticationRecorder).writeRecord(new MockHttpServletRequest(), mpAuthentication);
     }
 
     /** What MidpointAuthFilter does first when the next request of the same session arrives. */

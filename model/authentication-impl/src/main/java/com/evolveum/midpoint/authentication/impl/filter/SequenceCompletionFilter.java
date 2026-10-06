@@ -6,23 +6,15 @@
 
 package com.evolveum.midpoint.authentication.impl.filter;
 
-import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipalManager;
-
-import jakarta.servlet.ServletRequest;
-import jakarta.servlet.ServletResponse;
-import org.apache.commons.lang3.StringUtils;
-
 import java.io.IOException;
 import java.util.List;
+
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.ServletRequest;
+import jakarta.servlet.ServletResponse;
 import jakarta.servlet.http.HttpServletRequest;
-
-import com.evolveum.midpoint.authentication.impl.FocusAuthenticationResultRecorder;
-
-import com.evolveum.midpoint.security.api.ConnectionEnvironment;
-import com.evolveum.midpoint.security.api.MidPointPrincipal;
-
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.VisibleForTesting;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationProvider;
@@ -33,6 +25,10 @@ import com.evolveum.midpoint.authentication.api.AuthModule;
 import com.evolveum.midpoint.authentication.api.AuthenticationSequenceListener;
 import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
 import com.evolveum.midpoint.authentication.api.config.ModuleAuthentication;
+import com.evolveum.midpoint.authentication.impl.FocusAuthenticationResultRecorder;
+import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipalManager;
+import com.evolveum.midpoint.security.api.ConnectionEnvironment;
+import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.SecurityUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -42,11 +38,11 @@ import com.evolveum.midpoint.util.logging.TraceManager;
  * finished their evaluation. In those handlers, module state is set which is crucial for
  * correct evaluation.
  *
- * The aim of SequenceAuditFilter is to check the overall authentication, authentication for
+ * The aim of SequenceCompletionFilter is to check the overall authentication, authentication for
  * the whole sequence. While partial (module) authentication results are evaluated and
  * recorded by corresponding provider (plus evaluator), the overall status if the whole
- * sequence authentication was successful or not is recorded here. It should be recoded
- * only once per sequence, therefore the isAlreadyRecorded() check.
+ * sequence authentication was successful or not is handled here. The sequence is completed
+ * only once, therefore the isAlreadyAudited() check.
  *
  * The result is recorded to two places:
  *
@@ -54,12 +50,10 @@ import com.evolveum.midpoint.util.logging.TraceManager;
  * - audit
  *
  * The outcome is also passed to the {@link AuthenticationSequenceListener}s among the providers of the sequence modules.
- *
- * TODO rename, the filter completes the sequence (records, audits, notifies listeners), it does not only audit
  */
-public class SequenceAuditFilter extends GenericFilterBean {
+public class SequenceCompletionFilter extends GenericFilterBean {
 
-    private static final Trace LOGGER = TraceManager.getTrace(SequenceAuditFilter.class);
+    private static final Trace LOGGER = TraceManager.getTrace(SequenceCompletionFilter.class);
 
     @Autowired private FocusAuthenticationResultRecorder authenticationRecorder;
 
@@ -72,11 +66,11 @@ public class SequenceAuditFilter extends GenericFilterBean {
 
     private boolean recordOnEndOfChain = true;
 
-    public SequenceAuditFilter() {
+    public SequenceCompletionFilter() {
     }
 
     @VisibleForTesting
-    public SequenceAuditFilter(FocusAuthenticationResultRecorder authenticationRecorder) {
+    public SequenceCompletionFilter(FocusAuthenticationResultRecorder authenticationRecorder) {
         this.authenticationRecorder = authenticationRecorder;
     }
 
@@ -87,7 +81,7 @@ public class SequenceAuditFilter extends GenericFilterBean {
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
-        LOGGER.trace("Running SequenceAuditFilter");
+        LOGGER.trace("Running SequenceCompletionFilter");
 
         if (recordOnEndOfChain) {
             filterChain.doFilter(request, response);

@@ -6,19 +6,6 @@
 
 package com.evolveum.midpoint.authentication.impl.module.configurer;
 
-import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
-import com.evolveum.midpoint.authentication.impl.authorization.evaluator.MidpointHttpAuthorizationEvaluator;
-import com.evolveum.midpoint.authentication.impl.entry.point.HttpAuthenticationEntryPoint;
-import com.evolveum.midpoint.authentication.impl.entry.point.HttpSecurityQuestionsAuthenticationEntryPoint;
-import com.evolveum.midpoint.authentication.impl.MidpointAuthenticationTrustResolverImpl;
-import com.evolveum.midpoint.authentication.impl.filter.HttpSecurityQuestionsAuthenticationFilter;
-import com.evolveum.midpoint.authentication.impl.filter.SequenceAuditFilter;
-import com.evolveum.midpoint.authentication.impl.filter.configurers.MidpointExceptionHandlingConfigurer;
-import com.evolveum.midpoint.authentication.api.util.AuthUtil;
-
-import com.evolveum.midpoint.authentication.impl.module.configuration.ModuleWebSecurityConfigurationImpl;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.HttpSecQAuthenticationModuleType;
-
 import jakarta.servlet.ServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
@@ -29,10 +16,21 @@ import org.springframework.security.web.access.intercept.AuthorizationFilter;
 import org.springframework.security.web.authentication.RememberMeServices;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 
+import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
+import com.evolveum.midpoint.authentication.api.util.AuthUtil;
+import com.evolveum.midpoint.authentication.impl.MidpointAuthenticationTrustResolverImpl;
+import com.evolveum.midpoint.authentication.impl.authorization.evaluator.MidpointHttpAuthorizationEvaluator;
+import com.evolveum.midpoint.authentication.impl.entry.point.HttpAuthenticationEntryPoint;
+import com.evolveum.midpoint.authentication.impl.entry.point.HttpSecurityQuestionsAuthenticationEntryPoint;
+import com.evolveum.midpoint.authentication.impl.filter.HttpSecurityQuestionsAuthenticationFilter;
+import com.evolveum.midpoint.authentication.impl.filter.SequenceCompletionFilter;
+import com.evolveum.midpoint.authentication.impl.filter.configurers.MidpointExceptionHandlingConfigurer;
+import com.evolveum.midpoint.authentication.impl.module.configuration.ModuleWebSecurityConfigurationImpl;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.HttpSecQAuthenticationModuleType;
 
 /**
  * @author skublik
@@ -100,7 +98,7 @@ public class HttpSecurityQuestionsModuleWebSecurityConfigurer extends ModuleWebS
                 .authenticationEntryPoint(entryPoint)
                 .authenticationTrustResolver(new MidpointAuthenticationTrustResolverImpl());
 
-        SequenceAuditFilter sequenceAuditFilter = new SequenceAuditFilter();
+        SequenceCompletionFilter sequenceAuditFilter = new SequenceCompletionFilter();
         sequenceAuditFilter.setRecordOnEndOfChain(false);
         http.addFilterAfter(getObjectPostProcessor().postProcess(sequenceAuditFilter), AuthorizationFilter.class);
     }

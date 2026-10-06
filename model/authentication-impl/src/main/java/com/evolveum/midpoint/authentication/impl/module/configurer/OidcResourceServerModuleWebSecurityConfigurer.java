@@ -6,27 +6,6 @@
 
 package com.evolveum.midpoint.authentication.impl.module.configurer;
 
-import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
-import com.evolveum.midpoint.authentication.api.util.AuthUtil;
-import com.evolveum.midpoint.authentication.impl.MidpointAuthenticationTrustResolverImpl;
-import com.evolveum.midpoint.authentication.impl.authorization.evaluator.MidpointHttpAuthorizationEvaluator;
-import com.evolveum.midpoint.authentication.impl.entry.point.HttpAuthenticationEntryPoint;
-import com.evolveum.midpoint.authentication.impl.filter.SequenceAuditFilter;
-import com.evolveum.midpoint.authentication.impl.filter.configurers.MidpointExceptionHandlingConfigurer;
-import com.evolveum.midpoint.authentication.impl.module.configuration.JwtOidcResourceServerConfiguration;
-import com.evolveum.midpoint.authentication.impl.module.configuration.OpaqueTokenOidcResourceServerConfiguration;
-import com.evolveum.midpoint.authentication.impl.module.configuration.RemoteModuleWebSecurityConfiguration;
-import com.evolveum.midpoint.authentication.impl.filter.oidc.OidcBearerTokenAuthenticationFilter;
-import com.evolveum.midpoint.authentication.impl.provider.OidcResourceServerProvider;
-import com.evolveum.midpoint.model.api.ModelService;
-import com.evolveum.midpoint.security.api.SecurityContextManager;
-import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
-import com.evolveum.midpoint.task.api.TaskManager;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractAuthenticationModuleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OidcAuthenticationModuleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OidcResourceServerAuthenticationModuleType;
-
 import jakarta.servlet.ServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
@@ -37,6 +16,26 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
 import org.springframework.security.web.access.intercept.AuthorizationFilter;
 import org.springframework.security.web.authentication.RememberMeServices;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
+
+import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
+import com.evolveum.midpoint.authentication.api.util.AuthUtil;
+import com.evolveum.midpoint.authentication.impl.MidpointAuthenticationTrustResolverImpl;
+import com.evolveum.midpoint.authentication.impl.authorization.evaluator.MidpointHttpAuthorizationEvaluator;
+import com.evolveum.midpoint.authentication.impl.entry.point.HttpAuthenticationEntryPoint;
+import com.evolveum.midpoint.authentication.impl.filter.SequenceCompletionFilter;
+import com.evolveum.midpoint.authentication.impl.filter.configurers.MidpointExceptionHandlingConfigurer;
+import com.evolveum.midpoint.authentication.impl.filter.oidc.OidcBearerTokenAuthenticationFilter;
+import com.evolveum.midpoint.authentication.impl.module.configuration.JwtOidcResourceServerConfiguration;
+import com.evolveum.midpoint.authentication.impl.module.configuration.OpaqueTokenOidcResourceServerConfiguration;
+import com.evolveum.midpoint.authentication.impl.module.configuration.RemoteModuleWebSecurityConfiguration;
+import com.evolveum.midpoint.authentication.impl.provider.OidcResourceServerProvider;
+import com.evolveum.midpoint.model.api.ModelService;
+import com.evolveum.midpoint.security.api.SecurityContextManager;
+import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
+import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractAuthenticationModuleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OidcAuthenticationModuleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OidcResourceServerAuthenticationModuleType;
 
 /**
  * @author skublik
@@ -80,7 +79,7 @@ public class OidcResourceServerModuleWebSecurityConfigurer<C extends RemoteModul
 
         JwtOidcResourceServerConfiguration configuration =
                 JwtOidcResourceServerConfiguration.build(
-                        (OidcAuthenticationModuleType)moduleType,
+                        (OidcAuthenticationModuleType) moduleType,
                         sequenceSuffix);
         configuration.setSequenceSuffix(sequenceSuffix);
 
@@ -99,7 +98,7 @@ public class OidcResourceServerModuleWebSecurityConfigurer<C extends RemoteModul
             String sequenceSuffix) {
         OpaqueTokenOidcResourceServerConfiguration configuration =
                 OpaqueTokenOidcResourceServerConfiguration.build(
-                        (OidcAuthenticationModuleType)moduleType,
+                        (OidcAuthenticationModuleType) moduleType,
                         sequenceSuffix);
         configuration.setSequenceSuffix(sequenceSuffix);
 
@@ -136,7 +135,7 @@ public class OidcResourceServerModuleWebSecurityConfigurer<C extends RemoteModul
                 .authenticationEntryPoint(entryPoint)
                 .authenticationTrustResolver(new MidpointAuthenticationTrustResolverImpl());
 
-        SequenceAuditFilter sequenceAuditFilter = new SequenceAuditFilter();
+        SequenceCompletionFilter sequenceAuditFilter = new SequenceCompletionFilter();
         sequenceAuditFilter.setRecordOnEndOfChain(false);
         http.addFilterAfter(getObjectPostProcessor().postProcess(sequenceAuditFilter), AuthorizationFilter.class);
     }
