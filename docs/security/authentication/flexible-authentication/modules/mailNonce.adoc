@@ -5,6 +5,10 @@ WARNING: From midPoint version 4.8, `mailNonce` module can't be the first module
 
 Mail nonce authentication module.
 Module that sends randomly generated nonce in URL in mail message.
+
+The nonce is bound to the authentication sequence it was issued for (`credentials/nonce/sequenceIdentifier`).
+A nonce issued for one sequence, e.g. account activation, is refused by the mail nonce module of another sequence, e.g. password reset.
+Nonces issued by older versions carry no sequence identifier and are accepted by any sequence until they expire.
 This module contains next attribute:
 
 [%autowidth]
