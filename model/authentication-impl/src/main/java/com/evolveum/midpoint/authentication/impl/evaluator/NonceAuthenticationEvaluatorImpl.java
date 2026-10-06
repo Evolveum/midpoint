@@ -15,6 +15,8 @@ import org.springframework.stereotype.Component;
 import com.evolveum.midpoint.authentication.api.evaluator.context.NonceAuthenticationContext;
 import com.evolveum.midpoint.security.api.ConnectionEnvironment;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.security.api.SecurityUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialPolicyType;
@@ -26,6 +28,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityPolicyType;
 @Component("nonceAuthenticationEvaluator")
 public class NonceAuthenticationEvaluatorImpl extends CredentialsAuthenticationEvaluatorImpl<NonceType, NonceAuthenticationContext> {
 
+    private static final Trace LOGGER = TraceManager.getTrace(NonceAuthenticationEvaluatorImpl.class);
 
     @Override
     protected void checkEnteredCredentials(ConnectionEnvironment connEnv,
@@ -59,7 +62,24 @@ public class NonceAuthenticationEvaluatorImpl extends CredentialsAuthenticationE
     protected boolean passwordMatches(
             ConnectionEnvironment connEnv, @NotNull MidPointPrincipal principal,
             NonceType passwordType, NonceAuthenticationContext authCtx) {
+        if (!isIssuedForSequence(connEnv, principal, passwordType)) {
+            return false;
+        }
         return decryptAndMatch(connEnv, principal, passwordType.getValue(), authCtx.getNonce());
+    }
+
+    /**
+     * A nonce issued for one sequence (e.g. account activation) must not open another one (e.g. password reset).
+     * Nonces without the sequence identifier (issued before 4.11) are accepted by any sequence.
+     */
+    private boolean isIssuedForSequence(ConnectionEnvironment connEnv, MidPointPrincipal principal, NonceType nonce) {
+        String issuedFor = nonce.getSequenceIdentifier();
+        if (issuedFor == null || issuedFor.equals(connEnv.getSequenceIdentifier())) {
+            return true;
+        }
+        LOGGER.debug("Nonce of user '{}' was issued for sequence '{}', refusing it in sequence '{}'",
+                principal.getUsername(), issuedFor, connEnv.getSequenceIdentifier());
+        return false;
     }
 
     @Override

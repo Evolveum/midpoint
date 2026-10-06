@@ -21,6 +21,8 @@ import org.jetbrains.annotations.Nullable;
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
 import com.evolveum.midpoint.authentication.api.config.CredentialModuleAuthentication;
+import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
+import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.authentication.api.util.AuthenticationModuleNameConstants;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
@@ -127,9 +129,17 @@ public class PageEmailNonce extends PageAbstractAuthenticationModule<CredentialM
 
     private boolean userHasValidNonce() {
         NonceType nonceType = getUserNonce();
-        return nonceType != null && isNonceValid(nonceType);
+        return nonceType != null && isNonceValid(nonceType) && isNonceIssuedForThisSequence(nonceType);
+    }
 
-        //TODO check name nonceType.getName();
+    /** A nonce issued for another sequence would be refused by the mail nonce module of this one. */
+    private boolean isNonceIssuedForThisSequence(@NotNull NonceType nonce) {
+        return nonce.getSequenceIdentifier() == null || nonce.getSequenceIdentifier().equals(getCurrentSequenceIdentifier());
+    }
+
+    private String getCurrentSequenceIdentifier() {
+        MidpointAuthentication mpAuthentication = AuthUtil.getMidpointAuthenticationNotRequired();
+        return mpAuthentication != null ? mpAuthentication.getSequenceIdentifier() : null;
     }
 
     private NonceType getUserNonce() {
@@ -242,6 +252,8 @@ public class PageEmailNonce extends PageAbstractAuthenticationModule<CredentialM
             ObjectDelta<UserType> nonceDelta = getPrismContext().deltaFactory().object()
                     .createModificationReplaceProperty(UserType.class, user.getOid(),
                             SchemaConstants.PATH_NONCE_VALUE, nonceCredentials);
+            nonceDelta.addModificationReplaceProperty(
+                    SchemaConstants.PATH_NONCE.append(NonceType.F_SEQUENCE_IDENTIFIER), getCurrentSequenceIdentifier());
 
             WebModelServiceUtils.save(nonceDelta, result, task, PageEmailNonce.this);
         } catch (SchemaException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException |

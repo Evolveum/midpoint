@@ -1,323 +1,255 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (c) 2010-2026 Evolveum and contributors
  *
  * Licensed under the EUPL-1.2 or later.
  */
 
 package com.evolveum.midpoint.web.page.self;
 
+import java.io.Serial;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import com.evolveum.midpoint.gui.impl.page.login.module.PageLogin;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowPurposeType;
-
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.markup.html.AjaxLink;
-import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.markup.html.form.PasswordTextField;
-import org.apache.wicket.markup.repeater.RepeatingView;
+import org.apache.wicket.markup.html.list.ListItem;
+import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
-import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.apache.wicket.spring.injection.annot.SpringBean;
-import org.apache.wicket.util.string.StringValue;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.apache.wicket.model.LoadableDetachableModel;
+import org.springframework.security.core.Authentication;
 
+import com.evolveum.midpoint.authentication.api.AuthenticationModuleState;
+import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
-import com.evolveum.midpoint.authentication.api.evaluator.AuthenticationEvaluator;
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
+import com.evolveum.midpoint.authentication.api.config.ModuleAuthentication;
+import com.evolveum.midpoint.authentication.api.util.AuthUtil;
+import com.evolveum.midpoint.authentication.api.util.AuthenticationModuleNameConstants;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.authentication.api.evaluator.context.PasswordAuthenticationContext;
+import com.evolveum.midpoint.gui.impl.page.login.AbstractPageLogin;
+import com.evolveum.midpoint.gui.impl.page.login.module.PageLogin;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.security.api.ConnectionEnvironment;
+import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.Producer;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.AjaxSubmitButton;
+import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
-@PageDescriptor(urls = {@Url(mountUrl = SchemaConstants.ACCOUNT_ACTIVATION_PREFIX)}, permitAll = true)
-public class PageAccountActivation extends PageBase {
+/**
+ * Sets the password to accounts that were created without it (shadows with {@code purpose=incomplete}),
+ * typically because the user password is stored hashed and midPoint had no cleartext when the account was created.
+ *
+ * The page is the last step of the authentication sequence bound to the account activation channel.
+ * The user is already authenticated by the mail nonce from the activation link and by the login form;
+ * the cleartext password entered in the login form is taken from the authenticated module and propagated
+ * to the user's own incomplete shadows. All operations run as the authenticated principal with the
+ * authorizations granted by the channel, nothing runs privileged.
+ */
+@SuppressWarnings("unused")
+@PageDescriptor(
+        urls = { @Url(mountUrl = SchemaConstants.ACCOUNT_ACTIVATION_PREFIX, matchUrlForSecurity = SchemaConstants.ACCOUNT_ACTIVATION_PREFIX) },
+        action = { @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_ACCOUNT_ACTIVATION_URL) })
+public class PageAccountActivation extends AbstractPageLogin {
 
-    private static final long serialVersionUID = 1L;
+    @Serial private static final long serialVersionUID = 1L;
 
     private static final Trace LOGGER = TraceManager.getTrace(PageAccountActivation.class);
 
-    private IModel<UserType> userModel;
-
     private static final String DOT_CLASS = PageAccountActivation.class.getName() + ".";
-    private static final String LOAD_USER = DOT_CLASS + "loadUser";
+    private static final String OPERATION_LOAD_SHADOW = DOT_CLASS + "loadShadow";
     private static final String OPERATION_ACTIVATE_SHADOWS = DOT_CLASS + "activateShadows";
 
     private static final String ID_MAIN_FORM = "mainForm";
-    private static final String ID_NAME = "username";
-    private static final String ID_PASSWORD = "password";
-    private static final String ID_CONFIRM = "confirm";
-    private static final String ID_ACTIVATION_CONTAINER = "activationContainer";
-    private static final String ID_CONFIRMATION_CONTAINER = "confirmationContainer";
-    private static final String ID_ACTIVATED_SHADOWS = "activatedShadows";
-    private static final String ID_LINK_TO_LOGIN = "linkToLogin";
+    private static final String ID_ACCOUNTS = "accounts";
+    private static final String ID_ACCOUNT_NAME = "accountName";
+    private static final String ID_NOTHING_TO_ACTIVATE = "nothingToActivate";
+    private static final String ID_ACTIVATE = "activate";
 
-    private boolean activated = false;
+    private final IModel<List<ShadowType>> shadowsToActivateModel = new LoadableDetachableModel<>() {
 
-    @SpringBean(name = "passwordAuthenticationEvaluator")
-    private AuthenticationEvaluator<PasswordAuthenticationContext, UsernamePasswordAuthenticationToken> authenticationEvaluator;
-
-    public PageAccountActivation(PageParameters params) {
-
-        UserType user = loadUser(params);
-
-        if (user == null) {
-            getSession().error(getString("PageAccountActivation.account.activation.failed"));
-            throw new RestartResponseException(PageLogin.class);
-        }
-
-        userModel = new LoadableModel<UserType>(false) {
-
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            protected UserType load() {
-                return user;
-            }
-        };
-
-        initLayout();
-
-    }
-
-    private UserType loadUser(PageParameters params){
-        String userOid = getOidFromParameter(params);
-        if (userOid == null) {
-            getSession().error(getString("PageAccountActivation.user.not.found"));
-            throw new RestartResponseException(PageLogin.class);
-        }
-
-        Task task = createAnonymousTask(LOAD_USER);
-        OperationResult result = new OperationResult(LOAD_USER);
-
-        return runPrivileged(new Producer<UserType>() {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public UserType run() {
-                Collection<SelectorOptions<GetOperationOptions>> options = getOperationOptionsBuilder()
-                        .item(UserType.F_LINK_REF).resolve()
-                        .item(UserType.F_LINK_REF, ShadowType.F_RESOURCE_REF).resolve()
-                        .build();
-                PrismObject<UserType> user = WebModelServiceUtils.loadObject(UserType.class, userOid, options, PageAccountActivation.this, task, result);
-                if (user == null) {
-                    return null;
-                }
-                return user.asObjectable();
-            }
-        });
-
-
-    }
-
-    private void initLayout(){
-        WebMarkupContainer activationContainer= new WebMarkupContainer(ID_ACTIVATION_CONTAINER);
-        activationContainer.setOutputMarkupId(true);
-        add(activationContainer);
-        activationContainer.add(new VisibleEnableBehaviour() {
-            private static final long serialVersionUID = 1L;
-            @Override
-            public boolean isVisible() {
-                return !activated;
-            }
-
-        });
-
-        Form<?> form = new MidpointForm<>(ID_MAIN_FORM);
-        activationContainer.add(form);
-
-        Label usernamePanel = new Label(ID_NAME, createStringResource("PageAccountActivation.activate.accounts.label",
-                userModel != null && userModel.getObject() != null && userModel.getObject().getName() != null ?
-                        getLocalizationService().translate(userModel.getObject().getName().toPolyString()) : ""));
-            usernamePanel.add(new VisibleEnableBehaviour() {
-                private static final long serialVersionUID = 1L;
-
-                @Override
-                public boolean isEnabled() {
-                    return false;
-                }
-            });
-        form.add(usernamePanel);
-
-        PasswordTextField passwordPanel = new PasswordTextField(ID_PASSWORD, Model.of(new String()));
-        form.add(passwordPanel);
-
-        AjaxSubmitButton confirmPasswrod = new AjaxSubmitButton(ID_CONFIRM) {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            protected void onSubmit(AjaxRequestTarget target) {
-                propagatePassword(target, getForm());
-            }
+        @Serial private static final long serialVersionUID = 1L;
 
         @Override
-        protected void onError(AjaxRequestTarget target) {
-            getSession().error(getString("PageAccountActivation.account.activation.failed"));
-            target.add(getFeedbackPanel());
+        protected List<ShadowType> load() {
+            return loadShadowsToActivate();
         }
-        };
-        form.setDefaultButton(confirmPasswrod);
-        form.add(confirmPasswrod);
+    };
 
-        WebMarkupContainer confirmationContainer = new WebMarkupContainer(ID_CONFIRMATION_CONTAINER);
-        confirmationContainer.setOutputMarkupId(true);
-        confirmationContainer.add(new VisibleEnableBehaviour() {
+    @Override
+    protected boolean isBackButtonVisible() {
+        return false;
+    }
 
-            private static final long serialVersionUID = 1L;
+    @Override
+    protected IModel<String> getDefaultLoginPanelTitleModel() {
+        return createStringResource("PageAccountActivation.title");
+    }
+
+    @Override
+    protected IModel<String> getDefaultLoginPanelDescriptionModel() {
+        return createStringResource("PageAccountActivation.description");
+    }
+
+    @Override
+    public Task createSimpleTask(String operation) {
+        Task task = createAnonymousTask(operation);
+        task.setChannel(SchemaConstants.CHANNEL_ACCOUNT_ACTIVATION_URI);
+        FocusType principalFocus = getPrincipalFocus();
+        if (principalFocus != null) {
+            task.setOwner(principalFocus.asPrismObject());
+        }
+        return task;
+    }
+
+    @Override
+    protected void initCustomLayout() {
+        MidpointForm<?> form = new MidpointForm<>(ID_MAIN_FORM);
+        form.setOutputMarkupId(true);
+        add(form);
+
+        ListView<ShadowType> accounts = new ListView<>(ID_ACCOUNTS, shadowsToActivateModel) {
+
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
-            public boolean isVisible() {
-                return activated;
+            protected void populateItem(ListItem<ShadowType> item) {
+                item.add(new Label(ID_ACCOUNT_NAME, () -> describeShadow(item.getModelObject())));
             }
-        });
+        };
+        form.add(accounts);
 
-        add(confirmationContainer);
+        Label nothingToActivate = new Label(ID_NOTHING_TO_ACTIVATE,
+                createStringResource("PageAccountActivation.nothing.to.activate"));
+        nothingToActivate.add(new VisibleBehaviour(() -> shadowsToActivateModel.getObject().isEmpty()));
+        form.add(nothingToActivate);
 
-        AjaxLink<Void> linkToLogin = new AjaxLink<Void>(ID_LINK_TO_LOGIN) {
+        AjaxButton activate = new AjaxButton(ID_ACTIVATE, createStringResource("PageAccountActivation.button.activate")) {
 
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                setResponsePage(PageLogin.class);
+                activatePerformed(target);
             }
         };
-        confirmationContainer.add(linkToLogin);
+        activate.add(new VisibleBehaviour(() -> !shadowsToActivateModel.getObject().isEmpty()));
+        form.add(activate);
+    }
 
-        RepeatingView activatedShadows = new RepeatingView(ID_ACTIVATED_SHADOWS);
-        confirmationContainer.add(activatedShadows);
-        List<ShadowType> shadowsToActivate = getShadowsToActivate();
+    private String describeShadow(ShadowType shadow) {
+        String resourceName = shadow.getResourceRef() != null && shadow.getResourceRef().getTargetName() != null
+                ? shadow.getResourceRef().getTargetName().getOrig() : "";
+        return createStringResource("PageAccountActivation.account.description", WebComponentUtil.getName(shadow), resourceName).getString();
+    }
 
+    private List<ShadowType> loadShadowsToActivate() {
+        FocusType focus = getPrincipalFocus();
+        List<ShadowType> shadows = new ArrayList<>();
+        if (!(focus instanceof UserType user)) {
+            return shadows;
+        }
+        Task task = createSimpleTask(OPERATION_LOAD_SHADOW);
+        OperationResult result = task.getResult();
+        Collection<SelectorOptions<GetOperationOptions>> options = getOperationOptionsBuilder()
+                .noFetch()
+                .resolveNames()
+                .build();
+        for (ObjectReferenceType linkRef : user.getLinkRef()) {
+            try {
+                PrismObject<ShadowType> shadow = getModelService().getObject(ShadowType.class, linkRef.getOid(), options, task, result);
+                if (shadow.asObjectable().getPurpose() == ShadowPurposeType.INCOMPLETE) {
+                    shadows.add(shadow.asObjectable());
+                }
+            } catch (Exception e) {
+                // Dead or otherwise unreadable shadow. It cannot be activated anyway, just skip it.
+                LoggingUtils.logExceptionAsWarning(LOGGER, "Couldn't load shadow {} of user {}", e, linkRef.getOid(), user);
+            }
+        }
+        return shadows;
+    }
+
+    private void activatePerformed(AjaxRequestTarget target) {
+        List<ShadowType> shadowsToActivate = shadowsToActivateModel.getObject();
         if (shadowsToActivate.isEmpty()) {
-            LOGGER.error("No accounts to validate for user {}", userModel.getObject());
             getSession().warn(getString("PageAccountActivation.nothing.to.activate"));
-            throw new RestartResponseException(PageLogin.class);
-        }
-        for (ShadowType shadow : shadowsToActivate) {
-            Label shadowDesc = new Label(activatedShadows.newChildId(), WebComponentUtil.getName(shadow) + " on resource " + WebComponentUtil.getName(shadow.getResourceRef()));
-            activatedShadows.add(shadowDesc);
-
+            finish();
         }
 
-
-    }
-
-    private String getOidFromParameter(PageParameters params){
-
-        if (params == null || params.isEmpty()) {
-            LOGGER.error("No page parameters found for account activation. No user to activate his/her accounts");
-            return null;
+        String password = getPasswordFromAuthentication();
+        if (StringUtils.isEmpty(password)) {
+            LOGGER.error("Password is not available in the authentication sequence used for account activation, "
+                    + "the sequence has to contain a successful login form module");
+            getSession().error(getString("PageAccountActivation.password.not.available"));
+            finish();
         }
 
-        StringValue userValue = params.get(SchemaConstants.USER_ID);
-        if (userValue == null || userValue.isEmpty()) {
-            LOGGER.error("No user defined in the page parameter. Expected user=? attribute filled but didmn't find one.");
-            return null;
-        }
-
-        return userValue.toString();
-
-    }
-
-    private void propagatePassword(AjaxRequestTarget target,
-            Form<?> form) {
-
-        List<ShadowType> shadowsToActivate = getShadowsToActivate();
-
-        PasswordTextField passwordPanel = (PasswordTextField) form.get(createComponentPath(ID_PASSWORD));
-        String value = passwordPanel.getModelObject();
-
-        ConnectionEnvironment connEnv = ConnectionEnvironment.create(SchemaConstants.CHANNEL_USER_URI);
-        UsernamePasswordAuthenticationToken token;
-        try {
-            token = authenticationEvaluator.authenticate(connEnv, new PasswordAuthenticationContext(userModel.getObject().getName().getOrig(), value,
-                    userModel.getObject().getClass() ));
-        } catch (Exception ex) {
-            LOGGER.error("Failed to authenticate user, reason {}", ex.getMessage());
-            getSession().error(getString("PageAccountActivation.authentication.failed"));
-            throw new RestartResponseException(PageAccountActivation.class, getPageParameters());
-        }
-        if (token == null) {
-            LOGGER.error("Failed to authenticate user");
-            getSession().error(getString("PageAccountActivation.authentication.failed"));
-            throw new RestartResponseException(PageAccountActivation.class, getPageParameters());
-        }
         ProtectedStringType passwordValue = new ProtectedStringType();
-        passwordValue.setClearValue(value);
+        passwordValue.setClearValue(password);
 
-        Collection<ObjectDelta<ShadowType>> passwordDeltas = new ArrayList<>(shadowsToActivate.size());
+        Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
         for (ShadowType shadow : shadowsToActivate) {
             ObjectDelta<ShadowType> shadowDelta = getPrismContext().deltaFactory().object()
-                    .createModificationReplaceProperty(ShadowType.class, shadow.getOid(), SchemaConstants.PATH_PASSWORD_VALUE,
-                            passwordValue);
+                    .createModificationReplaceProperty(ShadowType.class, shadow.getOid(),
+                            SchemaConstants.PATH_PASSWORD_VALUE, passwordValue.clone());
             shadowDelta.addModificationReplaceProperty(ShadowType.F_PURPOSE, ShadowPurposeType.REGULAR);
-            passwordDeltas.add(shadowDelta);
+            deltas.add(shadowDelta);
         }
 
-        OperationResult result = runPrivileged(new Producer<OperationResult>() {
-            private static final long serialVersionUID = 1L;
+        Task task = createSimpleTask(OPERATION_ACTIVATE_SHADOWS);
+        OperationResult result = task.getResult();
+        try {
+            getModelService().executeChanges(deltas, null, task, result);
+            result.computeStatusIfUnknown();
+        } catch (Exception e) {
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't activate accounts of {}", e, getPrincipalFocus());
+            result.recordFatalError(getString("PageAccountActivation.account.activation.failed"), e);
+        }
 
-            @Override
-            public OperationResult run() {
-                OperationResult result = new OperationResult(OPERATION_ACTIVATE_SHADOWS);
-                Task task = createAnonymousTask(OPERATION_ACTIVATE_SHADOWS);
-                WebModelServiceUtils.save((Collection) passwordDeltas, null, result, task, PageAccountActivation.this);
-                return result;
-            }
-        });
-
-        result.recomputeStatus();
-
-        if (!result.isSuccess()) {
-            getSession().error(getString("PageAccountActivation.account.activation.failed"));
-            LOGGER.error("Failed to acitvate accounts, reason: {} ", result.getMessage());
-            target.add(getFeedbackPanel());
-        } else {
+        if (result.isSuccess()) {
             getSession().success(getString("PageAccountActivation.account.activation.successful"));
-            target.add(getFeedbackPanel());
-            activated = true;
+            finish();
         }
-
-        target.add(PageAccountActivation.this);
-
-
+        showResult(result);
+        target.add(getFeedbackPanel());
     }
 
-    private List<ShadowType> getShadowsToActivate() {
-        UserType userType = userModel.getObject();
-        List<ShadowType> shadowsToActivate = new ArrayList<>();
-        for (ObjectReferenceType linkRef : userType.getLinkRef()) {
-            ShadowType shadow = (ShadowType) linkRef.asReferenceValue().getObject().asObjectable();
-            if (shadow.getPurpose() == ShadowPurposeType.INCOMPLETE) {
-                shadowsToActivate.add(shadow);
+    /**
+     * The cleartext password is the one entered in the login form module of the current (account activation)
+     * authentication sequence. It is never re-asked on this page, so there is no password check outside of
+     * the authentication sequence.
+     */
+    private String getPasswordFromAuthentication() {
+        MidpointAuthentication mpAuthentication = AuthUtil.getMidpointAuthentication();
+        for (ModuleAuthentication module : mpAuthentication.getAuthentications()) {
+            if (!AuthenticationModuleNameConstants.LOGIN_FORM.equals(module.getModuleTypeName())
+                    || module.getState() != AuthenticationModuleState.SUCCESSFULLY) {
+                continue;
+            }
+            Authentication moduleToken = module.getAuthentication();
+            if (moduleToken != null && moduleToken.getCredentials() instanceof String credentials) {
+                return credentials;
             }
         }
-        return shadowsToActivate;
+        return null;
+    }
+
+    /** The activation session is one-shot, whatever the outcome. */
+    private void finish() {
+        AuthUtil.clearMidpointAuthentication();
+        throw new RestartResponseException(PageLogin.class);
     }
 }

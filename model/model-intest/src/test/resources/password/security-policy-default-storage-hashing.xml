@@ -8,6 +8,35 @@
 <securityPolicy oid="0ea3b93c-0425-11e7-bbc1-73566dc53d59"
     xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'>
     <name>Security Policy: default storage hashing</name>
+    <authentication>
+        <modules>
+            <mailNonce id="10">
+                <identifier>accountActivationMailNonce</identifier>
+                <credentialName>accountActivationNonce</credentialName>
+            </mailNonce>
+            <loginForm id="11">
+                <identifier>accountActivationLoginForm</identifier>
+            </loginForm>
+        </modules>
+        <!-- Sequence used by the account activation link (issue 5490), see createAccountActivationLink -->
+        <sequence id="12">
+            <identifier>account-activation</identifier>
+            <channel>
+                <channelId>http://midpoint.evolveum.com/xml/ns/public/common/channels-3#accountActivation</channelId>
+                <urlSuffix>accountActivation</urlSuffix>
+            </channel>
+            <module id="13">
+                <identifier>accountActivationMailNonce</identifier>
+                <order>10</order>
+                <necessity>requisite</necessity>
+            </module>
+            <module id="14">
+                <identifier>accountActivationLoginForm</identifier>
+                <order>20</order>
+                <necessity>required</necessity>
+            </module>
+        </sequence>
+    </authentication>
     <credentials>
         <default>
             <storageMethod>
@@ -17,6 +46,10 @@
                 <storageType>hashing</storageType>
             </historyStorageMethod>
         </default>
+        <nonce id="15">
+            <name>accountActivationNonce</name>
+            <maxAge>PT1H</maxAge>
+        </nonce>
         <securityQuestions>
             <question>
                 <identifier>http://midpoint.evolveum.com/xml/ns/public/security/question-2#q001</identifier>
