@@ -13,6 +13,7 @@ import jakarta.servlet.ServletResponse;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
+import java.util.List;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -24,10 +25,14 @@ import com.evolveum.midpoint.security.api.MidPointPrincipal;
 
 import org.jetbrains.annotations.VisibleForTesting;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.filter.GenericFilterBean;
 
+import com.evolveum.midpoint.authentication.api.AuthModule;
+import com.evolveum.midpoint.authentication.api.AuthenticationSequenceListener;
 import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
+import com.evolveum.midpoint.authentication.api.config.ModuleAuthentication;
 import com.evolveum.midpoint.security.api.SecurityUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -47,6 +52,10 @@ import com.evolveum.midpoint.util.logging.TraceManager;
  *
  * - focus/behavior/authentication
  * - audit
+ *
+ * The outcome is also passed to the {@link AuthenticationSequenceListener}s among the providers of the sequence modules.
+ *
+ * TODO rename, the filter completes the sequence (records, audits, notifies listeners), it does not only audit
  */
 public class SequenceAuditFilter extends GenericFilterBean {
 
@@ -116,14 +125,45 @@ public class SequenceAuditFilter extends GenericFilterBean {
         boolean isAuthenticated = mpAuthentication.isAuthenticated();
         if (isAuthenticated) {
             authenticationRecorder.recordSequenceAuthenticationSuccess(mpPrincipal, createConnectionEnvironment(request, mpAuthentication));
+            notifyListeners(mpAuthentication, true);
             mpAuthentication.setAlreadyAudited(true);
             LOGGER.trace("Authentication sequence {} evaluated as successful.", mpAuthentication.getSequenceIdentifier());
         } else if (mpAuthentication.isFinished() && StringUtils.isNotEmpty(mpAuthentication.getUsername())) {
             authenticationRecorder.recordSequenceAuthenticationFailure(mpAuthentication.getUsername(), mpPrincipal, null,
                     mpAuthentication.getFailedReason(), createConnectionEnvironment(request, mpAuthentication));
+            notifyListeners(mpAuthentication, false);
             mpAuthentication.setAlreadyAudited(true);
             LOGGER.trace("Authentication sequence {} evaluated as failed.", mpAuthentication.getSequenceIdentifier());
         }
+    }
+
+    private void notifyListeners(MidpointAuthentication mpAuthentication, boolean succeeded) {
+        for (AuthModule<?> authModule : mpAuthentication.getAuthModules()) {
+            List<AuthenticationProvider> providers = authModule.getAuthenticationProviders();
+            if (providers == null || providers.isEmpty()) {
+                continue;
+            }
+
+            ModuleAuthentication moduleAuthentication = findModuleAuthentication(mpAuthentication, authModule.getModuleIdentifier());
+            for (AuthenticationProvider provider : providers) {
+                if (!(provider instanceof AuthenticationSequenceListener listener)) {
+                    continue;
+                }
+
+                if (succeeded) {
+                    listener.sequenceSucceeded(mpAuthentication, moduleAuthentication);
+                } else {
+                    listener.sequenceFailed(mpAuthentication, moduleAuthentication);
+                }
+            }
+        }
+    }
+
+    private ModuleAuthentication findModuleAuthentication(MidpointAuthentication mpAuthentication, String moduleIdentifier) {
+        return mpAuthentication.getAuthentications().stream()
+                .filter(module -> moduleIdentifier != null && moduleIdentifier.equals(module.getModuleIdentifier()))
+                .findFirst()
+                .orElse(null);
     }
 
     private ConnectionEnvironment createConnectionEnvironment(HttpServletRequest request, MidpointAuthentication mpAuthentication) {
