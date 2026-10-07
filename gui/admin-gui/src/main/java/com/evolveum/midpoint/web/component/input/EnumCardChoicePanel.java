@@ -37,6 +37,9 @@ import com.evolveum.midpoint.web.component.prism.InputPanel;
  * Each option is rendered as a card with a radio button, a title and a short description;
  * clicking the card selects the option.
  *
+ * <p>A read-only panel renders its selection as disabled and is excluded from form
+ * processing, so a form submission can neither change nor clear the locked value.
+ *
  * @param <T> enum type of the selected value
  */
 public class EnumCardChoicePanel<T extends Enum<?>> extends InputPanel {
@@ -81,6 +84,14 @@ public class EnumCardChoicePanel<T extends Enum<?>> extends InputPanel {
     private void initLayout() {
         RadioGroup<T> radioGroup = new RadioGroup<>(ID_INPUT, valueModel);
         radioGroup.setOutputMarkupId(true);
+        if (readOnly) {
+            // A read-only selection must survive form submissions: a disabled radio input is
+            // never submitted, so an enabled group would convert the missing input to null and
+            // wipe the value (e.g. the locked SQL integration type of a connector development)
+            // whenever the surrounding form is submitted. Disabling the group makes Wicket skip
+            // both its validation and its model update, so the value is only rendered.
+            radioGroup.setEnabled(false);
+        }
 
         if (required) {
             radioGroup.add(new IValidator<T>() {
