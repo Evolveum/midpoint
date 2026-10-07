@@ -18,6 +18,15 @@
                         <span>&nbsp;</span>
                     </a>
                 </div>
+                <wicket:remove>
+                    The toggle sits between the logo and the menu so that focus and reading order are
+                    logo, toggle, menu (WCAG 2.2, 2.4.3). It is drawn in the header, next to the sidebar edge, by CSS.
+                </wicket:remove>
+                <div wicket:id="menuToggle" class="app-header app-menu-toggle navbar navbar-expand border-bottom-0">
+                    <a class="nav-link menu-toggle" data-lte-toggle="sidebar" href="#" role="button" aria-controls="navigation"
+                            wicket:message="title:Accessibility.PageBase.pushmenu.title,data-title-collapsed:Accessibility.PageBase.pushmenu.title.expand,data-title-expanded:Accessibility.PageBase.pushmenu.title,data-collapsed-message:Accessibility.PageBase.pushmenu.switchedToCompact,data-expanded-message:Accessibility.PageBase.pushmenu.switchedToFull"><i class="fas fa-bars"></i></a>
+                    <span id="menuToggleStatus" aria-live="polite" class="visually-hidden"></span>
+                </div>
                 <div class="sidebar-wrapper">
                     <wicket:container wicket:id="menu"/>
                 </div>

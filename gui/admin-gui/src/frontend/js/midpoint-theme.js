@@ -1593,6 +1593,13 @@ export default class MidPointTheme {
             }, 100);
         };
 
+        // The button is inside the sidebar, so hovering it also counts as hovering the sidebar.
+        // AdminLTE would then expand a collapsed sidebar on hover, right after the button collapsed it.
+        // While the pointer is on the button, turn off this expanding on hover.
+        const buttonBox = button.closest('.app-menu-toggle') || button;
+        buttonBox.addEventListener('mouseenter', () => document.body.classList.add('sidebar-without-hover'));
+        buttonBox.addEventListener('mouseleave', () => document.body.classList.remove('sidebar-without-hover'));
+
         syncState();
 
         document.addEventListener('collapsed.lte.push-menu', () => {

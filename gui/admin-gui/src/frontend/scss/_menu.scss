@@ -139,8 +139,9 @@ ul.details-menu {
   }
 }
 
-//Fix when hovering collapsed sidemenu to use bigger default logo
-.sidebar-mini-xs.sidebar-collapse .app-sidebar:hover {
+//Fix when hovering collapsed sidemenu to use bigger default logo and to show the user panel again.
+//Not applied while hover-expand is switched off (the pointer is on the sidebar toggle), the sidebar stays collapsed then.
+.sidebar-mini.sidebar-collapse:not(.sidebar-without-hover) .app-sidebar:hover {
   & .sidebar-brand > a.logo > span {
     &:before {
       opacity: 1;
@@ -171,6 +172,17 @@ body.sidebar-collapse .app-sidebar {
   & .user-panel > .info {
     opacity: 0;
   }
+}
+
+// Menu item labels are not <p> (which AdminLTE hides in the icon-only sidebar) but flex items that only
+// shrink, so nested (indented) items leave a few pixels for the label and its first letters stay visible.
+// Hidden by opacity, not visibility/display, so the labels stay available to assistive technologies.
+.sidebar-mini.sidebar-collapse .app-sidebar .sidebar-menu .nav-link > .text-truncate {
+  opacity: 0;
+}
+
+.sidebar-mini.sidebar-collapse:not(.sidebar-without-hover) .app-sidebar:hover .sidebar-menu .nav-link > .text-truncate {
+  opacity: 1;
 }
 
 .app-sidebar {
@@ -285,14 +297,16 @@ li.dropdown.user.user-menu {
 
 // end sidebar styles extension
 
-// Sidebar toggle is placed in markup before the sidebar (focus order, WCAG 2.4.3), here it is drawn
-// over the left corner of the header. Header content is shifted by the width of the button.
+// Sidebar toggle is placed in markup inside the sidebar, between the logo and the menu, so that focus and
+// reading order is logo, toggle, menu.
 $menu-toggle-width: 3rem;
 
-.app-header.app-menu-toggle {
-  justify-self: start;
+.app-sidebar .app-header.app-menu-toggle {
+  position: absolute;
+  top: 0;
+  left: 100%;
+  height: $lte-app-header-height;
   padding-left: $container-padding-x * .5;
-  z-index: $lte-zindex-fixed-header + 1;
   background-color: transparent !important;
 
   .menu-toggle {
@@ -303,7 +317,15 @@ $menu-toggle-width: 3rem;
   }
 }
 
-.app-menu-toggle ~ .app-header > .container-fluid {
+// Keep the icon-only sidebar visible on the narrow screens, the expanded one stays an overlay.
+@media (max-width: 991.98px) {
+  .sidebar-expand-lg.sidebar-mini.sidebar-collapse .app-sidebar {
+    position: sticky;
+    margin-left: 0;
+  }
+}
+
+.app-sidebar ~ .app-header > .container-fluid {
   padding-left: calc(#{$container-padding-x * .5} + #{$menu-toggle-width});
 }
 

@@ -15,16 +15,6 @@
                 <wicket:message key="Accessibility.PageBase.skiplink.title"/>
             </a>
         </div>
-        <wicket:remove>
-            Sidebar toggle is placed directly before the sidebar it controls, so that the sidebar follows
-            the button in focus and reading order (WCAG 2.2, 2.4.3). CSS draws it in the header.
-        </wicket:remove>
-        <div wicket:id="menuToggle" class="app-header app-menu-toggle navbar navbar-expand border-bottom-0">
-            <a class="nav-link menu-toggle" data-lte-toggle="sidebar" href="#" role="button" aria-controls="navigation"
-                    wicket:message="title:Accessibility.PageBase.pushmenu.title,data-title-collapsed:Accessibility.PageBase.pushmenu.title.expand,data-title-expanded:Accessibility.PageBase.pushmenu.title,data-collapsed-message:Accessibility.PageBase.pushmenu.switchedToCompact,data-expanded-message:Accessibility.PageBase.pushmenu.switchedToFull"><i class="fas fa-bars"></i></a>
-            <span id="menuToggleStatus" aria-live="polite" class="visually-hidden"></span>
-        </div>
-
         <wicket:enclosure child="sidebarMenu">
             <aside class="app-sidebar" id="navigation" wicket:id="sidebarMenu"/>
         </wicket:enclosure>

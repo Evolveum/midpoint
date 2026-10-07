@@ -113,8 +113,10 @@
 
 @media (min-width: 992px) {
   .layout-fixed.sidebar-expand-lg .app-sidebar {
-    // The inner sidebar wrapper owns vertical scrolling.
-    overflow: hidden;
+    // The inner sidebar wrapper owns vertical scrolling. Horizontally the sidebar must not clip, the
+    // sidebar toggle is drawn just outside of its right edge (see .app-menu-toggle in _menu.scss).
+    overflow-x: visible;
+    overflow-y: clip;
   }
 }
 

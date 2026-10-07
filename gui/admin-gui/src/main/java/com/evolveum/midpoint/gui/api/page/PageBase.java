@@ -121,7 +121,6 @@ public abstract class PageBase extends PageAdminLTE {
     private static final String ID_FEEDBACK = "feedback";
     private static final String ID_SIDEBAR_MENU = "sidebarMenu";
     private static final String ID_LOCALE = "locale";
-    private static final String ID_MENU_TOGGLE = "menuToggle";
     private static final String ID_BREADCRUMB = "breadcrumb";
     private static final String ID_BC_LINK = "bcLink";
     private static final String ID_BC_ICON = "bcIcon";
@@ -428,11 +427,6 @@ public abstract class PageBase extends PageAdminLTE {
         mainHeader.setOutputMarkupId(true);
         add(mainHeader);
 
-        WebMarkupContainer menuToggle = new WebMarkupContainer(ID_MENU_TOGGLE);
-        menuToggle.add(createHeaderSkinClassAppender());
-        menuToggle.add(createUserStatusBehaviour());
-        add(menuToggle);
-
         IModel<IconType> logoModel = new IModel<>() {
 
             @Serial private static final long serialVersionUID = 1L;
@@ -571,7 +565,7 @@ public abstract class PageBase extends PageAdminLTE {
         showDrawer(drawerModel, target);
     }
 
-    private AttributeAppender createHeaderSkinClassAppender() {
+    public static AttributeAppender createHeaderSkinClassAppender() {
         return AttributeAppender.append("class", () -> {
             String skin = WebComponentUtil.getMidPointSkin().getBackgroundCss();
 

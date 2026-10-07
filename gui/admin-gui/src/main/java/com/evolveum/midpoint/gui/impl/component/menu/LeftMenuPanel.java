@@ -104,6 +104,7 @@ public class LeftMenuPanel extends BasePanel<Void> {
     private static final String ID_CUSTOM_LOGO = "customLogo";
     private static final String ID_CUSTOM_LOGO_IMG_SRC = "customLogoImgSrc";
     private static final String ID_CUSTOM_LOGO_IMG_CSS = "customLogoImgCss";
+    private static final String ID_MENU_TOGGLE = "menuToggle";
 
     private static final Trace LOGGER = TraceManager.getTrace(LeftMenuPanel.class);
 
@@ -246,6 +247,10 @@ public class LeftMenuPanel extends BasePanel<Void> {
 
         logo.add(PageBase.createHeaderColorStyleModel(false));
         customLogo.add(PageBase.createHeaderColorStyleModel(false));
+
+        WebMarkupContainer menuToggle = new WebMarkupContainer(ID_MENU_TOGGLE);
+        menuToggle.add(PageBase.createHeaderSkinClassAppender());
+        add(menuToggle);
 
         SideBarMenuPanel sidebarMenu = new SideBarMenuPanel(ID_MENU, sideBarMenuModel);
         add(sidebarMenu);
