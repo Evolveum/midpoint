@@ -12,7 +12,7 @@ import com.evolveum.midpoint.authentication.impl.entry.point.HttpAuthenticationE
 import com.evolveum.midpoint.authentication.impl.MidpointAuthenticationTrustResolverImpl;
 import com.evolveum.midpoint.authentication.impl.filter.FinishAuthenticationFilter;
 import com.evolveum.midpoint.authentication.impl.filter.HttpBasicAuthenticationFilter;
-import com.evolveum.midpoint.authentication.impl.filter.SequenceAuditFilter;
+import com.evolveum.midpoint.authentication.impl.filter.SequenceCompletionFilter;
 import com.evolveum.midpoint.authentication.impl.filter.configurers.MidpointExceptionHandlingConfigurer;
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 
@@ -91,7 +91,7 @@ public class HttpBasicModuleWebSecurityConfigurer extends ModuleWebSecurityConfi
                 .authenticationEntryPoint(entryPoint)
                 .authenticationTrustResolver(new MidpointAuthenticationTrustResolverImpl());
 
-        SequenceAuditFilter sequenceAuditFilter = new SequenceAuditFilter();
+        SequenceCompletionFilter sequenceAuditFilter = new SequenceCompletionFilter();
         sequenceAuditFilter.setRecordOnEndOfChain(false);
         http.addFilterAfter(getObjectPostProcessor().postProcess(sequenceAuditFilter), AuthorizationFilter.class);
     }

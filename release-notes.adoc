@@ -36,6 +36,10 @@ Overall, midPoint 4.9 is a major step from the past into the future.
 ++++
 
 == Changes with Respect To Version 4.9.9
+* Account activation now uses a dedicated authentication sequence and a one-time link.
+This is mainly used when password hashing is enabled.
+See xref:/midpoint/guides/account-activation-sequence/[Account Activation Authentication Sequence] for the required configuration.
+* Mail nonce is spent only when the whole authentication sequence succeeds and it is bound to the sequence it was issued for.
 * Improved security filtering of transient pending objects before GUI rendering. See bug:MID-12062[]
 
 == Changes with Respect To Version 4.9.8

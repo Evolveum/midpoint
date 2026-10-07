@@ -175,8 +175,9 @@ public class GuiProfileCompiler {
         AuthenticationChannel channel = auth != null ? auth.getAuthenticationChannel() : null;
 
         if (!options.isRunAsRunner() && channel != null) {
-            @Nullable Authorization additionalAuth = channel.getAdditionalAuthority();
-            if (additionalAuth != null) {
+            // Authorizations the channel grants on its own (e.g. the page of a password reset or account activation
+            // flow). They do not go through resolveAuthorization below, which applies to assigned ones only.
+            for (Authorization additionalAuth : channel.getAdditionalAuthorities()) {
                 addAuthorizationToPrincipal(principal, additionalAuth, authorizationTransformer);
             }
         }

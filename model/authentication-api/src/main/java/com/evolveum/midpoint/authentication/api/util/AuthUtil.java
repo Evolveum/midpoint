@@ -277,7 +277,7 @@ public class AuthUtil {
         }
         return focus.getBehavior().getAuthentication()
                 .stream()
-                .filter(authData -> sequenceId.equals(authData.getSequenceIdentifier()))
+                .filter(authData -> Objects.equals(sequenceId, authData.getSequenceIdentifier()))
                 .findFirst()
                 .orElse(null);
     }
@@ -288,7 +288,7 @@ public class AuthUtil {
         }
         AuthenticationBehavioralDataType authenticationData = focus.getBehavior().getAuthentication()
                 .stream()
-                .filter(authData -> sequenceId.equals(authData.getSequenceIdentifier()))
+                .filter(authData -> Objects.equals(sequenceId, authData.getSequenceIdentifier()))
                 .findFirst()
                 .orElse(null);
 
