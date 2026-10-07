@@ -625,6 +625,12 @@ public class ConnectorDevelopmentServiceImpl implements ConnectorDevelopmentServ
                     .validateArtifact(artifact);
         }
 
+        @Override
+        public ConnDevArtifactValidationResult validateArtifacts(List<ConnDevArtifactType> artifacts, Task task, OperationResult result) {
+            return ConnectorDevelopmentBackend.backendFor(stateObject, task, result)
+                    .validateArtifacts(artifacts);
+        }
+
         public void comfirmApplicationInformation(Task task, OperationResult result) {
             ConnectorDevelopmentBackend.backendFor(stateObject, task, result).suggestConnectorCoordinates();
         }

@@ -14,6 +14,7 @@ import com.evolveum.midpoint.gui.impl.component.wizard.withnavigation.AbstractWi
 import com.evolveum.midpoint.gui.impl.component.wizard.withnavigation.AbstractWizardPartItem;
 
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.ConnectorDevelopmentDetailsModel;
+import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.FixObjectClassReviewConnectorStepPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.MultiWaitingConnectorStepPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.basic.BasicInformationConnectorStepPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.basic.DocumentationConnectorStepPanel;
@@ -174,6 +175,34 @@ public class ConnectorDevelopmentController extends AbstractWizardController<Con
 
     public void editDeleteOp(String objectClassName, AjaxRequestTarget target) {
         setPartItem(new DeleteConnectorDevPartItem(getHelper()), objectClassName, target);
+    }
+
+    /**
+     * "Fix scripts" from the object class tile's "Configure" menu - jumps straight to {@code
+     * FixObjectClassReviewConnectorStepPanel} for this object class, without first submitting an
+     * AI repair job and waiting on it: {@link FixObjectClassReviewConnectorStepPanel#resetArtifacts}
+     * with an empty "repair batch" makes every script default to its own deployed file content,
+     * so there is something to show immediately - the user can still trigger a real repair from
+     * there via the embedded {@code RepairObjectClassButton} if they actually want one.
+     */
+    public void editFixScripts(String objectClassName, AjaxRequestTarget target) {
+        setPartItems(createBasicPartItems());
+        refresh();
+        SchemaConnectorDevPartItem partItem = new SchemaConnectorDevPartItem(getHelper());
+        partItem.setParameter(objectClassName);
+        int index = addWizardPartOnEnd(partItem);
+        clearInProgressPart();
+        setActiveWizardPartIndex(index);
+
+        for (WizardStep step : getActiveChildrenSteps()) {
+            if (step instanceof FixObjectClassReviewConnectorStepPanel reviewPanel) {
+                reviewPanel.resetArtifacts(List.of());
+                setActiveStepWithinActivePart(reviewPanel.getStepId());
+                break;
+            }
+        }
+        fireActiveStepChanged();
+        target.add(getPanel());
     }
 
     public void showObjectClassesPanel(AjaxRequestTarget target) {

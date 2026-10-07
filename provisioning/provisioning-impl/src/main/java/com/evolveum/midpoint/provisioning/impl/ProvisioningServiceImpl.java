@@ -552,6 +552,12 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
     @Override
     public Object executeScript(String resourceOid, ProvisioningScriptType script, Task task, OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException {
+        return executeScript(resourceOid, script, true, task, parentResult);
+    }
+
+    @Override
+    public Object executeScript(String resourceOid, ProvisioningScriptType script, boolean productionUse, Task task, OperationResult parentResult)
+            throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException {
         Validate.notNull(resourceOid, "Oid of object for script execution must not be null.");
         Validate.notNull(parentResult, "Operation result must not be null.");
 
@@ -563,7 +569,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
         Object scriptResult;
         try {
 
-            scriptResult = resourceManager.executeScript(resourceOid, script, task, result);
+            scriptResult = resourceManager.executeScript(resourceOid, script, productionUse, task, result);
 
         } catch (CommunicationException | SchemaException | ConfigurationException | ExpressionEvaluationException |
                 RuntimeException | Error e) {

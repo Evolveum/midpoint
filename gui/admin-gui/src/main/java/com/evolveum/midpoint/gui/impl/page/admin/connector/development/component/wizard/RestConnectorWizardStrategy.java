@@ -14,6 +14,7 @@ import com.evolveum.midpoint.gui.api.component.wizard.WizardStep;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.ConnectorDevelopmentDetailsModel;
+import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.FixObjectClassReviewConnectorStepPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.WaitingFixObjectClassConnectorStepPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.connection.AuthScriptsConnectorStepPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.connection.BaseUrlConnectorStepPanel;
@@ -94,16 +95,19 @@ public class RestConnectorWizardStrategy implements ConnectorWizardStrategy {
                 new WaitingObjectClassDetailsConnectorStepPanel(helper, objectClassModel),
                 new WaitingNativeSchemaConnectorStepPanel(helper, objectClassModel),
                 new WaitingFixObjectClassConnectorStepPanel(helper, objectClassModel, SchemaObjectClassConnectorStepPanel.PANEL_TYPE),
+                new FixObjectClassReviewConnectorStepPanel(helper, objectClassModel, SchemaObjectClassConnectorStepPanel.PANEL_TYPE),
                 new SchemaScriptConnectorStepPanel(helper, objectClassModel),
                 new ShowSchemaConnectorStepPanel(helper, objectClassModel),
                 new SearchAllEndpointsConnectorStepPanel(helper, objectClassModel),
                 new WaitingSearchAllConnectorStepPanel(helper, objectClassModel),
                 new WaitingFixObjectClassConnectorStepPanel(helper, objectClassModel, SearchAllObjectClassConnectorStepPanel.PANEL_TYPE),
+                new FixObjectClassReviewConnectorStepPanel(helper, objectClassModel, SearchAllObjectClassConnectorStepPanel.PANEL_TYPE),
                 new SearchAllScriptConnectorStepPanel(helper, objectClassModel),
                 new SearchAllObjectsConnectorStepPanel(helper, objectClassModel),
                 new SearchByIdEndpointsConnectorStepPanel(helper, objectClassModel),
                 new WaitingSearchByIdConnectorStepPanel(helper, objectClassModel),
                 new WaitingFixObjectClassConnectorStepPanel(helper, objectClassModel, SearchByIdObjectClassConnectorStepPanel.PANEL_TYPE),
+                new FixObjectClassReviewConnectorStepPanel(helper, objectClassModel, SearchByIdObjectClassConnectorStepPanel.PANEL_TYPE),
                 new SearchByIdScriptConnectorStepPanel(helper, objectClassModel),
                 new SearchByIdObjectConnectorStepPanel(helper, objectClassModel));
     }
@@ -116,6 +120,7 @@ public class RestConnectorWizardStrategy implements ConnectorWizardStrategy {
                 new SearchAllEndpointsConnectorStepPanel(helper, objectClassModel),
                 new WaitingSearchAllConnectorStepPanel(helper, objectClassModel),
                 new WaitingFixObjectClassConnectorStepPanel(helper, objectClassModel, SearchAllObjectClassConnectorStepPanel.PANEL_TYPE),
+                new FixObjectClassReviewConnectorStepPanel(helper, objectClassModel, SearchAllObjectClassConnectorStepPanel.PANEL_TYPE),
                 new SearchAllScriptConnectorStepPanel(helper, objectClassModel),
                 new SearchAllObjectsConnectorStepPanel(helper, objectClassModel));
     }
@@ -128,6 +133,7 @@ public class RestConnectorWizardStrategy implements ConnectorWizardStrategy {
                 new SearchByIdEndpointsConnectorStepPanel(helper, objectClassModel),
                 new WaitingSearchByIdConnectorStepPanel(helper, objectClassModel),
                 new WaitingFixObjectClassConnectorStepPanel(helper, objectClassModel, SearchByIdObjectClassConnectorStepPanel.PANEL_TYPE),
+                new FixObjectClassReviewConnectorStepPanel(helper, objectClassModel, SearchByIdObjectClassConnectorStepPanel.PANEL_TYPE),
                 new SearchByIdScriptConnectorStepPanel(helper, objectClassModel),
                 new SearchByIdObjectConnectorStepPanel(helper, objectClassModel));
     }
@@ -140,6 +146,7 @@ public class RestConnectorWizardStrategy implements ConnectorWizardStrategy {
                 new SearchFilterEndpointsConnectorStepPanel(helper, objectClassModel),
                 new WaitingSearchFilterConnectorStepPanel(helper, objectClassModel),
                 new WaitingFixObjectClassConnectorStepPanel(helper, objectClassModel, SearchFilterObjectClassConnectorStepPanel.PANEL_TYPE),
+                new FixObjectClassReviewConnectorStepPanel(helper, objectClassModel, SearchFilterObjectClassConnectorStepPanel.PANEL_TYPE),
                 new SearchFilterScriptConnectorStepPanel(helper, objectClassModel),
                 new SearchFilterObjectsConnectorStepPanel(helper, objectClassModel));
     }
@@ -152,6 +159,7 @@ public class RestConnectorWizardStrategy implements ConnectorWizardStrategy {
                 new CreateEndpointsConnectorStepPanel(helper, objectClassModel),
                 new WaitingCreateConnectorStepPanel(helper, objectClassModel),
                 new WaitingFixObjectClassConnectorStepPanel(helper, objectClassModel, CreateObjectClassConnectorStepPanel.PANEL_TYPE),
+                new FixObjectClassReviewConnectorStepPanel(helper, objectClassModel, CreateObjectClassConnectorStepPanel.PANEL_TYPE),
                 new CreateScriptConnectorStepPanel(helper, objectClassModel));
     }
 
@@ -163,6 +171,7 @@ public class RestConnectorWizardStrategy implements ConnectorWizardStrategy {
                 new UpdateEndpointsConnectorStepPanel(helper, objectClassModel),
                 new WaitingUpdateConnectorStepPanel(helper, objectClassModel),
                 new WaitingFixObjectClassConnectorStepPanel(helper, objectClassModel, UpdateObjectClassConnectorStepPanel.PANEL_TYPE),
+                new FixObjectClassReviewConnectorStepPanel(helper, objectClassModel, UpdateObjectClassConnectorStepPanel.PANEL_TYPE),
                 new UpdateScriptConnectorStepPanel(helper, objectClassModel));
     }
 
@@ -174,6 +183,7 @@ public class RestConnectorWizardStrategy implements ConnectorWizardStrategy {
                 new DeleteEndpointsConnectorStepPanel(helper, objectClassModel),
                 new WaitingDeleteConnectorStepPanel(helper, objectClassModel),
                 new WaitingFixObjectClassConnectorStepPanel(helper, objectClassModel, DeleteObjectClassConnectorStepPanel.PANEL_TYPE),
+                new FixObjectClassReviewConnectorStepPanel(helper, objectClassModel, DeleteObjectClassConnectorStepPanel.PANEL_TYPE),
                 new DeleteScriptConnectorStepPanel(helper, objectClassModel));
     }
 

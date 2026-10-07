@@ -22,6 +22,7 @@ import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.impl.component.data.provider.BaseSortableDataProvider;
 import com.evolveum.midpoint.gui.impl.component.data.provider.MultivalueContainerListDataProvider;
 import com.evolveum.midpoint.gui.impl.component.tile.TemplateTile;
@@ -272,6 +273,11 @@ public class ObjectClassesConnectorStepPanel extends AbstractWizardStepPanel<Con
                     protected void editDeletePerformed(String objectClassName, AjaxRequestTarget target) {
                         getController().editDeleteOp(objectClassName, target);
                     }
+
+                    @Override
+                    protected void editFixScriptsPerformed(String objectClassName, AjaxRequestTarget target) {
+                        getController().editFixScripts(objectClassName, target);
+                    }
                 };
             }
 
@@ -312,10 +318,25 @@ public class ObjectClassesConnectorStepPanel extends AbstractWizardStepPanel<Con
                 .map(itemNameEntry -> {
                     PolyStringType label = PolyStringType.fromOrig(itemNameEntry.getKey());
                     label.setTranslation(new PolyStringTranslationType().key(itemNameEntry.getKey()));
+                    boolean disabled = itemNameEntry.getValue().stream().anyMatch(itemName -> isScriptDisabled(value, itemName));
                     return new DisplayType()
                             .label(label)
-                            .cssClass("bg-default");
+                            .cssClass(disabled ? "text-decoration-line-through opacity-50" : null);
                 }).toList();
+    }
+
+    /** Whether the script backing this object-class capability tag is currently {@code disabled} in the manifest. */
+    private boolean isScriptDisabled(PrismContainerValueWrapper<ConnDevObjectClassInfoType> value, ItemName itemName) {
+        try {
+            PrismContainerWrapper<ConnDevArtifactType> container = value.findContainer(itemName);
+            if (container == null || container.getValues().isEmpty()) {
+                return false;
+            }
+            ConnDevArtifactType artifact = container.getValue().getRealValue();
+            return artifact != null && Boolean.TRUE.equals(artifact.isDisabled());
+        } catch (SchemaException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override

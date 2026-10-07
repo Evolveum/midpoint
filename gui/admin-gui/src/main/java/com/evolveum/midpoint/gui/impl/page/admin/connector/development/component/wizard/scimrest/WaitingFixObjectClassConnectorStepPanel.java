@@ -6,8 +6,8 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest;
 
-import java.io.IOException;
 import java.util.List;
+import java.util.Optional;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
@@ -35,25 +35,19 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkDefinitionsType;
 
 /**
  * Waiting step for an object-class-wide fix: submits {@code submitFixObjectClass}, polls it via
- * {@code getFixObjectClassStatus}, and on completion saves every returned script before letting the
- * wizard continue forward.
+ * {@code getFixObjectClassStatus}, and on completion hands the returned scripts to the sibling
+ * {@link FixObjectClassReviewConnectorStepPanel} for review/validation before anything is saved
+ * (see {@link #onNextPerformed}) - an empty result (nothing needed fixing) has nothing to review,
+ * so the wizard just continues as before.
  * <p>
- * The fix operation is always object-class-wide (schema, search, create, update, delete fixed
- * together in one pass) regardless of which script step triggered it. One instance of this same
- * class is placed in every object-class operation branch's {@code createChildrenSteps()}, right
- * before that branch's own script-review step, so completing the fix naturally lands the wizard back
- * on whichever step the user was on. The {@code branchPanelType} constructor argument - not a
- * per-branch subclass - is what keeps each branch's instance distinguishable: it's the {@code
- * PANEL_TYPE} of the sibling {@code *ObjectClassConnectorStepPanel} this instance is fixing scripts
- * for (e.g. {@link com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.search.SearchAllObjectClassConnectorStepPanel#PANEL_TYPE}),
- * combined with the object class name to form {@link #getStepId()}. No {@code @PanelType}/{@code
- * @PanelInstance} is needed here - those feed a separate GUI subsystem (object-details-page tab
- * configuration) that wizard steps don't participate in.
+ * The fix is always object-class-wide (schema, search, create, update, delete fixed together),
+ * regardless of which script step triggered it. The {@code branchPanelType} constructor argument
+ * is what keeps each operation branch's own instance distinguishable, combined with the object
+ * class name to form {@link #getStepId()}.
  * <p>
- * Unlike the generation-waiting steps this is modeled after, it must stay invisible until explicitly
- * triggered by {@link RepairObjectClassButton} (see {@link #triggered}) - there being no prior fix
- * task is the normal, permanent state for an object class that was never repaired, not a "not done
- * yet" one.
+ * Stays invisible until explicitly triggered by {@link RepairObjectClassButton} (see
+ * {@link #triggered}) - no prior fix task is the normal, permanent state for an object class that
+ * was never repaired, not a "not done yet" one.
  */
 public class WaitingFixObjectClassConnectorStepPanel extends WaitingConnectorStepPanel {
 
@@ -152,43 +146,52 @@ public class WaitingFixObjectClassConnectorStepPanel extends WaitingConnectorSte
         return Model.of("fa fa-wrench");
     }
 
+    /**
+     * On a fix with at least one regenerated script, hands the batch to the sibling {@link
+     * FixObjectClassReviewConnectorStepPanel} (wired directly after this one in every branch's
+     * {@code createChildrenSteps()}) instead of saving directly - that step validates the whole
+     * batch together and saves it only once it validates clean. An empty result (nothing needed
+     * fixing) has nothing to review, so the wizard just continues as before.
+     */
     @Override
     public boolean onNextPerformed(AjaxRequestTarget target) {
         Object rawResult = getResult();
-        if (rawResult instanceof ConnDevFixObjectClassResultType fixResult) {
-            Task task = getPageBase().createSimpleTask(OP_APPLY_FIX);
-            OperationResult result = task.getResult();
-            try {
-                for (ConnDevArtifactType artifact : fixResult.getArtifact()) {
-                    getDetailsModel().getConnectorDevelopmentOperation().saveArtifact(artifact, task, result);
-                }
-                if (getWizard() instanceof WizardModelWithParentSteps parentWizardModel) {
-                    parentWizardModel.removeOperationResultsForFixSteps(RepairObjectClassButton.OBJECT_CLASS_SCRIPT_STEP_IDS);
-                    for (WizardStep step : parentWizardModel.getActiveChildrenSteps()) {
-                        if (step instanceof ScriptConnectorStepPanel scriptStep) {
-                            scriptStep.detachLoadedScript();
-                        }
-                    }
-                }
-                if (!fixResult.getChangedOperation().isEmpty()) {
-                    getPageBase().success(createStringResource(
-                            "NextStepsConnectorStepPanel.repairObjectClass.success",
-                            fixResult.getChangedOperation().size()).getString());
-                } else {
-                    getPageBase().info(createStringResource("NextStepsConnectorStepPanel.repairObjectClass.noChange").getString());
-                }
-            } catch (IOException | CommonException e) {
-                getPageBase().error(createStringResource(
-                        "NextStepsConnectorStepPanel.repairObjectClass.error", e.getMessage()).getString());
-                target.add(getFeedback());
-                return false;
-            }
-        } else {
+        if (!(rawResult instanceof ConnDevFixObjectClassResultType fixResult)) {
             getPageBase().error(createStringResource("NextStepsConnectorStepPanel.repairObjectClass.error", "").getString());
             target.add(getFeedback());
             return false;
         }
         triggered = false;
-        return super.onNextPerformed(target);
+        if (fixResult.getArtifact().isEmpty()) {
+            getPageBase().info(createStringResource("NextStepsConnectorStepPanel.repairObjectClass.noChange").getString());
+            return super.onNextPerformed(target);
+        }
+        if (!(getWizard() instanceof WizardModelWithParentSteps parentWizardModel)) {
+            getPageBase().error(createStringResource("NextStepsConnectorStepPanel.repairObjectClass.error", "").getString());
+            target.add(getFeedback());
+            return false;
+        }
+        Optional<FixObjectClassReviewConnectorStepPanel> reviewStep = findReviewStep(parentWizardModel);
+        if (reviewStep.isEmpty()) {
+            getPageBase().error(createStringResource("NextStepsConnectorStepPanel.repairObjectClass.error", "").getString());
+            target.add(getFeedback());
+            return false;
+        }
+        reviewStep.get().resetArtifacts(fixResult.getArtifact());
+        parentWizardModel.setActiveStepWithinActivePart(reviewStep.get().getStepId());
+        parentWizardModel.fireActiveStepChanged();
+        target.add(getWizard().getPanel());
+        return false;
+    }
+
+    /** The {@link FixObjectClassReviewConnectorStepPanel} wired directly after this instance in the current branch. */
+    private Optional<FixObjectClassReviewConnectorStepPanel> findReviewStep(WizardModelWithParentSteps parentWizardModel) {
+        List<WizardStep> steps = parentWizardModel.getActiveChildrenSteps();
+        int myIndex = steps.indexOf(this);
+        if (myIndex >= 0 && myIndex + 1 < steps.size()
+                && steps.get(myIndex + 1) instanceof FixObjectClassReviewConnectorStepPanel reviewStep) {
+            return Optional.of(reviewStep);
+        }
+        return Optional.empty();
     }
 }
