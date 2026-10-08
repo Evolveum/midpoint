@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.common.secrets;
 
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -58,7 +59,8 @@ public abstract class SecretsProviderImpl<T extends SecretsProviderType> impleme
         }
 
         if (type == String.class) {
-            return (ST) new String(value);
+            String strValue = new String(value, StandardCharsets.UTF_8);
+            return (ST) new String(strValue.replaceAll("[\\r\\n]+$", ""));
         } else if (type == ByteBuffer.class) {
             return (ST) ByteBuffer.wrap(value);
         }
