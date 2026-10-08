@@ -266,6 +266,25 @@ public class ConnectorDevelopmentWizardUtil {
     }
 
     /**
+     * Same as {@link #reportScriptValidationErrors}, but for a caller whose own {@code
+     * step.getStepId()} is NOT the right fix-navigation target - e.g. {@code
+     * FixObjectClassReviewConnectorStepPanel} shows the error inline above its own editor, but the
+     * error actually belongs to a different, underlying script step ({@code fixPanelId}), and
+     * that underlying step's id is what {@code RepairObjectClassButton}/{@code isStepWithError}
+     * need to see to recognize there is still something pending for it.
+     */
+    public static void reportScriptValidationErrorsForStep(
+            AbstractWizardStepPanel<ConnectorDevelopmentDetailsModel> step, String stepId, String fixPanelId,
+            List<ConnDevArtifactValidationResult.Error> errors, String source) {
+        if (!(step.getWizard() instanceof WizardModelWithParentSteps wizardModel)) {
+            return;
+        }
+        String panelId = stepId + "." + source;
+        var result = buildValidationOperationResult(errors, source);
+        wizardModel.addOperationResult(panelId, fixPanelId, result);
+    }
+
+    /**
      * Builds the fix button's click handler for a broken sibling script's drawer entry, repurposed
      * as "Disable operation" (see {@link #reportScriptValidationErrors}): marks it disabled in the
      * manifest (see {@link ConnectorDevelopmentOperation#disableArtifact}), then removes just this

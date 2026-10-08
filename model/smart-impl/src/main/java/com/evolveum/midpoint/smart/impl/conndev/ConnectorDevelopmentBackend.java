@@ -49,6 +49,7 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -431,6 +432,41 @@ public abstract class ConnectorDevelopmentBackend {
      * doesn't support script validation, ...) is reported as an error, blocking the save.
      */
     public ConnDevArtifactValidationResult validateArtifact(ConnDevArtifactType artifact) {
+        return validateArtifact(artifact, Map.of());
+    }
+
+    /**
+     * Validates several candidate artifacts as one set, so none of them blocks on another one's
+     * own not-yet-saved content. Every artifact in the input is validated as its own "primary"
+     * (actually built), with every other artifact substituted in place of its own still-broken
+     * deployed version. Grouping by {@link ConnDevArtifactType#getOperation()} instead would be
+     * wrong: several distinct script kinds share the same operation (e.g. search-all/by-id/filter
+     * are all {@code SEARCH}), so grouping would silently skip validating all but one of them.
+     * Errors from every artifact are merged into one result, each attributed to its own filename.
+     */
+    public ConnDevArtifactValidationResult validateArtifacts(List<ConnDevArtifactType> artifacts) {
+        if (artifacts.isEmpty()) {
+            return ConnDevArtifactValidationResult.success();
+        }
+        var errors = new ArrayList<ConnDevArtifactValidationResult.Error>();
+        for (var primary : artifacts) {
+            var primarySource = "/" + primary.getFilename();
+            var overrides = new LinkedHashMap<String, String>();
+            for (var other : artifacts) {
+                if (other != primary && other.getFilename() != null) {
+                    overrides.put("/" + other.getFilename(), other.getContent());
+                }
+            }
+            var primaryErrors = validateArtifact(primary, overrides).errors();
+            for (var error : primaryErrors) {
+                errors.add(error.source() != null ? error : new ConnDevArtifactValidationResult.Error(
+                        error.phase(), error.message(), error.line(), error.column(), primarySource));
+            }
+        }
+        return errors.isEmpty() ? ConnDevArtifactValidationResult.success() : ConnDevArtifactValidationResult.errors(errors);
+    }
+
+    private ConnDevArtifactValidationResult validateArtifact(ConnDevArtifactType artifact, Map<String, String> overrides) {
         var filename = artifact.getFilename();
         if (!ConnDevScriptFormat.hasRecognizedExtension(filename)) {
             return ConnDevArtifactValidationResult.success();
@@ -450,11 +486,20 @@ public abstract class ConnectorDevelopmentBackend {
         script.getArgument().add(scriptArgument("artifactKind",
                 ConnDevOperationType.SCHEMA.equals(artifact.getOperation()) ? "schema" : "operation"));
         script.getArgument().add(scriptArgument("filename", "/" + artifact.getFilename()));
+        if (!overrides.isEmpty()) {
+            var overridesNode = JSON_FACTORY.objectNode();
+            overrides.forEach((k, v) -> overridesNode.set(k, JSON_FACTORY.textNode(v)));
+            script.getArgument().add(scriptArgument("overrides", overridesNode.toString()));
+        }
 
         Object response;
         try {
+            // productionUse=false: the resource's currently deployed schema may itself be broken
+            // (that is exactly the scenario being validated/fixed), so requiring it to be fetched
+            // successfully first - the normal production path - would make validation impossible
+            // in exactly the case it exists for.
             response = beans.provisioningService.executeScript(
-                    testingResourceOid, script, task, result);
+                    testingResourceOid, script, false, task, result);
         } catch (CommonException | RuntimeException e) {
             LOGGER.warn("Couldn't validate script {}.", artifact.getFilename(), e);
             return ConnDevArtifactValidationResult.errors(List.of(

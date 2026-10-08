@@ -385,11 +385,25 @@ public class ResourceManager {
     public Object executeScript(String resourceOid, ProvisioningScriptType script, Task task, OperationResult result)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
             ExpressionEvaluationException, SubscriptionComplianceException {
+        return executeScript(resourceOid, script, true, task, result);
+    }
+
+    /**
+     * @param productionUse when {@code false}, the connector instance is only configured, not
+     * initialized (see {@link ConnectorManager#getNonProductionConnectorInstance}) - the script is
+     * dispatched without the resource's schema having been successfully fetched first. Used by
+     * development-mode script validation (see {@code ConnectorDevelopmentBackend}), where the
+     * currently deployed schema may itself be broken - the very thing being fixed.
+     */
+    public Object executeScript(String resourceOid, ProvisioningScriptType script, boolean productionUse, Task task, OperationResult result)
+            throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
+            ExpressionEvaluationException, SubscriptionComplianceException {
         ResourceType resource = getCompletedResource(resourceOid, null, task, result);
         ConnectorSpec connectorSpec = connectorSelector.selectConnectorRequired(resource, ScriptCapabilityType.class);
         try {
-            ConnectorInstance connectorInstance =
-                    connectorManager.getConfiguredAndInitializedConnectorInstance(connectorSpec, false, result);
+            ConnectorInstance connectorInstance = productionUse
+                    ? connectorManager.getConfiguredAndInitializedConnectorInstance(connectorSpec, false, result)
+                    : connectorManager.getNonProductionConnectorInstance(connectorSpec, result);
             ExecuteProvisioningScriptOperation scriptOperation = ProvisioningUtil.convertToScriptOperation(script, "script on " + resource);
             UcfExecutionContext ucfCtx = new UcfExecutionContext(lightweightIdentifierGenerator, resource, task);
             ucfCtx.checkExecutionFullyPersistent();

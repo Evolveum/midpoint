@@ -148,6 +148,12 @@ public class MockFactory {
             }
 
             @Override
+            public Object executeScript(
+                    String resourceOid, ProvisioningScriptType script, boolean productionUse, Task task, OperationResult parentResult) {
+                return null;
+            }
+
+            @Override
             public @NotNull OperationResult testResource(
                     @NotNull String resourceOid,
                     @Nullable ResourceTestOptions options,
