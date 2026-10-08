@@ -9,6 +9,8 @@ package com.evolveum.midpoint.gui.impl.factory.panel;
 import java.util.List;
 
 import jakarta.annotation.PostConstruct;
+import org.apache.wicket.MarkupContainer;
+import org.apache.wicket.feedback.ContainerFeedbackMessageFilter;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.gui.api.factory.AbstractGuiComponentFactory;
@@ -83,6 +85,11 @@ public class ConnDevIntegrationTypeGuiComponentFactory extends AbstractGuiCompon
         // A persisted SQL connector development is locked to the SQL card, so the selection is read-only.
         return new EnumCardChoicePanel<>(panelCtx.getComponentId(), panelCtx.getRealValueModel(),
                 options, panelCtx.isMandatory(), oldType == ConnDevIntegrationType.SQL);
+    }
+
+    @Override
+    public void configure(PrismPropertyPanelContext<ConnDevIntegrationType> panelCtx, org.apache.wicket.Component component) {
+        panelCtx.getFeedback().setFilter(new ContainerFeedbackMessageFilter((MarkupContainer) component));
     }
 
     @Override
