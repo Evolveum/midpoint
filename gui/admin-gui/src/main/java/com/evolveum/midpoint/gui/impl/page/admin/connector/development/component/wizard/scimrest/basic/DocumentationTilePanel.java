@@ -10,6 +10,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.connector.development.componen
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.attributes.AjaxRequestAttributes;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -18,9 +19,10 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.impl.component.tile.MultiSelectContainerActionTileTablePanel;
 import com.evolveum.midpoint.gui.impl.component.tile.TilePanel;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
-import com.evolveum.midpoint.web.component.data.column.IsolatedCheckBoxPanel;
+import com.evolveum.midpoint.web.component.input.CheckPanel;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnDevDocumentationSourceType;
 
@@ -48,12 +50,19 @@ public class DocumentationTilePanel extends TilePanel<DocumentationTile, PrismCo
         add(AttributeAppender.append("aria-checked", () -> getModelObject().isSelected() ? "true" : "false"));
         setOutputMarkupId(true);
 
-        IsolatedCheckBoxPanel check = new IsolatedCheckBoxPanel(ID_CHECK, new PropertyModel<>(getModel(), "selected")) {
+        CheckPanel check = new CheckPanel(ID_CHECK, new PropertyModel<>(getModel(), "selected"));
+        check.add(new AjaxEventBehavior("click") {
             @Override
-            public void onUpdate(AjaxRequestTarget target) {
-                target.add(DocumentationTilePanel.this);
+            protected void onEvent(AjaxRequestTarget target) {
+                toggleSelection(target);
             }
-        };
+
+            @Override
+            protected void updateAjaxAttributes(AjaxRequestAttributes attributes) {
+                super.updateAjaxAttributes(attributes);
+                attributes.setEventPropagation(AjaxRequestAttributes.EventPropagation.STOP);
+            }
+        });
         check.setOutputMarkupId(true);
         add(check);
 
@@ -66,8 +75,7 @@ public class DocumentationTilePanel extends TilePanel<DocumentationTile, PrismCo
         clickableArea.add(new AjaxEventBehavior("click") {
             @Override
             protected void onEvent(AjaxRequestTarget target) {
-                getModelObject().setSelected(!getModelObject().isSelected());
-                target.add(DocumentationTilePanel.this);
+                toggleSelection(target);
             }
         });
 
@@ -103,6 +111,19 @@ public class DocumentationTilePanel extends TilePanel<DocumentationTile, PrismCo
             }
         };
         add(delete);
+    }
+
+    private void toggleSelection(AjaxRequestTarget target) {
+        getModelObject().setSelected(!getModelObject().isSelected());
+        target.add(DocumentationTilePanel.this);
+        // The header "select all" checkbox's own rendered DOM state goes stale otherwise -
+        // at the next form submit, Wicket sees it still "checked" from before this toggle,
+        // decides that differs from the (now recomputed) "all selected?" value, and calls
+        // its setter, which forcibly re-selects every item on the page.
+        MultiSelectContainerActionTileTablePanel<?, ?, ?> tileTable = findParent(MultiSelectContainerActionTileTablePanel.class);
+        if (tileTable != null) {
+            target.add(tileTable);
+        }
     }
 
     protected void onDelete(DocumentationTile modelObject, AjaxRequestTarget target) {
