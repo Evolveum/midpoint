@@ -332,12 +332,9 @@ public abstract class PageAbstractAuthenticationModule<MA extends ModuleAuthenti
 
     protected void validateUserNotNullOrFail(UserType user) {
         if (user == null) {
-            LOGGER.error("Couldn't find principal user, you probably use wrong configuration. "
-                            + "Please confirm order of authentication modules "
-                            + "and add module for identification of user before '"
-                            + getModuleTypeName() +"' module, "
-                            + "for example 'focusIdentification' module.",
-                    new IllegalArgumentException("principal user is null"));
+            LOGGER.debug("No principal user for the '{}' module page. Either the sequence has no module identifying "
+                    + "the user before it (for example 'focusIdentification'), or the page was opened without "
+                    + "the identification, for example after a restart of the sequence.", getModuleTypeName());
             getSession().error(getString("pageForgetPassword.message.user.not.found"));
             throw new RestartResponseException(PageBase.class);
         }
