@@ -8,6 +8,7 @@ package com.evolveum.midpoint.model.intest.password;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowPurposeType;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -25,12 +26,12 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.security.api.Authorization;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
+import com.evolveum.midpoint.util.exception.AuthorizationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
@@ -296,14 +297,13 @@ public class TestPasswordDefaultHashing extends AbstractPasswordTest {
     }
 
     /**
-     * Account activation done by the user with the authorizations of the account activation channel only.
-     * The activation succeeds; the result is a warning, because the notifiers of this test read the resource
-     * and the channel does not authorize that (a role would, see the next test).
+     * Account activation with side effects on the user and the account (object template) but without a role
+     * authorizing them: the activation is refused and nothing is changed.
      *
      * Issue: 5490
      */
     @Test
-    public void test970ActivateOwnAccountAsUser() throws Exception {
+    public void test970ActivateOwnAccountAsUserWithTemplateWithoutRole() throws Exception {
         Task task = getTestTask();
         OperationResult result = task.getResult();
         prepareTest();
@@ -314,24 +314,27 @@ public class TestPasswordDefaultHashing extends AbstractPasswordTest {
         assertShadowPurpose(getShadowRepo(accountRedOid), ShadowPurposeType.INCOMPLETE);
         assertDummyPassword(RESOURCE_DUMMY_RED_NAME, "activator", null);
 
+        given("object template that changes the user whenever the clockwork runs");
+        useActivationTemplate(task, result);
+
         given("the user is logged in through the account activation channel");
         loginThroughActivationChannel(userOid);
 
         try {
             when("the user activates the account the way the activation page does");
-            modelService.executeChanges(List.of(createActivationDelta(accountRedOid)), null, task, result);
+            assertThatThrownBy(
+                    () -> modelService.executeChanges(List.of(createActivationDelta(accountRedOid)), null, task, result))
+                    .isInstanceOf(AuthorizationException.class)
+                    .hasMessageContaining("not authorized");
         } finally {
             login(USER_ADMINISTRATOR_USERNAME);
+            setDefaultUserTemplate(null);
         }
 
-        then("the account is activated, the notifiers of this test could not read the resource as the user");
-        result.computeStatusIfUnknown();
-        display("Result", result);
-        assertThat(result.getStatus()).as("result status").isEqualTo(OperationResultStatus.WARNING);
-        assertThat(result.getMessage()).as("result message").contains("Couldn't resolve object " + RESOURCE_DUMMY_RED_OID);
-        assertDummyPassword(RESOURCE_DUMMY_RED_NAME, "activator", USER_PASSWORD_VALID_1);
-        assertShadowPurpose(getShadowRepo(accountRedOid), null);
-        assertUserPassword(getUser(userOid), USER_PASSWORD_VALID_1);
+        then("nothing is changed");
+        assertDummyPassword(RESOURCE_DUMMY_RED_NAME, "activator", null);
+        assertShadowPurpose(getShadowRepo(accountRedOid), ShadowPurposeType.INCOMPLETE);
+        assertThat(getUser(userOid).asObjectable().getDescription()).as("user description").isNull();
     }
 
     /**
@@ -354,8 +357,7 @@ public class TestPasswordDefaultHashing extends AbstractPasswordTest {
         assignRole(userOid, roleOid, task, result);
 
         given("object template that changes the user whenever the clockwork runs");
-        addObject(USER_TEMPLATE_ACTIVATION_FILE, task, result);
-        setDefaultUserTemplate(USER_TEMPLATE_ACTIVATION_OID);
+        useActivationTemplate(task, result);
 
         given("the user is logged in through the account activation channel");
         loginThroughActivationChannel(userOid);
@@ -377,6 +379,14 @@ public class TestPasswordDefaultHashing extends AbstractPasswordTest {
         assertThat(userAfter.asObjectable().getDescription())
                 .as("description set by the object template during activation")
                 .startsWith("template run");
+    }
+
+    private void useActivationTemplate(Task task, OperationResult result) throws Exception {
+        if (repositoryService.searchObjects(ObjectTemplateType.class,
+                queryFor(ObjectTemplateType.class).id(USER_TEMPLATE_ACTIVATION_OID).build(), null, result).isEmpty()) {
+            addObject(USER_TEMPLATE_ACTIVATION_FILE, task, result);
+        }
+        setDefaultUserTemplate(USER_TEMPLATE_ACTIVATION_OID);
     }
 
     private String addActivationUser(String name, Task task, OperationResult result) throws Exception {
