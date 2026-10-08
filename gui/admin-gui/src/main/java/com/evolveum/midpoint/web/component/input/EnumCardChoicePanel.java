@@ -24,8 +24,8 @@ import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.StringResourceModel;
+import org.apache.wicket.validation.INullAcceptingValidator;
 import org.apache.wicket.validation.IValidatable;
-import org.apache.wicket.validation.IValidator;
 import org.apache.wicket.validation.ValidationError;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
@@ -94,7 +94,7 @@ public class EnumCardChoicePanel<T extends Enum<?>> extends InputPanel {
         }
 
         if (required) {
-            radioGroup.add(new IValidator<T>() {
+            radioGroup.add(new INullAcceptingValidator<T>() {
 
                 @Serial
                 private static final long serialVersionUID = 1L;
@@ -144,6 +144,7 @@ public class EnumCardChoicePanel<T extends Enum<?>> extends InputPanel {
                         if (readOnly) {
                             return;
                         }
+                        radioGroup.clearInput();
                         valueModel.setObject(option.getValue());
                         target.add(radioGroup);
                     }
