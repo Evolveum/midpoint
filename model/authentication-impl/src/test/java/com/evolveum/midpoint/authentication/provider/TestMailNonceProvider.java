@@ -13,19 +13,28 @@ import java.io.File;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.core.Authentication;
+import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.DefaultSecurityFilterChain;
+import org.springframework.security.web.util.matcher.AnyRequestMatcher;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
+import com.evolveum.midpoint.authentication.api.AuthModule;
 import com.evolveum.midpoint.authentication.api.AuthenticationModuleState;
 import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
+import com.evolveum.midpoint.authentication.api.config.ModuleAuthentication;
 import com.evolveum.midpoint.authentication.impl.FocusAuthenticationResultRecorder;
+import com.evolveum.midpoint.authentication.TestAccountActivationNonce;
 import com.evolveum.midpoint.authentication.impl.channel.SelfRegistrationAuthenticationChannel;
+import com.evolveum.midpoint.authentication.impl.filter.SequenceCompletionFilter;
 import com.evolveum.midpoint.authentication.impl.module.authentication.FocusIdentificationModuleAuthenticationImpl;
 import com.evolveum.midpoint.authentication.impl.module.authentication.MailNonceModuleAuthenticationImpl;
 import com.evolveum.midpoint.authentication.impl.module.authentication.token.MailNonceAuthenticationToken;
+import com.evolveum.midpoint.authentication.impl.module.configuration.ModuleWebSecurityConfigurationImpl;
 import com.evolveum.midpoint.authentication.impl.provider.MailNonceProvider;
 import com.evolveum.midpoint.authentication.impl.util.AuthModuleImpl;
 import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipalManager;
@@ -41,11 +50,14 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 /**
- * Tests that {@link MailNonceProvider} spends (removes) the nonce credential after
- * a successful mail nonce authentication, e.g. when a self-registration confirmation
+ * Tests that the nonce credential is spent (removed) when the authentication sequence
+ * with the mail nonce module succeeds, e.g. when a self-registration confirmation
  * link is used, and that the authentication behavior recording does not resurrect it.
  * A leftover nonce later blocks the password reset flow, which considers the reset
  * mail as already sent. See #12082.
+ *
+ * The nonce is spent by {@link SequenceCompletionFilter} at the end of the sequence, not by
+ * {@link MailNonceProvider} itself, see issue 5490 and {@link TestAccountActivationNonce}.
  */
 @ContextConfiguration(locations = "classpath:ctx-authentication-test-main.xml")
 @DirtiesContext
@@ -105,7 +117,7 @@ public class TestMailNonceProvider extends AbstractModelImplementationIntegratio
         MailNonceProvider provider = new MailNonceProvider();
         applicationContext.getAutowireCapableBeanFactory().autowireBean(provider);
 
-        MidpointAuthentication mpAuthentication = createMpAuthentication();
+        MidpointAuthentication mpAuthentication = createMpAuthentication(provider);
 
         Authentication previousAuthentication = SecurityContextHolder.getContext().getAuthentication();
         try {
@@ -119,6 +131,9 @@ public class TestMailNonceProvider extends AbstractModelImplementationIntegratio
             assertNotNull("No authentication result", authentication);
             assertTrue("Principal was not set after successful authentication",
                     mpAuthentication.getPrincipal() instanceof MidPointPrincipal);
+
+            and("sequence succeeds");
+            finishSequence(mpAuthentication);
         } finally {
             SecurityContextHolder.getContext().setAuthentication(previousAuthentication);
         }
@@ -136,7 +151,7 @@ public class TestMailNonceProvider extends AbstractModelImplementationIntegratio
         MailNonceProvider provider = new MailNonceProvider();
         applicationContext.getAutowireCapableBeanFactory().autowireBean(provider);
 
-        MidpointAuthentication mpAuthentication = createMpAuthenticationWithFocusIdentification();
+        MidpointAuthentication mpAuthentication = createMpAuthenticationWithFocusIdentification(provider);
 
         Authentication previousAuthentication = SecurityContextHolder.getContext().getAuthentication();
         try {
@@ -150,6 +165,9 @@ public class TestMailNonceProvider extends AbstractModelImplementationIntegratio
             assertNotNull("No authentication result", authentication);
             assertTrue("Principal was not set after successful authentication",
                     mpAuthentication.getPrincipal() instanceof MidPointPrincipal);
+
+            and("sequence succeeds");
+            finishSequence(mpAuthentication);
         } finally {
             SecurityContextHolder.getContext().setAuthentication(previousAuthentication);
         }
@@ -159,10 +177,9 @@ public class TestMailNonceProvider extends AbstractModelImplementationIntegratio
     }
 
     /**
-     * After the mail nonce module spends (removes) the nonce, SequenceAuditFilter records the
-     * successful sequence authentication via FocusAuthenticationResultRecorder. The recorder
-     * diffs the repository object against the in-memory principal focus, which still contains
-     * the nonce, so the recording must not resurrect the already spent nonce.
+     * After the sequence spends (removes) the nonce, FocusAuthenticationResultRecorder may record
+     * further authentication results of the same principal. The in-memory principal focus still
+     * contains the nonce, so the recording must not resurrect the already spent nonce.
      *
      * See #12082
      */
@@ -175,27 +192,43 @@ public class TestMailNonceProvider extends AbstractModelImplementationIntegratio
         MailNonceProvider provider = new MailNonceProvider();
         applicationContext.getAutowireCapableBeanFactory().autowireBean(provider);
 
-        MidpointAuthentication mpAuthentication = createMpAuthentication();
+        MidpointAuthentication mpAuthentication = createMpAuthentication(provider);
 
         Authentication previousAuthentication = SecurityContextHolder.getContext().getAuthentication();
         try {
             SecurityContextHolder.getContext().setAuthentication(mpAuthentication);
 
-            when("mail nonce authentication succeeds and sequence success is recorded");
+            when("mail nonce authentication succeeds, sequence succeeds and spends the nonce");
             provider.authenticate(
                     new MailNonceAuthenticationToken(USER_REGISTRANT_NAME, USER_REGISTRANT_NONCE));
+            finishSequence(mpAuthentication);
+            assertUserHasNoNonce();
 
-            // this is what SequenceAuditFilter does after the sequence authentication succeeds
+            and("authentication result is recorded again with the stale in-memory principal");
             ConnectionEnvironment connEnv = ConnectionEnvironment.create(SchemaConstants.CHANNEL_SELF_REGISTRATION_URI);
             connEnv.setSequenceIdentifier(SEQUENCE_IDENTIFIER);
-            authenticationRecorder.recordSequenceAuthenticationSuccess(
-                    (MidPointPrincipal) mpAuthentication.getPrincipal(), connEnv);
+            connEnv.setModuleIdentifier(MODULE_IDENTIFIER);
+            MidPointPrincipal stalePrincipal = (MidPointPrincipal) mpAuthentication.getPrincipal();
+            assertNotNull("Stale principal has no nonce, test setup is broken",
+                    stalePrincipal.getFocus().getCredentials().getNonce());
+            authenticationRecorder.recordModuleAuthenticationAttemptSuccess(stalePrincipal, connEnv);
+            authenticationRecorder.recordSequenceAuthenticationSuccess(stalePrincipal, connEnv);
         } finally {
             SecurityContextHolder.getContext().setAuthentication(previousAuthentication);
         }
 
         then("nonce is spent and stays removed after the authentication behavior is recorded");
         assertUserHasNoNonce();
+    }
+
+    /**
+     * What the success handler and {@link SequenceCompletionFilter} do at the end of the request
+     * that completed the sequence.
+     */
+    private void finishSequence(MidpointAuthentication mpAuthentication) {
+        mpAuthentication.getProcessingModuleAuthentication().setState(AuthenticationModuleState.SUCCESSFULLY);
+        assertTrue("Sequence is not authenticated, test setup is broken", mpAuthentication.isAuthenticated());
+        new SequenceCompletionFilter(authenticationRecorder).writeRecord(new MockHttpServletRequest(), mpAuthentication);
     }
 
     private void setupNonce() throws Exception {
@@ -229,19 +262,21 @@ public class TestMailNonceProvider extends AbstractModelImplementationIntegratio
                 credentials == null || credentials.getNonce() == null);
     }
 
-    private MidpointAuthentication createMpAuthentication() {
+    private MidpointAuthentication createMpAuthentication(MailNonceProvider provider) {
         AuthenticationSequenceModuleType moduleType = createMailNonceModuleType();
 
         AuthenticationSequenceType sequence = new AuthenticationSequenceType()
                 .identifier(SEQUENCE_IDENTIFIER)
                 .module(moduleType);
 
-        MidpointAuthentication mpAuthentication = createMpAuthentication(sequence);
-        mpAuthentication.addAuthentications(createMailNonceModuleAuthentication(moduleType));
+        MailNonceModuleAuthenticationImpl moduleAuthentication = createMailNonceModuleAuthentication(moduleType);
+        MidpointAuthentication mpAuthentication = createMpAuthentication(sequence,
+                List.of(authModule(new MailNonceAuthenticationModuleType().identifier(MODULE_IDENTIFIER), moduleAuthentication, provider)));
+        mpAuthentication.addAuthentications(moduleAuthentication);
         return mpAuthentication;
     }
 
-    private MidpointAuthentication createMpAuthenticationWithFocusIdentification() throws Exception {
+    private MidpointAuthentication createMpAuthenticationWithFocusIdentification(MailNonceProvider provider) throws Exception {
         AuthenticationSequenceModuleType focusIdentificationModuleType = new AuthenticationSequenceModuleType()
                 .identifier("FocusIdentification")
                 .order(10)
@@ -253,27 +288,42 @@ public class TestMailNonceProvider extends AbstractModelImplementationIntegratio
                 .module(focusIdentificationModuleType)
                 .module(mailNonceModuleType);
 
-        MidpointAuthentication mpAuthentication = createMpAuthentication(sequence);
-
         FocusIdentificationModuleAuthenticationImpl focusIdentificationAuthentication =
                 new FocusIdentificationModuleAuthenticationImpl(focusIdentificationModuleType);
+        focusIdentificationAuthentication.setNameOfModule("FocusIdentification");
         focusIdentificationAuthentication.setState(AuthenticationModuleState.SUCCESSFULLY);
+        MailNonceModuleAuthenticationImpl mailNonceAuthentication = createMailNonceModuleAuthentication(mailNonceModuleType);
+
+        MidpointAuthentication mpAuthentication = createMpAuthentication(sequence, List.of(
+                authModule(new FocusIdentificationAuthenticationModuleType().identifier("FocusIdentification"),
+                        focusIdentificationAuthentication, null),
+                authModule(new MailNonceAuthenticationModuleType().identifier(MODULE_IDENTIFIER),
+                        mailNonceAuthentication, provider)));
+
         mpAuthentication.addAuthentications(focusIdentificationAuthentication);
         // focus identification module writes the principal to the authentication
         mpAuthentication.setPrincipal(focusProfileService.getPrincipal(
                 USER_REGISTRANT_NAME, UserType.class, ProfileCompilerOptions.create()));
 
-        mpAuthentication.addAuthentications(createMailNonceModuleAuthentication(mailNonceModuleType));
+        mpAuthentication.addAuthentications(mailNonceAuthentication);
         return mpAuthentication;
     }
 
-    private MidpointAuthentication createMpAuthentication(AuthenticationSequenceType sequence) {
+    private MidpointAuthentication createMpAuthentication(AuthenticationSequenceType sequence, List<AuthModule<?>> authModules) {
         MidpointAuthentication mpAuthentication = new MidpointAuthentication(sequence);
         AuthenticationSequenceChannelType channelType = new AuthenticationSequenceChannelType()
                 .channelId(SchemaConstants.CHANNEL_SELF_REGISTRATION_URI);
         mpAuthentication.setAuthenticationChannel(new SelfRegistrationAuthenticationChannel(channelType));
-        mpAuthentication.setAuthModules(List.of(new AuthModuleImpl<>()));
+        mpAuthentication.setAuthModules(authModules);
         return mpAuthentication;
+    }
+
+    /** The module with its provider, as built for each request of the sequence. */
+    private AuthModule<?> authModule(
+            AbstractAuthenticationModuleType moduleType, ModuleAuthentication moduleAuthentication, AuthenticationProvider provider) {
+        ModuleWebSecurityConfigurationImpl configuration = ModuleWebSecurityConfigurationImpl.build(moduleType, SEQUENCE_IDENTIFIER);
+        configuration.addAuthenticationProvider(provider);
+        return AuthModuleImpl.build(new DefaultSecurityFilterChain(AnyRequestMatcher.INSTANCE), configuration, moduleAuthentication);
     }
 
     private AuthenticationSequenceModuleType createMailNonceModuleType() {
@@ -286,6 +336,7 @@ public class TestMailNonceProvider extends AbstractModelImplementationIntegratio
     private MailNonceModuleAuthenticationImpl createMailNonceModuleAuthentication(
             AuthenticationSequenceModuleType moduleType) {
         MailNonceModuleAuthenticationImpl moduleAuthentication = new MailNonceModuleAuthenticationImpl(moduleType);
+        moduleAuthentication.setNameOfModule(MODULE_IDENTIFIER);
         moduleAuthentication.setState(AuthenticationModuleState.LOGIN_PROCESSING);
         moduleAuthentication.setCredentialType(NonceCredentialsPolicyType.class);
         return moduleAuthentication;

@@ -389,6 +389,8 @@ public class PageSelfRegistration extends PageAbstractFlow {
 
         NonceType nonceType = new NonceType();
         nonceType.setValue(nonceCredentials);
+        // the confirmation link points to this sequence, see MidpointFunctions.createRegistrationConfirmationLink
+        nonceType.setSequenceIdentifier(getSelfRegistrationConfiguration().getAdditionalAuthentication());
 
         return nonceType;
     }

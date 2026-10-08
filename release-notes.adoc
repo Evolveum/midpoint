@@ -29,6 +29,10 @@ The {release-version} release brings security, stability, and miscellaneous bug 
 ++++
 
 == Changes with Respect To Version 4.8.14
+* Account activation now uses a dedicated authentication sequence and a one-time link.
+This is mainly used when password hashing is enabled.
+See xref:/midpoint/guides/account-activation-sequence/[Account Activation Authentication Sequence] for the required configuration.
+* Mail nonce is spent only when the whole authentication sequence succeeds and it is bound to the sequence it was issued for.
 
 * Fixed extremely long input to subtype throws error. See bug:MID-12169[]
 * Fixed displaying of the error while adding a delegation. See bug:MID-12364[]

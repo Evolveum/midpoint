@@ -10,17 +10,19 @@ import java.util.Collection;
 import java.util.List;
 
 import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
-import com.evolveum.midpoint.authentication.api.util.AuthUtil;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.authentication.api.AuthenticationModuleState;
+import com.evolveum.midpoint.authentication.api.AuthenticationSequenceListener;
+import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
+import com.evolveum.midpoint.authentication.api.config.ModuleAuthentication;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.ConnectionEnvironment;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.authentication.impl.module.authentication.token.MailNonceAuthenticationToken;
 
-import com.evolveum.midpoint.util.exception.*;
-
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -36,11 +38,18 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
+ * Authenticates by the nonce from the mail link. The nonce is a one-time credential of the whole authentication
+ * sequence, so it is spent when the sequence succeeds, not when this module succeeds: a failure of a module that
+ * follows the mail nonce (e.g. wrong password in account activation) keeps the link usable. Issue 5490.
+ *
  * @author skublik
  */
-public class MailNonceProvider extends AbstractCredentialProvider<NonceAuthenticationContext> {
+public class MailNonceProvider extends AbstractCredentialProvider<NonceAuthenticationContext>
+        implements AuthenticationSequenceListener {
 
     private static final Trace LOGGER = TraceManager.getTrace(MailNonceProvider.class);
+
+    private static final String OPERATION_REMOVE_SPENT_NONCE = MailNonceProvider.class.getName() + ".removeSpentNonce";
 
     @Autowired
     private AuthenticationEvaluator<NonceAuthenticationContext, UsernamePasswordAuthenticationToken> nonceAuthenticationEvaluator;
@@ -79,30 +88,30 @@ public class MailNonceProvider extends AbstractCredentialProvider<NonceAuthentic
     }
 
     @Override
-    void postAuthenticationProcess() {
-        @Nullable MidPointPrincipal principal = AuthUtil.getMidpointPrincipal();
-        if (principal != null) {
-            removeNonceAfterSuccessfulAuthentication(principal.getFocus());
+    public void sequenceSucceeded(
+            @NotNull MidpointAuthentication mpAuthentication, @Nullable ModuleAuthentication moduleAuthentication) {
+        if (moduleAuthentication == null || moduleAuthentication.getState() != AuthenticationModuleState.SUCCESSFULLY) {
+            return;
+        }
+        if (mpAuthentication.getPrincipal() instanceof MidPointPrincipal principal) {
+            removeSpentNonce(principal);
         }
     }
 
-    private void removeNonceAfterSuccessfulAuthentication(FocusType focus) {
+    /**
+     * The nonce is removed whatever its current value is, the in-memory principal may hold a stale copy (#12082).
+     */
+    private void removeSpentNonce(MidPointPrincipal principal) {
+        OperationResult result = new OperationResult(OPERATION_REMOVE_SPENT_NONCE);
         try {
-            NonceType nonce = focus.getCredentials().getNonce();
-            ObjectDelta<FocusType> deleteNonce = PrismContext.get().deltaFactory()
-                    .object()
-                    .createModificationDeleteContainer(FocusType.class, focus.getOid(),
-                            ItemPath.create(FocusType.F_CREDENTIALS, CredentialsType.F_NONCE),
-                            nonce.clone());
-
-            repositoryService.modifyObject(
-                    (Class)focus.getClass(),
-                    focus.getOid(),
-                    deleteNonce.getModifications(),
-                    new OperationResult("Remove nonce from focus"));
-
-        } catch (SchemaException | ObjectAlreadyExistsException | ObjectNotFoundException e) {
-            LOGGER.error("Couldn't remove nonce from focus {}", focus, e);
+            repositoryService.modifyObject(FocusType.class, principal.getOid(),
+                    PrismContext.get().deltaFor(FocusType.class)
+                            .item(SchemaConstants.PATH_NONCE).replace()
+                            .asItemDeltas(),
+                    result);
+            LOGGER.debug("Removed spent nonce of user '{}'", principal.getUsername());
+        } catch (CommonException e) {
+            LOGGER.error("Couldn't remove spent nonce of user '{}': {}", principal.getUsername(), e.getMessage(), e);
         }
     }
 
