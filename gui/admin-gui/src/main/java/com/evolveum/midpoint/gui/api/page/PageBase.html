@@ -20,8 +20,10 @@
             the button in focus and reading order (WCAG 2.2, 2.4.3). CSS draws it in the header.
             Focus order is: skip link (tabindex 1), logo in the sidebar (tabindex 2), this toggle, sidebar menu,
             the rest of the header. Only the skip link and the logo need tabindex, the rest follows markup order.
+            Screen reader arrow-key (browse mode) order ignores tabindex, so the logo container in LeftMenuPanel
+            owns this toggle (aria-owns="menuToggleBox"): logo, toggle, sidebar menu.
         </wicket:remove>
-        <div wicket:id="menuToggle" class="app-header app-menu-toggle navbar navbar-expand border-bottom-0">
+        <div wicket:id="menuToggle" id="menuToggleBox" class="app-header app-menu-toggle navbar navbar-expand border-bottom-0">
             <a class="nav-link menu-toggle" data-lte-toggle="sidebar" href="#" role="button" aria-controls="navigation"
                     wicket:message="title:Accessibility.PageBase.pushmenu.title,data-title-collapsed:Accessibility.PageBase.pushmenu.title.expand,data-title-expanded:Accessibility.PageBase.pushmenu.title,data-collapsed-message:Accessibility.PageBase.pushmenu.switchedToCompact,data-expanded-message:Accessibility.PageBase.pushmenu.switchedToFull"><i class="fas fa-bars"></i></a>
             <span id="menuToggleStatus" aria-live="polite" class="visually-hidden"></span>
