@@ -13,15 +13,18 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.upload.FileUpload;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.model.StringResourceModel;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
@@ -59,6 +62,7 @@ import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
+import com.evolveum.midpoint.web.component.dialog.HelpInfoPanel;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
@@ -123,6 +127,21 @@ public class DocumentationConnectorStepPanel extends AbstractWizardStepPanel<Con
         }
     }
 
+    /**
+     * Deselecting a document should only exclude it from the connector's currently-used
+     * documentation, not destroy it - unlike the trash icon ({@link #deleteDocumentationSource}),
+     * this only removes the value from the container, leaving the underlying file/discovered
+     * documentation entry intact so it can still show up (and be re-selected) as a candidate.
+     */
+    private void excludeFromUsedDocumentation(PrismContainerValueWrapper<ConnDevDocumentationSourceType> value) {
+        try {
+            PrismContainerWrapper<ConnDevDocumentationSourceType> container = getDetailsModel().getObjectWrapper().findContainer(ConnectorDevelopmentType.F_DOCUMENTATION_SOURCE);
+            container.remove(value, getPageBase());
+        } catch (SchemaException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     @Override
     protected void onInitialize() {
         super.onInitialize();
@@ -168,6 +187,7 @@ public class DocumentationConnectorStepPanel extends AbstractWizardStepPanel<Con
                             .filter(value -> value.getStatus() != ValueStatus.DELETED)
                             .filter(value -> value.getStatus() != ValueStatus.ADDED
                                     || StringUtils.isNotEmpty(value.getRealValue().getName()))
+                            .peek(value -> value.setSelected(true))
                             .toList());
 
                     if (suggestionsParent == null) {
@@ -178,8 +198,9 @@ public class DocumentationConnectorStepPanel extends AbstractWizardStepPanel<Con
                             .filter(suggestedValue -> {
                                 String name = ((ConnDevDocumentationSourceType) suggestedValue.getRealValue()).getName();
                                 boolean hasName = StringUtils.isNotEmpty(name);
-                                boolean alreadyPresent = parentWrapper.getValues().stream().anyMatch(value ->
-                                        StringUtils.equals(name, value.getRealValue().getName()));
+                                boolean alreadyPresent = parentWrapper.getValues().stream()
+                                        .filter(value -> value.getStatus() != ValueStatus.DELETED)
+                                        .anyMatch(value -> StringUtils.equals(name, value.getRealValue().getName()));
                                 return hasName && !alreadyPresent;
                             })
                             .map(suggestedValue -> {
@@ -582,6 +603,12 @@ public class DocumentationConnectorStepPanel extends AbstractWizardStepPanel<Con
     @Override
     public boolean onNextPerformed(AjaxRequestTarget target) {
         try {
+            valuesModel.getObject().stream()
+                    .filter(value -> value.getStatus() != ValueStatus.ADDED)
+                    .filter(value -> !value.isSelected())
+                    .toList()
+                    .forEach(this::excludeFromUsedDocumentation);
+
             PrismContainerWrapper<ConnDevDocumentationSourceType> parentWrapper = getDetailsModel().getObjectWrapper().findContainer(ConnectorDevelopmentType.F_DOCUMENTATION_SOURCE);
             valuesModel.getObject().stream()
                     .filter(value -> value.getStatus() == ValueStatus.ADDED)
@@ -600,6 +627,13 @@ public class DocumentationConnectorStepPanel extends AbstractWizardStepPanel<Con
             throw new RuntimeException(e);
         }
 
+        if (valuesModel.getObject().stream().noneMatch(PrismContainerValueWrapper::isSelected)) {
+            valuesModel.detach();
+            ((MultiSelectContainerActionTileTablePanel) get(ID_PANEL)).refreshAndDetach(target);
+            showNoDocumentationPopup(target);
+            return false;
+        }
+
         valuesModel.detach();
 
         OperationResult result = getHelper().onSaveObjectPerformed(target);
@@ -610,6 +644,32 @@ public class DocumentationConnectorStepPanel extends AbstractWizardStepPanel<Con
             target.add(getFeedback());
         }
         return false;
+    }
+
+    private void showNoDocumentationPopup(AjaxRequestTarget target) {
+        HelpInfoPanel popup = new HelpInfoPanel(
+                getPageBase().getMainPopupBodyId(),
+                createStringResource("DocumentationConnectorStepPanel.noDocumentation.warning")) {
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            public StringResourceModel getTitle() {
+                return createStringResource("DocumentationConnectorStepPanel.noDocumentation.title");
+            }
+
+            @Override
+            protected @NotNull Label initLabel(IModel<String> messageModel) {
+                Label label = super.initLabel(messageModel);
+                label.add(AttributeModifier.append("class", "alert alert-warning"));
+                return label;
+            }
+
+            @Override
+            public int getHeight() {
+                return 180;
+            }
+        };
+        getPageBase().showMainPopup(popup, target);
     }
 
     @Override

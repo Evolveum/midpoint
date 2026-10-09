@@ -9,7 +9,11 @@
     <body>
         <wicket:panel>
             <wicket:enclosure child="menu">
-                <div class="sidebar-brand p-0 border-0 app-header">
+                <wicket:remove>
+                    aria-owns puts the sidebar toggle (PageBase.html) right after the logo in the accessibility
+                    tree, so screen reader arrow-key order is logo, toggle, menu, same as the Tab order.
+                </wicket:remove>
+                <div class="sidebar-brand p-0 border-0 app-header" aria-owns="menuToggleBox">
                     <a class="brand-link custom-logo border-bottom-0 p-0 d-flex align-items-center justify-content-center" tabindex="2" wicket:id="customLogo" wicket:message="aria-label:LeftMenuPanel.customLogo">
                         <i wicket:id="customLogoImgCss"/>
                         <img wicket:id="customLogoImgSrc"/>
