@@ -1,0 +1,32 @@
+<!--
+  ~ Copyright (C) 2026 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:extend>
+    <div wicket:id="feedbackContainer" class="col-12 feedbackContainer">
+        <div wicket:id="feedback" class="messagePanel"/>
+    </div>
+    <div class="col-12 p-0 mb-3 d-flex flex-wrap align-items-center gap-2">
+        <form wicket:id="searchForm" class="me-auto">
+            <div class="input-group">
+                <input type="text" class="form-control" wicket:id="searchText"/>
+                <a class="btn btn-outline-secondary" wicket:id="searchButton">
+                    <i class="fa fa-search me-1"></i>
+                    <wicket:message key="PageBase.button.search"/>
+                </a>
+            </div>
+        </form>
+        <div class="form-check mb-0">
+            <input type="checkbox" class="form-check-input" wicket:id="showMarkedOnly"/>
+            <label class="form-check-label" wicket:for="showMarkedOnly">
+                <wicket:message key="SearchByIdResultConnectorStepPanel.showMarkedOnly"/>
+            </label>
+        </div>
+    </div>
+    <div class="col-12 p-0" wicket:id="table"/>
+</wicket:extend>
+</html>
