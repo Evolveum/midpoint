@@ -17,6 +17,7 @@ import com.evolveum.midpoint.gui.impl.util.ObjectCollectionViewUtil;
 import com.evolveum.midpoint.model.api.TaskService;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -35,6 +36,7 @@ public class TaskOperationUtils {
     private static final String OPERATION_SUSPEND_TASKS = DOT_CLASS + "suspendTasks";
     private static final String OPERATION_RESUME_TASKS = DOT_CLASS + "resumeTasks";
     private static final String OPERATION_RUN_NOW_TASKS = DOT_CLASS + "runNowTasks";
+    private static final String OPERATION_RESTART_TASKS = DOT_CLASS + "restartTasks";
 
     private static final List<String> REPORT_ARCHETYPES = Arrays.asList(
             SystemObjectsType.ARCHETYPE_REPORT_EXPORT_CLASSIC_TASK.value(),
@@ -170,6 +172,42 @@ public class TaskOperationUtils {
         }
 
         return result;
+    }
+
+    /**
+     * Restarts the tasks from the beginning: each task (tree) is suspended, its activity state (including worker subtasks)
+     * and its operation result are deleted, and then the tasks are resumed as in {@link #resumeTasks(List, PageBase)}.
+     * The next run therefore starts a new realization.
+     */
+    public static OperationResult restartTasks(List<TaskType> selectedTasks, PageBase pageBase) {
+        Task opTask = pageBase.createSimpleTask(OPERATION_RESTART_TASKS);
+        OperationResult result = opTask.getResult();
+        try {
+            TaskService taskService = pageBase.getTaskService();
+            for (TaskType task : selectedTasks) {
+                String oid = task.getOid();
+                taskService.deleteActivityStateAndWorkers(oid, true, PageTasks.WAIT_FOR_TASK_STOP, opTask, result);
+                deleteOperationResult(oid, pageBase, opTask, result);
+            }
+            result.addSubresult(resumeTasks(selectedTasks, pageBase));
+            result.computeStatus();
+            if (result.isSuccess()) {
+                result.recordStatus(OperationResultStatus.SUCCESS,
+                        pageBase.createStringResource("TaskOperationUtils.message.restartPerformed.success").getString());
+            }
+        } catch (Throwable t) {
+            result.recordFatalError(pageBase.createStringResource("TaskOperationUtils.message.restartPerformed.fatalError").getString(), t);
+        }
+        return result;
+    }
+
+    private static void deleteOperationResult(String oid, PageBase pageBase, Task opTask, OperationResult result)
+            throws CommonException {
+        ObjectDelta<TaskType> delta = PrismContext.get().deltaFor(TaskType.class)
+                .item(TaskType.F_RESULT).replace()
+                .item(TaskType.F_RESULT_STATUS).replace()
+                .asObjectDelta(oid);
+        pageBase.getModelService().executeChanges(List.of(delta), null, opTask, result);
     }
 
     @NotNull
