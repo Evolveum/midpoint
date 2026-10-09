@@ -24,6 +24,7 @@ import com.evolveum.midpoint.gui.impl.component.tile.TilePanel;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.input.CheckPanel;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnDevDocumentationSourceType;
 
 public class DocumentationTilePanel extends TilePanel<DocumentationTile, PrismContainerValueWrapper<ConnDevDocumentationSourceType>> {
@@ -102,6 +103,7 @@ public class DocumentationTilePanel extends TilePanel<DocumentationTile, PrismCo
             protected void onSubmit(AjaxRequestTarget target) {
             }
         };
+        showDetails.add(VisibleEnableBehaviour.ALWAYS_INVISIBLE);
         add(showDetails);
 
         AjaxLink<Void> delete = new AjaxLink<>(ID_DELETE) {

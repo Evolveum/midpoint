@@ -175,8 +175,9 @@ public class DocumentationConnectorStepPanel extends AbstractWizardStepPanel<Con
                 }
                 ConnDevDiscoverDocumentationResultType documentationResultBean = statusInfo.getResult();
 
-                PrismContainer<ConnDevDocumentationSourceType> suggestionsParent = documentationResultBean.asPrismContainerValue()
-                        .findContainer(ConnDevDiscoverDocumentationResultType.F_DOCUMENTATION);
+                PrismContainer<ConnDevDocumentationSourceType> suggestionsParent = documentationResultBean == null ? null
+                        : documentationResultBean.asPrismContainerValue()
+                                .findContainer(ConnDevDiscoverDocumentationResultType.F_DOCUMENTATION);
 
                 try {
                     PrismContainerWrapper<ConnDevDocumentationSourceType> parentWrapper =
