@@ -81,6 +81,7 @@ Configuration parameters:
                     </source>
                     <expression>
                         <script>
+                            <language>$scriptingLanguage</language>
                             <code>data</code>
                         </script>
                     </expression>
@@ -98,6 +99,7 @@ Configuration parameters:
                     </source>
                     <expression>
                         <script>
+                            <language>$scriptingLanguage</language>
                             <code>data</code>
                         </script>
                     </expression>
