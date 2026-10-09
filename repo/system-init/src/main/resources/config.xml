@@ -51,6 +51,10 @@ to a file, not its content, is the actual value.
                 <auditServiceFactoryClass>com.evolveum.midpoint.repo.sqale.audit.SqaleAuditServiceFactory</auditServiceFactoryClass>
             </auditService>
         </audit>
+        <connectors>
+            <!-- This is a safe default. Enabling these tools provides access to Groovy (for authorized users). -->
+            <developmentToolsEnabled>false</developmentToolsEnabled>
+        </connectors>
         <icf>
             <scanClasspath>true</scanClasspath>
             <scanDirectory>${midpoint.home}/icf-connectors</scanDirectory>
