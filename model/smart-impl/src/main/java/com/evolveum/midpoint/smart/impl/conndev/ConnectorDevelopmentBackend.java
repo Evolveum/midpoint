@@ -703,7 +703,7 @@ public abstract class ConnectorDevelopmentBackend {
 
     public abstract ConnDevApplicationInfoType discoverBasicInformation(boolean skipCache);
     public abstract List<ConnDevAuthInfoType> discoverAuthorizationInformation(boolean skipCache);
-    public abstract List<ConnDevDocumentationSourceType> discoverDocumentation(boolean skipCache);
+    public abstract List<ConnDevDocumentationSourceType> discoverDocumentation(boolean skipCache) throws CommunicationException;
 
     /**
      * Generates a non-object-class artifact (authorization script or test-connection script) or,
