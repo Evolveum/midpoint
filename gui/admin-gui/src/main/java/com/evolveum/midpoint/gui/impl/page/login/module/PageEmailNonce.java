@@ -10,6 +10,7 @@ import java.io.Serial;
 
 import com.evolveum.midpoint.gui.api.component.result.Toast;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -191,7 +192,10 @@ public class PageEmailNonce extends PageAbstractAuthenticationModule<CredentialM
         UserType user = userModel.getObject();
         LOGGER.trace("Reset Password user: {}", user);
 
-        OperationResult result = saveUserNonce(user, noncePolicy);
+        // Resolved here and not in the privileged block below: there the security context holds a privileged
+        // token instead of the MidpointAuthentication and the identifier would be null.
+        String sequenceIdentifier = getCurrentSequenceIdentifier();
+        OperationResult result = saveUserNonce(user, noncePolicy, sequenceIdentifier);
         panelDescriptionModel.detach();
         userModel.detach();
         if (result.getStatus() != OperationResultStatus.SUCCESS) {
@@ -235,11 +239,12 @@ public class PageEmailNonce extends PageAbstractAuthenticationModule<CredentialM
         }
     }
 
-    private OperationResult saveUserNonce(final UserType user, final NonceCredentialsPolicyType noncePolicy) {
-        return runPrivileged((Producer<OperationResult>) () -> saveNonce(user, noncePolicy));
+    private OperationResult saveUserNonce(
+            final UserType user, final NonceCredentialsPolicyType noncePolicy, final String sequenceIdentifier) {
+        return runPrivileged((Producer<OperationResult>) () -> saveNonce(user, noncePolicy, sequenceIdentifier));
     }
 
-    private OperationResult saveNonce(UserType user, NonceCredentialsPolicyType noncePolicy) {
+    private OperationResult saveNonce(UserType user, NonceCredentialsPolicyType noncePolicy, String sequenceIdentifier) {
         Task task = createAnonymousTask("generateUserNonce");
         task.setChannel(SchemaConstants.CHANNEL_RESET_PASSWORD_URI);
         task.setOwner(user.asPrismObject());
@@ -252,8 +257,13 @@ public class PageEmailNonce extends PageAbstractAuthenticationModule<CredentialM
             ObjectDelta<UserType> nonceDelta = getPrismContext().deltaFactory().object()
                     .createModificationReplaceProperty(UserType.class, user.getOid(),
                             SchemaConstants.PATH_NONCE_VALUE, nonceCredentials);
-            nonceDelta.addModificationReplaceProperty(
-                    SchemaConstants.PATH_NONCE.append(NonceType.F_SEQUENCE_IDENTIFIER), getCurrentSequenceIdentifier());
+            ItemPath sequenceIdentifierPath = SchemaConstants.PATH_NONCE.append(NonceType.F_SEQUENCE_IDENTIFIER);
+            if (sequenceIdentifier != null) {
+                nonceDelta.addModificationReplaceProperty(sequenceIdentifierPath, sequenceIdentifier);
+            } else {
+                // a stale binding to another sequence would make the new nonce unusable
+                nonceDelta.addModificationReplaceProperty(sequenceIdentifierPath);
+            }
 
             WebModelServiceUtils.save(nonceDelta, result, task, PageEmailNonce.this);
         } catch (CommonException e) {
