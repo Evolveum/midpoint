@@ -6,9 +6,11 @@
 package com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.basic;
 
 import java.io.Serial;
+import java.util.stream.Collectors;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.upload.FileUpload;
 import org.apache.wicket.markup.html.form.upload.FileUploadField;
@@ -17,6 +19,7 @@ import org.apache.wicket.model.StringResourceModel;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.smart.api.conndev.DocumentationContentTypes;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
@@ -86,7 +89,15 @@ public abstract class DocumentationUploadPopupPanel extends BasePanel<Void> impl
     }
 
     private FileUploadField createFileUploadField() {
-        return new FileUploadField(ID_FILE);
+        FileUploadField field = new FileUploadField(ID_FILE);
+        field.add(AttributeAppender.replace("accept", createAcceptedFileTypes()));
+        return field;
+    }
+
+    private String createAcceptedFileTypes() {
+        return DocumentationContentTypes.getSupportedSuffixes().stream()
+                .sorted()
+                .collect(Collectors.joining(",", "", ",text/*"));
     }
 
     private AjaxSubmitButton createUploadButton() {
@@ -124,6 +135,13 @@ public abstract class DocumentationUploadPopupPanel extends BasePanel<Void> impl
         FileUpload fileUpload = fileUploadField.getFileUpload();
         if (fileUpload == null) {
             feedback.error(createStringResource("DocumentationUploadPopupPanel.message.error.noFileSelected").getString());
+            target.add(feedback);
+            return;
+        }
+
+        if (!DocumentationContentTypes.isSupported(fileUpload.getContentType(), fileUpload.getClientFileName())) {
+            feedback.error(createStringResource("DocumentationUploadPopupPanel.message.error.unsupportedFormat",
+                    fileUpload.getClientFileName()).getString());
             target.add(feedback);
             return;
         }
