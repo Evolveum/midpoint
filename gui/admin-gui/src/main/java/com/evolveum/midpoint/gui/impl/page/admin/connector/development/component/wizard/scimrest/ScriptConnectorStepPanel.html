@@ -8,6 +8,17 @@
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:extend>
+    <div class="col-12 border-bottom mb-3"></div>
+    <div class="col-12 p-0 mb-2" wicket:id="suggestedScriptAlert">
+        <div class="d-flex flex-row flex-wrap alert alert-warning alert-opaque px-3" role="alert">
+            <span class="d-flex py-2 pe-2 align-items-start alert-icon">
+                <i class="fa fa-triangle-exclamation"></i>
+            </span>
+            <div class="d-flex flex-column justify-content-center align-items-start">
+                <wicket:message key="ScriptConnectorStepPanel.suggestedScript.banner"/>
+            </div>
+        </div>
+    </div>
     <div wicket:id="feedbackContainer" class="col-12 feedbackContainer">
         <div wicket:id="feedback" class="messagePanel"/>
     </div>

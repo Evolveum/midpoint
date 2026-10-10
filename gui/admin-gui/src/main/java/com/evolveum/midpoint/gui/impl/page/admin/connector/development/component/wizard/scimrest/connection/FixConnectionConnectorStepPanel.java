@@ -97,6 +97,9 @@ public class FixConnectionConnectorStepPanel extends AbstractWizardStepPanel<Con
     private LoadableModel<List<PrismContainerValueWrapper<ConnDevAuthInfoType>>> authValuesModel;
     private LoadableModel<ConnDevArtifactType> authScriptModel;
 
+    /** Filename removed by {@link #saveAuthScript}, for {@link #testConnection} to delete the orphaned file once saved; null if nothing to delete. */
+    private String authScriptFileToDelete;
+
     public FixConnectionConnectorStepPanel(WizardPanelHelper<? extends Containerable, ConnectorDevelopmentDetailsModel> helper) {
         super(helper);
     }
@@ -413,14 +416,35 @@ public class FixConnectionConnectorStepPanel extends AbstractWizardStepPanel<Con
     }
 
     private boolean saveAuthScript(AjaxRequestTarget target) {
+        authScriptFileToDelete = null;
         ConnDevArtifactType artifact = authScriptModel.getObject();
         if (artifact == null) {
             return true;
         }
+        ConnDevArtifactType script = artifact.clone();
+        WebPrismUtil.cleanupEmptyContainerValue(script.asPrismContainerValue());
+
+        if (StringUtils.isBlank(script.getContent())) {
+            if (!ConnectorDevelopmentWizardUtil.existScript(
+                    getDetailsModel(), ConnectorDevelopmentArtifacts.KnownArtifactType.AUTHENTICATION_CUSTOMIZATION, null)) {
+                return true;
+            }
+            PrismContainerValueWrapper<ConnDevArtifactType> scriptValue = ConnectorDevelopmentWizardUtil.getScript(
+                    getDetailsModel(), ConnectorDevelopmentArtifacts.KnownArtifactType.AUTHENTICATION_CUSTOMIZATION, null);
+            if (scriptValue == null) {
+                return true;
+            }
+            authScriptFileToDelete = scriptValue.getRealValue() != null ? scriptValue.getRealValue().getFilename() : null;
+            try {
+                scriptValue.getParent().remove(scriptValue, getDetailsModel().getPageAssignmentHolder());
+            } catch (SchemaException e) {
+                throw new RuntimeException(e);
+            }
+            return true;
+        }
+
         Task task = getPageBase().createSimpleTask("saveAuthScript");
         try {
-            ConnDevArtifactType script = artifact.clone();
-            WebPrismUtil.cleanupEmptyContainerValue(script.asPrismContainerValue());
             getDetailsModel().getConnectorDevelopmentOperation().saveAuthenticationScript(script, task, task.getResult());
         } catch (IOException | CommonException e) {
             throw new RuntimeException(e);
@@ -430,6 +454,22 @@ public class FixConnectionConnectorStepPanel extends AbstractWizardStepPanel<Con
             return false;
         }
         return true;
+    }
+
+    /** Deletes the file backing a script removed by {@link #saveAuthScript}, now that the removal has actually been saved. */
+    private void deletePendingAuthScriptFile(AjaxRequestTarget target) {
+        if (authScriptFileToDelete == null) {
+            return;
+        }
+        Task task = getPageBase().createSimpleTask("deleteAuthScriptFile");
+        try {
+            getDetailsModel().getConnectorDevelopmentOperation().deleteArtifactFile(authScriptFileToDelete, task, task.getResult());
+            getDetailsModel().getConnectorDevelopmentOperation().recomputeConnectorManifest(task, task.getResult());
+        } catch (IOException | CommonException e) {
+            getPageBase().error("Couldn't delete " + authScriptFileToDelete + ": " + e.getMessage());
+            target.add(getFeedback());
+        }
+        authScriptFileToDelete = null;
     }
 
     private void testConnection(AjaxRequestTarget target) {
@@ -454,6 +494,7 @@ public class FixConnectionConnectorStepPanel extends AbstractWizardStepPanel<Con
 
         OperationResult saveResult = getHelper().onSaveObjectPerformed(target);
         if (saveResult != null && !saveResult.isError()) {
+            deletePendingAuthScriptFile(target);
             getDetailsModel().reloadPrismObjectByOid();
             super.onNextPerformed(target);
         } else {

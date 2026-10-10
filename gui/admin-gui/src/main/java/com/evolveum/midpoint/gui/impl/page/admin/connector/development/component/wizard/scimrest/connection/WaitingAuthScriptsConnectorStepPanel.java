@@ -6,12 +6,12 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.connection;
 
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.ConnectorDevelopmentDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.ConnectorDevelopmentWizardUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.WaitingScriptConnectorStepPanel;
 import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.smart.api.conndev.ConnectorDevelopmentArtifacts;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
@@ -20,7 +20,7 @@ import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnDevConnectorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnDevArtifactType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorDevelopmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationTypeType;
 
@@ -98,9 +98,14 @@ public class WaitingAuthScriptsConnectorStepPanel extends WaitingScriptConnector
 
     @Override
     public boolean isCompleted() {
-        if (ConnectorDevelopmentWizardUtil.existContainerValue(
-                getDetailsModel().getObjectWrapper(),
-                ItemPath.create(ConnectorDevelopmentType.F_CONNECTOR, ConnDevConnectorType.F_AUTHENTICATION_SCRIPT))) {
+        boolean exists = ConnectorDevelopmentWizardUtil.existScript(
+                getDetailsModel(), ConnectorDevelopmentArtifacts.KnownArtifactType.AUTHENTICATION_CUSTOMIZATION, null);
+        PrismContainerValueWrapper<ConnDevArtifactType> deployed = exists
+                ? ConnectorDevelopmentWizardUtil.getScript(
+                        getDetailsModel(), ConnectorDevelopmentArtifacts.KnownArtifactType.AUTHENTICATION_CUSTOMIZATION, null)
+                : null;
+        boolean active = deployed != null && !Boolean.TRUE.equals(deployed.getRealValue().isDisabled());
+        if (active) {
             return true;
         }
 

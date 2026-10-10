@@ -55,6 +55,7 @@ public class BasicWizardStepPanel<T> extends WizardStepPanel<T> {
     private static final String ID_SUBMIT_LABEL = "submitLabel";
     private static final String ID_NEXT = "next";
     private static final String ID_NEXT_LABEL = "nextLabel";
+    private static final String ID_CUSTOM_BUTTONS_ANCHOR = "customButtonsAnchor";
 
     public BasicWizardStepPanel() {
     }
@@ -198,6 +199,21 @@ public class BasicWizardStepPanel<T> extends WizardStepPanel<T> {
 
         Label nextLabel = new Label(ID_NEXT_LABEL, createNextModel());
         next.add(nextLabel);
+
+        Component customButtonsAnchor = createCustomButtonsAnchor(ID_CUSTOM_BUTTONS_ANCHOR);
+        customButtonsAnchor.setOutputMarkupId(true);
+        customButtonsContainer.add(customButtonsAnchor);
+    }
+
+    /**
+     * Empty slot right after "Next", for a step that needs to anchor markup there (e.g. a
+     * dropdown menu) that can't legally live in {@link #initCustomButtons}'s {@code <a>}-templated
+     * repeater. Invisible by default, so other steps render unaffected.
+     */
+    protected Component createCustomButtonsAnchor(String id) {
+        WebMarkupContainer anchor = new WebMarkupContainer(id);
+        anchor.setVisible(false);
+        return anchor;
     }
 
     private LoadableDetachableModel<String> createNextModel() {
