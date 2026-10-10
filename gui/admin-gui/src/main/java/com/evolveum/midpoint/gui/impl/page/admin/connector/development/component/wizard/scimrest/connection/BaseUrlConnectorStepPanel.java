@@ -272,6 +272,11 @@ public class BaseUrlConnectorStepPanel extends AbstractFormWizardStepPanel<Conne
 
     @Override
     public boolean onNextPerformed(AjaxRequestTarget target) {
+        if (StringUtils.isBlank(getCurrentUrlValue())) {
+            getPageBase().error(createStringResource("BaseUrlConnectorStepPanel.urlRequired").getString());
+            target.add(getFeedback());
+            return false;
+        }
         OperationResult result = getHelper().onSaveObjectPerformed(target);
         getDetailsModel().getConnectorDevelopmentOperation();
         if (result != null && !result.isError()) {
@@ -280,6 +285,16 @@ public class BaseUrlConnectorStepPanel extends AbstractFormWizardStepPanel<Conne
             target.add(getFeedback());
         }
         return false;
+    }
+
+    private String getCurrentUrlValue() {
+        try {
+            PrismPropertyValueWrapper<String> fieldValue =
+                    (PrismPropertyValueWrapper<String>) getContainerFormModel().getObject().findProperty(urlFieldName()).getValue();
+            return fieldValue.getRealValue();
+        } catch (SchemaException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
