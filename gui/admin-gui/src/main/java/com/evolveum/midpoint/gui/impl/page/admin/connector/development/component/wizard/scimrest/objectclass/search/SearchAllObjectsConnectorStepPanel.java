@@ -154,9 +154,7 @@ public class SearchAllObjectsConnectorStepPanel extends ScriptConfirmationPanel 
             protected void processResult(OperationResult result) {
                 if (getWizard() instanceof WizardModelWithParentSteps wizardModel) {
                     ConnectorDevelopmentWizardUtil.collectConnectorResults(result, (connIdResult) -> {
-                        ConnectorDevelopmentWizardUtil.appendLogsAsContext(connIdResult);
                         wizardModel.addOperationResult(getStepId(), "cdw-search-all-script", connIdResult);
-
                     });
                     ConnectorDevelopmentWizardUtil.reportConnectorLogs(SearchAllObjectsConnectorStepPanel.this, getStepId(), result, null);
                 }

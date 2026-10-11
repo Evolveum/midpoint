@@ -52,8 +52,11 @@ public class OperationResultCollapsedItem extends CollapsedItem<WizardModelWithP
             String panelId, String fixPanelId, OperationResult result, SerializableConsumer<AjaxRequestTarget> fixAction,
             String fixButtonLabelKey, String fixButtonIcon) {
         removeOperationResult(panelId);
-        OperationResultWrapper resultWrapper = new OperationResultWrapper(result, fixPanelId, fixAction, fixButtonLabelKey, fixButtonIcon);
-        results.put(panelId, resultWrapper);
+        result.computeStatus();
+        if (result.isWarning() || result.isError()) {
+            OperationResultWrapper resultWrapper = new OperationResultWrapper(result, fixPanelId, fixAction, fixButtonLabelKey, fixButtonIcon);
+            results.put(panelId, resultWrapper);
+        }
     }
 
     public void removeOperationResult(String panelId) {
