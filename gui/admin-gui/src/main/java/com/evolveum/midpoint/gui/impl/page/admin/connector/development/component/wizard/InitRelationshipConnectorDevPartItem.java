@@ -24,7 +24,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnDevConnectorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnDevObjectClassInfoType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnDevRelationInfoType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorDevelopmentType;
 
@@ -85,20 +84,20 @@ public class InitRelationshipConnectorDevPartItem extends AbstractWizardPartItem
         }
 
         try {
-            PrismContainerWrapper<ConnDevObjectClassInfoType> objectClassContainer = getObjectWrapper().findContainer(
+            PrismContainerWrapper<ConnDevRelationInfoType> relationContainer = getObjectWrapper().findContainer(
                     ItemPath.create(ConnectorDevelopmentType.F_CONNECTOR,
                             ConnDevConnectorType.F_RELATION));
-            if (objectClassContainer == null || objectClassContainer.getValues().isEmpty()) {
+            if (relationContainer == null || relationContainer.getValues().isEmpty()) {
                 return null;
             }
 
-            PrismContainerValueWrapper<ConnDevObjectClassInfoType> objectClassValue = objectClassContainer.getValues().stream()
+            PrismContainerValueWrapper<ConnDevRelationInfoType> relationValue = relationContainer.getValues().stream()
                     .filter(value -> value.getStatus() == ValueStatus.ADDED)
                     .findFirst()
                     .orElse(null);
 
-            if (objectClassValue != null) {
-                return objectClassValue.getRealValue().getName();
+            if (relationValue != null) {
+                return relationValue.getRealValue().getName();
             }
             return null;
         } catch (SchemaException e) {
