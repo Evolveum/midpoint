@@ -54,6 +54,16 @@ public interface ConnectorDevelopmentService {
      */
     boolean isOffline();
 
+    /**
+     * Whether a connector with the given coordinates already exists - either as a discovered
+     * {@link ConnectorType} (matching {@code connectorBundle = groupId + "." + artifactId} and
+     * {@code connectorVersion = version}) or as a leftover bundle directory
+     * ({@code groupId + "." + artifactId + "." + version}) under the connector scan directory,
+     * which would be rediscovered on the next restart.
+     */
+    boolean isConnectorAlreadyPresent(String groupId, String artifactId, String version, Task task, OperationResult result)
+            throws CommonException;
+
     StatusInfo<ConnDevCreateConnectorResultType> getCreateConnectorStatus(String token, Task task, OperationResult result) throws CommonException;
 
     /**

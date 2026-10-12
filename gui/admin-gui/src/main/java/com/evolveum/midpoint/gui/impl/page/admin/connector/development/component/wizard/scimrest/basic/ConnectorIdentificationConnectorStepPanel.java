@@ -30,7 +30,11 @@ import com.evolveum.midpoint.gui.impl.prism.panel.vertical.form.VerticalFormPris
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
@@ -55,6 +59,8 @@ import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component
 public class ConnectorIdentificationConnectorStepPanel extends AbstractFormWizardStepPanel<ConnectorDevelopmentDetailsModel> {
 
     public static final String PANEL_TYPE = "cdw-connector-identification";
+
+    private static final Trace LOGGER = TraceManager.getTrace(ConnectorIdentificationConnectorStepPanel.class);
 
     public ConnectorIdentificationConnectorStepPanel(WizardPanelHelper<? extends Containerable, ConnectorDevelopmentDetailsModel> helper) {
         super(helper);
@@ -244,6 +250,17 @@ public class ConnectorIdentificationConnectorStepPanel extends AbstractFormWizar
             // nothing to validate - just persist the changes and return to the summary.
             return saveAndNavigateToSummary(target);
         }
+        ConnDevConnectorType connector;
+        try {
+            connector = ((IModel<PrismContainerWrapper<ConnDevConnectorType>>) getContainerFormModel())
+                    .getObject().getValue().getRealValue();
+        } catch (SchemaException e) {
+            throw new RuntimeException(e);
+        }
+        if (!checkConnectorCoordinatesAvailable(connector, target)) {
+            return false;
+        }
+
         try {
             PrismPropertyWrapperModel.fromContainerWrapper(getDetailsModel().getObjectWrapperModel(), ConnectorDevelopmentType.F_NAME)
                     .getObject().getValue().setRealValue(new PolyString(
@@ -310,6 +327,28 @@ public class ConnectorIdentificationConnectorStepPanel extends AbstractFormWizar
             return true;
         }
         return !ConnectorDevelopmentWizardUtil.isConnectorCoordinateItem(itemWrapper.getPath());
+    }
+
+    private boolean checkConnectorCoordinatesAvailable(ConnDevConnectorType connector, AjaxRequestTarget target) {
+        String coordinates = connector.getGroupId() + ":" + connector.getArtifactId() + ":" + connector.getVersion();
+        try {
+            Task checkTask = getPageBase().createSimpleTask("checkConnectorAlreadyPresent");
+            if (getDetailsModel().getServiceLocator().getConnectorService()
+                    .isConnectorAlreadyPresent(connector.getGroupId(), connector.getArtifactId(), connector.getVersion(),
+                            checkTask, checkTask.getResult())) {
+                getPageBase().error(createStringResource(
+                        "ConnectorIdentificationConnectorStepPanel.connectorAlreadyExists", coordinates).getString());
+                target.add(getFeedback());
+                return false;
+            }
+        } catch (CommonException e) {
+            LOGGER.error("Couldn't check whether a connector with coordinates {} already exists", coordinates, e);
+            getPageBase().error(createStringResource(
+                    "ConnectorIdentificationConnectorStepPanel.connectorCheckFailed", coordinates).getString());
+            target.add(getFeedback());
+            return false;
+        }
+        return true;
     }
 
     @Override
