@@ -54,7 +54,7 @@ import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component
         containerPath = "empty")
 public class ConnectorIdentificationConnectorStepPanel extends AbstractFormWizardStepPanel<ConnectorDevelopmentDetailsModel> {
 
-    private static final String PANEL_TYPE = "cdw-connector-identification";
+    public static final String PANEL_TYPE = "cdw-connector-identification";
 
     public ConnectorIdentificationConnectorStepPanel(WizardPanelHelper<? extends Containerable, ConnectorDevelopmentDetailsModel> helper) {
         super(helper);
@@ -238,6 +238,11 @@ public class ConnectorIdentificationConnectorStepPanel extends AbstractFormWizar
 
     @Override
     public boolean onNextPerformed(AjaxRequestTarget target) {
+        if (ConnectorDevelopmentWizardUtil.isBasicSettingsComplete(getDetailsModel().getObjectWrapper())) {
+            // The connector is already created and its coordinates are immutable, so there is
+            // nothing to validate - just persist the changes and return to the summary.
+            return saveAndNavigateToSummary(target);
+        }
         try {
             PrismPropertyWrapperModel.fromContainerWrapper(getDetailsModel().getObjectWrapperModel(), ConnectorDevelopmentType.F_NAME)
                     .getObject().getValue().setRealValue(new PolyString(
@@ -264,6 +269,39 @@ public class ConnectorIdentificationConnectorStepPanel extends AbstractFormWizar
             target.add(getFeedback());
         }
         return false;
+    }
+
+    @Override
+    public boolean onBackPerformed(AjaxRequestTarget target) {
+        if (ConnectorDevelopmentWizardUtil.isBasicSettingsComplete(getDetailsModel().getObjectWrapper())
+                && getWizard() instanceof WizardModelWithParentSteps wizardModel) {
+            // For an already created connector, the documentation steps are done - go back to
+            // the previous editable step (the application identification) instead.
+            wizardModel.setActiveStepById(ApplicationIdentificationConnectorStepPanel.PANEL_TYPE);
+            wizardModel.fireActiveStepChanged(wizardModel.getActiveStep());
+            target.add(wizardModel.getPanel());
+            return false;
+        }
+        return super.onBackPerformed(target);
+    }
+
+    private boolean saveAndNavigateToSummary(AjaxRequestTarget target) {
+        OperationResult result = getHelper().onSaveObjectPerformed(target);
+        getDetailsModel().getConnectorDevelopmentOperation();
+        if (result != null && !result.isError()) {
+            navigateToSummary(target);
+        } else {
+            target.add(getFeedback());
+        }
+        return false;
+    }
+
+    private void navigateToSummary(AjaxRequestTarget target) {
+        if (getWizard() instanceof WizardModelWithParentSteps wizardModel) {
+            wizardModel.showSummaryPanel();
+            wizardModel.fireActiveStepChanged(wizardModel.getActiveStep());
+            target.add(wizardModel.getPanel());
+        }
     }
 
     @Override

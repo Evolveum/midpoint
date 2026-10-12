@@ -8,6 +8,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.connector.development.componen
 
 import java.util.List;
 
+import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.model.IModel;
 
@@ -17,6 +18,7 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.impl.component.wizard.AbstractFormWizardStepPanel;
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
+import com.evolveum.midpoint.gui.impl.component.wizard.withnavigation.WizardModelWithParentSteps;
 import com.evolveum.midpoint.gui.impl.component.wizard.withnavigation.WizardParentStep;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.ConnectorDevelopmentDetailsModel;
 import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettings;
@@ -24,6 +26,7 @@ import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettingsBuilder;
 import com.evolveum.midpoint.gui.impl.prism.panel.vertical.form.VerticalFormPanel;
 import com.evolveum.midpoint.gui.impl.prism.panel.vertical.form.VerticalFormPrismContainerPanel;
 import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
@@ -149,6 +152,29 @@ public class BasicInformationConnectorStepPanel extends AbstractFormWizardStepPa
             return true;
         }
         return itemWrapper.isMandatory();
+    }
+
+    @Override
+    public boolean isCompleted() {
+        return ConnectorDevelopmentWizardUtil.isBasicSettingsComplete(getDetailsModel().getObjectWrapper());
+    }
+
+    @Override
+    protected void onSubmitPerformed(AjaxRequestTarget target) {
+        if (!ConnectorDevelopmentWizardUtil.isBasicSettingsComplete(getDetailsModel().getObjectWrapper())) {
+            super.onSubmitPerformed(target);
+            return;
+        }
+        OperationResult result = getHelper().onSaveObjectPerformed(target);
+        if (result != null && !result.isError()) {
+            if (getWizard() instanceof WizardModelWithParentSteps wizardModel) {
+                wizardModel.showSummaryPanel();
+                wizardModel.fireActiveStepChanged(wizardModel.getActiveStep());
+                target.add(wizardModel.getPanel());
+            }
+        } else {
+            target.add(getFeedback());
+        }
     }
 
     @Override
