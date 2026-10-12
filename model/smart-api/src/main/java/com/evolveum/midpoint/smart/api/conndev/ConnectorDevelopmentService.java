@@ -4,8 +4,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommonException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import java.io.IOException;
@@ -37,12 +35,15 @@ public interface ConnectorDevelopmentService {
             throws CommonException;
 
     /**
-     * Whether the local bundle of the given connector is a low-code (manifest-based) connector,
-     * i.e. its bundle directory carries a {@code connector.manifest.yaml} or
-     * {@code connector.manifest.json} file. Such connectors can be imported into the connector
-     * development (see {@link #startFromExisting}); anything else returns {@code false}.
+     * Whether the given connector is a low-code (manifest-based) connector, judged solely from
+     * the {@code connectorType} (the connector class the bundle declares in its
+     * {@code META-INF/MANIFEST.MF}) - true only for the supported low-code framework classes.
+     * Holds for such connectors no matter how their bundle is installed (directory or JAR).
+     * Actual importability (the bundle being local and carrying a
+     * {@code connector.manifest.yaml} or {@code connector.manifest.json} file) is verified by
+     * {@link #startFromExisting}; anything else returns {@code false}.
      */
-    boolean isManifestBasedConnector(ConnectorType connector, OperationResult result);
+    boolean isManifestBasedConnector(ConnectorType connector);
 
     /**
      * Whether the connector-generation service is configured
