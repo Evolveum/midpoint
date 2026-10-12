@@ -38,7 +38,6 @@ import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardStepPanel;
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 import com.evolveum.midpoint.gui.impl.component.wizard.withnavigation.WizardModelWithParentSteps;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.ConnectorDevelopmentDetailsModel;
-import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.ConnectorDevelopmentController;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.ConnectorDevelopmentWizardUtil;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -732,15 +731,6 @@ public abstract class ScriptConnectorStepPanel extends AbstractWizardStepPanel<C
     @Override
     public boolean isCompleted() {
         return ConnectorDevelopmentWizardUtil.existScript(getDetailsModel(), getScriptType(), getObjectClassName());
-    }
-
-    @Override
-    public boolean onBackPerformed(AjaxRequestTarget target) {
-        if (!getWizard().hasPrevious() && getWizard() instanceof ConnectorDevelopmentController controller) {
-            controller.showObjectClassesPanel(target);
-            return false;
-        }
-        return super.onBackPerformed(target);
     }
 
     @Override
