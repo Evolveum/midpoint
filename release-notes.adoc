@@ -609,7 +609,7 @@ Modified:
 * 730-mark-projection-activated.xml to 738-mark-projection-resource-object-affected.xml - Added display label and help with translation keys.
 * 899-dashboard-compliance.xml - Widget colors updated to `--bs-*` CSS variables.
 * 015-security-policy.xml - Added `otp` credentials policy for TOTP. Password hint is hidden by default (`passwordHintConfigurability` set to `neverConfigure`).
-* 380-object-template-person.xml - Fixed max. iterations for the "Full name" construction. Added displayName mapping from preferredName, falling back to fullName.
+* 380-object-template-person.xml - Fixed max. iterations for the "Full name" construction. Added displayName mapping from preferredName, falling back to fullName. Added `range=all` to the mappings for `name`, `fullName`, and `displayName`.
 * 110-report-user-list.xml - Added displayName column.
 * 050-user-administrator.xml - Added displayName.
 * 300-policy-require-classification.xml - Added archetype.
