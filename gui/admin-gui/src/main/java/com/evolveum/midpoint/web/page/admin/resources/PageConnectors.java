@@ -16,6 +16,7 @@ import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
@@ -183,7 +184,8 @@ public class PageConnectors extends PageAdmin {
                 };
             }
         });
-        menuItems.add(new InlineMenuItem(createStringResource("PageConnectors.button.developConnector")) {
+
+        var developMenu = new InlineMenuItem(createStringResource("PageConnectors.button.developConnector")) {
             @Serial private static final long serialVersionUID = 1L;
 
             @Override
@@ -197,7 +199,18 @@ public class PageConnectors extends PageAdmin {
                     }
                 };
             }
+        };
+        developMenu.setVisibilityChecker((rowModel, isHeader) -> {
+            if (isHeader) {
+                return false;
+            }
+            var casted = (Model<SelectableBean<ConnectorType>>) rowModel;
+            if (casted != null && casted.getObject() != null && casted.getObject().getValue() != null) {
+                return getConnectorService().isManifestBasedConnector(casted.getObject().getValue());
+            }
+            return false;
         });
+        menuItems.add(developMenu);
         return menuItems;
     }
 
@@ -225,7 +238,7 @@ public class PageConnectors extends PageAdmin {
         var task = createSimpleTask(OPERATION_DEVELOP_CONNECTOR);
         var result = task.getResult();
         try {
-            if (!getConnectorService().isManifestBasedConnector(connector, result)) {
+            if (!getConnectorService().isManifestBasedConnector(connector)) {
                 error(getString("PageConnectors.message.developConnectorNotManifestBased"));
                 target.add(getFeedbackPanel());
                 return;
