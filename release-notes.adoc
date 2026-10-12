@@ -547,6 +547,23 @@ In that case, set `useTokenOnlyOnConflict` to `false` explicitly.
 have been removed from  `OidcResourceServerAuthenticationModuleType`.
 These attributes can be used in the token definition instead (see attributes `jwt` and `opaqueToken`).
 
+* Container images for midPoint 4.11.0 and later versions are built to run as non-root user `midpoint` with UID 1000.
+This means that any containerized (Docker/compose or Kubernetes) deployment with pre-existing volume/PVC needs to make the content on the persistent volumes writable to the new user.
+If a midPoint container detects at startup that $MP_DIR is not writable by the running user, it prints out a warning and suggested steps for Kubernetes deployments.
++
+Remediation depends on the concrete deployment style and all the cases cannot be covered universally, but possible options are:
++
+--
+** Set `securityContext.fsGroup: 1000` on the pod and k8s will relabel the volume group on mount.
+** Add an `initContainer` executing the ownership change, e.g. `chown -R 1000:1000` on the relevant directories.
+** For Docker volumes, run: `docker run --rm -v <volume>:/var --user 0 busybox chown -R 1000:1000 /var`
+--
++
+Take the options above as examples and adapt them to the specifics of your deployment.
+Check further details about the new https://docs.evolveum.com/midpoint/get-started/install/containers/container-image-naming/[Container Image Naming],
+and also the document describing the https://docs.evolveum.com/midpoint/get-started/install/containers/container-image-2026-change/[container image changes],
+including the https://docs.evolveum.com/midpoint/get-started/install/containers/container-image-2026-change/#default-container-user[container user change].
+
 === Changes In Initial Objects Since 4.10
 
 NOTE: This section is relevant to the majority of midPoint deployments.
