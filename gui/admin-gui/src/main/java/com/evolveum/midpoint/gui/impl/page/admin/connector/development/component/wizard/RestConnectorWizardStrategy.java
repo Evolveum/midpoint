@@ -9,6 +9,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.connector.development.componen
 import java.util.List;
 
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 
 import com.evolveum.midpoint.gui.api.component.wizard.WizardStep;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
@@ -48,6 +49,7 @@ import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.search.SearchByIdEndpointsConnectorStepPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.search.SearchByIdObjectClassConnectorStepPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.search.SearchByIdObjectConnectorStepPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.search.SearchByIdResultConnectorStepPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.search.SearchByIdScriptConnectorStepPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.search.SearchFilterEndpointsConnectorStepPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.search.SearchFilterObjectClassConnectorStepPanel;
@@ -63,6 +65,7 @@ import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnDevObjectClassInfoType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
  * Wizard strategy for classic (non-SCIM) REST connectors. SCIM is a specialization of REST
@@ -90,6 +93,7 @@ public class RestConnectorWizardStrategy implements ConnectorWizardStrategy {
     public List<WizardStep> initObjectClassSteps(
             WizardPanelHelper<? extends Containerable, ConnectorDevelopmentDetailsModel> helper,
             IModel<PrismContainerValueWrapper<ConnDevObjectClassInfoType>> objectClassModel) {
+        IModel<ShadowType> retrievedObjectModel = Model.of();
         return List.of(
                 new ObjectClassSelectConnectorStepPanel(helper, objectClassModel),
                 new WaitingObjectClassDetailsConnectorStepPanel(helper, objectClassModel),
@@ -109,7 +113,8 @@ public class RestConnectorWizardStrategy implements ConnectorWizardStrategy {
                 new WaitingFixObjectClassConnectorStepPanel(helper, objectClassModel, SearchByIdObjectClassConnectorStepPanel.PANEL_TYPE),
                 new FixObjectClassReviewConnectorStepPanel(helper, objectClassModel, SearchByIdObjectClassConnectorStepPanel.PANEL_TYPE),
                 new SearchByIdScriptConnectorStepPanel(helper, objectClassModel),
-                new SearchByIdObjectConnectorStepPanel(helper, objectClassModel));
+                new SearchByIdObjectConnectorStepPanel(helper, objectClassModel, retrievedObjectModel),
+                new SearchByIdResultConnectorStepPanel(helper, objectClassModel, retrievedObjectModel));
     }
 
     @Override
@@ -129,13 +134,15 @@ public class RestConnectorWizardStrategy implements ConnectorWizardStrategy {
     public List<WizardStep> searchByIdObjectClassSteps(
             WizardPanelHelper<? extends Containerable, ConnectorDevelopmentDetailsModel> helper,
             IModel<PrismContainerValueWrapper<ConnDevObjectClassInfoType>> objectClassModel) {
+        IModel<ShadowType> retrievedObjectModel = Model.of();
         return List.of(
                 new SearchByIdEndpointsConnectorStepPanel(helper, objectClassModel),
                 new WaitingSearchByIdConnectorStepPanel(helper, objectClassModel),
                 new WaitingFixObjectClassConnectorStepPanel(helper, objectClassModel, SearchByIdObjectClassConnectorStepPanel.PANEL_TYPE),
                 new FixObjectClassReviewConnectorStepPanel(helper, objectClassModel, SearchByIdObjectClassConnectorStepPanel.PANEL_TYPE),
                 new SearchByIdScriptConnectorStepPanel(helper, objectClassModel),
-                new SearchByIdObjectConnectorStepPanel(helper, objectClassModel));
+                new SearchByIdObjectConnectorStepPanel(helper, objectClassModel, retrievedObjectModel),
+                new SearchByIdResultConnectorStepPanel(helper, objectClassModel, retrievedObjectModel));
     }
 
     @Override
