@@ -15,6 +15,7 @@ import java.io.Serializable;
 
 public class OperationResultWrapper implements Serializable {
 
+    private final String panelId;
     private final OperationResult result;
     private final String fixPanelId;
     private final SerializableConsumer<AjaxRequestTarget> fixAction;
@@ -22,15 +23,17 @@ public class OperationResultWrapper implements Serializable {
     private final String fixButtonIcon;
     private boolean expanded = false;
 
-    public OperationResultWrapper(OperationResult result, String fixPanelId) {
-        this(result, fixPanelId, null);
+    public OperationResultWrapper(String panelId, OperationResult result, String fixPanelId) {
+        this(panelId, result, fixPanelId, null);
     }
 
-    public OperationResultWrapper(OperationResult result, String fixPanelId, SerializableConsumer<AjaxRequestTarget> fixAction) {
-        this(result, fixPanelId, fixAction, null, null);
+    public OperationResultWrapper(
+            String panelId, OperationResult result, String fixPanelId, SerializableConsumer<AjaxRequestTarget> fixAction) {
+        this(panelId, result, fixPanelId, fixAction, null, null);
     }
 
     /**
+     * @param panelId            the drawer entry's own key, used by the "Ignore" button to remove it
      * @param result             the validation/operation failure this drawer entry reports
      * @param fixPanelId         wizard step to navigate to on fix-button click, used only when
      *                           {@code fixAction} is null
@@ -41,13 +44,18 @@ public class OperationResultWrapper implements Serializable {
      * @param fixButtonIcon      overrides the button's default "fa fa-wrench" icon class
      */
     public OperationResultWrapper(
-            OperationResult result, String fixPanelId, SerializableConsumer<AjaxRequestTarget> fixAction,
+            String panelId, OperationResult result, String fixPanelId, SerializableConsumer<AjaxRequestTarget> fixAction,
             String fixButtonLabelKey, String fixButtonIcon) {
+        this.panelId = panelId;
         this.result = result;
         this.fixPanelId = fixPanelId;
         this.fixAction = fixAction;
         this.fixButtonLabelKey = fixButtonLabelKey;
         this.fixButtonIcon = fixButtonIcon;
+    }
+
+    public String getPanelId() {
+        return panelId;
     }
 
     public OperationResult getResult() {

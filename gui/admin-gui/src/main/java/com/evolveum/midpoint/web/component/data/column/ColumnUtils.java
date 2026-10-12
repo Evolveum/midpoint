@@ -2028,7 +2028,7 @@ public class ColumnUtils {
                 panel.setIconRole(ImagePanel.IconRole.IMAGE);
                 cellItem.add(panel);
 
-                cellItem.add(AttributeAppender.append("class", "text-center " + additionalCssClass));
+                cellItem.add(AttributeAppender.append("class", "text-center "));
             }
 
             @Override
@@ -2038,7 +2038,10 @@ public class ColumnUtils {
 
             @Override
             public String getCssClass() {
-                return "px-0";
+                if (additionalCssClass == null) {
+                    return "px-0";
+                }
+                return "col-auto px-0 " + additionalCssClass;
             }
         };
     }

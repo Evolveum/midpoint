@@ -128,7 +128,7 @@ public class ConnectorDevelopmentRestController extends AbstractRestController {
 
             return createResponse(
                     HttpStatus.OK,
-                    connectorDevelopmentService.isManifestBasedConnector(connector, result),
+                    connectorDevelopmentService.isManifestBasedConnector(connector),
                     result
             );
         } catch (Exception e) {

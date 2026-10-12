@@ -288,6 +288,23 @@
             <artifactId>connector-csv</artifactId>
             <scope>test</scope>
         </dependency>
+        <!-- Low-code (manifest-based) scimrest template connector bundle, used as the source
+             connector by the connector-development story tests. The jar is copied to
+             target/dependency by the maven-dependency-plugin execution below. -->
+        <dependency>
+            <groupId>com.evolveum.polygon.scimrest</groupId>
+            <artifactId>connector-scimrest-generic</artifactId>
+            <scope>test</scope>
+            <exclusions>
+                <!-- The bundle JAR is self-contained (it carries its own lib/); the POM's
+                     transitive dependencies (jackson/jersey inherited from the polygon parent
+                     POMs) are irrelevant for the tests. -->
+                <exclusion>
+                    <groupId>*</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
         <dependency>
             <groupId>org.testng</groupId>
             <artifactId>testng</artifactId>
@@ -424,6 +441,26 @@
 
     <build>
         <plugins>
+            <plugin>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <!-- The connector-development story tests use the scimrest template
+                             connector bundle as their source connector; copy just that jar
+                             (not the whole test classpath) to target/dependency. -->
+                        <id>copy-scimrest-test-connector</id>
+                        <phase>pre-integration-test</phase>
+                        <goals>
+                            <goal>copy-dependencies</goal>
+                        </goals>
+                        <configuration>
+                            <includeGroupIds>com.evolveum.polygon.scimrest</includeGroupIds>
+                            <includeArtifactIds>connector-scimrest-generic</includeArtifactIds>
+                            <outputDirectory>${project.build.directory}/dependency</outputDirectory>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
             <plugin>
                 <artifactId>maven-failsafe-plugin</artifactId>
                 <configuration>

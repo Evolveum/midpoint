@@ -16,6 +16,8 @@ import com.evolveum.midpoint.gui.impl.component.wizard.collapse.log.OperationRes
 import com.evolveum.midpoint.gui.impl.component.wizard.withnavigation.WizardModelWithParentSteps;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.ConnectorDevelopmentDetailsModel;
+import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.RepairObjectClassButton;
+import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.ScriptConnectorStepPanel;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -62,6 +64,7 @@ import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -257,7 +260,7 @@ public class ConnectorDevelopmentWizardUtil {
             String panelId = stepId + "." + source;
             var result = buildValidationOperationResult(entry.getValue(), source);
             if (source.equals(fileName)) {
-                wizardModel.addOperationResult(panelId, step.getStepId(), result);
+                wizardModel.addOperationResult(panelId, step.getStepId(), result, fixScriptAction(step, step.getStepId()));
             } else {
                 wizardModel.addOperationResult(panelId, result, disableAction(step, panelId, source),
                         "OperationResultCollapsedItemPanel.disableButton", "fa fa-ban");
@@ -282,6 +285,43 @@ public class ConnectorDevelopmentWizardUtil {
         String panelId = stepId + "." + source;
         var result = buildValidationOperationResult(errors, source);
         wizardModel.addOperationResult(panelId, fixPanelId, result);
+    }
+
+    /**
+     * Builds a drawer fix button's click handler that navigates to {@code fixPanelId}, then either
+     * regenerates it, or - if more than one script of this object class currently has a pending
+     * error - repairs the whole object class instead. {@code reportingStep} is used only to reach
+     * the wizard ({@link AbstractWizardStepPanel#getWizard()}) - the step actually acted upon is
+     * re-resolved live by id after navigating, since a drawer entry can outlive the part-item
+     * structure {@code reportingStep} was created in (e.g. a later "Configure" shortcut that rebuilds
+     * the wizard's part items), which would otherwise leave a stale, detached object to act on.
+     */
+    public static SerializableConsumer<AjaxRequestTarget> fixScriptAction(
+            AbstractWizardStepPanel<ConnectorDevelopmentDetailsModel> reportingStep, String fixPanelId) {
+        return clickTarget -> {
+            if (!(reportingStep.getWizard() instanceof WizardModelWithParentSteps wizardModel)) {
+                return;
+            }
+            wizardModel.setActiveStepById(fixPanelId);
+            wizardModel.fireActiveStepChanged();
+            clickTarget.add(wizardModel.getPanel());
+
+            if (!(wizardModel.getActiveStep() instanceof ScriptConnectorStepPanel scriptStep)) {
+                return;
+            }
+            Set<String> affectedSteps = wizardModel.getFixPanelIdsWithResults(RepairObjectClassButton.OBJECT_CLASS_SCRIPT_STEP_IDS);
+            if (affectedSteps.size() > 1) {
+                scriptStep.triggerRepair(clickTarget);
+            } else {
+                scriptStep.triggerRegenerate(clickTarget);
+            }
+
+            wizardModel.removeOperationResultsForFixSteps(RepairObjectClassButton.OBJECT_CLASS_SCRIPT_STEP_IDS);
+            if (!wizardModel.hasOperationResults()) {
+                wizardModel.clearSelection();
+            }
+            refreshDrawerPanel(reportingStep, clickTarget);
+        };
     }
 
     /**

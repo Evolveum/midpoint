@@ -22,6 +22,7 @@ import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorDevelopmentType;
 
+import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -58,13 +59,20 @@ public class PageConnectorDevelopment extends PageAssignmentHolderDetails<Connec
 
             @Override
             protected void initFragmentLayout() {
+                ConnectorDevelopmentController controller = new ConnectorDevelopmentController(createObjectWizardPanelHelper());
                 WizardWithNavigationPanel<ConnectorDevelopmentType, ConnectorDevelopmentDetailsModel> wizardPanel =
-                        new WizardWithNavigationPanel<>(
-                                ID_WIZARD,
-                                new ConnectorDevelopmentController(createObjectWizardPanelHelper())) {
+                        new WizardWithNavigationPanel<>(ID_WIZARD, controller) {
                             @Override
-                            protected void onBackRedirect() {
-                                redirectBack();
+                            protected void onBackRedirect(AjaxRequestTarget target) {
+                                if (canRedirectBack()) {
+                                    redirectBack();
+                                } else {
+                                    // No breadcrumb history (e.g. entered from the left menu) - stay in
+                                    // the wizard and show the summary instead of redirecting to home.
+                                    controller.showSummaryPanel();
+                                    controller.fireActiveStepChanged(controller.getActiveStep());
+                                    target.add(controller.getPanel());
+                                }
                             }
 
                             @Override

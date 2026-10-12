@@ -106,7 +106,7 @@ public class WizardWithNavigationPanel<AH extends AssignmentHolderType, ADM exte
 
             @Override
             protected void onBackPerformed(AjaxRequestTarget target) {
-                onBackRedirect();
+                onBackRedirect(target);
             }
 
             @Override
@@ -250,7 +250,7 @@ public class WizardWithNavigationPanel<AH extends AssignmentHolderType, ADM exte
         return Model.of();
     }
 
-    protected void onBackRedirect() {
+    protected void onBackRedirect(AjaxRequestTarget target) {
         getPageBase().redirectBack();
     }
 

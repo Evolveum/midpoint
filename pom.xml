@@ -1139,6 +1139,14 @@
                 <version>${conndev.version}</version>
                 <scope>runtime</scope>
             </dependency>
+            <!-- Test template of a low-code (manifest-based) scimrest connector bundle; used by
+                 the connector-development story tests in model-intest (copied to
+                 target/dependency by maven-dependency-plugin). -->
+            <dependency>
+                <groupId>com.evolveum.polygon.scimrest</groupId>
+                <artifactId>connector-scimrest-generic</artifactId>
+                <version>${conndev.version}</version>
+            </dependency>
             <!-- End connectors -->
 
             <dependency>

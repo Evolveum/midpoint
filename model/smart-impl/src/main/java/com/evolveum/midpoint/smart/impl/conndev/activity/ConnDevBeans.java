@@ -40,6 +40,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.nio.channels.Channels;
+import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
 @Component
@@ -140,12 +141,28 @@ public class ConnDevBeans {
         return null;
     }
 
+    public long getConnectorGenerationTransientErrorTimeoutMs(OperationResult result) {
+        try {
+            var systemConfiguration = systemObjectCache.getSystemConfigurationBean(result);
+            if (systemConfiguration != null && systemConfiguration.getSmartIntegration() != null) {
+                var timeout = systemConfiguration.getSmartIntegration().getConnectorGenerationTransientErrorTimeout();
+                if (timeout != null) {
+                    return timeout.getTimeInMillis(new Date());
+                }
+            }
+        } catch (SchemaException e) {
+            throw new SystemException("Could not get system configuration.", e);
+        }
+        return ServiceClient.DEFAULT_TRANSIENT_ERROR_TIMEOUT_MS;
+    }
+
     public ServiceClient client(String sessionId, ServiceClient.SessionRestoration restoration, ServiceClient.SessionRestoration synchronization, OperationResult result) {
         var apiBase = getServiceUrl(result);
         if (apiBase == null) {
             throw new SystemException("Connector Generation Service  not configured.");
         }
-        return new ServiceClient(apiBase, getConnectorGeneratorApiKey(result), sessionId, restoration, synchronization, client);
+        return new ServiceClient(apiBase, getConnectorGeneratorApiKey(result), sessionId, restoration, synchronization, client,
+                getConnectorGenerationTransientErrorTimeoutMs(result));
     }
 
     public boolean isOffline() {

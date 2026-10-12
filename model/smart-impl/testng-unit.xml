@@ -10,6 +10,7 @@
     <test name="Connector Development" preserve-order="true" parallel="none" verbose="10">
         <classes>
             <class name="com.evolveum.midpoint.smart.impl.conndev.ConndevDocumentationServiceTest"/>
+            <class name="com.evolveum.midpoint.smart.impl.conndev.ServiceClientJobMonitoringTest"/>
             <class name="com.evolveum.midpoint.smart.impl.conndev.ServiceClientTest"/>
         </classes>
     </test>
