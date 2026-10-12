@@ -457,6 +457,16 @@ public abstract class ScriptConnectorStepPanel extends AbstractWizardStepPanel<C
         getHelper().removeVariable(VAR_LIVE_SCRIPT);
     }
 
+    /** Triggers the same regeneration as the "Regenerate" dropdown item, for a caller outside this step (e.g. the drawer's "Fix it"). */
+    public void triggerRegenerate(AjaxRequestTarget target) {
+        onRefreshPerformed(target);
+    }
+
+    /** Triggers the same object class repair as {@link #repairObjectClassButton}, for a caller outside this step (e.g. the drawer's "Fix it"). */
+    public void triggerRepair(AjaxRequestTarget target) {
+        repairObjectClassButton.onClick(target);
+    }
+
     @Override
     protected void initCustomButtons(RepeatingView customButtons) {
         repairObjectClassButton = new RepairObjectClassButton(customButtons.newChildId(), this, this::getObjectClassName,

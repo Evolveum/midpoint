@@ -33,6 +33,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 public abstract class WizardModelWithParentSteps extends WizardModel implements DrawerDescriptor {
 
@@ -105,6 +106,17 @@ public abstract class WizardModelWithParentSteps extends WizardModel implements 
     }
 
     /**
+     * Adds an entry whose fix button runs {@code fixAction} instead of just navigating to {@code
+     * fixPanelId} - unlike the {@code fixAction}-only overload above, {@code fixPanelId} is still
+     * recorded (e.g. for {@link #isStepWithError}/{@link #getOperationResultsForFixSteps}), it is
+     * just not what the button itself does on click.
+     */
+    public void addOperationResult(
+            String panelId, String fixPanelId, OperationResult result, SerializableConsumer<AjaxRequestTarget> fixAction) {
+        operationResultCollapsedItem.addOperationResult(panelId, fixPanelId, result, fixAction);
+    }
+
+    /**
      * Adds an entry whose fix button is repurposed for a different action than step navigation
      * (e.g. disabling a broken sibling script's manifest entry instead of "fixing" it), with its
      * own label/icon instead of the default "Fix it" - see {@link OperationResultWrapper}.
@@ -119,6 +131,11 @@ public abstract class WizardModelWithParentSteps extends WizardModel implements 
         operationResultCollapsedItem.removeOperationResult(panelId);
     }
 
+    /** Whether any drawer entry is still pending - used to auto-close the drawer once the last one is gone. */
+    public boolean hasOperationResults() {
+        return !operationResultCollapsedItem.getResults().isEmpty();
+    }
+
     /** Removes every drawer entry whose panelId starts with {@code prefix} (e.g. {@code "<stepId>."}). */
     public void removeOperationResultsByPrefix(String prefix) {
         operationResultCollapsedItem.removeOperationResultsByPrefix(prefix);
@@ -127,6 +144,11 @@ public abstract class WizardModelWithParentSteps extends WizardModel implements 
     /** Removes every drawer entry whose fixPanelId is one of {@code fixPanelIds}. */
     public void removeOperationResultsForFixSteps(Collection<String> fixPanelIds) {
         operationResultCollapsedItem.removeOperationResultsForFixSteps(fixPanelIds);
+    }
+
+    /** Distinct fixPanelIds among {@code candidateIds} that currently have at least one pending entry. */
+    public Set<String> getFixPanelIdsWithResults(Collection<String> candidateIds) {
+        return operationResultCollapsedItem.getFixPanelIdsWithResults(candidateIds);
     }
 
     public void addOperationLogs(String panelId, OperationLogProvider provider) {

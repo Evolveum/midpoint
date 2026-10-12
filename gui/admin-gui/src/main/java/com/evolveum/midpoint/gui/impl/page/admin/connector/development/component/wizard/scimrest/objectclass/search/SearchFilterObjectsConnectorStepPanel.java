@@ -139,7 +139,9 @@ public class SearchFilterObjectsConnectorStepPanel extends ScriptConfirmationPan
             @Override
             protected void processResult(OperationResult errorResult) {
                 if (getWizard() instanceof WizardModelWithParentSteps wizardModel) {
-                    wizardModel.addOperationResult(getStepId(), "cdw-search-filter-script", errorResult);
+                    wizardModel.addOperationResult(getStepId(), "cdw-search-filter-script", errorResult,
+                            ConnectorDevelopmentWizardUtil.fixScriptAction(
+                                    SearchFilterObjectsConnectorStepPanel.this, "cdw-search-filter-script"));
                     ConnectorDevelopmentWizardUtil.reportConnectorLogs(SearchFilterObjectsConnectorStepPanel.this, getStepId(), errorResult, null);
                 }
             }
