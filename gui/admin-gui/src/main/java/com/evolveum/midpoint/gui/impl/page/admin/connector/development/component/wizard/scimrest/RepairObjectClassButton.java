@@ -106,6 +106,11 @@ public class RepairObjectClassButton extends AjaxIconButton {
         onRepairPerformed(target);
     }
 
+    /** Whether the repair action currently applies - exposed for reuse outside this button, e.g. a dropdown menu item. */
+    public boolean isApplicable() {
+        return hasPendingFixableError();
+    }
+
     /**
      * {@code ScriptConnectorStepPanel.onInitialize} forces its own {@code valueModel} to resolve
      * eagerly - the same load() call that would otherwise clear a stale error as a side effect

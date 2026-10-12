@@ -156,17 +156,18 @@ public abstract class WaitingConnectorStepPanel extends AbstractWizardStepPanel<
         initLayout();
     }
 
-    protected void resetToken() {
-        tokenModel.reset();
-    }
-
     /**
-     * Resets the panel so that a new background task is submitted instead of reusing
-     * the result of the previous one.
+     * Resets the panel so that a new background task is submitted instead of reusing the result of
+     * the previous one. The new task is submitted right here, synchronously, rather than deferring to
+     * {@link #statusModel}'s lazy load - that load can end up running in a later, separate request
+     * (the waiting panel's own polling), where the {@link #isReloaded} flag set below is no longer
+     * observed as {@code true}, silently falling back to reusing the old task instead of regenerating.
      */
     public void restartTask() {
-        restartedTaskToken = null;
-        resetToken();
+        Task task = getDetailsModel().getPageAssignmentHolder().createSimpleTask(OP_DETERMINE_STATUS);
+        String newToken = getNewTaskToken(task, task.getResult(), true);
+        restartedTaskToken = newToken;
+        tokenModel.setObject(newToken);
         if (getStatusModel() != null) {
             getStatusModel().detach();
         }

@@ -50,7 +50,6 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.AceEditor;
-import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
@@ -91,17 +90,15 @@ public abstract class ScriptConnectorStepPanel extends AbstractWizardStepPanel<C
     };
     private AceEditor scriptEditor;
 
-    /** Only built for mandatory scripts - for an optional script, "Regenerate" lives in {@link #scriptActionsMenu} instead. */
-    private AjaxIconButton regenerateButton;
-
-    /** Kept so a freshly-recorded validation error can refresh its visibility (see {@link #onNextPerformed}). */
+    /** Logic holder for the "Repair object class" dropdown item - never added to the component tree. */
     private RepairObjectClassButton repairObjectClassButton;
 
     /**
-     * For an optional script: dropdown with "Discard suggested script" / "Regenerate" /
-     * "Discard script", next to the plain submit button. Built in {@link #createCustomButtonsAnchor}
-     * rather than {@link #initCustomButtons}'s repeater, since that wraps every child in an
-     * {@code <a>} tag - illegal for a {@code <button>}+{@code <div class="dropdown-menu">} panel.
+     * Dropdown next to the plain submit button: "Regenerate" + "Repair object class" for a mandatory
+     * script, or "Discard suggested script" / "Regenerate" / "Discard script" for an optional one.
+     * Built in {@link #createCustomButtonsAnchor} rather than {@link #initCustomButtons}'s repeater,
+     * since that wraps every child in an {@code <a>} tag - illegal for a {@code <button>}+
+     * {@code <div class="dropdown-menu">} panel.
      */
     private DropdownButtonPanel scriptActionsMenu;
 
@@ -299,9 +296,6 @@ public abstract class ScriptConnectorStepPanel extends AbstractWizardStepPanel<C
 
     @Override
     protected Component createCustomButtonsAnchor(String id) {
-        if (!isScriptOptional()) {
-            return super.createCustomButtonsAnchor(id);
-        }
         DropdownButtonDto model = new DropdownButtonDto(null, null, null, buildScriptActionsMenuItems());
         scriptActionsMenu = new DropdownButtonPanel(id, model) {
             @Override
@@ -405,8 +399,7 @@ public abstract class ScriptConnectorStepPanel extends AbstractWizardStepPanel<C
                     ConnectorDevelopmentWizardUtil.reportScriptValidationErrors(
                             this, getStepId(), validation, script.getFilename(), target);
                     scriptEditedSinceError = false;
-                    target.add(isScriptOptional() ? scriptActionsMenu : regenerateButton);
-                    target.add(repairObjectClassButton);
+                    target.add(scriptActionsMenu);
                     return false;
                 }
                 saveScript(script, task, task.getResult());
@@ -462,33 +455,48 @@ public abstract class ScriptConnectorStepPanel extends AbstractWizardStepPanel<C
     public void detachLoadedScript() {
         valueModel.detach();
         autoValidationDone = false;
+        getHelper().removeVariable(VAR_LIVE_SCRIPT);
     }
 
     @Override
     protected void initCustomButtons(RepeatingView customButtons) {
-        if (!isScriptOptional()) {
-            regenerateButton = new AjaxIconButton(
-                    customButtons.newChildId(),
-                    Model.of("fa fa-refresh "),
-                    getPageBase().createStringResource("ScriptConnectorStepPanel.regenerate")) {
-                @Override
-                public void onClick(AjaxRequestTarget target) {
-                    onRefreshPerformed(target);
-                }
-            };
-            regenerateButton.showTitleAsLabel(true);
-            regenerateButton.add(AttributeAppender.append("class", "ms-auto"));
-            regenerateButton.add(new VisibleBehaviour(this::hasPendingValidationError));
-            regenerateButton.setOutputMarkupPlaceholderTag(true);
-            customButtons.add(regenerateButton);
-        }
-
         repairObjectClassButton = new RepairObjectClassButton(customButtons.newChildId(), this, this::getObjectClassName,
                 this::currentScriptsForRepair);
-        customButtons.add(repairObjectClassButton);
     }
 
     private List<InlineMenuItem> buildScriptActionsMenuItems() {
+        InlineMenuItem regenerateItem = new InlineMenuItem(createStringResource("ScriptConnectorStepPanel.regenerate")) {
+            @Override
+            public InlineMenuItemAction initAction() {
+                return new InlineMenuItemAction() {
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        onRefreshPerformed(target);
+                    }
+                };
+            }
+        };
+
+        if (!isScriptOptional()) {
+            InlineMenuItem repairItem = new InlineMenuItem(createStringResource("NextStepsConnectorStepPanel.repairObjectClass")) {
+                @Override
+                public InlineMenuItemAction initAction() {
+                    return new InlineMenuItemAction() {
+                        @Override
+                        public void onClick(AjaxRequestTarget target) {
+                            if (!repairObjectClassButton.isApplicable()) {
+                                getPageBase().info(getString("ScriptConnectorStepPanel.repairObjectClass.noErrors"));
+                                target.add(getFeedback());
+                                return;
+                            }
+                            repairObjectClassButton.onClick(target);
+                        }
+                    };
+                }
+            };
+            return List.of(regenerateItem, repairItem);
+        }
+
         InlineMenuItem discardItem = new InlineMenuItem(createStringResource("ScriptConnectorStepPanel.discardSuggestedScript")) {
             @Override
             public InlineMenuItemAction initAction() {
@@ -501,18 +509,6 @@ public abstract class ScriptConnectorStepPanel extends AbstractWizardStepPanel<C
             }
         };
         discardItem.setVisible(this::isShowingSuggestedScript);
-
-        InlineMenuItem regenerateItem = new InlineMenuItem(createStringResource("ScriptConnectorStepPanel.regenerate")) {
-            @Override
-            public InlineMenuItemAction initAction() {
-                return new InlineMenuItemAction() {
-                    @Override
-                    public void onClick(AjaxRequestTarget target) {
-                        onRefreshPerformed(target);
-                    }
-                };
-            }
-        };
 
         InlineMenuItem deleteItem = new InlineMenuItem(createStringResource("ScriptConnectorStepPanel.discardScript")) {
             @Override
