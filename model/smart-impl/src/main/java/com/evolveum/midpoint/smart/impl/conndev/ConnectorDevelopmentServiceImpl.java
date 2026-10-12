@@ -15,7 +15,7 @@ import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.common.activity.run.state.ActivityState;
-import com.evolveum.midpoint.provisioning.ucf.api.EditableConnector;
+import com.evolveum.midpoint.provisioning.ucf.api.ReadableConnector;
 import com.evolveum.midpoint.repo.common.reports.ReportSupportUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
@@ -56,11 +56,7 @@ import javax.xml.datatype.Duration;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.function.Consumer;
 
 @Component
@@ -69,6 +65,12 @@ public class ConnectorDevelopmentServiceImpl implements ConnectorDevelopmentServ
     /** Auto cleanup time for background tasks created by the service. Will be shorter, probably. */
     private static final Duration AUTO_CLEANUP_TIME = XmlTypeConverter.createDuration("P1D");
     private static final Logger LOG = LoggerFactory.getLogger(ConnectorDevelopmentServiceImpl.class);
+
+    private static final Set<String> SUPPORTED_MANIFEST_BASED_CONNECTORS = Set.of(
+            "com.evolveum.polygon.sql.base.groovy.impl.ManifestBasedConnector",
+            "com.evolveum.polygon.scimrest.groovy.impl.ManifestBasedConnector"
+
+    );
 
     @Autowired private ModelInteractionService modelInteractionService;
     @Autowired private TaskManager taskManager;
@@ -104,23 +106,23 @@ public class ConnectorDevelopmentServiceImpl implements ConnectorDevelopmentServ
         }
 
         var beans = ConnDevBeans.get();
-        var editable = beans.connectorService.editableConnectorFor(sourceConnector);
-        if (editable == null) {
+        var readable = beans.connectorService.readableConnectorFor(sourceConnector);
+        if (readable == null) {
             throw new SystemException("Connector " + sourceConnector.getOid()
-                    + " has no local bundle directory; only local (directory-based) connector bundles can be imported");
+                    + " has no local bundle; only local (directory or JAR) connector bundles can be imported");
         }
-        if (!isManifestBased(editable)) {
+        if (!isManifestBased(readable)) {
             throw new ConfigurationException("Connector " + sourceConnector.getOid()
                     + " is not a low-code (manifest-based) connector - no "
                     + ConnectorManifestReader.MANIFEST_YAML + "/" + ConnectorManifestReader.MANIFEST_JSON
-                    + " file in its bundle directory");
+                    + " file in its bundle");
         }
 
         ConnectorManifestReader.Manifest manifest;
         try {
-            var manifestContent = editable.fileExists(ConnectorManifestReader.MANIFEST_YAML)
-                    ? editable.readFile(ConnectorManifestReader.MANIFEST_YAML)
-                    : editable.readFile(ConnectorManifestReader.MANIFEST_JSON);
+            var manifestContent = readable.fileExists(ConnectorManifestReader.MANIFEST_YAML)
+                    ? readable.readFile(ConnectorManifestReader.MANIFEST_YAML)
+                    : readable.readFile(ConnectorManifestReader.MANIFEST_JSON);
             manifest = ConnectorManifestReader.read(manifestContent);
         } catch (IOException e) {
             throw new SystemException("Couldn't read the manifest of connector " + sourceConnector.getOid(), e);
@@ -174,7 +176,7 @@ public class ConnectorDevelopmentServiceImpl implements ConnectorDevelopmentServ
                 .sourceConnectorRef(sourceConnector.getOid(), ConnectorType.COMPLEX_TYPE);
         connector.displayName(displayName);
         populateAuthMethodsFromManifest(connector, manifest, sourceConnector);
-        populateConnectorFromManifest(connector, manifest, editable, sourceConnector);
+        populateConnectorFromManifest(connector, manifest, readable, sourceConnector);
 
         // The object classes (names) are also reflected in the application's detected schema - the
         // discovery steps then enrich it (and the connector object classes) from the development-mode
@@ -202,19 +204,13 @@ public class ConnectorDevelopmentServiceImpl implements ConnectorDevelopmentServ
     }
 
     @Override
-    public boolean isManifestBasedConnector(ConnectorType connector, OperationResult result) {
-        try {
-            var editable = ConnDevBeans.get().connectorService.editableConnectorFor(connector);
-            return editable != null && isManifestBased(editable);
-        } catch (Exception e) {
-            LOG.warn("Couldn't determine whether connector {} is manifest-based", connector.getOid(), e);
-            return false;
-        }
+    public boolean isManifestBasedConnector(ConnectorType connector) {
+        return SUPPORTED_MANIFEST_BASED_CONNECTORS.contains(connector.getConnectorType());
     }
 
-    private boolean isManifestBased(EditableConnector editable) {
-        return editable.fileExists(ConnectorManifestReader.MANIFEST_YAML)
-                || editable.fileExists(ConnectorManifestReader.MANIFEST_JSON);
+    private static boolean isManifestBased(ReadableConnector bundle) {
+        return bundle.fileExists(ConnectorManifestReader.MANIFEST_YAML)
+                || bundle.fileExists(ConnectorManifestReader.MANIFEST_JSON);
     }
 
     /**
@@ -278,7 +274,7 @@ public class ConnectorDevelopmentServiceImpl implements ConnectorDevelopmentServ
      * copy-connector step).
      */
     private void populateConnectorFromManifest(ConnDevConnectorType connector,
-            ConnectorManifestReader.Manifest manifest, EditableConnector bundle, ConnectorType sourceConnector) {
+            ConnectorManifestReader.Manifest manifest, ReadableConnector bundle, ConnectorType sourceConnector) {
         var objectClasses = new LinkedHashMap<String, ConnDevObjectClassInfoType>();
         var relations = new ArrayList<ConnDevRelationInfoType>();
 

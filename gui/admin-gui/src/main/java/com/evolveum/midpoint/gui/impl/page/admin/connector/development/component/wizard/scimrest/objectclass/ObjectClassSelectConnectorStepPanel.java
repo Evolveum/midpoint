@@ -336,10 +336,11 @@ public class ObjectClassSelectConnectorStepPanel extends AbstractWizardStepPanel
     @Override
     public boolean onNextPerformed(AjaxRequestTarget target) {
         AtomicReference<String> objectClassName = new AtomicReference<>();
+        AtomicReference<PrismContainerValueWrapper<ConnDevObjectClassInfoType>> createdValue = new AtomicReference<>();
+        PrismContainerWrapper<ConnDevObjectClassInfoType> parentWrapper;
 
         try {
-            PrismContainerWrapper<ConnDevObjectClassInfoType> parentWrapper =
-                    getDetailsModel().getObjectWrapper().findContainer(
+            parentWrapper = getDetailsModel().getObjectWrapper().findContainer(
                             ItemPath.create(ConnectorDevelopmentType.F_CONNECTOR, ConnDevConnectorType.F_OBJECT_CLASS));
 
             if (hasNoCandidates()) {
@@ -367,6 +368,7 @@ public class ObjectClassSelectConnectorStepPanel extends AbstractWizardStepPanel
                 //noinspection unchecked
                 parentWrapper.getItem().add(valueWrapper.getRealValue().asPrismContainerValue());
                 parentWrapper.getValues().add(valueWrapper);
+                createdValue.set(valueWrapper);
             } else {
                 valuesModel.getObject().stream()
                         .filter(PrismContainerValueWrapper::isSelected)
@@ -389,6 +391,7 @@ public class ObjectClassSelectConnectorStepPanel extends AbstractWizardStepPanel
                                 throw new RuntimeException(e);
                             }
                             parentWrapper.getValues().add(valueWrapper);
+                            createdValue.set(valueWrapper);
                         });
             }
 
@@ -415,6 +418,13 @@ public class ObjectClassSelectConnectorStepPanel extends AbstractWizardStepPanel
 //            target.add(getWizard().getPanel());
             super.onNextPerformed(target);
         } else {
+            if (createdValue.get() != null) {
+                PrismContainerValueWrapper<ConnDevObjectClassInfoType> created = createdValue.get();
+                parentWrapper.getValues().remove(created);
+                if (created.getNewValue() != null) {
+                    parentWrapper.getItem().remove(created.getNewValue());
+                }
+            }
             target.add(getFeedback());
         }
         return false;
@@ -427,6 +437,11 @@ public class ObjectClassSelectConnectorStepPanel extends AbstractWizardStepPanel
         }
 
         return valueModel.getObject().getStatus() != ValueStatus.ADDED;
+    }
+
+    @Override
+    public IModel<Boolean> isStepVisible() {
+        return () -> !isCompleted();
     }
 
     @Override

@@ -211,11 +211,9 @@ public abstract class AbstractWizardController<AH extends AssignmentHolderType, 
     }
 
     public boolean hasPrevious() {
-        if (showSummaryPanel) {
-            return false;
-        }
-
-        return getActivePartItem().hasPrevious();
+        // The summary panel is always one level above any wizard part, so back navigation
+        // exists as long as we are not already on the summary.
+        return !showSummaryPanel && getActivePartItem() != null;
     }
 
     public void previous() {
@@ -223,7 +221,13 @@ public abstract class AbstractWizardController<AH extends AssignmentHolderType, 
             return;
         }
 
-        getActivePartItem().previous();
+        AbstractWizardPartItem<AH, ADM> activePartItem = getActivePartItem();
+        if (activePartItem == null || !activePartItem.hasPrevious()) {
+            showSummaryPanel();
+            fireActiveStepChanged(getActiveStep());
+        } else {
+            activePartItem.previous();
+        }
     }
 
     public WizardStep getNextPanel() {
@@ -335,7 +339,13 @@ public abstract class AbstractWizardController<AH extends AssignmentHolderType, 
             return null;
         }
 
-        return getActivePartItem().findPreviousStep(false);
+        AbstractWizardPartItem<AH, ADM> activePartItem = getActivePartItem();
+        if (activePartItem == null) {
+            return null;
+        }
+
+        WizardStep previous = activePartItem.findPreviousStep(false);
+        return previous != null ? previous : getSummaryPanel();
     }
 
     @Override

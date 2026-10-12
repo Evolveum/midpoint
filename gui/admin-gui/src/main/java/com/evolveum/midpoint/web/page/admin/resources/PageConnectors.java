@@ -16,6 +16,7 @@ import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
@@ -121,7 +122,7 @@ public class PageConnectors extends PageAdmin {
 
             @Override
             protected UserProfileStorage.TableId getTableId() {
-                return UserProfileStorage.TableId.PAGE_RESOURCES_CONNECTOR_HOSTS; // FIXME
+                return UserProfileStorage.TableId.PAGE_CONNECTORS;
             }
 
             @Override
@@ -156,12 +157,11 @@ public class PageConnectors extends PageAdmin {
     private List<IColumn<SelectableBean<ConnectorType>, String>> initColumns() {
         List<IColumn<SelectableBean<ConnectorType>, String>> columns = new ArrayList<>();
 
-        // TODO i18n
-        columns.add(new PropertyColumn(createStringResource("Display name"), "value.displayName"));
+        columns.add(new PropertyColumn(createStringResource("PageConnectors.column.displayName"), "value.displayName"));
         columns.add(
-                new PropertyColumn(createStringResource("Type"), "value.connectorType"));
-        columns.add(new PropertyColumn(createStringResource("Version"), "value.connectorVersion"));
-        //columns.add(new PropertyColumn(createStringResource("Bundle"), "value.connectorBundle"));
+                new PropertyColumn(createStringResource("PageConnectors.column.connectorType"), "value.connectorType"));
+        columns.add(new PropertyColumn(createStringResource("PageConnectors.column.connectorVersion"), "value.connectorVersion"));
+        //columns.add(new PropertyColumn(createStringResource("PageConnectors.column.connectorBundle"), "value.connectorBundle"));
 
         return columns;
     }
@@ -183,7 +183,8 @@ public class PageConnectors extends PageAdmin {
                 };
             }
         });
-        menuItems.add(new InlineMenuItem(createStringResource("PageConnectors.button.developConnector")) {
+
+        var developMenu = new InlineMenuItem(createStringResource("PageConnectors.button.developConnector")) {
             @Serial private static final long serialVersionUID = 1L;
 
             @Override
@@ -197,7 +198,18 @@ public class PageConnectors extends PageAdmin {
                     }
                 };
             }
+        };
+        developMenu.setVisibilityChecker((rowModel, isHeader) -> {
+            if (isHeader) {
+                return false;
+            }
+            var casted = (Model<SelectableBean<ConnectorType>>) rowModel;
+            if (casted != null && casted.getObject() != null && casted.getObject().getValue() != null) {
+                return getConnectorService().isManifestBasedConnector(casted.getObject().getValue());
+            }
+            return false;
         });
+        menuItems.add(developMenu);
         return menuItems;
     }
 
@@ -225,7 +237,7 @@ public class PageConnectors extends PageAdmin {
         var task = createSimpleTask(OPERATION_DEVELOP_CONNECTOR);
         var result = task.getResult();
         try {
-            if (!getConnectorService().isManifestBasedConnector(connector, result)) {
+            if (!getConnectorService().isManifestBasedConnector(connector)) {
                 error(getString("PageConnectors.message.developConnectorNotManifestBased"));
                 target.add(getFeedbackPanel());
                 return;
@@ -251,14 +263,14 @@ public class PageConnectors extends PageAdmin {
                 ? List.of(selectedConnector)
                 : getObjectListPanel().getSelectedRealObjects();
         if (selected.isEmpty()) {
-            warn(getString("pageResources.message.noHostSelected")); // FIXME
+            warn(getString("PageConnectors.message.noConnectorSelected"));
             target.add(getFeedbackPanel());
             return;
         }
 
         ConfirmationPanel dialog = new DeleteConfirmationPanel(((PageBase) getPage()).getMainPopupBodyId(),
-                createDeleteConfirmString("pageResources.message.deleteHostConfirm", // FIXME
-                        "pageResources.message.deleteHostsConfirm", false, selected)) { // FIXME
+                createDeleteConfirmString("PageConnectors.message.deleteConnectorConfirm",
+                        "PageConnectors.message.deleteConnectorsConfirm", selected)) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -279,24 +291,27 @@ public class PageConnectors extends PageAdmin {
      *            message if deleting one item
      * @param moreDeleteKey
      *            message if deleting more items
-     * @param resources
-     *            if true selecting resources if false selecting from hosts
      */
     private IModel<String> createDeleteConfirmString(final String oneDeleteKey, final String moreDeleteKey,
-            final boolean resources, final List<ConnectorType> selected) {
+            final List<ConnectorType> selected) {
         return new IModel<String>() {
             private static final long serialVersionUID = 1L;
             @Override
             public String getObject() {
+                String confirmation;
                 switch (selected.size()) {
                     case 1:
                         ConnectorType first = selected.get(0);
                         String name = WebComponentUtil
                                 .getName(first);
-                        return createStringResource(oneDeleteKey, name).getString();
+                        confirmation = createStringResource(oneDeleteKey, name).getString();
+                        break;
                     default:
-                        return createStringResource(moreDeleteKey, selected.size()).getString();
+                        confirmation = createStringResource(moreDeleteKey, selected.size()).getString();
+                        break;
                 }
+                String note = createStringResource("PageConnectors.message.deleteConnectorNote").getString();
+                return confirmation + " " + note;
             }
         };
     }
@@ -314,14 +329,14 @@ public class PageConnectors extends PageAdmin {
                             result);
                 }
             } catch (Exception ex) {
-                result.recordPartialError(createStringResource("PageConnectorHosts.message.deleteHostConfirmedPerformed.partialError").getString(), ex);
-                LoggingUtils.logUnexpectedException(LOGGER, "Couldn't delete host", ex);
+                result.recordPartialError(createStringResource("PageConnectors.message.deleteConnectorConfirmedPerformed.partialError").getString(), ex);
+                LoggingUtils.logUnexpectedException(LOGGER, "Couldn't delete connector", ex);
             }
         }
 
         result.recomputeStatus();
         if (result.isSuccess()) {
-            result.recordStatus(OperationResultStatus.SUCCESS, createStringResource("PageConnectorHosts.message.deleteHostConfirmedPerformed.success").getString());
+            result.recordStatus(OperationResultStatus.SUCCESS, createStringResource("PageConnectors.message.deleteConnectorConfirmedPerformed.success").getString());
         }
 
         getObjectListPanel().clearCache();
