@@ -134,6 +134,7 @@ public class ConnectorIdentificationConnectorStepPanel extends AbstractFormWizar
         ItemPanelSettings settings = new ItemPanelSettingsBuilder()
                 .visibilityHandler(getVisibilityHandler())
                 .mandatoryHandler(this::checkMandatory)
+                .editabilityHandler(this::isItemEditable)
                 .build();
         VerticalFormPanel panel = new VerticalFormPanel(ID_FORM, getContainerFormModel(), settings, getContainerConfiguration()) {
             @Override
@@ -302,6 +303,13 @@ public class ConnectorIdentificationConnectorStepPanel extends AbstractFormWizar
             wizardModel.fireActiveStepChanged(wizardModel.getActiveStep());
             target.add(wizardModel.getPanel());
         }
+    }
+
+    private boolean isItemEditable(ItemWrapper itemWrapper) {
+        if (!ConnectorDevelopmentWizardUtil.isBasicSettingsComplete(getDetailsModel().getObjectWrapper())) {
+            return true;
+        }
+        return !ConnectorDevelopmentWizardUtil.isConnectorCoordinateItem(itemWrapper.getPath());
     }
 
     @Override
