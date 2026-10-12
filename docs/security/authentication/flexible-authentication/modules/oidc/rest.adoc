@@ -457,6 +457,12 @@ Default value is `enabled`.
 
 |===
 
+[TIP]
+====
+While you can have multiple REST sequences configured, e.g., Basic Authentication and OIDC, you can only use one OIDC sequence configuration at any given time.
+If your configuration contains multiple OIDC sequence definitions, midPoint will consider the first one and skip the others.
+====
+
 See an <<example-sequence,example sequence>> below.
 
 [#channel]
