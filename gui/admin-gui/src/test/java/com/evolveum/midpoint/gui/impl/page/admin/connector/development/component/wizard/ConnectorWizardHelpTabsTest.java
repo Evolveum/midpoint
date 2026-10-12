@@ -12,7 +12,6 @@ import java.util.List;
 import java.util.Map;
 
 import com.evolveum.midpoint.gui.impl.component.wizard.collapse.HelpChapter;
-import com.evolveum.midpoint.gui.impl.component.wizard.collapse.HelpTab;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.smart.api.conndev.ConnDevDocumentationTopic;
 import com.evolveum.midpoint.smart.api.conndev.ConnectorDevelopmentArtifacts;
@@ -252,7 +251,7 @@ public class ConnectorWizardHelpTabsTest {
         }
 
         @Override
-        public boolean isManifestBasedConnector(ConnectorType connector, OperationResult result) {
+        public boolean isManifestBasedConnector(ConnectorType connector) {
             throw unsupported();
         }
 
