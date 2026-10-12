@@ -1090,7 +1090,7 @@
                                 <q:text>
                                     linkRef/@ matches (
                                     . type ShadowType
-                                    and resourceRef/@/name = `resourceParameter?.getName()?.getOrig()`
+                                    and resourceRef/@/name = mel`resourceParameter.name.orig`
                                     and kind = "account" )
                                 </q:text>
                             </filter>
@@ -1118,7 +1118,7 @@
                                 <q:text>
                                     linkRef/@ not matches (
                                     . type ShadowType
-                                    and resourceRef/@/name = `resourceParameter?.getName()?.getOrig()`
+                                    and resourceRef/@/name = mel`resourceParameter.name.orig`
                                     and kind = "account" )
                                 </q:text>
                             </filter>
