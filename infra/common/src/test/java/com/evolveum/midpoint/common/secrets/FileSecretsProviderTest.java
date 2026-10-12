@@ -23,6 +23,7 @@ import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Comparator;
 
 import static org.testng.Assert.assertEquals;
@@ -37,7 +38,8 @@ public class FileSecretsProviderTest {
 
     @BeforeMethod
     public void setUp() throws IOException {
-        tempDir = Files.createTempDirectory("file-secrets-test-");
+        tempDir = Paths.get("target", "test-secrets-" + System.currentTimeMillis()).toAbsolutePath();
+        Files.createDirectories(tempDir);
         LOGGER.debug("tmpdir created:{}",tempDir.getFileName().toString());
 
         Files.writeString(tempDir.resolve("secret_lf.txt"), "mySecretPassword\n", StandardCharsets.UTF_8);

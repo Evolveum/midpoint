@@ -59,8 +59,7 @@ public abstract class SecretsProviderImpl<T extends SecretsProviderType> impleme
         }
 
         if (type == String.class) {
-            String strValue = new String(value, StandardCharsets.UTF_8);
-            return (ST) new String(strValue.replaceAll("[\\r\\n]+$", ""));
+            return (ST) new String(value);
         } else if (type == ByteBuffer.class) {
             return (ST) ByteBuffer.wrap(value);
         }
