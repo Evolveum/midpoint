@@ -1014,8 +1014,7 @@ public abstract class AttributeMappingsTableWizardPanel<P extends Containerable>
             return null;
         }
 
-        ResourceObjectTypeDefinitionType realValue = parentWrapper.getRealValue();
-        return ResourceObjectTypeIdentification.createIfKnown(realValue.getKind(), realValue.getIntent());
+        return ResourceObjectTypeIdentification.of(parentWrapper.getRealValue());
     }
 
     protected ContainerPanelConfigurationType getConfiguration(String panelType) {

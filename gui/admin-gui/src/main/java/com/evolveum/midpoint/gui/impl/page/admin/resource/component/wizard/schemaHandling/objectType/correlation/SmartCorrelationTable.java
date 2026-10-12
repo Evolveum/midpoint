@@ -597,7 +597,7 @@ public abstract class SmartCorrelationTable
         }
 
         ResourceObjectTypeDefinitionType realValue = (ResourceObjectTypeDefinitionType) parentWrapper.getRealValue();
-        var objectTypeIdentification = ResourceObjectTypeIdentification.of(realValue.getKind(), realValue.getIntent());
+        var objectTypeIdentification = ResourceObjectTypeIdentification.of(realValue);
 
         SmartIntegrationService service = pageBase.getSmartIntegrationService();
         pageBase.taskAwareExecutor(target, OP_SUGGEST_CORRELATION_RULES)
