@@ -22,6 +22,7 @@ import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.connection.WaitingSchemaConnectorStepPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.ObjectClassesConnectorStepPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.WaitingObjectClassInformationStepPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.schema.SchemaScriptConnectorStepPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.relation.RelationshipsConnectorStepPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.summary.ConnectorDevelopmentWizardSummaryPanel;
 import com.evolveum.midpoint.prism.Containerable;
@@ -150,7 +151,22 @@ public class ConnectorDevelopmentController extends AbstractWizardController<Con
     }
 
     public void editSchema(String objectClassName, AjaxRequestTarget target) {
-        setPartItem(new SchemaConnectorDevPartItem(getHelper()), objectClassName, target);
+        setPartItems(createBasicPartItems());
+        refresh();
+        SchemaConnectorDevPartItem partItem = new SchemaConnectorDevPartItem(getHelper());
+        partItem.setParameter(objectClassName);
+        int index = addWizardPartOnEnd(partItem);
+        clearInProgressPart();
+        setActiveWizardPartIndex(index);
+
+        for (WizardStep step : getActiveChildrenSteps()) {
+            if (step instanceof SchemaScriptConnectorStepPanel scriptPanel) {
+                setActiveStepWithinActivePart(scriptPanel.getStepId());
+                break;
+            }
+        }
+        fireActiveStepChanged();
+        target.add(getPanel());
     }
 
     public void editSearchAll(String objectClassName, AjaxRequestTarget target) {
