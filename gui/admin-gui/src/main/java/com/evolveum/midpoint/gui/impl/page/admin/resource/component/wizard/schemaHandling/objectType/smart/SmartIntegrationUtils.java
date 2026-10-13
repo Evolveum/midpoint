@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart;
 
+import com.evolveum.midpoint.schema.processor.AssociationPair;
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationStatusInfoUtils.loadAssociationSuggestions;
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationStatusInfoUtils.loadLatestObjectClassObjectTypeSuggestion;
 import static com.evolveum.midpoint.schema.util.SmartMetadataUtil.isMarkedAsSystemProvided;
@@ -226,6 +227,16 @@ public class SmartIntegrationUtils {
             @NotNull String operationName,
             @NotNull Task task) {
 
+        runAssociationSuggestionAction(pageBase, resourceOid, null, target, operationName, task);
+    }
+
+    public static void runAssociationSuggestionAction(
+            @NotNull PageBase pageBase,
+            @NotNull String resourceOid,
+            @Nullable Set<AssociationPair> configuredAssociations,
+            @NotNull AjaxRequestTarget target,
+            @NotNull String operationName,
+            @NotNull Task task) {
         if (!isSmartIntegrationAuthorized(pageBase)) {
             LOGGER.warn("User is not authorized to run association suggestion for resource {}", resourceOid);
             return;
@@ -255,7 +266,7 @@ public class SmartIntegrationUtils {
                             .withHideInProgress(true))
                     .runVoid((activityTask, activityResult) -> {
                         var oid = pageBase.getSmartIntegrationService()
-                                .submitSuggestAssociationsOperation(resourceOid, activityTask, activityResult);
+                                .submitSuggestAssociationsOperation(resourceOid, configuredAssociations, activityTask, activityResult);
                         activityResult.setBackgroundTaskOid(oid);
                     });
         }

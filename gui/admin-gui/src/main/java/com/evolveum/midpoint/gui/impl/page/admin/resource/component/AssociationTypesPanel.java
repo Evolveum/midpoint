@@ -6,6 +6,12 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component;
 
+import com.evolveum.midpoint.schema.processor.AssociationPair;
+
+import java.util.HashSet;
+import java.util.Set;
+
+import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
@@ -289,8 +295,28 @@ public class AssociationTypesPanel extends SchemaHandlingObjectsPanel<ShadowAsso
         ResourceDetailsModel objectDetailsModels = getObjectDetailsModels();
         ResourceType resourceType = objectDetailsModels.getObjectType();
         Task task = getPageBase().createSimpleTask(OP_DETERMINE_STATUSES);
-        runAssociationSuggestionAction(getPageBase(), resourceType.getOid(), target, OP_DEFINE_TYPES, task);
+        var configuredAssociations = collectConfiguredAssociations();
+        runAssociationSuggestionAction(getPageBase(), resourceType.getOid(), configuredAssociations,
+                target, OP_DEFINE_TYPES, task);
         getSwitchSuggestionModel().setObject(Boolean.TRUE);
+    }
+
+    Set<AssociationPair> collectConfiguredAssociations() {
+        IModel<PrismContainerWrapper<ShadowAssociationTypeDefinitionType>> containerModel = createContainerModel();
+        if (containerModel == null || containerModel.getObject() == null) {
+            return Collections.emptySet();
+        }
+
+        PrismContainerWrapper<ShadowAssociationTypeDefinitionType> container = containerModel.getObject();
+        Set<AssociationPair> snapshot = new HashSet<>();
+        if (container != null) {
+            for (var value : container.getValues()) {
+                if (value.getStatus() != ValueStatus.DELETED && value.getRealValue() != null) {
+                    snapshot.addAll(AssociationPair.fromDefinition(value.getRealValue()));
+                }
+            }
+        }
+        return snapshot;
     }
 
     @Override
