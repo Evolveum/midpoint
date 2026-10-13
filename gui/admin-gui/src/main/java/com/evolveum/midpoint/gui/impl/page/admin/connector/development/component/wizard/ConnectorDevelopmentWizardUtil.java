@@ -9,6 +9,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.connector.development.componen
 import com.evolveum.midpoint.gui.api.page.PageAdminLTE;
 import com.evolveum.midpoint.gui.api.prism.wrapper.*;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardStepPanel;
 import com.evolveum.midpoint.gui.impl.component.wizard.collapse.log.OperationLogProvider;
@@ -366,10 +367,14 @@ public class ConnectorDevelopmentWizardUtil {
 
     /**
      * Registers {@code provider} as the log viewer drawer's source for {@code panelId} and refreshes the
-     * drawer, mirroring {@link #reportScriptValidationErrors}.
+     * drawer, mirroring {@link #reportScriptValidationErrors}. The log viewer is an experimental GUI
+     * feature, so this is a no-op unless experimental features are enabled.
      */
     public static void reportOperationLogs(
             AbstractWizardStepPanel<?> step, String panelId, OperationLogProvider provider, AjaxRequestTarget target) {
+        if (!WebModelServiceUtils.isEnableExperimentalFeature(step.getPageBase())) {
+            return;
+        }
         if (provider == null) {
             return;
         }
@@ -893,8 +898,23 @@ public class ConnectorDevelopmentWizardUtil {
         }
     }
 
-    public static void enableConnectorLogCapture(Task task) {
+    /**
+     * Prepares a task for a connector-development operation: runs it in the simulated development
+     * execution mode and, when {@code logCaptureEnabled}, additionally enables connector log capture
+     * (see {@link #enableConnectorLogCapture}) so the wizard's log viewer drawer can show it.
+     */
+    public static void configureConnectorDevelopmentTask(Task task, boolean logCaptureEnabled) {
         task.setExecutionMode(TaskExecutionMode.SIMULATED_SHADOWS_DEVELOPMENT);
+        if (logCaptureEnabled) {
+            enableConnectorLogCapture(task);
+        }
+    }
+
+    /**
+     * Enables connector log capture on the task: connector operations are traced and their log lines
+     * collected into operation results, where the wizard's log viewer drawer picks them up.
+     */
+    public static void enableConnectorLogCapture(Task task) {
         task.addTracingRequest(TracingRootType.CONNECTOR_OPERATION);
         task.setTracingProfile(new TracingProfileType()
                 .collectLogEntries(true)

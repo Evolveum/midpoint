@@ -18,6 +18,7 @@ import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismReferenceWrapper;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 import com.evolveum.midpoint.gui.impl.component.wizard.withnavigation.WizardModelWithParentSteps;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
@@ -118,7 +119,9 @@ public class SearchFilterObjectsConnectorStepPanel extends ScriptConfirmationPan
 
             @Override
             protected Consumer<Task> createProviderSearchTaskCustomizer() {
-                return (Consumer<Task> & Serializable) ConnectorDevelopmentWizardUtil::enableConnectorLogCapture;
+                boolean logCaptureEnabled = WebModelServiceUtils.isEnableExperimentalFeature(getPageBase());
+                return (Consumer<Task> & Serializable) (task) ->
+                        ConnectorDevelopmentWizardUtil.configureConnectorDevelopmentTask(task, logCaptureEnabled);
             }
 
             @Override
