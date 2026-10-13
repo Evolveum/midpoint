@@ -40,7 +40,7 @@ If `SCHEMA_ACCESS` is granted and a recomputation is not forced, the latest exis
 Without `SCHEMA_ACCESS`, the schema match is always computed anew.
 . `mappingsSuggestion` - runs the mapping suggestion itself (`MappingsSuggestionOperation`) and stores the result in the task work state.
 
-Before the operation runs, midPoint checks the `#smartIntegration` authorization, see xref:authorization.adoc[].
+Before the operation runs, midPoint checks the `#smartIntegration` authorization, see xref:../../authorization.adoc[].
 
 == Inputs
 
@@ -101,7 +101,7 @@ See <<Retry of AI-Generated Scripts>>.
 |===
 
 The operation also uses sample shadows that have owners, collected at runtime.
-The number of samples is limited by the shadow sampling settings, see xref:shadow-sampling.adoc[].
+The number of samples is limited by the shadow sampling settings, see xref:../../shadow-sampling.adoc[].
 
 == Well-Known Schemas
 
@@ -250,7 +250,7 @@ The samples are split into two disjoint sets:
 * **LLM samples** - a small set that is sent to the AI microservice as examples when a script is generated.
 * **Validation samples** - a larger set used to compute the expected quality of every candidate.
 
-The size of both sets depends on whether shadow caching is enabled, see xref:shadow-sampling.adoc[].
+The size of both sets depends on whether shadow caching is enabled, see xref:../../shadow-sampling.adoc[].
 
 === 2. Exclusion of Existing Mappings
 
@@ -434,7 +434,7 @@ midPoint suggests an as-is mapping in these cases:
 
 * every validation source value equals its target value after conversion to the target type - expected quality `1.0`,
 * there is not enough data to validate anything (see above) - no expected quality,
-* the values are multivalued - no expected quality, see xref:multivalued-mappings.adoc[],
+* the values are multivalued - no expected quality,
 * neither a heuristic rule nor an AI script beats the as-is quality - the as-is quality is used.
 
 === Heuristic Mappings
@@ -620,7 +620,7 @@ The operation is affected by these settings in the `<smartIntegration>` containe
 
 | `shadowSampling`
 | see link
-| Sizes of LLM and validation samples (`mappingLlmSampleSize*`, `mappingValidationSampleSize*`), see xref:shadow-sampling.adoc[].
+| Sizes of LLM and validation samples (`mappingLlmSampleSize*`, `mappingValidationSampleSize*`), see xref:../../shadow-sampling.adoc[].
 |===
 
 .Example
@@ -642,7 +642,7 @@ The operation is affected by these settings in the `<smartIntegration>` containe
 Activation, credentials and associations are not supported.
 * **One source, one target.** Every suggestion maps exactly one resource attribute to exactly one focus property.
 Mappings that combine several sources (for example, a full name from given and family name) are not suggested.
-* **Multivalued attributes.** No transformation is suggested for multivalued values, only an as-is mapping without expected quality, see xref:multivalued-mappings.adoc[].
+* **Multivalued attributes.** No transformation is suggested for multivalued values, only an as-is mapping without expected quality.
 * **Fixed heuristics.** Heuristic rules cover only whitespace trimming, letter case and diacritics.
 * **Categorical mappings are inbound only** and their quality is never computed.
 * **Well-known schemas** are detected only for the schema types listed in <<Well-Known Schemas>>.

@@ -30,7 +30,11 @@ import com.evolveum.midpoint.gui.impl.prism.panel.vertical.form.VerticalFormPris
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
@@ -54,7 +58,9 @@ import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component
         containerPath = "empty")
 public class ConnectorIdentificationConnectorStepPanel extends AbstractFormWizardStepPanel<ConnectorDevelopmentDetailsModel> {
 
-    private static final String PANEL_TYPE = "cdw-connector-identification";
+    public static final String PANEL_TYPE = "cdw-connector-identification";
+
+    private static final Trace LOGGER = TraceManager.getTrace(ConnectorIdentificationConnectorStepPanel.class);
 
     public ConnectorIdentificationConnectorStepPanel(WizardPanelHelper<? extends Containerable, ConnectorDevelopmentDetailsModel> helper) {
         super(helper);
@@ -134,6 +140,7 @@ public class ConnectorIdentificationConnectorStepPanel extends AbstractFormWizar
         ItemPanelSettings settings = new ItemPanelSettingsBuilder()
                 .visibilityHandler(getVisibilityHandler())
                 .mandatoryHandler(this::checkMandatory)
+                .editabilityHandler(this::isItemEditable)
                 .build();
         VerticalFormPanel panel = new VerticalFormPanel(ID_FORM, getContainerFormModel(), settings, getContainerConfiguration()) {
             @Override
@@ -238,6 +245,22 @@ public class ConnectorIdentificationConnectorStepPanel extends AbstractFormWizar
 
     @Override
     public boolean onNextPerformed(AjaxRequestTarget target) {
+        if (ConnectorDevelopmentWizardUtil.isBasicSettingsComplete(getDetailsModel().getObjectWrapper())) {
+            // The connector is already created and its coordinates are immutable, so there is
+            // nothing to validate - just persist the changes and return to the summary.
+            return saveAndNavigateToSummary(target);
+        }
+        ConnDevConnectorType connector;
+        try {
+            connector = ((IModel<PrismContainerWrapper<ConnDevConnectorType>>) getContainerFormModel())
+                    .getObject().getValue().getRealValue();
+        } catch (SchemaException e) {
+            throw new RuntimeException(e);
+        }
+        if (!checkConnectorCoordinatesAvailable(connector, target)) {
+            return false;
+        }
+
         try {
             PrismPropertyWrapperModel.fromContainerWrapper(getDetailsModel().getObjectWrapperModel(), ConnectorDevelopmentType.F_NAME)
                     .getObject().getValue().setRealValue(new PolyString(
@@ -264,6 +287,68 @@ public class ConnectorIdentificationConnectorStepPanel extends AbstractFormWizar
             target.add(getFeedback());
         }
         return false;
+    }
+
+    @Override
+    public boolean onBackPerformed(AjaxRequestTarget target) {
+        if (ConnectorDevelopmentWizardUtil.isBasicSettingsComplete(getDetailsModel().getObjectWrapper())
+                && getWizard() instanceof WizardModelWithParentSteps wizardModel) {
+            // For an already created connector, the documentation steps are done - go back to
+            // the previous editable step (the application identification) instead.
+            wizardModel.setActiveStepById(ApplicationIdentificationConnectorStepPanel.PANEL_TYPE);
+            wizardModel.fireActiveStepChanged(wizardModel.getActiveStep());
+            target.add(wizardModel.getPanel());
+            return false;
+        }
+        return super.onBackPerformed(target);
+    }
+
+    private boolean saveAndNavigateToSummary(AjaxRequestTarget target) {
+        OperationResult result = getHelper().onSaveObjectPerformed(target);
+        getDetailsModel().getConnectorDevelopmentOperation();
+        if (result != null && !result.isError()) {
+            navigateToSummary(target);
+        } else {
+            target.add(getFeedback());
+        }
+        return false;
+    }
+
+    private void navigateToSummary(AjaxRequestTarget target) {
+        if (getWizard() instanceof WizardModelWithParentSteps wizardModel) {
+            wizardModel.showSummaryPanel();
+            wizardModel.fireActiveStepChanged(wizardModel.getActiveStep());
+            target.add(wizardModel.getPanel());
+        }
+    }
+
+    private boolean isItemEditable(ItemWrapper itemWrapper) {
+        if (!ConnectorDevelopmentWizardUtil.isBasicSettingsComplete(getDetailsModel().getObjectWrapper())) {
+            return true;
+        }
+        return !ConnectorDevelopmentWizardUtil.isConnectorCoordinateItem(itemWrapper.getPath());
+    }
+
+    private boolean checkConnectorCoordinatesAvailable(ConnDevConnectorType connector, AjaxRequestTarget target) {
+        String coordinates = connector.getGroupId() + ":" + connector.getArtifactId() + ":" + connector.getVersion();
+        try {
+            Task checkTask = getPageBase().createSimpleTask("checkConnectorAlreadyPresent");
+            if (getDetailsModel().getServiceLocator().getConnectorService()
+                    .isConnectorAlreadyPresent(connector.getGroupId(), connector.getArtifactId(), connector.getVersion(),
+                            checkTask, checkTask.getResult())) {
+                getPageBase().error(createStringResource(
+                        "ConnectorIdentificationConnectorStepPanel.connectorAlreadyExists", coordinates).getString());
+                target.add(getFeedback());
+                return false;
+            }
+        } catch (CommonException e) {
+            LOGGER.error("Couldn't check whether a connector with coordinates {} already exists", coordinates, e);
+            getPageBase().error(createStringResource(
+                    "ConnectorIdentificationConnectorStepPanel.connectorCheckFailed", coordinates).getString());
+            target.add(getFeedback());
+            return false;
+        }
+        return true;
     }
 
     @Override

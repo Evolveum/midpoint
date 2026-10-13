@@ -1,0 +1,50 @@
+= Suggestions
+:page-toc: top
+:page-since: "4.11"
+:page-upkeep-status: green
+
+== Overview
+
+*Suggestions* help the user configure a resource.
+midPoint analyzes the resource schema and sample data, optionally with the help of the AI microservice, and proposes parts of the resource configuration.
+
+Suggestions are never applied automatically.
+The user reviews them in the GUI and decides which of them to accept.
+
+== Types of Suggestions
+
+[cols="25%,75%",options="header"]
+|===
+| Suggestion | Description
+
+| Object types
+| Proposes resource object types (kind, intent and delineation) for a given object class.
+
+| Focus type
+| Proposes the focus type (for example, user or role) that corresponds to a resource object type.
+
+| Correlation
+| Proposes correlation rules that link resource objects to existing focus objects.
+
+| Mappings
+| Proposes inbound or outbound attribute mappings for a resource object type, see xref:mappings/mapping-suggestion.adoc[Mapping Suggestion].
+
+| Associations
+| Proposes associations between resource object types.
+|===
+
+== Common Principles
+
+* **Background operation.** A suggestion is computed by a background task.
+Submitting the operation returns a token that is used to check its status and to get the result.
+* **Authorization.** Suggestion operations require the `#smartIntegration` authorization, see xref:../authorization.adoc[].
+* **Data access permissions.** The user decides what data may be sent to the AI microservice.
+* **Sample data.** Correlation and mapping suggestions are validated on sample resource objects, see xref:../shadow-sampling.adoc[].
+
+== Schema Match
+
+// TODO: Describe schema match in general - what it is, how it is computed (well-known schemas, AI-assisted matching), where it is stored and reused, and which suggestions use it.
+
+== Topics
+
+* xref:mappings/mapping-suggestion.adoc[Mapping Suggestion] - How midPoint suggests inbound and outbound attribute mappings (as-is, heuristic, AI-generated and categorical scripts), quality assessment and result structure.

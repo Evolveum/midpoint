@@ -135,6 +135,11 @@ public class ConnectorInstallationServiceImpl implements ConnectorInstallationSe
     }
 
     @Override
+    public boolean isConnectorDirectoryPresent(String directory) {
+        return new File(downloadDirectory, directory).isDirectory();
+    }
+
+    @Override
     public EditableConnector copyBundle(@NotNull ConnectorType sourceConnector, @NotNull String targetDirectoryName,
             OperationResult result) {
         if (targetDirectoryName.contains("/") || targetDirectoryName.contains("\\")) {

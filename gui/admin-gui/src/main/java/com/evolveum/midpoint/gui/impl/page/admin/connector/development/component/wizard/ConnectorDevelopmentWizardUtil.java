@@ -712,6 +712,19 @@ public class ConnectorDevelopmentWizardUtil {
                 ItemPath.create(ConnectorDevelopmentType.F_CONNECTOR, ConnDevConnectorType.F_CONNECTOR_REF));
     }
 
+    /**
+     * Whether the item is one of the connector coordinate properties (groupId, artifactId, version)
+     * that identify the generated connector and thus become read-only once the connector is created.
+     */
+    public static boolean isConnectorCoordinateItem(ItemPath path) {
+        return path != null && (path.endsWith(
+                        ItemPath.create(ConnectorDevelopmentType.F_CONNECTOR, ConnDevConnectorType.F_GROUP_ID))
+                || path.endsWith(
+                        ItemPath.create(ConnectorDevelopmentType.F_CONNECTOR, ConnDevConnectorType.F_ARTIFACT_ID))
+                || path.endsWith(
+                        ItemPath.create(ConnectorDevelopmentType.F_CONNECTOR, ConnDevConnectorType.F_VERSION)));
+    }
+
     public static boolean isConnectionComplete(ConnectorDevelopmentDetailsModel detailsModel) {
         return isConnectionComplete(detailsModel, null);
     }

@@ -208,14 +208,33 @@ public class ApplicationIdentificationConnectorStepPanel extends AbstractFormWiz
         OperationResult result = getHelper().onSaveObjectPerformed(target);
         getDetailsModel().getConnectorDevelopmentOperation();
         if (result != null && !result.isError()) {
-            if (applicationInfoChanged) {
-                restartDocumentationDiscovery();
+            if (ConnectorDevelopmentWizardUtil.isBasicSettingsComplete(getDetailsModel().getObjectWrapper())) {
+                navigateToConnectorIdentification(target);
+            } else {
+                if (applicationInfoChanged) {
+                    restartDocumentationDiscovery();
+                }
+                super.onNextPerformed(target);
             }
-            super.onNextPerformed(target);
         } else {
             target.add(getFeedback());
         }
         return false;
+    }
+
+    /**
+     * After persisting the basic settings of an already created connector, moves to the
+     * connector identification step - the last editable step of the basic settings - without
+     * advancing into the documentation/creation steps or restarting the documentation
+     * discovery. The connector identification step's Next then saves the changes and
+     * returns to the summary.
+     */
+    private void navigateToConnectorIdentification(AjaxRequestTarget target) {
+        if (getWizard() instanceof WizardModelWithParentSteps wizardModel) {
+            wizardModel.setActiveStepById(ConnectorIdentificationConnectorStepPanel.PANEL_TYPE);
+            wizardModel.fireActiveStepChanged(wizardModel.getActiveStep());
+            target.add(wizardModel.getPanel());
+        }
     }
 
     /**

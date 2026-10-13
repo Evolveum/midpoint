@@ -37,6 +37,12 @@ public interface ConnectorInstallationService {
     EditableConnector editableConnectorFor(String directory);
 
     /**
+     * Whether a connector bundle directory with the given name (under the connector scan
+     * directory) exists.
+     */
+    boolean isConnectorDirectoryPresent(String directory);
+
+    /**
      * Copies the local bundle of the given connector - its bundle directory, or the content of
      * its bundle JAR - to a new bundle directory with the given name (under the connector scan
      * directory) and returns an editable handle to the copy.
