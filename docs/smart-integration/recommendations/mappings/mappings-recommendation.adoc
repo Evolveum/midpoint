@@ -40,7 +40,7 @@ If `SCHEMA_ACCESS` is granted and a recomputation is not forced, the latest exis
 Without `SCHEMA_ACCESS`, the schema match is always computed anew.
 . `mappingsSuggestion` - runs the mapping recommendation itself (`MappingsSuggestionOperation`) and stores the result in the task work state.
 
-Before the operation runs, midPoint checks the `#smartIntegration` authorization, see xref:../../authorization.adoc[].
+Before the operation runs, midPoint checks the `#smartIntegration` authorization, see xref:../../security/authorization.adoc[].
 
 == Inputs
 
@@ -584,6 +584,9 @@ The provenance is stored as value metadata of the recommendation:
 | The recommendation was created entirely without an LLM, from a well-known schema match or a well-known mapping.
 |===
 
+== Mappings Simulation
+
+See xref:mappings-simulation.adoc[Mappings Simulation].
 
 == Configuration
 

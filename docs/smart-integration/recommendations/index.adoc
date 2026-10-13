@@ -31,13 +31,19 @@ The user reviews them in the GUI and decides which of them to accept.
 
 | Associations
 | Proposes associations between resource object types, see xref:associations/associations-recommendation.adoc[Smart Associations Recommendation].
+
+| Synchronization
+| Proposes synchronization rules for a resource object type, without the AI microservice, see xref:synchronization/synchronization-recommendation.adoc[Smart Synchronization Recommendation].
 |===
+
+// TODO (Andrej): Types of recommendations (System vs AI) - matrix of availability of system recommendations vs AI recommendations.
+// TODO (Andrej): Review process (what happens when you accept/discard a recommendation).
 
 == Common Principles
 
 * **Background operation.** A recommendation is computed by a background task.
 Submitting the operation returns a token that is used to check its status and to get the result.
-* **Authorization.** Recommendation operations require the `#smartIntegration` authorization, see xref:../authorization.adoc[].
+* **Authorization.** Recommendation operations require the `#smartIntegration` authorization, see xref:../security/authorization.adoc[].
 * **Data access permissions.** The user decides what data may be sent to the AI microservice.
 * **Sample data.** Correlation and mappings recommendations are validated on sample resource objects, see xref:../shadow-sampling.adoc[].
 
@@ -53,5 +59,8 @@ See xref:../schema-match.adoc[Schema Match].
 * xref:object-types/object-types-recommendation.adoc[Smart Object Types Recommendation] - (TODO)
 * xref:focus-type/focus-type-recommendation.adoc[Smart Focus Type Recommendation] - (TODO)
 * xref:correlation/correlation-recommendation.adoc[Smart Correlation Recommendation] - (TODO)
+** xref:correlation/correlators-simulation.adoc[Correlators Simulation] - (TODO)
 * xref:mappings/mappings-recommendation.adoc[Smart Mappings Recommendation] - How midPoint recommends inbound and outbound attribute mappings (as-is, heuristic, AI-generated and categorical scripts), quality assessment and result structure.
+** xref:mappings/mappings-simulation.adoc[Mappings Simulation] - (TODO)
 * xref:associations/associations-recommendation.adoc[Smart Associations Recommendation] - (TODO)
+* xref:synchronization/synchronization-recommendation.adoc[Smart Synchronization Recommendation] - (TODO)

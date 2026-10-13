@@ -3,4 +3,8 @@
 :page-since: "4.11"
 :page-upkeep-status: green
 
-// TODO: Describe the smart object types recommendation.
+// TODO (Michal): Describe the smart object types recommendation.
+
+== Schema Match Preloading
+
+See xref:../../schema-match.adoc#_preloading_after_object_types_recommendation[Preloading After Object Types Recommendation].

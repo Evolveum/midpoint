@@ -3,4 +3,8 @@
 :page-since: "4.11"
 :page-upkeep-status: green
 
-// TODO: Describe the smart correlation recommendation.
+// TODO (Michal): Basic algorithm description.
+
+== Correlators Simulation
+
+See xref:correlators-simulation.adoc[Correlators Simulation].

@@ -3,4 +3,4 @@
 :page-since: "4.11"
 :page-upkeep-status: green
 
-// TODO: Describe object class, object type and focus statistics - what they contain, how they are computed, stored and reused, and which recommendations use them.
+// TODO (Tadek/Michal): Describe object class, object type and focus statistics - what they contain, how they are computed, stored and reused, and which recommendations use them.

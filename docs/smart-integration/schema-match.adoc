@@ -44,7 +44,7 @@ The latest stored statistics are used; if there are none, they are computed sync
 The statistics are evaluated locally and are not sent to the microservice.
 |===
 
-Computing the schema match requires the `#smartIntegration` authorization, see xref:authorization.adoc[].
+Computing the schema match requires the `#smartIntegration` authorization, see xref:security/authorization.adoc[].
 
 == Processing Flow
 
