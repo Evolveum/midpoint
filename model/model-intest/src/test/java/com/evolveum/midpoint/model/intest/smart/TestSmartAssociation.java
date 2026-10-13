@@ -10,6 +10,8 @@ package com.evolveum.midpoint.model.intest.smart;
 import com.evolveum.midpoint.model.intest.AbstractEmptyModelIntegrationTest;
 import com.evolveum.midpoint.model.test.CommonInitialObjects;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.processor.AssociationPair;
+import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.SmartMetadataUtil;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
@@ -27,6 +29,7 @@ import org.testng.annotations.Test;
 
 import java.io.File;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 import static org.testng.AssertJUnit.assertEquals;
 
@@ -280,6 +283,48 @@ public class TestSmartAssociation extends AbstractEmptyModelIntegrationTest {
         assertThat(tokens)
                 .as("statuses should include the token of the submitted operation")
                 .contains(token);
+    }
+
+    /** Verifies that configured association pairs are excluded from suggestions. */
+    @Test
+    public void testSuggestAssociations_shouldExcludeConfiguredPairs() throws CommonException {
+        var task = getTestTask();
+        var result = task.getResult();
+        var configuredPair = new AssociationPair(
+                ResourceObjectTypeIdentification.of(ShadowKindType.ACCOUNT, "default"),
+                ResourceObjectTypeIdentification.of(ShadowKindType.ENTITLEMENT, "app-group"));
+        var excludedKey = makeAssociationKey("ACCOUNT/default", "ENTITLEMENT/app-group");
+
+        when("submitting suggestions with a configured subject/object pair");
+        var token = smartIntegrationService.submitSuggestAssociationsOperation(
+                RESOURCE_OID, Set.of(configuredPair), task, result);
+        var response = waitForFinish(
+                () -> smartIntegrationService.getSuggestAssociationsOperationStatus(token, task, result), TIMEOUT);
+
+        then("the configured pair is excluded and unrelated suggestions remain");
+        assertThat(response).isNotNull();
+        var actualKeys = response.getAssociation().stream().map(this::associationToKey).toList();
+        var expectedKeys = ALL_EXPECTED_ASSOCIATIONS.stream().filter(key -> !key.equals(excludedKey)).toList();
+        assertThat(actualKeys).containsExactlyInAnyOrderElementsOf(expectedKeys);
+
+    }
+
+    /** Verifies that an empty pair snapshot allows all expected associations to be suggested. */
+    @Test
+    public void testSuggestAssociations_shouldSuggestAllPairsWithEmptySnapshot() throws CommonException {
+        var task = getTestTask();
+        var result = task.getResult();
+
+        when("submitting suggestions with an explicitly empty pair snapshot");
+        var emptyToken = smartIntegrationService.submitSuggestAssociationsOperation(
+                RESOURCE_OID, Set.of(), task, result);
+        var emptyResponse = waitForFinish(
+                () -> smartIntegrationService.getSuggestAssociationsOperationStatus(emptyToken, task, result), TIMEOUT);
+
+        then("all expected pairs are eligible");
+        assertThat(emptyResponse).isNotNull();
+        assertThat(emptyResponse.getAssociation().stream().map(this::associationToKey).toList())
+                .containsExactlyInAnyOrderElementsOf(ALL_EXPECTED_ASSOCIATIONS);
     }
 
     /**

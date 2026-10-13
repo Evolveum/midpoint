@@ -10592,7 +10592,7 @@
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="permissions" type="c:DataAccessPermissionType" minOccurs="0"
-                                 maxOccurs="unbounded">
+                            maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>
                                 Data access permissions given to the suggest task.
@@ -10611,7 +10611,7 @@
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="previousDelineation" type="c:ResourceObjectTypeDefinitionType"
-                                 minOccurs="0" maxOccurs="unbounded">
+                            minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>
                                 Previously suggested object type definitions (kind, intent, delineation) passed as
@@ -10657,7 +10657,7 @@
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="permissions" type="c:DataAccessPermissionType" minOccurs="0"
-                                 maxOccurs="unbounded">
+                            maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>Data access permissions granted to the preload task.</xsd:documentation>
                         </xsd:annotation>
@@ -10739,6 +10739,22 @@
     </xsd:complexType>
     <xsd:element name="objectTypeRelatedSuggestionWorkDefinition" type="tns:ObjectTypeRelatedSuggestionWorkDefinitionType"/>
 
+    <xsd:complexType name="AssociationPairType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Pair of subject and object resource object types (kind and intent).
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:since>4.11</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="subject" type="tns:ResourceObjectTypeIdentificationType"/>
+            <xsd:element name="object" type="tns:ResourceObjectTypeIdentificationType"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
     <xsd:complexType name="AssociationSuggestionWorkDefinitionType">
         <xsd:annotation>
             <xsd:documentation>
@@ -10761,6 +10777,11 @@
                                 <a:displayName>AssociationsSuggestionWorkDefinitionType.resourceRef</a:displayName>
                                 <a:objectReferenceTargetType>c:ResourceType</a:objectReferenceTargetType>
                             </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="configuredAssociationPair" type="tns:AssociationPairType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>Configured subject/object kind and intent pairs to exclude from suggestions.</xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
                 </xsd:sequence>
@@ -10791,7 +10812,7 @@
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="permissions" type="c:DataAccessPermissionType" minOccurs="0"
-                                 maxOccurs="unbounded">
+                            maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>
                                 Data access permissions given to the suggest task.
@@ -10861,7 +10882,7 @@
                     </xsd:element>
                     <!-- If the value of `includeExistingMappings` is "false" then bellow element has to be present. -->
                     <xsd:element name="inlineMappings" type="tns:InlineInboundMappingsDefinitionType" minOccurs="0"
-                                 maxOccurs="unbounded">
+                            maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>
                                 Inline definition of mappings. It can be used to explicitly define the mappings, for
@@ -10943,7 +10964,7 @@
                     </xsd:element>
 
                     <xsd:element name="inlineMappings" type="tns:InlineOutboundMappingsDefinitionType"
-                                 maxOccurs="unbounded">
+                            maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>
                                 Inline definition of mappings. It can be used to explicitly define the mappings, for
@@ -11233,7 +11254,7 @@
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="permissions" type="c:DataAccessPermissionType" minOccurs="0"
-                                 maxOccurs="unbounded">
+                            maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>
                                 Data access permissions given to the suggest task.

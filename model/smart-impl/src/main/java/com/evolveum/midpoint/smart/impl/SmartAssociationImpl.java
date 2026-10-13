@@ -11,6 +11,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
+import com.evolveum.midpoint.schema.processor.AssociationPair;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.processor.ShadowReferenceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ShadowReferenceParticipantRole;
@@ -30,12 +31,13 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Provides logic for automatically suggesting {@link ShadowAssociationTypeDefinitionType} definitions
  * based on the structure of native reference attributes in the resource schema.
  * <p>
- * This class inspects subject and object object types defined in the resource,
+ * This class inspects subject and object types defined in the resource,
  * evaluates their reference attributes, and generates association suggestions accordingly.
  * </p>
  *
@@ -64,11 +66,14 @@ public class SmartAssociationImpl {
      * Associations are derived by analyzing reference attributes in native object class definitions.
      *
      * @param resource The resource in which to evaluate possible associations.
+     * @param configuredAssociations A set of already configured association pairs to exclude from suggestions.
      * @return Suggested associations as {@link AssociationsSuggestionType}.
      */
     public AssociationsSuggestionType suggestSmartAssociation(
-            @NotNull ResourceType resource
-    ) throws SchemaException, ConfigurationException {
+            @NotNull ResourceType resource, Set<AssociationPair> configuredAssociations)
+            throws SchemaException, ConfigurationException {
+        var configuredPairs = configuredAssociations != null ? Set.copyOf(configuredAssociations) : Set.<AssociationPair>of();
+
         LOGGER.info("Start generating association suggestions, resource: {}", resource.getOid());
 
         var resourceSchema = Resource.of(resource).getCompleteSchemaRequired();
@@ -95,6 +100,13 @@ public class SmartAssociationImpl {
                 var targetObjectClass = refAttribute.getTargetObjectClassName();
                 var objectObjectTypes = findObjectTypesForObjectClass(resourceSchema, targetObjectClass);
                 for (var objectObjectType : objectObjectTypes) {
+                    var pair = new AssociationPair(
+                            subjectObjectType.getTypeIdentification(), objectObjectType.getTypeIdentification());
+                    if (configuredPairs.contains(pair)) {
+                        LOGGER.trace("Skipping already configured association pair {}", pair);
+                        continue;
+                    }
+
                     LOGGER.debug(
                             "generating association suggestion, subject: {}, ref: {}, object: {}",
                             subjectObjectType.getTypeIdentification(),
