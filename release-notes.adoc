@@ -37,9 +37,9 @@ Moreover, midPoint 4.11 made a significant leap towards secure-by-default config
 
 === New Features and Major Improvements
 
-* xrefv:/midpoint/reference/master/expressions/expressions/script/mel/[MidPoint expression language]: secure expression language for use in mappings and customization.
+* xrefv:/midpoint/reference/master/expressions/expressions/script/mel/[**MidPoint expression language**] (MEL): secure expression language for use in mappings and customization.
 
-* New smart integration features:
+* New xrefv:/midpoint/reference/master/smart-integrations/[**smart integration**] features:
 ** Suggestions of object types (delineation).
 ** Suggestions of focus type.
 ** Suggestions of correlators.
@@ -50,45 +50,51 @@ Moreover, midPoint 4.11 made a significant leap towards secure-by-default config
 ** Inbound mappings simulation.
 ** Dedicated `#smartIntegration` authorization for suggestion operations.
     See xrefv:/midpoint/reference/master/smart-integrations/authorization/[].
-* **Connector generator wizard**: An AI-assisted low-code wizard that generates a working manifest-based connector JAR helping you integrate an external application without writing connector code from scratch.
-** Supports SCIM, REST and SQL protocols.
+* **Connector generator wizard**: an AI-assisted low-code wizard that generates a working manifest-based connector JAR helping you integrate an external application without writing the connector code from scratch.
+    See xref:/midpoint/get-started/try-ai-in-midpoint/[].
+** Supports SCIM, REST, and SQL protocols.
 ** Connector creation workflow guided by the wizard:
 *** Start from scratch or import an existing low-code connector.
-*** Provide basic information about the application and its connectivity.
+*** Provide basic information about the target application and its connectivity.
 *** Review the application documentation sources discovered by the AI and select the most fitting ones.
-*** Set up connection to the target application (base URL, authentication methods, AI-generated authentication scripts, credentials, connectivity endpoint discovery, and testing).
-*** Review the discovered object classes and schema scripts for the ones you select to integrate.
+    The connector generator uses the documentation to analyze how the application communicates and suggest appropriate connector scripts.
+*** Set up connection to the target application (base URL, authentication methods, AI-generated authentication scripts, credentials, endpoint for connectivity test).
+*** Review the discovered object classes and AI-generated schema scripts for the classes you choose to integrate.
+*** Review suggested endpoints for operations on the object classes (REST).
 ** The connector generator wizard supports per-operation scripts (search all, search by ID, search filter).
-*** The connector generator wizard has limited support for relationships and create, update, and delete operations.
-** Runs in a limited offline mode (skeleton scripts, no documentation processing, no relationships) when the xref:/midpoint/get-started/install/midpilot-setup/[connector generator microservice] is not configured.
-** Connectors under construction are tracked in the `ConnectorDevelopmentType` object and listed under *Connectors* > *In-progress connectors*.
-** Access to the connector generator wizard is protected by the `#connectorWizard` authorization, which is not granted by any out-of-the-box role (the superuser reaches it only via `#all`), because the wizard generates and executes connector code.
+*** It has limited support for relationships and create, update, and delete operations.
+** The wizard can run in a limited offline mode (skeleton scripts, no documentation processing, no relationships) when the xref:/midpoint/get-started/install/midpilot-setup/[connector generator microservice] is not configured or available.
+** Connectors under construction are tracked in the `ConnectorDevelopmentType` object and listed under *Connectors* > *In-progress connectors* in the GUI.
+** Access to the connector generator wizard is protected by the `#connectorWizard` authorization.
+    This authorization is not granted by any out-of-the-box role, because the wizard generates and executes connector code (the superuser reaches it via the `#all` authorization).
 
 * UI/UX improvements:
 ** Improved object type wizard.
 ** Improved mappings screen.
 ** Improved correlation screen.
 
-* Multi-tab browser support: you can now open midPoint in multiple browser tabs or windows while maintaining consistent experience across the views.
-See bug:MID-11050[].
+* **Multi-tab browser support**: you can now open midPoint in multiple browser tabs or windows while maintaining consistent experience across the views.
+See xrefv:/midpoint/reference/master/admin-gui/multi-tab-browser-support/[].
+See also bug:MID-11050[].
 
-* xref:/midpoint/guides/updating-native-db/updating-to-pg18.adoc[Support for PostgreSQL 18]
+* xref:/midpoint/guides/updating-native-db/updating-to-pg18[Support for PostgreSQL 18].
 
-* bug:MID-11358[] Added connector signature verification for production environments without an active subscription,
+* Added connector signature verification for production environments without an active subscription,
 including an ability to import a signed list of allowed connectors for subscription compliance enforcement.
-See xref:/connectors/integration-catalog/share-connectors/validate-connector/[].
+See xref:/connectors/integration-catalog/share-connectors/validate-connector/[] and xref:/connectors/integration-catalog/[].
+See also bug:MID-11358[].
 
-* xref:/midpoint/reference/resources/manual/ticketing/[ITSM ticketing]: the built-in manual connector can now manage provisioning tickets on a real ITSM system, using a dedicated ticketing resource.
-The ticket is managed as a projection (a shadow of the `work` kind) of the midPoint case.
+* xrefv:/midpoint/reference/master/resources/manual/ticketing/[**ITSM ticketing**]: the built-in manual connector can now manage provisioning tickets on a real ITSM system, using a dedicated ticketing resource.
+The tickets are managed as projections (shadows of the `work` kind) of the respective midPoint cases.
 ** A new `work` shadow kind for work items (issues, tickets, cases, work packages).
 ** Cases can now hold projections: the new `ProjectionHolderType` schema type is a common parent of `FocusType` and `CaseType`.
 
-* xref:/midpoint/reference/security/authentication/flexible-authentication/modules/totp/[TOTP support]: new `totp` authentication module brings multi-factor authentication based on time-based one-time passwords to xref:/midpoint/reference/security/authentication/flexible-authentication/[flexible authentication].
+* xrefv:/midpoint/reference/master/security/authentication/flexible-authentication/modules/totp/[**TOTP support**]: the new `totp` authentication module brings multi-factor authentication based on time-based one-time passwords to xref:/midpoint/reference/security/authentication/flexible-authentication/[flexible authentication].
 Users can set up and reset their authenticator application in the self-service user interface.
 See bug:MID-11049[].
 
-* xref:/midpoint/reference/tasks/focus-policies-in-activities/[Focus policies in activities]: focus-based policy rules can now be configured and evaluated per task activity, not only for the whole task.
-This allows separate focus-based thresholds for individual activities of composite tasks, including the `restartActivity` and `skipActivity` policy actions.
+* xrefv:/midpoint/reference/master/tasks/focus-policies-in-activities/[**Focus policies in activities**]: focus-based policy rules can now be configured and evaluated per task activity, not only for the whole task.
+This allows for separate focus-based thresholds for individual activities of composite tasks, including the `restartActivity` and `skipActivity` policy actions.
 See bug:MID-11051[].
 
 #TODO#
