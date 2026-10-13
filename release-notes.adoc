@@ -19,16 +19,15 @@ The {release-version} release brings accessibility improvements, compliance feat
 ++++
 {% capture dedicationContent %}
 <p>
-<a href="https://en.wikipedia.org/wiki/Louis_Braille">Louis Braille</a> (1809-1852) was a French educator.
-He invented a reading and writing system named after him, intended for use by visually impaired people.
-Braille invented the system at an early age, and dedicated most of his life to improve his system.
-The system invented by Braille opened up the world of knowledge and learning to the visually impaired people.
+<a href="https://en.wikipedia.org/wiki/Karel_%C4%8Capek">Karel Čapek</a> (1890-1938) was a Czech writer, playwright, critic and journalist.
+He is known for his science fiction, including his play R.U.R. (Rossum's Universal Robots), which introduced the word _robot_.
+He also wrote many politically charged works, opposing the rise of both fascism and communism.
 </p>
 <p>
-Similarly to Braille's system, midPoint 4.10 brings major improvements in accessibility.
-Self-service part of midPoint user interface was meticulously reviewed and improved to correctly support tools used by the visually impaired people.
-Moreover, midPoint 4.10 brings many incremental improvements and new features in various areas, reminiscent of Braille's relentless improvements of his system through his life.
-Overall, midPoint 4.10 opens up the world of identity management and governance to everybody.
+Sci-fi themes of Čapek's works aligns with the innovations brought by midPoint 4.11.
+Practical AI-powered features were introduced in midPoint 4.11 to make application onboarding faster and easier.
+Čapek's opposition of fascism and communism is echoed in digital sovereignty that midPoint brings to identity governance.
+Moreover, midPoint 4.11 made a significant leap towards secure-by-default configuration, which is helpful at keeping malicious actors at bay.
 </p>
 {% endcapture %}
 {% include release-dedication.html content=dedicationContent %}
