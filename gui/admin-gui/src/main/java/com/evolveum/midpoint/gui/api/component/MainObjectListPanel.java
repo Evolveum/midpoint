@@ -433,7 +433,12 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
         };
     }
     protected boolean isCreateNewObjectVisible() {
-        return !isCollectionViewPanel() || getObjectCollectionView().isApplicableForOperation(OperationTypeType.ADD) ||
+        if (!isCollectionViewPanel()) {
+            return true;
+        }
+        // view can be missing e.g. when collection name in page parameters refers to a view which doesn't exist (anymore)
+        CompiledObjectCollectionView view = getObjectCollectionView();
+        return view == null || view.isApplicableForOperation(OperationTypeType.ADD) ||
                 CollectionUtils.isNotEmpty(getNewObjectInfluencesList());
     }
 
