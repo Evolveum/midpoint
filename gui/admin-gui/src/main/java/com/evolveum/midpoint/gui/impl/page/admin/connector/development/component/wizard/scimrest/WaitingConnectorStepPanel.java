@@ -305,7 +305,7 @@ public abstract class WaitingConnectorStepPanel extends AbstractWizardStepPanel<
                     super.onReRunPerform(target);
                     return;
                 }
-                resetToken();
+                tokenModel.reset();
                 statusModel.reset();
                 super.onReRunPerform(target);
                 target.add(this);
