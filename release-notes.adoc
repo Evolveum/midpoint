@@ -19,15 +19,15 @@ The {release-version} release brings accessibility improvements, compliance feat
 ++++
 {% capture dedicationContent %}
 <p>
-<a href="https://en.wikipedia.org/wiki/Karel_%C4%8Capek">Karel Čapek</a> (1890-1938) was a Czech writer, playwright, critic and journalist.
+<a href="https://en.wikipedia.org/wiki/Karel_%C4%8Capek">Karel Čapek</a> (1890–1938) was a Czech writer, playwright, critic, and journalist.
 He is known for his science fiction, including his play R.U.R. (Rossum's Universal Robots), which introduced the word "robot".
 He also wrote many politically charged works, opposing the rise of both fascism and communism.
 </p>
 <p>
-Sci-fi themes of Čapek's works aligns with the innovations brought by midPoint 4.11.
+The sci-fi themes of Čapek's works align with the innovations brought by midPoint 4.11.
 Practical AI-powered features were introduced in midPoint 4.11 to make application onboarding faster and easier.
-Čapek's opposition of fascism and communism is echoed in digital sovereignty that midPoint brings to identity governance.
-Moreover, midPoint 4.11 made a significant leap towards secure-by-default configuration, which is helpful at keeping malicious actors at bay.
+Čapek's opposition to both fascism and communism is echoed in the digital sovereignty that midPoint brings to identity governance.
+Moreover, midPoint 4.11 made a significant leap towards secure-by-default configuration, which is helpful in keeping malicious actors at bay.
 </p>
 {% endcapture %}
 {% include release-dedication.html content=dedicationContent %}
