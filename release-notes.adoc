@@ -20,7 +20,7 @@ The {release-version} release brings accessibility improvements, compliance feat
 {% capture dedicationContent %}
 <p>
 <a href="https://en.wikipedia.org/wiki/Karel_%C4%8Capek">Karel Čapek</a> (1890-1938) was a Czech writer, playwright, critic and journalist.
-He is known for his science fiction, including his play R.U.R. (Rossum's Universal Robots), which introduced the word _robot_.
+He is known for his science fiction, including his play R.U.R. (Rossum's Universal Robots), which introduced the word "robot".
 He also wrote many politically charged works, opposing the rise of both fascism and communism.
 </p>
 <p>
