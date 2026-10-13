@@ -94,7 +94,12 @@ public abstract class AbstractObjectClassConnectorStepPanel extends AbstractForm
                         PrismContainerValue<ConnDevObjectClassInfoType> newItem = model.getObject().getItem().createNewValue();
                         PrismContainerValueWrapper<ConnDevObjectClassInfoType> newItemWrapper = WebPrismUtil.createNewValueWrapper(
                                 model.getObject(), newItem, modelServiceLocator);
-                        model.getObject().getValues().add(newItemWrapper);
+                        // createNewValue() adds the value to the underlying container; keep the
+                        // temporary value detached from both the wrapper and the raw item, so that
+                        // it is neither counted nor persisted until the user actually selects/creates
+                        // an object class. Must run after the wrapper creation - a detached value
+                        // cannot be converted back to a typed object.
+                        model.getObject().getItem().remove(newItem);
                         newItemWrapper.setExpanded(true);
                         newItemWrapper.setShowEmpty(true);
                         return newItemWrapper;
