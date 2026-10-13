@@ -28,10 +28,12 @@ import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ExceptionUtil;
 import com.evolveum.midpoint.smart.api.conndev.ConnectorDevelopmentArtifacts;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
@@ -184,7 +186,13 @@ public abstract class WaitingConnectorStepPanel extends AbstractWizardStepPanel<
                 OperationResult result = task.getResult();
 
                 if (StringUtils.isEmpty(tokenModel.getObject())) {
-                    tokenModel.setObject(getNewTaskToken(task, result, isReloaded));
+                    String newToken;
+                    try {
+                        newToken = getNewTaskToken(task, result, isReloaded);
+                    } catch (RuntimeException e) {
+                        return reportSubmitFailure(e, result);
+                    }
+                    tokenModel.setObject(newToken);
                     if (isReloaded) {
                         restartedTaskToken = tokenModel.getObject();
                     }
@@ -234,6 +242,19 @@ public abstract class WaitingConnectorStepPanel extends AbstractWizardStepPanel<
         };
     }
 
+    private SmartGeneratingDto reportSubmitFailure(RuntimeException e, OperationResult result) {
+        LoggingUtils.logUnexpectedException(LOGGER, "Couldn't submit task for {}", e, getActivityType());
+        CommonException cause = ExceptionUtil.findCause(e, CommonException.class);
+        result.recordFatalError(cause != null ? cause : e);
+        getPageBase().showResult(result);
+        return new SmartGeneratingDto() {
+            @Override
+            public boolean isFailed() {
+                return true;
+            }
+        };
+    }
+
     protected abstract ItemName getActivityType();
 
     protected String getKeyForStoringToken(){
@@ -276,6 +297,19 @@ public abstract class WaitingConnectorStepPanel extends AbstractWizardStepPanel<
             @Override
             protected boolean allowRerun() {
                 return true;
+            }
+
+            @Override
+            public void onReRunPerform(AjaxRequestTarget target) {
+                if (getModelObject().getTaskObject() != null) {
+                    super.onReRunPerform(target);
+                    return;
+                }
+                resetToken();
+                statusModel.reset();
+                super.onReRunPerform(target);
+                target.add(this);
+                target.add(getPageBase().getFeedbackPanel());
             }
 
             @Override
