@@ -1,0 +1,6 @@
+= Smart Associations Recommendation
+:page-toc: top
+:page-since: "4.11"
+:page-upkeep-status: green
+
+// TODO: Describe the smart associations recommendation.

@@ -1,11 +1,11 @@
-= Mapping Suggestion
+= Smart Mappings Recommendation
 :page-toc: top
 :page-since: "4.11"
 :page-upkeep-status: green
 
 == Overview
 
-The *suggest mappings* operation proposes attribute mappings for a single resource object type (identified by resource, kind and intent).
+The *smart mappings recommendation* operation proposes attribute mappings for a single resource object type (identified by resource, kind and intent).
 It works on pairs of a shadow attribute and a focus property that were matched in a preceding schema matching step.
 For each pair, it decides which kind of mapping fits the real data best.
 
@@ -21,11 +21,11 @@ midPoint validates every candidate against sample data, assigns it an *expected 
 
 The result is a `MappingsSuggestionType` structure, which contains:
 
-* `attributeMappings` - list of suggested attribute mappings (`AttributeMappingsSuggestionType`), each with a resource attribute definition containing either inbound or outbound mapping and its expected quality.
-* `iterationSpecification` - an optional default iteration specification, added when a suggested script uses iteration variables.
+* `attributeMappings` - list of recommended attribute mappings (`AttributeMappingsSuggestionType`), each with a resource attribute definition containing either inbound or outbound mapping and its expected quality.
+* `iterationSpecification` - an optional default iteration specification, added when a recommended script uses iteration variables.
 
-The suggestions are not applied to the resource automatically.
-They are stored in the work state of the suggestion task, and the user can review and accept them in the GUI.
+The recommendations are not applied to the resource automatically.
+They are stored in the work state of the recommendation task, and the user can review and accept them in the GUI.
 
 === Execution
 
@@ -34,11 +34,11 @@ The activity has three child activities that run in this order:
 
 . `statisticsComputation` - computes object type statistics for the resource object type, or reuses the latest existing statistics.
 The step is skipped if the `RAW_DATA_ACCESS` permission is not granted.
-. `schemaMatching` - computes the schema match (attribute pairs) and stores it as a smart integration artifact.
+. `schemaMatching` - computes the schema match (attribute pairs) and stores it as a smart integration artifact, see xref:../../schema-match.adoc[Schema Match].
 The match is AI-assisted only if the `SCHEMA_ACCESS` permission is granted.
 If `SCHEMA_ACCESS` is granted and a recomputation is not forced, the latest existing (non-expired) schema match is reused instead of being computed again.
 Without `SCHEMA_ACCESS`, the schema match is always computed anew.
-. `mappingsSuggestion` - runs the mapping suggestion itself (`MappingsSuggestionOperation`) and stores the result in the task work state.
+. `mappingsSuggestion` - runs the mapping recommendation itself (`MappingsSuggestionOperation`) and stores the result in the task work state.
 
 Before the operation runs, midPoint checks the `#smartIntegration` authorization, see xref:../../authorization.adoc[].
 
@@ -52,7 +52,7 @@ The operation takes these inputs:
 
 | Resource and object type
 | yes
-| The resource OID and the object type identification (kind and intent) for which mappings are suggested.
+| The resource OID and the object type identification (kind and intent) for which mappings are recommended.
 
 | Schema match
 | yes
@@ -65,13 +65,13 @@ It contains a list of matched pairs (`SchemaMatchOneResultType`), and each pair 
 
 | Direction (`inbound`)
 | yes
-| `true` suggests inbound mappings (shadow attribute -> focus property).
-`false` suggests outbound mappings (focus property -> shadow attribute).
+| `true` recommends inbound mappings (shadow attribute -> focus property).
+`false` recommends outbound mappings (focus property -> shadow attribute).
 See <<Mapping Direction>>.
 
 | Target paths to ignore (`targetPathsToIgnore`)
 | no
-| Target paths that should get no new suggestions, for example targets of suggestions the user has already accepted.
+| Target paths that should get no new recommendations, for example targets of recommendations the user has already accepted.
 (Target paths of mappings already configured on the object type are also always excluded, even if they are not listed here.)
 
 | Data access permissions (`permissions`)
@@ -90,8 +90,8 @@ It is used to detect attributes whose values are mostly missing and to get value
 | Force schema match recomputation (`forceRecomputeSchemaMatch`)
 | no
 | If `true`, the schema match is computed again even if a valid (non-expired) one already exists for the resource object type.
-The GUI sets it when the user explicitly asks to regenerate the suggestions.
-If `false` (default), an existing schema match is reused when `SCHEMA_ACCESS` is granted, for example one computed earlier for correlation suggestions.
+The GUI sets it when the user explicitly asks to regenerate the recommendations.
+If `false` (default), an existing schema match is reused when `SCHEMA_ACCESS` is granted, for example one computed earlier for correlation recommendations.
 
 | Retry count
 | no
@@ -134,7 +134,7 @@ It does this even without the `SCHEMA_ACCESS` permission, because no data is sen
 If AI-assisted schema matching is also used, AI pairs are added only when they are not already among the predefined pairs.
 Predefined pairs therefore take precedence over AI pairs.
 
-The operation evaluates predefined pairs in the same way as any other pair (see <<Mapping Strategy Evaluation>>), so these suggestions are still filtered by quality.
+The operation evaluates predefined pairs in the same way as any other pair (see <<Mapping Strategy Evaluation>>), so these recommendations are still filtered by quality.
 
 === Well-Known Mappings
 
@@ -145,16 +145,16 @@ A well-known mapping can be an as-is mapping or a mapping with a predefined scri
 Well-known mappings are curated domain knowledge, not AI guesses.
 This is why they are handled differently from other candidates:
 
-* They are *always suggested* when the schema is detected, regardless of their quality.
+* They are *always recommended* when the schema is detected, regardless of their quality.
 The quality thresholds that apply to other candidates do not apply to them.
 * If sample data is available, midPoint still computes their expected quality against the validation samples.
 The quality is stored in `expectedQuality`, but it is never used to discard the mapping.
-* They are marked with `SYSTEM` provenance metadata, so the GUI can tell them apart from AI suggestions.
-* Like all other suggestions, they are skipped if their target already has a mapping.
+* They are marked with `SYSTEM` provenance metadata, so the GUI can tell them apart from AI recommendations.
+* Like all other recommendations, they are skipped if their target already has a mapping.
 
 == Mapping Direction
 
-The operation suggests mappings in only one direction per run, set by the `inbound` input.
+The operation recommends mappings in only one direction per run, set by the `inbound` input.
 Both directions use the same schema match pairs.
 The direction decides which side of a pair is the source and which is the target, and this affects the whole evaluation: sampling, quality assessment, the variable name used in scripts and the shape of the resulting mapping.
 
@@ -206,7 +206,7 @@ Inbound is the typical direction when a resource is connected as an authoritativ
 
 Specifics of the inbound direction:
 
-* In the suggested scripts, the shadow attribute value is always available as the `input` variable, not under the attribute name.
+* In the recommended scripts, the shadow attribute value is always available as the `input` variable, not under the attribute name.
 For example, a script for the `mail` attribute uses `input`, not `mail`.
 * If the focus item is multivalued, the mapping range is `matchingProvenance` (see xref:/midpoint/reference/expressions/mappings/range/[Mapping Range]).
 This way the mapping manages only the values it created itself and does not remove values that come from other sources.
@@ -221,10 +221,10 @@ Outbound is the typical direction when midPoint provisions accounts to a target 
 
 Specifics of the outbound direction:
 
-* In the suggested scripts, the focus property value is available under the local name of the focus property, not as `input`.
+* In the recommended scripts, the focus property value is available under the local name of the focus property, not as `input`.
 For example, a script whose source is `givenName` uses the variable `givenName`.
 * Attributes that cannot be modified on the resource are skipped, because an outbound mapping for them would make no sense.
-* Categorical mappings are not suggested.
+* Categorical mappings are not recommended.
 * Outbound well-known mappings may depend on the sample shadows, for example to build a distinguished name (DN) that follows the structure of existing accounts.
 
 == Processing Flow
@@ -232,7 +232,7 @@ For example, a script whose source is `givenName` uses the variable `givenName`.
 The `mappingsSuggestion` activity runs these steps in order:
 
 . **Shadow sampling** - collect sample shadows together with their owners.
-. **Exclusion of existing mappings** - determine which targets get no new suggestions.
+. **Exclusion of existing mappings** - determine which targets get no new recommendations.
 . **Well-known mappings** - add predefined mappings if a well-known schema was detected.
 . **Per-attribute evaluation** - find the best mapping for every schema match pair.
 . **Selection of candidates** - filter, deduplicate and order all candidates.
@@ -254,11 +254,11 @@ The size of both sets depends on whether shadow caching is enabled, see xref:../
 
 === 2. Exclusion of Existing Mappings
 
-midPoint suggests no mapping for a target that is already covered.
+midPoint recommends no mapping for a target that is already covered.
 The excluded target paths are the union of:
 
 * targets of mappings already configured on the object type: focus target paths of inbound mappings, or resource attributes that have an outbound mapping,
-* targets of suggestions the user has already accepted.
+* targets of recommendations the user has already accepted.
 
 The exclusion is based on the target path only, regardless of the source or the expression.
 It applies to all candidates created in the following steps.
@@ -301,7 +301,7 @@ Pick the best of:
     ↓
 Quality < 0.1? ──YES→ SKIP (low quality)
     ↓ NO
-Mapping suggestion (SUCCESS)
+Mapping recommendation (SUCCESS)
 ----
 
 .No-data handling
@@ -322,13 +322,13 @@ Such value pairs show what a mapping has to do, and they are also used to test w
 . **No value pairs** - if no value pairs could be collected (the LLM sample or the validation sample is empty):
 ** inbound, with object type statistics: if the attribute has no value in more than 95 % of the resource objects, the pair is skipped (missing source data),
 ** inbound, with `RAW_DATA_ACCESS`: a <<Categorical Mappings,categorical mapping>> is tried,
-** otherwise an as-is mapping without expected quality is suggested.
+** otherwise an as-is mapping without expected quality is recommended.
 . **Missing source data** - if fewer than 5 % of the validation pairs have a source value, the pair is skipped.
 . **Missing target data** - if fewer than 5 % of the validation pairs have a target value (for example, before the initial import the focus property is still empty):
 ** inbound, with `RAW_DATA_ACCESS`: a categorical mapping is tried,
-** otherwise an as-is mapping without expected quality is suggested.
-. **As-is is sufficient** - if every source value equals its target value after type conversion, an as-is mapping with expected quality `1.0` is suggested.
-. **Multivalued data** - if any value pair has more than one value on either side, an as-is mapping without expected quality is suggested.
+** otherwise an as-is mapping without expected quality is recommended.
+. **As-is is sufficient** - if every source value equals its target value after type conversion, an as-is mapping with expected quality `1.0` is recommended.
+. **Multivalued data** - if any value pair has more than one value on either side, an as-is mapping without expected quality is recommended.
 . **Finding the best expression** - otherwise midPoint compares several candidates on the validation samples and keeps the one with the highest quality:
 .. as-is mapping (the baseline),
 .. the best matching <<Heuristic Mappings,heuristic rule>>,
@@ -336,9 +336,9 @@ Such value pairs show what a mapping has to do, and they are also used to test w
 
 When a result is selected, midPoint checks it against the minimum quality.
 If the expected quality is known and lower than `0.1`, the pair is skipped.
-Otherwise midPoint builds the suggestion and marks its provenance (see <<Provenance>>):
+Otherwise midPoint builds the recommendation and marks its provenance (see <<Provenance>>):
 
-* `SYSTEM` if the suggestion was made entirely without an LLM,
+* `SYSTEM` if the recommendation was made entirely without an LLM,
 * `AI` if an LLM was used (either for the schema match pair or for the mapping script).
 
 ==== Retry of AI-Generated Scripts
@@ -391,15 +391,15 @@ A `SYSTEM` mapping replaces an `AI` one; otherwise the mapping that is already i
 Well-known mappings from step 3 are subject only to the first check (excluded targets).
 They skip the quality threshold and deduplication.
 
-The same target can get more than one suggestion if the suggestions differ in source or script, for example a well-known mapping and an AI mapping for the same focus property.
+The same target can get more than one recommendation if the recommendations differ in source or script, for example a well-known mapping and an AI mapping for the same focus property.
 The final list is grouped by target path and, within each target, ordered by expected quality from highest to lowest.
-Suggestions without expected quality come last.
+Recommendations without expected quality come last.
 
 === 6. Iteration Specification
 
-Some suggested scripts may use the iteration variables `iterationToken`, `iteration` or `attempt`, for example when a DN is composed as `cn=<fullName + iterationToken>,...`.
+Some recommended scripts may use the iteration variables `iterationToken`, `iteration` or `attempt`, for example when a DN is composed as `cn=<fullName + iterationToken>,...`.
 These variables work only if the object type has an iteration specification.
-So if any suggested script uses one of them, midPoint adds an `iterationSpecification` to the result:
+So if any recommended script uses one of them, midPoint adds an `iterationSpecification` to the result:
 
 * if the object type already has an iteration specification, a copy of it is used,
 * otherwise a default specification is added: start `1`, end `10`, and `useTokenOnlyOnConflict` set to `true`.
@@ -417,20 +417,20 @@ midPoint distinguishes three situations:
 
 * **No value pairs at all** - no sampled object with an owner has a value for this pair.
 This typically happens for a new resource that has no correlated accounts yet.
-midPoint cannot validate anything, so it suggests an as-is mapping without expected quality (or a categorical mapping, see below).
-For inbound mappings, it first checks the object type statistics: if the attribute is empty in more than 95 % of all resource objects, no mapping is suggested, because there is almost nothing to map.
+midPoint cannot validate anything, so it recommends an as-is mapping without expected quality (or a categorical mapping, see below).
+For inbound mappings, it first checks the object type statistics: if the attribute is empty in more than 95 % of all resource objects, no mapping is recommended, because there is almost nothing to map.
 * **Missing source data** - fewer than 5 % of the validation pairs have a source value.
-A mapping from an almost always empty source would be useless, so no mapping is suggested.
+A mapping from an almost always empty source would be useless, so no mapping is recommended.
 * **Missing target data** - fewer than 5 % of the validation pairs have a target value.
 This is typical before the initial import, when the focus property has not been populated yet.
-midPoint cannot compute the quality, so it suggests an as-is mapping without expected quality (or a categorical mapping).
+midPoint cannot compute the quality, so it recommends an as-is mapping without expected quality (or a categorical mapping).
 
 === As-Is Mapping
 
 An as-is mapping copies the source value to the target without any expression.
 It is the simplest candidate and also the baseline for all other candidates.
 
-midPoint suggests an as-is mapping in these cases:
+midPoint recommends an as-is mapping in these cases:
 
 * every validation source value equals its target value after conversion to the target type - expected quality `1.0`,
 * there is not enough data to validate anything (see above) - no expected quality,
@@ -503,8 +503,8 @@ The microservice returns a MEL script that maps one to the other.
 
 Because there are no paired values, the quality of the script cannot be computed.
 midPoint only checks that the script runs without an error on one of the resource values.
-If it does, the categorical mapping is suggested without expected quality.
-If it does not, an as-is mapping without expected quality is suggested instead.
+If it does, the categorical mapping is recommended without expected quality.
+If it does not, an as-is mapping without expected quality is recommended instead.
 
 == Quality Assessment
 
@@ -520,7 +520,7 @@ For as-is mappings, the source value is used directly.
 . The result is compared with the target value as text.
 . The quality is the number of matching pairs divided by the number of compared pairs.
 
-Suggestions created without validation (see <<As-Is Mapping>> and <<Categorical Mappings>>) have no expected quality.
+Recommendations created without validation (see <<As-Is Mapping>> and <<Categorical Mappings>>) have no expected quality.
 
 Well-known mappings are never dropped because of their quality.
 
@@ -538,7 +538,7 @@ Each item of `attributeMappings` (`AttributeMappingsSuggestionType`) contains:
 
 The definition has the same format as attribute definitions in the schema handling of a resource, so it can be added to the object type as it is.
 
-.Example of a suggested inbound mapping (heuristic rule `toLowerCase`)
+.Example of a recommended inbound mapping (heuristic rule `toLowerCase`)
 [source,xml]
 ----
 <attributeMappings>
@@ -568,8 +568,8 @@ The definition has the same format as attribute definitions in the schema handli
 
 === Provenance
 
-Every suggestion is marked with provenance metadata, so the GUI can show where the suggestion comes from.
-The provenance is stored as value metadata of the suggestion:
+Every recommendation is marked with provenance metadata, so the GUI can show where the recommendation comes from.
+The provenance is stored as value metadata of the recommendation:
 
 [cols="15%,45%,40%",options="header"]
 |===
@@ -577,11 +577,11 @@ The provenance is stored as value metadata of the suggestion:
 
 | `AI`
 | Artificial intelligence
-| An LLM was used to create the suggestion, either for the schema match or for the mapping script.
+| An LLM was used to create the recommendation, either for the schema match or for the mapping script.
 
 | `SYSTEM`
 | System intelligence
-| The suggestion was created entirely without an LLM, from a well-known schema match or a well-known mapping.
+| The recommendation was created entirely without an LLM, from a well-known schema match or a well-known mapping.
 |===
 
 
@@ -638,11 +638,11 @@ The operation is affected by these settings in the `<smartIntegration>` containe
 
 == Limitations
 
-* **Simple attributes only.** Mappings are suggested only for simple resource attributes.
+* **Simple attributes only.** Mappings are recommended only for simple resource attributes.
 Activation, credentials and associations are not supported.
-* **One source, one target.** Every suggestion maps exactly one resource attribute to exactly one focus property.
-Mappings that combine several sources (for example, a full name from given and family name) are not suggested.
-* **Multivalued attributes.** No transformation is suggested for multivalued values, only an as-is mapping without expected quality.
+* **One source, one target.** Every recommendation maps exactly one resource attribute to exactly one focus property.
+Mappings that combine several sources (for example, a full name from given and family name) are not recommended.
+* **Multivalued attributes.** No transformation is recommended for multivalued values, only an as-is mapping without expected quality.
 * **Fixed heuristics.** Heuristic rules cover only whitespace trimming, letter case and diacritics.
 * **Categorical mappings are inbound only** and their quality is never computed.
 * **Well-known schemas** are detected only for the schema types listed in <<Well-Known Schemas>>.

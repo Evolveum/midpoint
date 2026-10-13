@@ -1,0 +1,35 @@
+= Smart Integration
+:page-toc: top
+:page-since: "4.11"
+:page-upkeep-status: green
+
+== Overview
+
+Smart Integration provide AI-assisted and automated capabilities for resource configuration and data integration in midPoint, including:
+
+* Smart recommendations of resource configuration (object types, focus type, correlation, mappings, associations)
+* Supporting functions used by the recommendations (schema match, statistics, shadow sampling)
+
+== Configuration
+
+Setting relevant to Smart Integration are configured globally in the midPoint system configuration (`SystemConfigurationType`) within the `<smartIntegration>` container.
+
+== Recommendations
+
+* xref:recommendations/index.adoc[Smart Recommendations] - Overview of recommendation operations (object types, focus type, correlation, mappings, associations) and their common principles.
+** xref:recommendations/object-types/object-types-recommendation.adoc[Smart Object Types Recommendation] - (TODO)
+** xref:recommendations/focus-type/focus-type-recommendation.adoc[Smart Focus Type Recommendation] - (TODO)
+** xref:recommendations/correlation/correlation-recommendation.adoc[Smart Correlation Recommendation] - (TODO)
+** xref:recommendations/mappings/mappings-recommendation.adoc[Smart Mappings Recommendation] - How midPoint recommends inbound and outbound attribute mappings (as-is, heuristic, AI-generated and categorical scripts), quality assessment and result structure.
+** xref:recommendations/associations/associations-recommendation.adoc[Smart Associations Recommendation] - (TODO)
+
+== Supporting Functions
+
+* xref:schema-match.adoc[Schema Match] - How midPoint pairs resource attributes with focus properties (well-known schemas, AI-assisted matching, post-processing heuristics), and how the result is stored and reused.
+* xref:statistics.adoc[Statistics] - Object class, object type and focus statistics used by the recommendations. (TODO)
+* xref:shadow-sampling.adoc[Shadow Sampling Configuration] - Configure sample size constraints for correlation and mappings recommendations based on shadow caching availability.
+
+== Other Topics
+
+* xref:authorization.adoc[Smart Integration Authorization] - Dedicated `#smartIntegration` authorization for recommendation operations, REST API and GUI; statistics protected by object-scoped authorizations.
+* xref:service-item-paths.adoc[Item Paths and Type Names in Service Requests] - Format of item paths and type names sent to the Smart Integration microservice (common `c:` namespace prefix is omitted).
