@@ -941,6 +941,11 @@ public class ConnectorDevelopmentWizardUtil {
         try {
             PrismPropertyWrapper<ConnDevIntegrationType> integrationType = detailsModel.getObjectWrapper().findProperty(
                     ItemPath.create(ConnectorDevelopmentType.F_CONNECTOR, ConnDevConnectorType.F_INTEGRATION_TYPE));
+            if (integrationType.getValue().getRealValue() == null) {
+                integrationType = detailsModel.getObjectWrapper().findProperty(
+                        ItemPath.create(ConnectorDevelopmentType.F_APPLICATION, ConnDevApplicationInfoType.F_INTEGRATION_TYPE)
+                );
+            }
             return ConnDevIntegrationType.SQL.equals(integrationType.getValue().getRealValue());
         } catch (SchemaException e) {
             return false;

@@ -628,7 +628,7 @@ public class DocumentationConnectorStepPanel extends AbstractWizardStepPanel<Con
             throw new RuntimeException(e);
         }
 
-        if (valuesModel.getObject().stream().noneMatch(PrismContainerValueWrapper::isSelected)) {
+        if (!ConnectorDevelopmentWizardUtil.isSql(getDetailsModel()) && valuesModel.getObject().stream().noneMatch(PrismContainerValueWrapper::isSelected)) {
             valuesModel.detach();
             ((MultiSelectContainerActionTileTablePanel) get(ID_PANEL)).refreshAndDetach(target);
             showNoDocumentationPopup(target);
