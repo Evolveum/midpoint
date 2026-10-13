@@ -85,7 +85,8 @@ public class TestConnectorDummyFake extends AbstractConfiguredModelIntegrationTe
         result.computeStatus();
         TestUtil.assertSuccess("getObject result", result);
 
-        assertEquals("Unexpected number of connectors", 13, connectors.size());
+        // 13 connectors originally + 1 scim-generic for testing connector development
+        assertEquals("Unexpected number of connectors", 14, connectors.size());
         for (PrismObject<ConnectorType> connector : connectors) {
             display("Connector", connector);
             ConnectorType connectorType = connector.asObjectable();
