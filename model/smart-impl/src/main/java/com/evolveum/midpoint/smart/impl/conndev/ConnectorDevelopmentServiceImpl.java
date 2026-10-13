@@ -718,6 +718,9 @@ public class ConnectorDevelopmentServiceImpl implements ConnectorDevelopmentServ
             throws ObjectNotFoundException, SchemaException, SecurityViolationException, ExpressionEvaluationException,
             CommunicationException, ConfigurationException, SubscriptionComplianceException {
         securityEnforcer.authorize(AuthorizationConstants.AUTZ_UI_CONNECTOR_WIZARD_URL, task, result);
+        if (oid == null || oid.isBlank()) {
+            return new TaskType();
+        }
         return taskManager
                 .getObject(TaskType.class, oid, taskRetrievalOptions(), result)
                 .asObjectable();
@@ -760,6 +763,9 @@ public class ConnectorDevelopmentServiceImpl implements ConnectorDevelopmentServ
     @Override
     public void removeDiscoveredDocumentation(String token, String name, Task task, OperationResult result) throws CommonException {
         securityEnforcer.authorize(AuthorizationConstants.AUTZ_UI_CONNECTOR_WIZARD_URL, task, result);
+        if (token == null || token.isBlank()) {
+            return;
+        }
         Task targetTask = taskManager.getTaskPlain(token, result);
 
         ActivityState state = ActivityState.getActivityStateUpwards(
@@ -916,5 +922,23 @@ public class ConnectorDevelopmentServiceImpl implements ConnectorDevelopmentServ
     @Override
     public boolean isOffline() {
         return ConnDevBeans.get().isOffline();
+    }
+
+    @Override
+    public boolean isConnectorAlreadyPresent(String groupId, String artifactId, String version, Task task, OperationResult result)
+            throws CommonException {
+        securityEnforcer.authorize(AuthorizationConstants.AUTZ_UI_CONNECTOR_WIZARD_URL, task, result);
+
+        var connectorBundle = groupId + "." + artifactId;
+        var query = PrismContext.get().queryFor(ConnectorType.class)
+                .item(ConnectorType.F_CONNECTOR_BUNDLE).eq(connectorBundle)
+                .and().item(ConnectorType.F_CONNECTOR_VERSION).eq(version)
+                .build();
+        var connectors = modelService.searchObjects(ConnectorType.class, query, null, task, result);
+        if (!connectors.isEmpty()) {
+            return true;
+        }
+
+        return ConnDevBeans.get().connectorService.isConnectorDirectoryPresent(connectorBundle + "." + version);
     }
 }

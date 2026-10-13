@@ -146,6 +146,12 @@ public class ConnectorWizardHelpTabsTest {
         }
 
         @Override
+        public boolean isConnectorAlreadyPresent(String groupId, String artifactId, String version, Task task, OperationResult result)
+                throws CommonException {
+            throw unsupported();
+        }
+
+        @Override
         public ConnectorDevelopmentOperation startFromNew(ConnDevApplicationInfoType basicInfo, OperationResult result) {
             throw unsupported();
         }

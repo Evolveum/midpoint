@@ -675,6 +675,9 @@ public class DocumentationConnectorStepPanel extends AbstractWizardStepPanel<Con
 
     @Override
     public boolean isCompleted() {
+        if (ConnectorDevelopmentWizardUtil.isBasicSettingsComplete(getDetailsModel().getObjectWrapper())) {
+            return true;
+        }
         return ConnectorDevelopmentWizardUtil.existContainerValue(
                 getDetailsModel().getObjectWrapper(), ConnectorDevelopmentType.F_DOCUMENTATION_SOURCE);
     }

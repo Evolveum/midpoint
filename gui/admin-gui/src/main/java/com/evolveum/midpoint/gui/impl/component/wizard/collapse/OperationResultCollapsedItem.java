@@ -20,6 +20,8 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public class OperationResultCollapsedItem extends CollapsedItem<WizardModelWithParentSteps> {
 
@@ -47,14 +49,14 @@ public class OperationResultCollapsedItem extends CollapsedItem<WizardModelWithP
         addOperationResult(panelId, fixPanelId, result, fixAction, null, null);
     }
 
-    /** @see OperationResultWrapper#OperationResultWrapper(OperationResult, String, SerializableConsumer, String, String) */
+    /** @see OperationResultWrapper#OperationResultWrapper(String, OperationResult, String, SerializableConsumer, String, String) */
     public void addOperationResult(
             String panelId, String fixPanelId, OperationResult result, SerializableConsumer<AjaxRequestTarget> fixAction,
             String fixButtonLabelKey, String fixButtonIcon) {
         removeOperationResult(panelId);
         result.computeStatus();
         if (result.isWarning() || result.isError()) {
-            OperationResultWrapper resultWrapper = new OperationResultWrapper(result, fixPanelId, fixAction, fixButtonLabelKey, fixButtonIcon);
+            OperationResultWrapper resultWrapper = new OperationResultWrapper(panelId, result, fixPanelId, fixAction, fixButtonLabelKey, fixButtonIcon);
             results.put(panelId, resultWrapper);
         }
     }
@@ -79,6 +81,17 @@ public class OperationResultCollapsedItem extends CollapsedItem<WizardModelWithP
             return;
         }
         results.values().removeIf(wrapper -> fixPanelIds.contains(wrapper.getFixPanelId()));
+    }
+
+    /** Distinct fixPanelIds among {@code candidateIds} that currently have at least one pending entry. */
+    public Set<String> getFixPanelIdsWithResults(Collection<String> candidateIds) {
+        if (candidateIds == null || candidateIds.isEmpty()) {
+            return Set.of();
+        }
+        return results.values().stream()
+                .map(OperationResultWrapper::getFixPanelId)
+                .filter(candidateIds::contains)
+                .collect(Collectors.toSet());
     }
 
     @Override

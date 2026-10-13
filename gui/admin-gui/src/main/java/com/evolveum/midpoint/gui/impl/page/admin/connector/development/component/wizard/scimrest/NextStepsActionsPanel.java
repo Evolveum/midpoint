@@ -18,6 +18,7 @@ import com.evolveum.midpoint.gui.impl.component.tile.EnumTileChoicePanel;
 import com.evolveum.midpoint.gui.impl.duplication.DuplicationProcessHelper;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.ConnectorDevelopmentDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.ConnectorDevelopmentController;
+import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.ConnectorDevelopmentWizardUtil;
 import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.Referencable;
@@ -120,6 +121,14 @@ public class NextStepsActionsPanel extends BasePanel {
             @Override
             protected String getDescriptionForTile(ConnectorAction type) {
                 return getString(type.getDescription());
+            }
+
+            @Override
+            protected boolean isTileDisabled(ConnectorAction type) {
+                // The bundle cannot be packaged into a JAR/ZIP until the connector actually
+                // exists on the file system (connector/connectorRef is set by the create step).
+                boolean isExport = type == ConnectorAction.EXPORT_CONNECTOR_JAR || type == ConnectorAction.EXPORT_CONNECTOR_ZIP;
+                return isExport && !ConnectorDevelopmentWizardUtil.isBasicSettingsComplete(detailsModel.getObjectWrapper());
             }
 
             @Override

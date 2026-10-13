@@ -16,8 +16,10 @@ import org.springframework.stereotype.Component;
 import com.evolveum.midpoint.gui.api.factory.AbstractGuiComponentFactory;
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismValueWrapper;
+import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.ConnectorDevelopmentWizardUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
@@ -25,6 +27,7 @@ import com.evolveum.midpoint.web.component.input.EnumCardChoicePanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnDevApplicationInfoType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnDevConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnDevIntegrationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorDevelopmentType;
 
 /**
  * Renders {@code application/integrationType} (the protocol intended to use) and
@@ -83,8 +86,15 @@ public class ConnDevIntegrationTypeGuiComponentFactory extends AbstractGuiCompon
                 .toList();
 
         // A persisted SQL connector development is locked to the SQL card, so the selection is read-only.
+        // Likewise, once the connector is created, the intended integration type is part of the
+        // immutable basic settings and cannot be changed anymore.
+        boolean created = false;
+        PrismObjectWrapper<ConnectorDevelopmentType> objectWrapper = wrapper.findObjectWrapper();
+        if (objectWrapper != null) {
+            created = ConnectorDevelopmentWizardUtil.isBasicSettingsComplete(objectWrapper);
+        }
         return new EnumCardChoicePanel<>(panelCtx.getComponentId(), panelCtx.getRealValueModel(),
-                options, panelCtx.isMandatory(), oldType == ConnDevIntegrationType.SQL);
+                options, panelCtx.isMandatory(), oldType == ConnDevIntegrationType.SQL || created);
     }
 
     @Override
