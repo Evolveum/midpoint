@@ -293,6 +293,9 @@ public abstract class SelectableBeanDataProvider<T extends Serializable> extends
             setupUserFriendlyMessage(result, ex);
             result.recordFatalError(getPageBase().createStringResource("ObjectDataProvider.message.countObjects.fatalError").getString(), ex);
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't count objects", ex);
+            if (alwaysProvideResult) {
+                this.result = result;
+            }
         } finally {
             result.computeStatusIfUnknown();
         }
