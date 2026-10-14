@@ -45,6 +45,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationTypeType;
 
 /**
  * Wizard step showing the results of Search Filter script execution.
+ *
+ * TODO NOT FINAL: this is an interim implementation, reusing the generic resource
+ * search panel with a plain searchAll run upfront and filters applied through its
+ * existing search mechanism; an unsupported filter surfaces as a raw exception in
+ * the table instead of a dedicated message. Revisit the step's own design.
  */
 @PanelType(name = "cdw-show-search-filter-result")
 @PanelInstance(identifier = "cdw-show-search-filter-result",
@@ -95,6 +100,7 @@ public class SearchFilterObjectsConnectorStepPanel extends ScriptConfirmationPan
             throw new RuntimeException(e);
         }
 
+        // TODO NOT FINAL: generic resource search table, searchAll runs on load; see class javadoc
         ResourceUncategorizedPanel table = new ResourceUncategorizedPanel(
                 ID_PANEL, resourceDetailsModel, getContainerConfiguration(PANEL_TYPE)) {
             @Override
@@ -104,7 +110,12 @@ public class SearchFilterObjectsConnectorStepPanel extends ScriptConfirmationPan
 
             @Override
             protected boolean isShadowDetailsEnabled() {
-                return false;
+                return true;
+            }
+
+            @Override
+            protected boolean showPopupShadowDetailsOnClick() {
+                return true;
             }
 
             @Override
@@ -136,7 +147,7 @@ public class SearchFilterObjectsConnectorStepPanel extends ScriptConfirmationPan
 
             @Override
             protected boolean isHeaderVisible() {
-                return false;
+                return true;
             }
 
             @Override
