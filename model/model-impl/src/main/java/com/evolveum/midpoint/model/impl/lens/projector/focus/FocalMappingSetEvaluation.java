@@ -69,7 +69,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  *
  * @param <F> type of the focus, in which the whole operation is carried out, i.e. type of {@link LensContext}
  * @param <T> type of the target object
- *
  * @see FocalMappingSetEvaluationBuilder
  */
 public class FocalMappingSetEvaluation<F extends AssignmentHolderType, T extends AssignmentHolderType> {
@@ -364,7 +363,7 @@ public class FocalMappingSetEvaluation<F extends AssignmentHolderType, T extends
 
     @Nullable
     private <V extends PrismValue, D extends ItemDefinition<?>>
-            DeltaSetTriple<ItemValueWithOrigin<V, D>> customizeOutputTriple(
+    DeltaSetTriple<ItemValueWithOrigin<V, D>> customizeOutputTriple(
             DeltaSetTriple<ItemValueWithOrigin<V, D>> rawOutputTriple,
             MappingImpl<V, D> mapping, FocalMappingEvaluationRequest<?, ?> request) {
         if (tripleCustomizer != null) {
@@ -422,8 +421,10 @@ public class FocalMappingSetEvaluation<F extends AssignmentHolderType, T extends
             LOGGER.trace("Updating focusOdo because of chained mappings; chained source/target path: {}", path);
             focusOdoCloned = focusOdoClonedHolder.getValue();
         }
-        Class<F> focusClass = context.getFocusContext().getObjectTypeClass();
-        ItemDefinition<?> itemDefinition = getObjectDefinition(focusClass).findItemDefinition(path);
+        // The definition is taken from the focus context, not from the compile-time class. The class may be
+        // a supertype of the actual object (e.g. AssignmentHolderType delta for a user) and then user-only
+        // items would not be found. See issue 12679.
+        ItemDefinition<?> itemDefinition = context.getFocusContext().getObjectDefinition().findItemDefinition(path);
 
         ConsolidationValueMetadataComputer valueMetadataComputer = LensMetadataUtil.createValueMetadataConsolidationComputer(
                 path, itemDefinition, context, beans, env, result);
@@ -431,22 +432,22 @@ public class FocalMappingSetEvaluation<F extends AssignmentHolderType, T extends
         // TODO not much sure about the parameters
         //noinspection unchecked,rawtypes
         try (IvwoConsolidator<?, ?, ? extends ItemValueWithOrigin<?, ?>> consolidator = new IvwoConsolidatorBuilder<>()
-                    .itemPath(path)
-                    .ivwoTriple((DeltaSetTriple) triple)
-                    .itemDefinition(itemDefinition)
-                    .aprioriItemDelta(getAprioriItemDelta(focusOdo.getObjectDelta(), path))
-                    .itemDeltaExists(context.primaryFocusItemDeltaExists(path))
-                    .itemContainer(focusOdo.getNewObject()) // covers existingItem
-                    .equalsChecker(null)
-                    .addUnchangedValues(false) // todo
-                    .addUnchangedValuesExceptForNormalMappings(true) // todo
-                    .existingItemKnown(true)
-                    .isExclusiveStrong(false)
-                    .contextDescription(" updating chained source (" + path + ") in " + contextDesc)
-                    .strengthSelector(StrengthSelector.ALL)
-                    .valueMetadataComputer(valueMetadataComputer)
-                    .result(result)
-                    .build()) {
+                .itemPath(path)
+                .ivwoTriple((DeltaSetTriple) triple)
+                .itemDefinition(itemDefinition)
+                .aprioriItemDelta(getAprioriItemDelta(focusOdo.getObjectDelta(), path))
+                .itemDeltaExists(context.primaryFocusItemDeltaExists(path))
+                .itemContainer(focusOdo.getNewObject()) // covers existingItem
+                .equalsChecker(null)
+                .addUnchangedValues(false) // todo
+                .addUnchangedValuesExceptForNormalMappings(true) // todo
+                .existingItemKnown(true)
+                .isExclusiveStrong(false)
+                .contextDescription(" updating chained source (" + path + ") in " + contextDesc)
+                .strengthSelector(StrengthSelector.ALL)
+                .valueMetadataComputer(valueMetadataComputer)
+                .result(result)
+                .build()) {
 
             ItemDelta<?, ?> itemDelta = consolidator.consolidateTriples();
             itemDelta.simplify();
@@ -454,10 +455,6 @@ public class FocalMappingSetEvaluation<F extends AssignmentHolderType, T extends
             LOGGER.trace("Updating focus ODO with delta:\n{}", itemDelta.debugDumpLazily());
             focusOdoCloned.update(itemDelta);
         }
-    }
-
-    private PrismObjectDefinition<F> getObjectDefinition(Class<F> focusClass) {
-        return beans.prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(focusClass);
     }
 
     @FunctionalInterface
