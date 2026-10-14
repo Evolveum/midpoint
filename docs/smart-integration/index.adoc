@@ -1,4 +1,5 @@
 = Smart Integration
+:page-moved-from: /midpoint/reference/smart-integrations/
 :page-toc: top
 :page-since: "4.11"
 :page-upkeep-status: green
