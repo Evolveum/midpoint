@@ -259,7 +259,7 @@ public class ResourceUncategorizedPanel extends AbstractResourceObjectPanel {
 
             @Override
             public PageStorage getPageStorage() {
-                return getPageBase().getBrowserTabSessionStorage().getResourceContentStorage(null);
+                return ResourceUncategorizedPanel.this.getPageStorage();
             }
 
             @Override
@@ -343,6 +343,10 @@ public class ResourceUncategorizedPanel extends AbstractResourceObjectPanel {
     }
 
     protected void onTableSearchPerformed(AjaxRequestTarget target) {
+    }
+
+    protected PageStorage getPageStorage() {
+        return getPageBase().getBrowserTabSessionStorage().getResourceContentStorage(null);
     }
 
     protected boolean allwaysProvideResult() {
