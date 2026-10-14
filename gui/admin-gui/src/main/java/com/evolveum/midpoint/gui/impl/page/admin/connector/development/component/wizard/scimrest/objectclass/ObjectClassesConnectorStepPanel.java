@@ -173,6 +173,9 @@ public class ObjectClassesConnectorStepPanel extends AbstractWizardStepPanel<Con
                         getDetailsModel().getConnectorDevelopmentOperation();
                         if (result == null || result.isError()) {
                             target.add(getFeedback());
+                            ((BaseSortableDataProvider<?>) table.getProvider()).clearCache();
+                            table.getTilesModel().detach();
+                            table.refresh(target);
                         } else {
                             Task task = getPageBase().createSimpleTask(
                                     ObjectClassesConnectorStepPanel.class.getName() + ".deleteArtifactFile");
@@ -192,11 +195,8 @@ public class ObjectClassesConnectorStepPanel extends AbstractWizardStepPanel<Con
                                 target.add(getFeedback());
                             }
                             getDetailsModel().reloadPrismObjectByOid();
+                            getController().refreshWizardPartsOnObjectClasses(target);
                         }
-
-                        ((BaseSortableDataProvider<?>) table.getProvider()).clearCache();
-                        table.getTilesModel().detach();
-                        table.refresh(target);
                     }
 
                     @Override
@@ -223,7 +223,9 @@ public class ObjectClassesConnectorStepPanel extends AbstractWizardStepPanel<Con
                                 new ArrayList<>(ConnectorObjectClassTilePanel.getAvailableCapabilities(objectClassValue));
                         remaining.removeAll(selected);
 
+                        boolean objectClassRemoved = false;
                         if (remaining.isEmpty()) {
+                            objectClassRemoved = true;
                             try {
                                 objectClassValue.getParent().remove(objectClassValue, getDetailsModel().getPageAssignmentHolder());
                             } catch (SchemaException e) {
@@ -248,6 +250,9 @@ public class ObjectClassesConnectorStepPanel extends AbstractWizardStepPanel<Con
                         getDetailsModel().getConnectorDevelopmentOperation();
                         if (result == null || result.isError()) {
                             target.add(getFeedback());
+                            ((BaseSortableDataProvider<?>) table.getProvider()).clearCache();
+                            table.getTilesModel().detach();
+                            table.refresh(target);
                         } else {
                             Task task = getPageBase().createSimpleTask(
                                     ObjectClassesConnectorStepPanel.class.getName() + ".deleteArtifactFile");
@@ -266,11 +271,15 @@ public class ObjectClassesConnectorStepPanel extends AbstractWizardStepPanel<Con
                                 getPageBase().error("Couldn't update the connector manifest: " + e.getMessage());
                                 target.add(getFeedback());
                             }
+                            if (objectClassRemoved) {
+                                getDetailsModel().reloadPrismObjectByOid();
+                                getController().refreshWizardPartsOnObjectClasses(target);
+                            } else {
+                                ((BaseSortableDataProvider<?>) table.getProvider()).clearCache();
+                                table.getTilesModel().detach();
+                                table.refresh(target);
+                            }
                         }
-
-                        ((BaseSortableDataProvider<?>) table.getProvider()).clearCache();
-                        table.getTilesModel().detach();
-                        table.refresh(target);
                     }
 
                     @Override

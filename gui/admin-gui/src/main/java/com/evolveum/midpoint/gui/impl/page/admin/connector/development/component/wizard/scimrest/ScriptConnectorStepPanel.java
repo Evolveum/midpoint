@@ -163,7 +163,11 @@ public abstract class ScriptConnectorStepPanel extends AbstractWizardStepPanel<C
                         artifactType.setContent(content);
                         return artifactType;
                     } catch (IOException e) {
-                        throw new RuntimeException(e);
+                        // The script entry exists in the model, but its file cannot be read (e.g. it
+                        // was removed out-of-band). Don't fail the page render - show a blank script.
+                        getPageBase().error("Couldn't load " + artifactType.getFilename() + ": " + e.getMessage());
+                        artifactType.setContent(null);
+                        return artifactType;
                     }
                 }
 
