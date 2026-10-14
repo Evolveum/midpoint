@@ -174,6 +174,9 @@ public class RelationshipsConnectorStepPanel extends AbstractWizardStepPanel<Con
                         getDetailsModel().getConnectorDevelopmentOperation();
                         if (result == null || result.isError()) {
                             target.add(getFeedback());
+                            ((BaseSortableDataProvider<?>) table.getProvider()).clearCache();
+                            table.getTilesModel().detach();
+                            table.refresh(target);
                         } else {
                             Task task = getPageBase().createSimpleTask(
                                     RelationshipsConnectorStepPanel.class.getName() + ".deleteRelationship");
@@ -193,11 +196,8 @@ public class RelationshipsConnectorStepPanel extends AbstractWizardStepPanel<Con
                                 target.add(getFeedback());
                             }
                             getDetailsModel().reloadPrismObjectByOid();
+                            getController().refreshWizardPartsOnRelationships(target);
                         }
-
-                        ((BaseSortableDataProvider<?>) table.getProvider()).clearCache();
-                        table.getTilesModel().detach();
-                        table.refresh(target);
                     }
                 };
             }
