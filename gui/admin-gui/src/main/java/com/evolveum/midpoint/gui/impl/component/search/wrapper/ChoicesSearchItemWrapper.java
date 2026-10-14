@@ -12,6 +12,7 @@ import java.util.List;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.component.search.SearchValue;
 import com.evolveum.midpoint.gui.impl.component.search.panel.ChoicesSearchItemPanel;
+import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
@@ -24,6 +25,11 @@ public class ChoicesSearchItemWrapper<T extends Serializable> extends PropertySe
 
     public ChoicesSearchItemWrapper(ItemPath path, List<DisplayableValue<T>> availableValues) {
         super(path);
+        this.availableValues = availableValues;
+    }
+
+    public ChoicesSearchItemWrapper(ItemPath path, ItemDefinition<?> itemDef, List<DisplayableValue<T>> availableValues) {
+        super(path, itemDef);
         this.availableValues = availableValues;
     }
 
@@ -50,7 +56,7 @@ public class ChoicesSearchItemWrapper<T extends Serializable> extends PropertySe
             return null;
         }
         return PrismContext.get().queryFor(type)
-                .item(getPath()).eq(getValue().getValue()).buildFilter();
+                .item(getPath(), getItemDef()).eq(getValue().getValue()).buildFilter();
     }
 
     public boolean allowNull() {
