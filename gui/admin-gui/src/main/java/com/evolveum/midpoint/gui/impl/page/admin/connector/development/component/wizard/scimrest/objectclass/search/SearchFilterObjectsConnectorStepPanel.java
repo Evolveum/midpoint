@@ -151,12 +151,26 @@ public class SearchFilterObjectsConnectorStepPanel extends ScriptConfirmationPan
             }
 
             @Override
+            protected boolean allwaysProvideResult() {
+                return true;
+            }
+
+            @Override
             protected void processResult(OperationResult errorResult) {
                 if (getWizard() instanceof WizardModelWithParentSteps wizardModel) {
-                    wizardModel.addOperationResult(getStepId(), "cdw-search-filter-script", errorResult,
-                            ConnectorDevelopmentWizardUtil.fixScriptAction(
-                                    SearchFilterObjectsConnectorStepPanel.this, "cdw-search-filter-script"));
+                    ConnectorDevelopmentWizardUtil.collectConnectorResults(errorResult, (connIdResult) -> {
+                        wizardModel.addOperationResult(getStepId(), "cdw-search-filter-script", connIdResult,
+                                ConnectorDevelopmentWizardUtil.fixScriptAction(
+                                        SearchFilterObjectsConnectorStepPanel.this, "cdw-search-filter-script"));
+                    });
                     ConnectorDevelopmentWizardUtil.reportConnectorLogs(SearchFilterObjectsConnectorStepPanel.this, getStepId(), errorResult, null);
+                }
+            }
+
+            @Override
+            protected void onTableSearchPerformed(AjaxRequestTarget target) {
+                if (getWizard() instanceof WizardModelWithParentSteps wizardModel) {
+                    target.add(wizardModel.getPanel());
                 }
             }
 
