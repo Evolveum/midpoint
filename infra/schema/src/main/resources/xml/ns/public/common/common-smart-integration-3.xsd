@@ -57,6 +57,7 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:since>4.11</a:since>
+                        <a:displayName>SmartIntegrationConfigurationType.serviceApiKey</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
