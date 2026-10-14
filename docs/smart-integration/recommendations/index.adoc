@@ -1,4 +1,4 @@
-= Smart Recommendations
+= Smart recommendations
 :page-moved-from: /midpoint/reference/smart-integrations/suggestions/
 :page-toc: top
 :page-since: "4.11"
@@ -12,35 +12,35 @@ midPoint analyzes the resource schema and sample data, optionally with the help 
 Recommendations are never applied automatically.
 The user reviews them in the GUI and decides which of them to accept.
 
-== Types of Recommendations
+== Types of recommendations
 
 [cols="25%,75%",options="header"]
 |===
 | Recommendation | Description
 
 | Object types
-| Proposes resource object types (kind, intent and delineation) for a given object class, see xref:object-types/object-types-recommendation.adoc[Smart Object Types Recommendation].
+| Proposes resource object types (kind, intent and delineation) for a given object class, see xref:object-types/object-types-recommendation.adoc[Smart object types recommendation].
 
 | Focus type
-| Proposes the focus type (for example, user or role) that corresponds to a resource object type, see xref:focus-type/focus-type-recommendation.adoc[Smart Focus Type Recommendation].
+| Proposes the focus type (for example, user or role) that corresponds to a resource object type, see xref:focus-type/focus-type-recommendation.adoc[Smart focus type recommendation].
 
 | Correlation
-| Proposes correlation rules that link resource objects to existing focus objects, see xref:correlation/correlation-recommendation.adoc[Smart Correlation Recommendation].
+| Proposes correlation rules that link resource objects to existing focus objects, see xref:correlation/correlation-recommendation.adoc[Smart correlation recommendation].
 
 | Mappings
-| Proposes inbound or outbound attribute mappings for a resource object type, see xref:mappings/mappings-recommendation.adoc[Smart Mappings Recommendation].
+| Proposes inbound or outbound attribute mappings for a resource object type, see xref:mappings/mappings-recommendation.adoc[Smart mappings recommendation].
 
 | Associations
-| Proposes associations between resource object types, see xref:associations/associations-recommendation.adoc[Smart Associations Recommendation].
+| Proposes associations between resource object types, see xref:associations/associations-recommendation.adoc[Smart associations recommendation].
 
 | Synchronization
-| Proposes synchronization rules for a resource object type, without the AI microservice, see xref:synchronization/synchronization-recommendation.adoc[Smart Synchronization Recommendation].
+| Proposes synchronization rules for a resource object type, without the AI microservice, see xref:synchronization/synchronization-recommendation.adoc[Smart synchronization recommendation].
 |===
 
 // TODO (Andrej): Types of recommendations (System vs AI) - matrix of availability of system recommendations vs AI recommendations.
 // TODO (Andrej): Review process (what happens when you accept/discard a recommendation).
 
-== Common Principles
+== Common principles
 
 * **Background operation.** A recommendation is computed by a background task.
 Submitting the operation returns a token that is used to check its status and to get the result.
@@ -48,20 +48,20 @@ Submitting the operation returns a token that is used to check its status and to
 * **Data access permissions.** The user decides what data may be sent to the AI microservice.
 * **Sample data.** Correlation and mappings recommendations are validated on sample resource objects, see xref:../shadow-sampling.adoc[].
 
-== Schema Match
+== Schema match
 
 Mappings and correlation recommendations start from a *schema match* - a list of pairs that say which resource attribute corresponds to which focus property.
 The pairs come from predefined well-known schemas (LDAP, Active Directory, SCIM) and, with `SCHEMA_ACCESS`, from the AI microservice.
 The schema match is stored in the repository and reused until it expires.
-See xref:../schema-match.adoc[Schema Match].
+See xref:../schema-match.adoc[Schema match].
 
 == Topics
 
-* xref:object-types/object-types-recommendation.adoc[Smart Object Types Recommendation] - (TODO)
-* xref:focus-type/focus-type-recommendation.adoc[Smart Focus Type Recommendation] - (TODO)
-* xref:correlation/correlation-recommendation.adoc[Smart Correlation Recommendation] - (TODO)
-** xref:correlation/correlators-simulation.adoc[Correlators Simulation] - (TODO)
-* xref:mappings/mappings-recommendation.adoc[Smart Mappings Recommendation] - How midPoint recommends inbound and outbound attribute mappings (as-is, heuristic, AI-generated and categorical scripts), quality assessment and result structure.
-** xref:mappings/mappings-simulation.adoc[Mappings Simulation] - (TODO)
-* xref:associations/associations-recommendation.adoc[Smart Associations Recommendation] - (TODO)
-* xref:synchronization/synchronization-recommendation.adoc[Smart Synchronization Recommendation] - (TODO)
+* xref:object-types/object-types-recommendation.adoc[Smart object types recommendation] - How midPoint recommends object types (kind, intent, delineation, focus type) for an object class from its statistics, filter validation, retry and regeneration.
+* xref:focus-type/focus-type-recommendation.adoc[Smart focus type recommendation] - (TODO)
+* xref:correlation/correlation-recommendation.adoc[Smart correlation recommendation] - (TODO)
+** xref:correlation/correlators-simulation.adoc[Correlators simulation] - (TODO)
+* xref:mappings/mappings-recommendation.adoc[Smart mappings recommendation] - How midPoint recommends inbound and outbound attribute mappings (as-is, heuristic, AI-generated and categorical scripts), quality assessment and result structure.
+** xref:mappings/mappings-simulation.adoc[Mappings simulation] - (TODO)
+* xref:associations/associations-recommendation.adoc[Smart associations recommendation] - (TODO)
+* xref:synchronization/synchronization-recommendation.adoc[Smart synchronization recommendation] - (TODO)
