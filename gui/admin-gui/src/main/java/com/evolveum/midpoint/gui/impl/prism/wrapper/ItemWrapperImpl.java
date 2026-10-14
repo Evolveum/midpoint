@@ -658,7 +658,17 @@ public abstract class ItemWrapperImpl<I extends Item<?, ?>, VW extends PrismValu
     }
 
     @Override
-    public boolean isVisible(PrismContainerValueWrapper<?> parent, ItemVisibilityHandler visibilityHandler) {
+    public boolean isVisible(
+            PrismContainerValueWrapper<?> parent,
+            ItemVisibilityHandler visibilityHandler) {
+        return isVisible(parent, visibilityHandler, null);
+    }
+
+    @Override
+    public boolean isVisible(
+            PrismContainerValueWrapper<?> parent,
+            ItemVisibilityHandler visibilityHandler,
+            ItemMandatoryHandler mandatoryHandler) {
 
         if (!isVisibleByVisibilityHandler(visibilityHandler)) {
             return false;
@@ -672,9 +682,8 @@ public abstract class ItemWrapperImpl<I extends Item<?, ?>, VW extends PrismValu
 
         switch (objectStatus) {
             case NOT_CHANGED:
-                return isVisibleForModify(parent.isShowEmpty());
             case ADDED:
-                return isVisibleForAdd(parent.isShowEmpty());
+                return isVisible(parent.isShowEmpty(), mandatoryHandler);
             case DELETED:
                 return false;
         }
@@ -699,20 +708,19 @@ public abstract class ItemWrapperImpl<I extends Item<?, ?>, VW extends PrismValu
 
     }
 
-    private boolean isVisibleForModify(boolean parentShowEmpty) {
+    private boolean isVisible(boolean parentShowEmpty, ItemMandatoryHandler mandatoryHandler) {
         if (parentShowEmpty) {
             return true;
         }
 
-        return isEmphasized() || !isEmpty() || isMandatory();
+        return isEmphasized() || !isEmpty() || isMandatory() || isMandatoryByMandatoryHandler(mandatoryHandler);
     }
 
-    private boolean isVisibleForAdd(boolean parentShowEmpty) {
-        if (parentShowEmpty) {
-            return true;
+    private boolean isMandatoryByMandatoryHandler(ItemMandatoryHandler mandatoryHandler) {
+        if (mandatoryHandler != null) {
+            return mandatoryHandler.isMandatory(this);
         }
-
-        return isEmphasized() || !isEmpty() || isMandatory();
+        return false;
     }
 
     @Override
