@@ -84,6 +84,9 @@ public class PrismSchemaTypeUtil {
         PrismSchemaImpl parsedSchema = new PrismSchemaImpl(prismSchemaBean.getNamespace());
 
         prismSchemaBean.getComplexType().forEach(complexTypeBean -> {
+            if (isNameMissing(complexTypeBean)) {
+                return;
+            }
             ComplexTypeDefinitionImpl complexTypeDefinition = new ComplexTypeDefinitionImpl(
                     new QName(
                             prismSchemaBean.getNamespace(),
@@ -94,6 +97,9 @@ public class PrismSchemaTypeUtil {
         });
 
         prismSchemaBean.getEnumerationType().forEach(enumTypeBean -> {
+            if (isNameMissing(enumTypeBean)) {
+                return;
+            }
             List<ValueDefinitionImpl> values = collectValues(enumTypeBean);
             if (enumTypeBean.getBaseType() == null) {
                 enumTypeBean.setBaseType(DOMUtil.XSD_STRING);
@@ -133,6 +139,18 @@ public class PrismSchemaTypeUtil {
         return schemaDefinitionType;
     }
 
+    /**
+     * Definitions without name are incomplete (e.g. new item that is still being filled in GUI),
+     * they can't be serialized to XSD, so we skip them.
+     */
+    private static boolean isNameMissing(DefinitionType definitionBean) {
+        if (definitionBean.getName() != null) {
+            return false;
+        }
+        LOGGER.trace("Skipping definition without name: {}", definitionBean);
+        return true;
+    }
+
     private static List<ValueDefinitionImpl> collectValues(EnumerationTypeDefinitionType enumTypeBean) {
         return enumTypeBean.getValues().stream()
                 .map(value -> new ValueDefinitionImpl(value.getValue(), value.getDocumentation(), value.getConstantName()))
@@ -150,6 +168,9 @@ public class PrismSchemaTypeUtil {
 
         ((ComplexTypeDefinition.ComplexTypeDefinitionLikeBuilder) complexTypeDefinition).setExtensionForType(complexTypeBean.getExtension());
         complexTypeBean.getItemDefinitions().forEach(definitionBean -> {
+            if (isNameMissing(definitionBean)) {
+                return;
+            }
             ItemDefinition itemDefinition = null;
             if (definitionBean instanceof PrismPropertyDefinitionType propertyDefinitionBean) {
                 itemDefinition = new PrismPropertyDefinitionImpl(
