@@ -89,7 +89,7 @@ The tickets are managed as projections (shadows of the `work` kind) of the respe
 ** A new `work` shadow kind for work items (issues, tickets, cases, work packages).
 ** Cases can now hold projections: the new `ProjectionHolderType` schema type is a common parent of `FocusType` and `CaseType`.
 
-* xrefv:/midpoint/reference/master/security/authentication/flexible-authentication/modules/totp/[**TOTP support**]: the new `totp` authentication module brings multi-factor authentication based on time-based one-time passwords to xref:/midpoint/reference/security/authentication/flexible-authentication/[flexible authentication].
+* xrefv:/midpoint/reference/master/security/authentication/flexible-authentication/modules/totp/[**TOTP support**]: the new `totp` authentication module brings multi-factor authentication based on time-based one-time passwords to xrefv:/midpoint/reference/master/security/authentication/flexible-authentication/[flexible authentication].
 Users can set up and reset their authenticator application in the self-service user interface.
 See bug:MID-11049[].
 
@@ -356,7 +356,7 @@ Even though midPoint may work well on mobile devices, the support for small scre
 Partial support for small screens (e.g. only for self-service purposes) may be provided, but it has to be explicitly negotiated in a subscription contract.
 
 * There are several add-ons and extensions for midPoint that are not explicitly distributed with midPoint.
-This includes xrefv:/midpoint/reference/support-4.9/interfaces/midpoint-client-java/[Java client library],
+This includes xrefv:/midpoint/reference/master/interfaces/midpoint-client-java/[Java client library],
 various https://github.com/Evolveum/midpoint-samples[samples], scripts, connectors and other non-bundled items.
 Support for these non-bundled items is limited.
 Generally speaking, those non-bundled items are supported only for platform subscribers and those that explicitly negotiated the support in their contract.
@@ -419,12 +419,12 @@ Use of open source OpenJDK builds with public support is recommended instead of 
 *PostgreSQL is the only supported database* for midPoint deployments since 4.10.
 
 Although in previous versions of midPoint other databases were supported using object-relational mapping abstraction (Hibernate), it is no longer the case now.
-xrefv:/midpoint/reference/support-4.9/repository/native-postgresql/[Native PostgreSQL repository implementation] was developed and tuned specially for PostgreSQL database, taking advantage of native database features, providing improved performance and scalability.
+xrefv:/midpoint/reference/master/repository/native-postgresql/[Native PostgreSQL repository implementation] was developed and tuned specially for PostgreSQL database, taking advantage of native database features, providing improved performance and scalability.
 It is currently the only option.
 
 Our strategy is to officially support the latest stable version of PostgreSQL database (to the practically possible extent).
 We make no commitments for future support of any other database engines.
-See xrefv:/midpoint/reference/support-4.9/repository/repository-database-support/[] page for the details.
+See xrefv:/midpoint/reference/master/repository/repository-database-support/[] page for the details.
 
 Only a direct connection from midPoint to the database engine is supported.
 Database and/or SQL proxies, database load balancers or any other devices (e.g. firewalls) that alter the communication are not supported.
@@ -499,21 +499,21 @@ Although we try to our best, it is not possible to foresee all possible uses of 
 Therefore, the information provided in this section are for information purposes only without any guarantees of completeness.
 In case of any doubts about upgrade or behavior changes please use services associated with xref:/support/subscription-sponsoring/[midPoint subscription programs].
 
-Please refer to the xrefv:/midpoint/reference/support-4.9/upgrade/upgrade-guide/[] for general instructions and description of the upgrade process.
+Please refer to the xrefv:/midpoint/reference/master/upgrade/upgrade-guide/[] for general instructions and description of the upgrade process.
 The guide describes the steps applicable for upgrades of all midPoint releases.
 Following sections provide details regarding release {release-version}.
 
 === Upgrade From MidPoint 4.10
 
 MidPoint {release-version} data model is backwards compatible with previous midPoint version.
-Please follow our xrefv:/midpoint/reference/support-4.10/upgrade/upgrade-guide/[Upgrade guide] carefully.
+Please follow our xrefv:/midpoint/reference/master/upgrade/upgrade-guide/[Upgrade guide] carefully.
 
 [IMPORTANT]
 Be sure to be on the latest maintenance version for 4.10, otherwise you will not be warned about all the necessary schema changes and other possible incompatibilities.
 
 Note that:
 
-* There are database schema changes (see xrefv:/midpoint/reference/support-4.10/upgrade/database-schema-upgrade/[Database schema upgrade]).
+* There are database schema changes (see xrefv:/midpoint/reference/master/upgrade/database-schema-upgrade/[Database schema upgrade]).
 ** New tables for `ApplicationType`, `ConnectorDevelopmentType` were added.
 ** Few other smaller changes.
 
@@ -584,7 +584,7 @@ The following list contains a description of changes to the initial objects in t
 The complete new set of initial objects is in the `repo/system-init/src/main/resources/initial-objects` directory in the source distribution and in the `doc/config/initial-objects` directory in the binary distribution.
 
 _Actions required:_ Please review the changes and apply them appropriately to your configuration. Ninja can help with updating existing initial objects during upgrade procedure using `initial-objects` command.
-For more information see xrefv:/midpoint/reference/support-4.10/upgrade/upgrade-with-ninja/#initial-objects-update[here].
+For more information see xrefv:/midpoint/reference/master/upgrade/upgrade-with-ninja/#initial-objects-update[].
 
 New initial objects:
 
