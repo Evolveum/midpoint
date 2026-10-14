@@ -150,7 +150,19 @@ public class ObjectClassesConnectorStepPanel extends AbstractWizardStepPanel<Con
                 return new ConnectorObjectClassTilePanel(id, model) {
                     @Override
                     protected void deleteObjectClassPerformed(AjaxRequestTarget target) {
+                        String objectClassName = model.getObject().getValue().getRealValue().getName();
                         PrismContainerValueWrapper<ConnDevObjectClassInfoType> value = model.getObject().getValue();
+
+                        List<String> filenamesToDelete = new ArrayList<>();
+                        for (ConnectorDevelopmentArtifacts.KnownArtifactType type : ConnectorObjectClassTilePanel.OBJECT_CLASS_CAPABILITIES) {
+                            PrismContainerValueWrapper<ConnDevArtifactType> scriptValue =
+                                    ConnectorDevelopmentWizardUtil.getScript(getDetailsModel(), type, objectClassName);
+                            if (scriptValue != null && scriptValue.getRealValue() != null
+                                    && scriptValue.getRealValue().getFilename() != null) {
+                                filenamesToDelete.add(scriptValue.getRealValue().getFilename());
+                            }
+                        }
+
                         try {
                             value.getParent().remove(value, getDetailsModel().getPageAssignmentHolder());
                         } catch (SchemaException e) {
@@ -161,8 +173,30 @@ public class ObjectClassesConnectorStepPanel extends AbstractWizardStepPanel<Con
                         getDetailsModel().getConnectorDevelopmentOperation();
                         if (result == null || result.isError()) {
                             target.add(getFeedback());
+                        } else {
+                            Task task = getPageBase().createSimpleTask(
+                                    ObjectClassesConnectorStepPanel.class.getName() + ".deleteArtifactFile");
+                            for (String filename : filenamesToDelete) {
+                                try {
+                                    getDetailsModel().getConnectorDevelopmentOperation()
+                                            .deleteArtifactFile(filename, task, task.getResult());
+                                } catch (IOException | CommonException e) {
+                                    getPageBase().error("Couldn't delete " + filename + ": " + e.getMessage());
+                                    target.add(getFeedback());
+                                }
+                            }
+                            try {
+                                getDetailsModel().getConnectorDevelopmentOperation().recomputeConnectorManifest(task, task.getResult());
+                            } catch (IOException | CommonException e) {
+                                getPageBase().error("Couldn't update the connector manifest: " + e.getMessage());
+                                target.add(getFeedback());
+                            }
+                            getDetailsModel().reloadPrismObjectByOid();
                         }
-                        target.add(ObjectClassesConnectorStepPanel.this);
+
+                        ((BaseSortableDataProvider<?>) table.getProvider()).clearCache();
+                        table.getTilesModel().detach();
+                        table.refresh(target);
                     }
 
                     @Override

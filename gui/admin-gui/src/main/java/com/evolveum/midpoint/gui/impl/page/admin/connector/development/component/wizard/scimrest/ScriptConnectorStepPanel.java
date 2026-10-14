@@ -551,7 +551,7 @@ public abstract class ScriptConnectorStepPanel extends AbstractWizardStepPanel<C
     }
 
     /** The deployed script's wrapper, or null - filters out the empty placeholder value an as-yet-nonexistent container gets. */
-    private PrismContainerValueWrapper<ConnDevArtifactType> deployedScriptWrapper() {
+    protected PrismContainerValueWrapper<ConnDevArtifactType> deployedScriptWrapper() {
         if (!ConnectorDevelopmentWizardUtil.existScript(getDetailsModel(), getScriptType(), getObjectClassName())) {
             return null;
         }

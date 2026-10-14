@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.relation;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.ConnectorDevelopmentDetailsModel;
@@ -85,6 +86,23 @@ public class RelationshipScriptConnectorStepPanel extends ScriptConnectorStepPan
     @Override
     protected ConnectorDevelopmentArtifacts.KnownArtifactType getScriptType() {
         return ConnectorDevelopmentArtifacts.KnownArtifactType.RELATIONSHIP_SCHEMA_DEFINITION;
+    }
+
+    @Override
+    protected PrismContainerValueWrapper<ConnDevArtifactType> deployedScriptWrapper() {
+        try {
+            PrismContainerValueWrapper<ConnDevRelationInfoType> relation = valueModel.getObject();
+            if (relation == null || !ConnectorDevelopmentWizardUtil.existContainerValue(relation, ConnDevRelationInfoType.F_SCHEMA_SCRIPT)) {
+                return null;
+            }
+            PrismContainerWrapper<ConnDevArtifactType> container = relation.findContainer(ConnDevRelationInfoType.F_SCHEMA_SCRIPT);
+            if (container == null || container.getValues().isEmpty()) {
+                return null;
+            }
+            return container.getValue();
+        } catch (SchemaException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override

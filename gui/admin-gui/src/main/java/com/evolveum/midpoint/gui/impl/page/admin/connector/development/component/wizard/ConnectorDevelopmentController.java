@@ -23,6 +23,7 @@ import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.ObjectClassesConnectorStepPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.WaitingObjectClassInformationStepPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.schema.SchemaScriptConnectorStepPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.relation.RelationshipScriptConnectorStepPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.relation.RelationshipsConnectorStepPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.summary.ConnectorDevelopmentWizardSummaryPanel;
 import com.evolveum.midpoint.prism.Containerable;
@@ -161,6 +162,25 @@ public class ConnectorDevelopmentController extends AbstractWizardController<Con
 
         for (WizardStep step : getActiveChildrenSteps()) {
             if (step instanceof SchemaScriptConnectorStepPanel scriptPanel) {
+                setActiveStepWithinActivePart(scriptPanel.getStepId());
+                break;
+            }
+        }
+        fireActiveStepChanged();
+        target.add(getPanel());
+    }
+
+    public void editRelationship(String relationshipName, AjaxRequestTarget target) {
+        setPartItems(createBasicPartItems());
+        refresh();
+        InitRelationshipConnectorDevPartItem partItem = new InitRelationshipConnectorDevPartItem(getHelper());
+        partItem.setParameter(relationshipName);
+        int index = addWizardPartOnEnd(partItem);
+        clearInProgressPart();
+        setActiveWizardPartIndex(index);
+
+        for (WizardStep step : getActiveChildrenSteps()) {
+            if (step instanceof RelationshipScriptConnectorStepPanel scriptPanel) {
                 setActiveStepWithinActivePart(scriptPanel.getStepId());
                 break;
             }

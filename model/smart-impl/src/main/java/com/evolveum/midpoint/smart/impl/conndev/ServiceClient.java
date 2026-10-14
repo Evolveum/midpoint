@@ -1,6 +1,7 @@
 package com.evolveum.midpoint.smart.impl.conndev;
 
 import com.evolveum.axiom.concepts.CheckedFunction;
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.util.exception.SystemException;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -24,6 +25,7 @@ import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.impl.EnglishReasonPhraseCatalog;
 import org.apache.hc.core5.http.io.entity.StringEntity;
 import org.apache.hc.core5.net.URIBuilder;
+import org.jetbrains.annotations.Nullable;
 
 import javax.net.ssl.SSLContext;
 import java.io.IOException;
@@ -31,6 +33,7 @@ import java.io.InputStream;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.util.Locale;
+import java.util.UUID;
 import java.util.function.BooleanSupplier;
 
 public class ServiceClient {
@@ -66,12 +69,17 @@ public class ServiceClient {
     private final SessionRestoration restoration;
     private final SessionRestoration synchronization;
     private final String sessionEndpoint;
+    private final @Nullable ConndevServiceCallAuditor auditor;
 
     public ServiceClient(String apiBase, String apiKey, String sessionId, SessionRestoration restoration, SessionRestoration synchronization, CloseableHttpClient client) {
-        this(apiBase, apiKey, sessionId, restoration, synchronization, client, DEFAULT_TRANSIENT_ERROR_TIMEOUT_MS);
+        this(apiBase, apiKey, sessionId, restoration, synchronization, client, DEFAULT_TRANSIENT_ERROR_TIMEOUT_MS, null);
     }
 
     public ServiceClient(String apiBase, String apiKey, String sessionId, SessionRestoration restoration, SessionRestoration synchronization, CloseableHttpClient client, long transientErrorTimeoutMs) {
+        this(apiBase, apiKey, sessionId, restoration, synchronization, client, transientErrorTimeoutMs, null);
+    }
+
+    public ServiceClient(String apiBase, String apiKey, String sessionId, SessionRestoration restoration, SessionRestoration synchronization, CloseableHttpClient client, long transientErrorTimeoutMs, @Nullable ConndevServiceCallAuditor auditor) {
         this.client = client;
         this.apiKey = apiKey;
         this.sessionId = sessionId;
@@ -80,6 +88,7 @@ public class ServiceClient {
         this.apiBase = (apiBase.endsWith("/") ? apiBase : apiBase + "/" );
         this.transientErrorTimeoutMs = transientErrorTimeoutMs;
         this.sessionEndpoint = appendSession(this.apiBase + RELATIVE_SESSION_ENDPOINT);
+        this.auditor = auditor;
     }
 
     private CloseableHttpResponse execute(ClassicHttpRequest request) throws IOException {
@@ -92,6 +101,7 @@ public class ServiceClient {
     public Job postJob(String endpoint, String apiType, boolean skipCache) throws IOException {
         var job = new Job(apiBase+endpoint, apiType, skipCache);
         var request = job.postBuilder();
+        job.auditPrepare(endpoint, request);
         job.startJob(request);
         return job;
     }
@@ -99,6 +109,7 @@ public class ServiceClient {
     public Job postJob(String endpoint, String apiType, String intent, boolean skipCache) throws IOException {
         var job = new Job(apiBase+endpoint, apiType, intent, skipCache);
         var request = job.postBuilder();
+        job.auditPrepare(endpoint, request);
         job.startJob(request);
         return job;
     }
@@ -107,6 +118,7 @@ public class ServiceClient {
         var job = new Job(apiBase+endpoint, apiType, skipCache);
         var request = job.postBuilder();
         request.setEntity(new StringEntity(body.toPrettyString(), ContentType.APPLICATION_JSON));
+        job.auditPrepare(endpoint, request);
         job.startJob(request);
         return job;
     }
@@ -123,6 +135,7 @@ public class ServiceClient {
         var job = new Job(apiBase+endpoint, skipCache);
         var request = job.postBuilder();
         request.setEntity(builder.build());
+        job.auditPrepare(endpoint, request);
         job.startJob(request);
         return job;
     }
@@ -135,6 +148,7 @@ public class ServiceClient {
         var job = new Job(apiBase+endpoint, skipCache);
         var request = new HttpPost(apiBase+endpoint + "?objectClass=" + objectClass);
         request.setEntity(builder.build());
+        job.auditPrepare(endpoint, request);
         job.startJob(request);
         return job;
     }
@@ -143,6 +157,7 @@ public class ServiceClient {
         var job = new Job(apiBase+endpoint, skipCache);
         var request = new HttpPost(apiBase+endpoint);
         request.setEntity(entity);
+        job.auditPrepare(endpoint, request);
         job.startJob(request);
         return job;
     }
@@ -151,6 +166,7 @@ public class ServiceClient {
         var job = new Job(apiBase+endpoint, skipCache);
         var request = new HttpPost(apiBase+endpoint + "?objectClass=" + objectClass);
         request.setEntity(entity);
+        job.auditPrepare(endpoint, request);
         job.startJob(request);
         return job;
     }
@@ -193,6 +209,15 @@ public class ServiceClient {
          */
         private long transientErrorStart;
 
+        /**
+         * Audit context of this job submission: the endpoint, the identifier of the REQUEST-stage
+         * audit record (cleared once the EXECUTION-stage record is written) and the start time.
+         * {@code auditRequestIdentifier} is {@code null} when auditing is not in effect.
+         */
+        private String auditEndpoint;
+        private String auditRequestIdentifier;
+        private long auditStartNanos;
+
         public Job(String uri, boolean skipCache) {
             this(uri, null, skipCache);
         }
@@ -229,6 +254,35 @@ public class ServiceClient {
             } catch (URISyntaxException e) {
                 throw new SystemException(e);
             }
+        }
+
+        /**
+         * Records the REQUEST-stage audit record for this job submission, capturing the posted
+         * data when a request body is present. Must be called before {@link #startJob(HttpPost)}.
+         * Failures propagate, so the job is not submitted when the audit record cannot be written.
+         */
+        void auditPrepare(String endpoint, HttpPost request) throws IOException {
+            if (auditor == null || auditRequestIdentifier != null) {
+                return;
+            }
+
+            auditEndpoint = endpoint;
+            auditStartNanos = System.nanoTime();
+            auditRequestIdentifier = UUID.randomUUID().toString();
+
+            String requestText = null;
+            String requestContentType = null;
+            if (auditor.isRecordData() && request.getEntity() instanceof StringEntity stringEntity) {
+                try (var content = stringEntity.getContent()) {
+                    requestText = new String(content.readAllBytes(), StandardCharsets.UTF_8);
+                }
+                var entityContentType = stringEntity.getContentType();
+                requestContentType = entityContentType != null
+                        ? ContentType.parse(entityContentType).getMimeType()
+                        : ConndevServiceCallAuditor.CONTENT_TYPE_JSON;
+            }
+
+            auditor.auditRequest(endpoint, requestText, requestContentType, auditRequestIdentifier);
         }
 
         public void startJob(HttpPost request) throws IOException {
@@ -318,6 +372,15 @@ public class ServiceClient {
         }
 
         public <T,E extends Exception> T waitAndProcess(long sleepTime, BooleanSupplier canRun, CheckedFunction<ObjectNode, T, E> transform) throws E {
+            try {
+                return waitAndProcess0(sleepTime, canRun, transform);
+            } catch (RuntimeException e) {
+                auditExecution(OperationResultStatus.FATAL_ERROR, e.getMessage());
+                throw e;
+            }
+        }
+
+        private <T,E extends Exception> T waitAndProcess0(long sleepTime, BooleanSupplier canRun, CheckedFunction<ObjectNode, T, E> transform) throws E {
             while(process()) {
                 // FIXME: Here we can provide status message update to task
                 try {
@@ -343,9 +406,22 @@ public class ServiceClient {
                 throw new SystemException(message.toString());
             }
             if (status == JobStatus.COMPLETED) {
+                auditExecution(OperationResultStatus.SUCCESS, "Connector generation job finished successfully");
                 return transform.apply(getResult());
             }
             throw new SystemException("The connector generation service job did not finish successfully");
+        }
+
+        /**
+         * Records the EXECUTION-stage audit record once the job reaches a terminal state.
+         * Failures are suppressed and never mask the outcome of the job.
+         */
+        private void auditExecution(OperationResultStatus outcome, String message) {
+            if (auditor == null || auditRequestIdentifier == null) {
+                return;
+            }
+            auditor.auditExecution(auditEndpoint, auditRequestIdentifier, outcome, message, auditStartNanos);
+            auditRequestIdentifier = null;
         }
 
         /**
@@ -531,9 +607,25 @@ public class ServiceClient {
         public void postDocumentation(String docId, InputStream documentation, ContentType contentType, String filename) throws IOException {
             ensureSessionExists();
 
+            var content = documentation.readAllBytes();
+
             final MultipartEntityBuilder builder = MultipartEntityBuilder.create();
             builder.setMode(HttpMultipartMode.EXTENDED);
-            builder.addBinaryBody("documentation", documentation, contentType, filename);
+            builder.addBinaryBody("documentation", content, contentType, filename);
+
+            var endpoint = "documentation/" + docId;
+            var requestIdentifier = UUID.randomUUID().toString();
+            var startNanos = System.nanoTime();
+
+            // The uploaded content is captured as the posted data of the REQUEST-stage audit record.
+            if (auditor != null) {
+                String requestText = auditor.isRecordData() ? new String(content, StandardCharsets.UTF_8) : null;
+                auditor.auditRequest(
+                        endpoint,
+                        requestText,
+                        contentType != null ? contentType.getMimeType() : null,
+                        requestIdentifier);
+            }
 
             var uri = documentationUri(docId);
             var request = new HttpPost(uri);
@@ -541,9 +633,22 @@ public class ServiceClient {
             try (var response = execute(request)) {
                 if (response.getCode() < 200 || response.getCode() >= 300) {
                     var detail = failureDetail(response);
-                    throw new IOException("Could not upload documentation " + docId + " to " + uri + ". Status code "
-                            + response.getCode() + (detail == null ? "" : ". Response: " + detail));
+                    var message = "Could not upload documentation " + docId + " to " + uri + ". Status code "
+                            + response.getCode() + (detail == null ? "" : ". Response: " + detail);
+                    auditExecution(endpoint, requestIdentifier, OperationResultStatus.FATAL_ERROR, message, startNanos);
+                    throw new IOException(message);
                 }
+                auditExecution(endpoint, requestIdentifier, OperationResultStatus.SUCCESS, "Documentation " + docId + " was uploaded", startNanos);
+            }
+        }
+
+        /**
+         * Records the EXECUTION-stage audit record for a documentation upload. Failures are
+         * suppressed and never mask the outcome of the upload.
+         */
+        private void auditExecution(String endpoint, String requestIdentifier, OperationResultStatus outcome, String message, long startNanos) {
+            if (auditor != null) {
+                auditor.auditExecution(endpoint, requestIdentifier, outcome, message, startNanos);
             }
         }
 
