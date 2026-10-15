@@ -9,7 +9,6 @@ package com.evolveum.midpoint.authentication.impl.channel;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
-import com.evolveum.midpoint.authentication.api.util.AuthConstants;
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.security.api.Authorization;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
@@ -37,8 +36,9 @@ public class GuiAuthenticationChannel extends AuthenticationChannelImpl {
     }
 
     public String getPathAfterSuccessfulAuthentication() {
-        if (isCredentialSetupRequired()) {
-            return AuthConstants.PATH_TOTP_SETUP;
+        String credentialSetupPath = getCredentialSetupPath();
+        if (credentialSetupPath != null) {
+            return credentialSetupPath;
         }
 
         if (isPostAuthenticationEnabled()) {
@@ -50,13 +50,13 @@ public class GuiAuthenticationChannel extends AuthenticationChannelImpl {
 
     @Override
     public boolean isPostAuthenticationEnabled() {
-        return isCredentialSetupRequired()
+        return getCredentialSetupPath() != null
                 || AuthUtil.isPostAuthenticationEnabled(taskManager, modelInteractionService);
     }
 
-    private boolean isCredentialSetupRequired() {
+    private String getCredentialSetupPath() {
         MidpointAuthentication authentication = AuthUtil.getMidpointAuthenticationNotRequired();
-        return authentication != null && authentication.isCredentialSetupRequired();
+        return authentication != null ? authentication.getCredentialSetupPath() : null;
     }
 
     @Override

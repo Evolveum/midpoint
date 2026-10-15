@@ -101,6 +101,14 @@ public interface ModuleAuthentication {
         return false;
     }
 
+    /**
+     * Path of the page where the user sets up missing credentials of this module, relative to midPoint
+     * context root. Used only when {@link #isCredentialSetupRequired()} is true.
+     */
+    default String getCredentialSetupPath() {
+        return null;
+    }
+
     default void credentialSetupCompleted() {
     }
 

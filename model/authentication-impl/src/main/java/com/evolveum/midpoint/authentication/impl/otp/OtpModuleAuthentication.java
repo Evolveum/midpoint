@@ -10,6 +10,7 @@ import org.apache.commons.lang3.BooleanUtils;
 
 import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
 import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
+import com.evolveum.midpoint.authentication.api.util.AuthConstants;
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.authentication.api.util.AuthenticationModuleNameConstants;
 import com.evolveum.midpoint.authentication.impl.module.authentication.CredentialModuleAuthenticationImpl;
@@ -53,6 +54,11 @@ public class OtpModuleAuthentication extends CredentialModuleAuthenticationImpl 
         if (module instanceof OtpModuleAuthentication otp) {
             otp.setModule(this.getModule());
         }
+    }
+
+    @Override
+    public String getCredentialSetupPath() {
+        return AuthConstants.PATH_TOTP_SETUP;
     }
 
     @Override

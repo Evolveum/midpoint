@@ -10,7 +10,6 @@ import java.util.*;
 
 import com.evolveum.midpoint.authentication.api.authorization.AuthorizationActionValue;
 import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
-import com.evolveum.midpoint.authentication.api.util.AuthConstants;
 import com.evolveum.midpoint.authentication.impl.authorization.DescriptorLoaderImpl;
 import com.evolveum.midpoint.authentication.impl.util.AuthSequenceUtil;
 import com.evolveum.midpoint.authentication.api.authorization.EndPointsUrlMapping;
@@ -200,9 +199,11 @@ public class MidPointGuiAuthorizationEvaluator implements SecurityEnforcer, Secu
             return;
         }
 
-        if (authentication instanceof MidpointAuthentication mpAuthentication && mpAuthentication.isCredentialSetupRequired()) {
+        String credentialSetupPath = authentication instanceof MidpointAuthentication mpAuthentication
+                ? mpAuthentication.getCredentialSetupPath() : null;
+        if (credentialSetupPath != null) {
             // User has to set up missing credentials first, nothing else is accessible until then.
-            if (pathMatcher(AuthConstants.PATH_TOTP_SETUP).matches(request)) {
+            if (pathMatcher(credentialSetupPath).matches(request)) {
                 LOGGER.trace("DECIDE: authentication={}, object={}: ALLOW (credential setup page)", authentication, object);
                 return;
             }

@@ -92,7 +92,6 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.converter.*;
 import com.evolveum.midpoint.gui.impl.page.login.module.PageLogin;
-import com.evolveum.midpoint.gui.impl.page.self.credentials.PageTotpSetup;
 import com.evolveum.midpoint.gui.impl.page.self.dashboard.PageSelfDashboard;
 import com.evolveum.midpoint.gui.impl.validation.ValidatorFactoryRegistry;
 import com.evolveum.midpoint.model.api.*;
@@ -202,9 +201,9 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
 
     @Override
     public Class<? extends PageAdminLTE> getHomePage() {
-        MidpointAuthentication authentication = AuthUtil.getMidpointAuthenticationNotRequired();
-        if (authentication != null && authentication.isCredentialSetupRequired()) {
-            return PageTotpSetup.class;
+        Class<? extends PageAdminLTE> credentialSetupPage = getCredentialSetupPage();
+        if (credentialSetupPage != null) {
+            return credentialSetupPage;
         }
 
         if (AuthUtil.isPostAuthenticationEnabled(getTaskManager(), getModelInteractionService())) {
@@ -217,6 +216,26 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
         } else {
             return PageSelfDashboard.class;
         }
+    }
+
+    /**
+     * Page where the user has to set up missing credentials (e.g. TOTP) before anything else is accessible,
+     * null if no setup is required.
+     */
+    private Class<? extends PageAdminLTE> getCredentialSetupPage() {
+        MidpointAuthentication authentication = AuthUtil.getMidpointAuthenticationNotRequired();
+        String path = authentication != null ? authentication.getCredentialSetupPath() : null;
+        if (path == null) {
+            return null;
+        }
+
+        Class<? extends WebPage> page = PageMounter.getUrlClassMap().get(path);
+        if (page == null || !PageAdminLTE.class.isAssignableFrom(page)) {
+            throw new IllegalStateException("No page mounted for credential setup path " + path);
+        }
+
+        //noinspection unchecked
+        return (Class<? extends PageAdminLTE>) page;
     }
 
     @Override

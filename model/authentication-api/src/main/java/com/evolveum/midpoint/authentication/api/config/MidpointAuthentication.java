@@ -366,7 +366,20 @@ public class MidpointAuthentication extends AbstractAuthenticationToken implemen
      * before being allowed to do anything else (emptyCredentialsPolicy = forceSetup).
      */
     public boolean isCredentialSetupRequired() {
-        return authentications.stream().anyMatch(ModuleAuthentication::isCredentialSetupRequired);
+        return getCredentialSetupPath() != null;
+    }
+
+    /**
+     * Path of the page where the user has to set up missing credentials, null if no setup is required.
+     * Modules are processed in the sequence order, so if more of them require setup, the first one goes first.
+     */
+    public String getCredentialSetupPath() {
+        return authentications.stream()
+                .filter(ModuleAuthentication::isCredentialSetupRequired)
+                .map(ModuleAuthentication::getCredentialSetupPath)
+                .filter(Objects::nonNull)
+                .findFirst()
+                .orElse(null);
     }
 
     /** To be called after the user has successfully set up missing credentials. */
