@@ -122,7 +122,7 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
 
     private void initLayout(List<IColumn<T, String>> columns, ISortableDataProvider<T, String> provider) {
         setOutputMarkupId(true);
-        add(AttributeAppender.prepend("class", () -> showAsCard ? "card shadow-sm mb-3" : ""));
+        add(AttributeAppender.prepend("class", () -> showAsCard ? "card shadow-sm" : ""));
         add(AttributeAppender.append("class", this::getAdditionalBoxCssClasses));
 
         WebMarkupContainer liveStatus = new WebMarkupContainer(ID_LIVE_STATUS);
