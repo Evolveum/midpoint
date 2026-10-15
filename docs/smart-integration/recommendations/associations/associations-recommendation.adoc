@@ -175,7 +175,7 @@ A reference can point from an account to its groups even when LDAP stores member
 The following example shows an account and a group that lists the account as a member:
 
 .Account in LDAP
-[source,ldif]
+[source,text]
 ----
 dn: uid=jnovak,ou=people,dc=example,dc=com
 objectClass: inetOrgPerson
@@ -185,7 +185,7 @@ sn: Novak
 ----
 
 .Group in LDAP
-[source,ldif]
+[source,text]
 ----
 dn: cn=developers,ou=groups,dc=example,dc=com
 objectClass: groupOfNames
