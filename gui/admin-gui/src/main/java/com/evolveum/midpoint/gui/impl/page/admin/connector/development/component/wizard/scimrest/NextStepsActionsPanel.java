@@ -125,10 +125,8 @@ public class NextStepsActionsPanel extends BasePanel {
 
             @Override
             protected boolean isTileDisabled(ConnectorAction type) {
-                // The bundle cannot be packaged into a JAR/ZIP until the connector actually
-                // exists on the file system (connector/connectorRef is set by the create step).
-                boolean isExport = type == ConnectorAction.EXPORT_CONNECTOR_JAR || type == ConnectorAction.EXPORT_CONNECTOR_ZIP;
-                return isExport && !ConnectorDevelopmentWizardUtil.isBasicSettingsComplete(detailsModel.getObjectWrapper());
+                // Currently all tile actions require connector being present
+                return !ConnectorDevelopmentWizardUtil.isBasicSettingsComplete(detailsModel.getObjectWrapper());
             }
 
             @Override
