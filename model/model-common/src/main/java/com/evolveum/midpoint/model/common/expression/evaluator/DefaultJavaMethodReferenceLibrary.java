@@ -58,7 +58,7 @@ public class DefaultJavaMethodReferenceLibrary {
     /**
      * Formats an audit delta for report output, preserving support for unknown item types.
      *
-     * Used by {@code 270-object-collection-audit}.
+     * Used by {@code 016-object-collection-audit}.
      */
     public static List<String> formatAuditDelta(List<ObjectDeltaOperationType> input) throws SchemaException {
 
