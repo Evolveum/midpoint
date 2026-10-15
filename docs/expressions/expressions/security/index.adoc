@@ -51,81 +51,143 @@ Following table summarizes security properties of expression evaluators.
 
 [%autowidth]
 |===
-| Evaluator | Is safe? | Comments
+| Evaluator | Profile `safe` | Profile `templating` | Profile `configuration` | Profile `permissive`
 
 | literal (`value`)
 | Yes
-|
+| Yes
+| Yes
+| Yes
+
+| No value (`null`)
+| Yes
+| Yes
+| Yes
+| Yes
 
 | `asIs`
 | Yes
-|
+| Yes
+| Yes
+| Yes
 
 | `path`
 | Yes
-|
-
-| `filter`
 | Yes
-|
-
-| `generate`
 | Yes
-|
+| Yes
 
 | `const`
 | Yes
-|
-
-| `function`
 | Yes
-| Assuming that the invoked function is safe.
+| Yes
+| Yes
+
+| `filter`
+| Yes
+| Yes
+| Yes
+| Yes
+
+| `generate`
+| Yes
+| Yes
+| Yes
+| Yes
 
 | `proportional`
 | Yes
-|
+| Yes
+| Yes
+| Yes
 
-| `script`
-| No
-|
+| `script` for MEL
+| only selected modules
+| only selected modules
+| all modules
+| Yes
+
+| `script` for Safe Velocity
+| -
+| Yes
+| Yes
+| Yes
+
+| `script` for other languages
+| -
+| -
+| -
+| Yes
 
 | `assignmentTargetSearch`
-| Uncertain
-| Safety of this evaluator was not yet properly analysed.
+| -
+| -
+| Yes
+| Yes
 
 | `associationTargetSearch`
-| Uncertain
-| Safety of this evaluator was not yet properly analysed.
+| -
+| -
+| Yes
+| Yes
 
 | `referenceSearch`
-| Uncertain
-| Safety of this evaluator was not yet properly analysed.
+| -
+| -
+| Yes
+| Yes
 
 | `shadowOwnerReferenceSearch`
-| Uncertain
-| Safety of this evaluator was not yet properly analysed.
+| -
+| -
+| Yes
+| Yes
 
 | `associationFromLink`
-| Uncertain
-| Safety of this evaluator was not yet properly analysed.
-
-| `assignmentFromAssociation`
-| Uncertain
-| Safety of this evaluator was not yet properly analysed.
+| -
+| -
+| Yes
+| Yes
 
 | `sequentialValue`
-| Uncertain
-| Safety of this evaluator was not yet properly analysed.
+| -
+| -
+| Yes
+| Yes
 
-| `assignmentFromAssociation`
-| Uncertain
-| Safety of this evaluator was not yet properly analysed.
+| `associationConstruction`
+| -
+| -
+| Yes
+| Yes
 
-| `assignmentFromAssociation`
-| Uncertain
-| Safety of this evaluator was not yet properly analysed.
+| `associationSynchronization`
+| -
+| -
+| Yes
+| Yes
 
+| `function`
+| -
+| -
+| -
+| Yes
+
+| `javaMethodReference`
+| -
+| -
+| -
+| Yes
 |===
+
+Notes:
+
+. The safety of the `function` expression evaluator depends on what functions are present in the system.
+Hence, it is disallowed by default.
+The system administrator is advised to allow it only for the libraries containing functions that are known to be safe at the level corresponding to the particular expression profile.
+
+. The same can be said about `javaMethodReference`, although there is only a binary option (allowed / denied) here.
+It is advised to use it only from function libraries or other trusted sources.
 
 Evaluators marked as _safe_ are generally safe to use.
 They do not have potential to execute arbitrary code or operations that could impact security of the system.
