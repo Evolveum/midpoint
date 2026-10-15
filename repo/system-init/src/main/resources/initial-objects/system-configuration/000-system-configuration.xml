@@ -14,41 +14,12 @@
 
     <name>SystemConfiguration</name>
     <indestructible>true</indestructible>
-    <!--         <globalAccountSynchronizationSettings> -->
-    <!--         <assignmentPolicyEnforcement>relative</assignmentPolicyEnforcement> -->
-    <!--         </globalAccountSynchronizationSettings> -->
     <globalSecurityPolicyRef oid="00000000-0000-0000-0000-000000000120"/>
     <logging>
         <classLogger id="1">
             <!-- disabled because INFO log during of creating new authentication filter chain -->
             <level>OFF</level>
             <package>org.springframework.security.web.DefaultSecurityFilterChain</package>
-        </classLogger>
-        <classLogger id="2">
-            <!-- disabled because of MID-744, helper insert messages on ERROR
-            level which should not be there (probably should be on TRACE) -->
-            <level>OFF</level>
-            <package>org.hibernate.engine.jdbc.spi.SqlExceptionHelper</package>
-        </classLogger>
-        <!-- Disabled because we treat locking-related exceptions in the repository.
-             Otherwise the log is filled-in with (innocent but ugly-looking) messages like
-             "ERROR (o.h.engine.jdbc.batch.internal.BatchingBatch): HHH000315: Exception executing batch [Deadlock detected.
-             The current transaction was rolled back." -->
-        <classLogger id="3">
-            <level>OFF</level>
-            <package>org.hibernate.engine.jdbc.batch.internal.BatchingBatch</package>
-        </classLogger>
-        <!-- Disabled because of the same reason; this time concerning messages like
-             "INFO (org.hibernate.engine.jdbc.batch.internal.AbstractBatchImpl):
-             HHH000010: On release of batch it still contained JDBC statements" -->
-        <classLogger id="4">
-            <level>WARN</level>
-            <package>org.hibernate.engine.jdbc.batch.internal.AbstractBatchImpl</package>
-        </classLogger>
-        <!-- Disabled because of MID-4636 -->
-        <classLogger id="5">
-            <level>OFF</level>
-            <package>org.hibernate.internal.ExceptionMapperStandardImpl</package>
         </classLogger>
         <classLogger id="6">
             <!-- disabled because we don't need to see every property file
