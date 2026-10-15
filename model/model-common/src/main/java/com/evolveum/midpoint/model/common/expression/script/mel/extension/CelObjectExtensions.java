@@ -19,6 +19,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ShadowSimpleAttribute;
+import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
 import com.evolveum.midpoint.schema.util.FocusTypeUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
@@ -499,9 +500,28 @@ public class CelObjectExtensions extends AbstractMidPointCelExtensions {
                     CelFunctionBinding.from("objectdelta-isItemChanged",
                             ObjectDeltaCelValue.class, Object.class,
                             CelObjectExtensions::isItemChanged,
-                            NullabilityProperties.NULLABLE_FALSE))
+                            NullabilityProperties.NULLABLE_FALSE)),
+
+            // certification campaigns - TEMPORARY/EXPERIMENTAL, may change in the future, see #12789
+            new Function(
+                    CelFunctionDecl.newFunctionDeclaration(
+                            "certificationCasesDecidedPercentage",
+                            CelOverloadDecl.newMemberOverload(
+                                    "campaign-certificationCasesDecidedPercentage",
+                                    "Returns what % of cases is effectively decided (i.e. their preliminary outcome is ACCEPT, REJECT, or REVOKE)",
+                                    SimpleType.DOUBLE,
+                                    ObjectCelValue.CEL_TYPE)),
+                    CelFunctionBinding.from("campaign-certificationCasesDecidedPercentage",
+                            ObjectCelValue.class, CelObjectExtensions::certificationCasesDecidedPercentage)
+            )
+
         );
 
+    }
+
+    private static double certificationCasesDecidedPercentage(ObjectCelValue<AccessCertificationCampaignType> campaignValue) {
+        return CertCampaignTypeUtil.getCasesDecidedPercentageAllStagesAllIterations(
+                campaignValue.getObject().asObjectable());
     }
 
     private static Object objectType(ObjectCelValue<?> object) {
