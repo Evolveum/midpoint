@@ -1,4 +1,4 @@
-= Multivalued Attributes in Mapping Suggestions
+= Multivalued attributes in mapping suggestions
 :page-moved-from: /midpoint/reference/smart-integrations/multivalued-mappings/
 :page-toc: top
 :page-since: "4.11"
@@ -6,15 +6,15 @@
 
 == Overview
 
-This document summarizes the behavior and analysis of **multivalued attributes** (`maxOccurs > 1`) during Smart Integration mapping suggestions across **midPoint** and the **AI Microservice**.
+This document summarizes the behavior and analysis of **multivalued attributes** (`maxOccurs > 1`) during Smart Integration mapping suggestions across **midPoint** and the **AI microservice**.
 
-== Test Methodology
+== Test methodology
 
 The behavior was tested with the following setup:
 
-* **LDAP with multivalue attributes**: Verified in gui `Resource -> Schema -> InetOrgPerson` to confirm multivalued attributes.
-* **Enabled TRACE logging**: Monitored `MappingsSuggestionOperation` in midPoint.
-* **Added microservice logging**: Logged request parsing, sample formatting, and responses in the AI microservice.
+* **LDAP with multivalue attributes**: verified in GUI `Resource -> Schema -> InetOrgPerson` to confirm multivalued attributes.
+* **Enabled TRACE logging**: monitored `MappingsSuggestionOperation` in midPoint.
+* **Added microservice logging**: logged request parsing, sample formatting, and responses in the AI microservice.
 
 == Findings
 
@@ -28,18 +28,18 @@ Everything works identically to standard single-value attributes:
 
 === 2. When an attribute contains multiple values
 
-* **Inbound import into empty midPoint (Initial load):**
-  When midPoint has no existing data for correlation/validation, the mapping passes without value checks and falls back to a direct **As-Is** mapping.
+* **Inbound import into empty midPoint (initial load):**
+  when midPoint has no existing data for correlation/validation, the mapping passes without value checks and falls back to a direct **as-is** mapping.
 
 * **Target attribute has no data:**
-  If the target system has objects but the specific target attribute is empty/missing across samples, the mapping passes without value checks as a direct **As-Is** mapping.
+  if the target system has objects but the specific target attribute is empty/missing across samples, the mapping passes without value checks as a direct **as-is** mapping.
 
-* **Target attribute has data (As-Is check):**
+* **Target attribute has data (as-is check):**
   midPoint checks if the collections match identically across all samples:
-  ** **Matches:** If all values match across the entire collection for every sample, the mapping passes as **As-Is** with quality `1.0`.
-  ** **Mismatches / Incompatible cardinality:** midPoint cannot match a multivalued attribute (List) with a single-value attribute (String) or collections with different sizes so it returns false.
+  ** **Matches:** if all values match across the entire collection for every sample, the mapping passes as **as-is** with quality `1.0`.
+  ** **Mismatches / incompatible cardinality:** midPoint cannot match a multivalued attribute (list) with a single-value attribute (string) or collections with different sizes so it returns false.
 
 * **Script suggestion for multiple values:**
-  When any sampled value pair contains multiple values for either the shadow or focus attribute, midPoint does not send the data to the AI microservice.
-  Instead, it falls back to a direct **As-Is** mapping.
+  when any sampled value pair contains multiple values for either the shadow or focus attribute, midPoint does not send the data to the AI microservice.
+  Instead, it falls back to a direct **as-is** mapping.
   This prevents the microservice from receiving multi-item lists, which it cannot process and which previously caused a 500 error.

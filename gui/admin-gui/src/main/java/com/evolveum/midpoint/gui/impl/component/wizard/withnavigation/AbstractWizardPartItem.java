@@ -372,6 +372,13 @@ public abstract class AbstractWizardPartItem<AH extends AssignmentHolderType, AD
         return getParentSteps().get(activeParentStepIndex);
     }
 
+    public WizardParentStep getInProgressParentStep() {
+        if (inProgressParentStepIndex == -1) {
+            return getActiveParentStep();
+        }
+        return getParentSteps().get(inProgressParentStepIndex);
+    }
+
     public void setActiveParentStepById(String id) {
         if (id == null) {
             return;
@@ -425,5 +432,22 @@ public abstract class AbstractWizardPartItem<AH extends AssignmentHolderType, AD
 
     public boolean isStarted() {
         return false;
+    }
+
+    public List<WizardStep> getInProgressChildrenSteps() {
+        return getChildrenSteps(getInProgressParentStep());
+    }
+
+    public void useInProgressStepAsActive() {
+        if (inProgressParentStepIndex != -1) {
+            setActiveParentStepIndex(inProgressParentStepIndex);
+            if (inProgressStepIndex != -1) {
+                setActiveStepIndex(inProgressStepIndex);
+            }
+        }
+    }
+
+    public void clearActiveStep() {
+        setActiveStepIndex(-1);
     }
 }

@@ -307,16 +307,16 @@ public class ConnectorIdentificationConnectorStepPanel extends AbstractFormWizar
         OperationResult result = getHelper().onSaveObjectPerformed(target);
         getDetailsModel().getConnectorDevelopmentOperation();
         if (result != null && !result.isError()) {
-            navigateToSummary(target);
+            navigateToInProgressStepOrShowSummary(target);
         } else {
             target.add(getFeedback());
         }
         return false;
     }
 
-    private void navigateToSummary(AjaxRequestTarget target) {
+    private void navigateToInProgressStepOrShowSummary(AjaxRequestTarget target) {
         if (getWizard() instanceof WizardModelWithParentSteps wizardModel) {
-            wizardModel.showSummaryPanel();
+            wizardModel.useInProgressStepOrShowSummary();
             wizardModel.fireActiveStepChanged(wizardModel.getActiveStep());
             target.add(wizardModel.getPanel());
         }

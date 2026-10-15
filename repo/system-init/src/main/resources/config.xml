@@ -79,6 +79,10 @@ to a file, not its content, is the actual value.
             See more here: https://docs.evolveum.com/midpoint/reference/security/crypto/
             -->
         </keystore>
+        <expressions>
+            <!-- This is a safe default. -->
+            <safeScriptingLanguagesOnly>true</safeScriptingLanguagesOnly>
+        </expressions>
         <!-- <profilingEnabled>true</profilingEnabled> -->
     </midpoint>
 </configuration>

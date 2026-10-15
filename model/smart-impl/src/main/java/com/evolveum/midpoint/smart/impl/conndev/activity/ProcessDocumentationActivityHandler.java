@@ -59,6 +59,11 @@ public class ProcessDocumentationActivityHandler
         }
 
         @Override
+        public boolean isExcludedFromStalenessChecking() {
+            return true;
+        }
+
+        @Override
         protected @NotNull ActivityRunResult runLocally(OperationResult result) throws CommonException {
             var task = getRunningTask();
 

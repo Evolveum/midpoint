@@ -1,4 +1,4 @@
-= Mappings Simulation
+= Mappings simulation
 :page-toc: top
 :page-since: "4.11"
 :page-upkeep-status: green

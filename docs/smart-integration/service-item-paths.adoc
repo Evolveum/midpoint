@@ -1,4 +1,4 @@
-= Item Paths and Type Names in Smart Integration Service Requests
+= Item paths and type names in Smart Integration service requests
 :page-moved-from: /midpoint/reference/smart-integrations/service-item-paths/
 :page-toc: top
 :page-since: "4.11"
@@ -12,7 +12,7 @@ Items are identified by _descriptive item paths_, and object classes and focus t
 To make the request more readable for LLMs and to reduce noise in the payload, the common midPoint namespace (shown with the `c:` prefix) is *not shown* in these values.
 All other namespace prefixes are kept.
 
-== Descriptive Item Paths
+== Descriptive item paths
 
 Descriptive item paths are used in the `name` of schema attributes (`SiAttributeDefinitionType`) and in the `ref` of attribute and attribute-tuple statistics sent to the service.
 
@@ -54,7 +54,7 @@ A multivalued segment that is not the last one in the path is followed by `[*]`.
 | `email[*]/value`
 |===
 
-== Type Names
+== Type names
 
 The `name` of the object schema (`SiObjectSchemaType`) follows the same rule:
 
@@ -69,7 +69,7 @@ Object class statistics (`ObjectSetStatisticsType`) stored in midPoint keep full
 Only the copy sent to the service is simplified: common-namespace segments in `attribute/ref` and `attributeTuple/ref` are replaced with unqualified names, e.g. `attributes/ri:emptype`.
 The stored statistics are not modified.
 
-== Paths Returned by the Service
+== Paths returned by the service
 
 The service is expected to refer to items using the same descriptive paths it received in the request.
 MidPoint resolves these paths back to regular item paths using the mapping created while serializing the request, so the unqualified form is correctly interpreted as items from the common midPoint namespace.

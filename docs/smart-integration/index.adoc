@@ -13,41 +13,41 @@ Smart Integration provide AI-assisted and automated capabilities for resource co
 
 == Recommendations
 
-* xref:recommendations/index.adoc[Smart Recommendations] - Overview of recommendation operations (object types, focus type, correlation, mappings, associations, synchronization) and their common principles.
-** xref:recommendations/object-types/object-types-recommendation.adoc[Smart Object Types Recommendation] - (TODO)
-** xref:recommendations/focus-type/focus-type-recommendation.adoc[Smart Focus Type Recommendation] - (TODO)
-** xref:recommendations/correlation/correlation-recommendation.adoc[Smart Correlation Recommendation] - (TODO)
-*** xref:recommendations/correlation/correlators-simulation.adoc[Correlators Simulation] - (TODO)
-** xref:recommendations/mappings/mappings-recommendation.adoc[Smart Mappings Recommendation] - How midPoint recommends inbound and outbound attribute mappings (as-is, heuristic, AI-generated and categorical scripts), quality assessment and result structure.
-*** xref:recommendations/mappings/mappings-simulation.adoc[Mappings Simulation] - (TODO)
-** xref:recommendations/associations/associations-recommendation.adoc[Smart Associations Recommendation] - (TODO)
-** xref:recommendations/synchronization/synchronization-recommendation.adoc[Smart Synchronization Recommendation] - (TODO)
+* xref:recommendations/index.adoc[Smart recommendations] - Overview of recommendation operations (object types, focus type, correlation, mappings, associations, synchronization) and their common principles.
+** xref:recommendations/object-types/object-types-recommendation.adoc[Smart object types recommendation] - How midPoint recommends object types (kind, intent, delineation, focus type) for an object class from its statistics, filter validation, retry and regeneration.
+** xref:recommendations/focus-type/focus-type-recommendation.adoc[Smart focus type recommendation] - (TODO)
+** xref:recommendations/correlation/correlation-recommendation.adoc[Smart correlation recommendation] - How midPoint recommends single-item correlators for known identifying properties from the schema match and existing inbound mappings, and how their quality is evaluated on sampled data.
+*** xref:recommendations/correlation/correlators-simulation.adoc[Correlators simulation] - (TODO)
+** xref:recommendations/mappings/mappings-recommendation.adoc[Smart mappings recommendation] - How midPoint recommends inbound and outbound attribute mappings (as-is, heuristic, AI-generated and categorical scripts), quality assessment and result structure.
+*** xref:recommendations/mappings/mappings-simulation.adoc[Mappings simulation] - (TODO)
+** xref:recommendations/associations/associations-recommendation.adoc[Smart associations recommendation] - (TODO)
+** xref:recommendations/synchronization/synchronization-recommendation.adoc[Smart synchronization recommendation] - (TODO)
 
-== Supporting Functions
+== Supporting functions
 
-* xref:schema-match.adoc[Schema Match] - How midPoint pairs resource attributes with focus properties (well-known schemas, AI-assisted matching, post-processing heuristics), and how the result is stored and reused.
+* xref:schema-match.adoc[Schema match] - How midPoint pairs resource attributes with focus properties (well-known schemas, AI-assisted matching, post-processing heuristics), and how the result is stored and reused.
 * xref:statistics.adoc[Statistics] - Object class, object type and focus statistics used by the recommendations. (TODO)
-* xref:shadow-sampling.adoc[Shadow Sampling Configuration] - Configure sample size constraints for correlation and mappings recommendations based on shadow caching availability.
+* xref:shadow-sampling.adoc[Shadow sampling configuration] - Configure sample size constraints for correlation and mappings recommendations based on shadow caching availability.
 
 == Configuration
 
 Setting relevant to Smart Integration are configured globally in the midPoint system configuration (`SystemConfigurationType`) within the `<smartIntegration>` container.
 
-* xref:configuration.adoc[Smart Integration Configuration] - (TODO)
+* xref:configuration.adoc[Smart Integration configuration] - (TODO)
 
-== Advanced Topics
+== Advanced topics
 
-* xref:advanced/automatic-ranges.adoc[Automatic Ranges] - (TODO)
-* xref:advanced/iterators.adoc[Iterators Configuration] - (TODO)
+* xref:advanced/automatic-ranges.adoc[Automatic ranges] - (TODO)
+* xref:advanced/iterators.adoc[Iterators configuration] - (TODO)
 
 == Security
 
-* xref:security/index.adoc[Smart Integration Security] - Overview of security topics.
-** xref:security/data-access-permissions.adoc[Data Access Permissions] - (TODO)
-** xref:security/authorization.adoc[Smart Integration Authorization] - Dedicated `#smartIntegration` authorization for recommendation operations, REST API and GUI; statistics protected by object-scoped authorizations.
-** xref:security/auditing-logging.adoc[Auditing and Logging] - (TODO)
+* xref:security/index.adoc[Smart Integration security] - Overview of security topics.
+** xref:security/data-access-permissions.adoc[Data access permissions] - (TODO)
+** xref:security/authorization.adoc[Smart Integration authorization] - Dedicated `#smartIntegration` authorization for recommendation operations, REST API and GUI; statistics protected by object-scoped authorizations.
+** xref:security/auditing-logging.adoc[Auditing and logging] - (TODO)
 
-== Smart Integration Microservice
+== Smart Integration microservice
 
-* xref:microservice/index.adoc[Smart Integration Microservice] - (TODO)
-* xref:service-item-paths.adoc[Item Paths and Type Names in Service Requests] - Format of item paths and type names sent to the Smart Integration microservice (common `c:` namespace prefix is omitted).
+* xref:microservice/index.adoc[Smart Integration microservice] - (TODO)
+* xref:service-item-paths.adoc[Item paths and type names in service requests] - Format of item paths and type names sent to the Smart Integration microservice (common `c:` namespace prefix is omitted).

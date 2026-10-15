@@ -211,6 +211,16 @@ public abstract class WizardModelWithParentSteps extends WizardModel implements 
      */
     public abstract void invalidateChildrenSteps(String parentStepId);
 
+    /**
+     * Open in progress step panel, if exists, or open summary panel.
+     */
+    public abstract void useInProgressStepOrShowSummary();
+
+    /**
+     * Clear child active step and use parent panel.
+     */
+    public abstract void clearChildStep();
+
 //    public AbstractWizardController getWizardController() {
 //        return wizardController;
 //    }

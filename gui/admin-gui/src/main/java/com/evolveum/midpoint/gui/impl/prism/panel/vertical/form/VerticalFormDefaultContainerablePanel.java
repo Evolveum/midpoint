@@ -121,7 +121,7 @@ public class VerticalFormDefaultContainerablePanel<C extends Containerable> exte
     }
 
     protected boolean isNoContainerFormVisible(IModel<List<ItemWrapper<?, ?>>> nonContainerWrappers) {
-        return isShowMoreButtonVisible(nonContainerWrappers);
+        return super.isShowMoreButtonVisible(nonContainerWrappers);
     }
 
     protected String getCssClassForFormContainer() {
@@ -158,7 +158,8 @@ public class VerticalFormDefaultContainerablePanel<C extends Containerable> exte
         }
         return item.getModelObject().isVisible(
                 VerticalFormDefaultContainerablePanel.this.getModelObject(),
-                settings.getVisibilityHandler());
+                settings.getVisibilityHandler(),
+                settings.getMandatoryHandler());
     }
 
     public Boolean isVisibleVirtualValueWrapper() {
@@ -346,6 +347,11 @@ public class VerticalFormDefaultContainerablePanel<C extends Containerable> exte
                 return VerticalFormDefaultContainerablePanel.this.isVisibleSubContainer(c);
             }
         };
+    }
+
+    @Override
+    protected boolean isShowMoreButtonVisible(IModel<List<ItemWrapper<?, ?>>> nonContainerWrappers) {
+        return super.isShowMoreButtonVisible(nonContainerWrappers) && isShowEmptyButtonVisible();
     }
 
     protected boolean isVisibleSubContainerHeader(PrismContainerWrapper<? extends Containerable> c) {

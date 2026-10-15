@@ -248,10 +248,10 @@ public abstract class AbstractWizardController<AH extends AssignmentHolderType, 
 
     public List<WizardStep> getInProgressChildrenSteps() {
         if (indexOfInProgressPart == -1) {
-            return List.of();
+            return getActiveChildrenSteps();
         }
 
-        return getInProgressPartItem().getActiveChildrenSteps();
+        return getInProgressPartItem().getInProgressChildrenSteps();
     }
 
     public WizardParentStep getActiveParentStep() {
@@ -260,6 +260,14 @@ public abstract class AbstractWizardController<AH extends AssignmentHolderType, 
         }
 
         return getActivePartItem().getActiveParentStep();
+    }
+
+    public WizardParentStep getInProgressParentStep() {
+        if (indexOfInProgressPart == -1) {
+            return getActiveParentStep();
+        }
+
+        return getActivePartItem().getInProgressParentStep();
     }
 
     public List<WizardParentStep> getParentSteps() {
@@ -287,6 +295,20 @@ public abstract class AbstractWizardController<AH extends AssignmentHolderType, 
 
     public final void showSummaryPanel() {
         showSummaryPanel = true;
+    }
+
+    public void useInProgressStepOrShowSummary() {
+        if (indexOfInProgressPart != -1) {
+            setActiveWizardPartIndex(indexOfInProgressPart);
+            getActivePartItem().useInProgressStepAsActive();
+        } else {
+            showSummaryPanel();
+        }
+    }
+
+    @Override
+    public void clearChildStep() {
+        getActivePartItem().clearActiveStep();
     }
 
     protected final int addWizardPartAfter(AbstractWizardPartItem<AH, ADM> newPartItem, Enum<?> identifier) {
