@@ -174,8 +174,7 @@ A reference must pass all of these checks:
 A reference can point from an account to its groups even when LDAP stores membership on the groups.
 The following example shows an account and a group that lists the account as a member:
 
-.Account in LDAP
-[source,text]
+[source,ldif,title="Account in LDAP"]
 ----
 dn: uid=jnovak,ou=people,dc=example,dc=com
 objectClass: inetOrgPerson
@@ -184,8 +183,10 @@ cn: Jan Novak
 sn: Novak
 ----
 
-.Group in LDAP
-[source,text]
+The account has no membership attribute in this example.
+The group entry below stores the account's DN in its `member` attribute.
+
+[source,ldif,title="Group in LDAP"]
 ----
 dn: cn=developers,ou=groups,dc=example,dc=com
 objectClass: groupOfNames
@@ -193,8 +194,6 @@ cn: developers
 member: uid=jnovak,ou=people,dc=example,dc=com
 ----
 
-The account has no membership attribute in this example.
-Instead, the group's `member` attribute contains the account's DN.
 With suitable connector configuration, the resource schema can expose this relationship as an account-side reference, such as `ri:group`:
 
 .From the account perspective
