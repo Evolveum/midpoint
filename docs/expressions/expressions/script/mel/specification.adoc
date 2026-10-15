@@ -3563,6 +3563,24 @@ Moreover, MEL is extending the basic CEL environment with midPoint data types su
 Simple expressions in MEL and CEL are going to be the same.
 However, MEL is expanding on CEL, especially with convenience functions and much better support for nullable values, MEL expressions have a very distinct "midPointish" look and feel.
 
+Significant differences between CEL and MEL:
+
+* MEL is null-safe language.
++
+CEL is built to work with non-null values.
+Therefore, in case that CEL expression encounters a `null` value, it most likely results in an error.
+Creating a core which works with `null` values is a major pain in CEL.
++
+On the other hand, MEL was designed to work seamlessly with `null` values.
+If a function or operator encounters `null` value, it does not fail.
+Appropriate value is returned instead, which is usually a `null`, `false`, empty string or empty array.
+
+* Native support for polystrings.
+
+* Support for midPoint (prism) data structures instead of protobuf structures.
+
+* MidPoint-specific language extensions and libraries.
+
 == MEL and Java/Groovy
 
 MEL is a secure expression language with a distinct functional character.

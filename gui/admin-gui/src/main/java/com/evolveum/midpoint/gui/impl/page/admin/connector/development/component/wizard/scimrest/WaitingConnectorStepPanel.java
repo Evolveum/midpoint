@@ -28,10 +28,12 @@ import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ExceptionUtil;
 import com.evolveum.midpoint.smart.api.conndev.ConnectorDevelopmentArtifacts;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
@@ -156,17 +158,18 @@ public abstract class WaitingConnectorStepPanel extends AbstractWizardStepPanel<
         initLayout();
     }
 
-    protected void resetToken() {
-        tokenModel.reset();
-    }
-
     /**
-     * Resets the panel so that a new background task is submitted instead of reusing
-     * the result of the previous one.
+     * Resets the panel so that a new background task is submitted instead of reusing the result of
+     * the previous one. The new task is submitted right here, synchronously, rather than deferring to
+     * {@link #statusModel}'s lazy load - that load can end up running in a later, separate request
+     * (the waiting panel's own polling), where the {@link #isReloaded} flag set below is no longer
+     * observed as {@code true}, silently falling back to reusing the old task instead of regenerating.
      */
     public void restartTask() {
-        restartedTaskToken = null;
-        resetToken();
+        Task task = getDetailsModel().getPageAssignmentHolder().createSimpleTask(OP_DETERMINE_STATUS);
+        String newToken = getNewTaskToken(task, task.getResult(), true);
+        restartedTaskToken = newToken;
+        tokenModel.setObject(newToken);
         if (getStatusModel() != null) {
             getStatusModel().detach();
         }
@@ -183,7 +186,13 @@ public abstract class WaitingConnectorStepPanel extends AbstractWizardStepPanel<
                 OperationResult result = task.getResult();
 
                 if (StringUtils.isEmpty(tokenModel.getObject())) {
-                    tokenModel.setObject(getNewTaskToken(task, result, isReloaded));
+                    String newToken;
+                    try {
+                        newToken = getNewTaskToken(task, result, isReloaded);
+                    } catch (RuntimeException e) {
+                        return reportSubmitFailure(e, result);
+                    }
+                    tokenModel.setObject(newToken);
                     if (isReloaded) {
                         restartedTaskToken = tokenModel.getObject();
                     }
@@ -233,6 +242,19 @@ public abstract class WaitingConnectorStepPanel extends AbstractWizardStepPanel<
         };
     }
 
+    private SmartGeneratingDto reportSubmitFailure(RuntimeException e, OperationResult result) {
+        LoggingUtils.logUnexpectedException(LOGGER, "Couldn't submit task for {}", e, getActivityType());
+        CommonException cause = ExceptionUtil.findCause(e, CommonException.class);
+        result.recordFatalError(cause != null ? cause : e);
+        getPageBase().showResult(result);
+        return new SmartGeneratingDto() {
+            @Override
+            public boolean isFailed() {
+                return true;
+            }
+        };
+    }
+
     protected abstract ItemName getActivityType();
 
     protected String getKeyForStoringToken(){
@@ -275,6 +297,19 @@ public abstract class WaitingConnectorStepPanel extends AbstractWizardStepPanel<
             @Override
             protected boolean allowRerun() {
                 return true;
+            }
+
+            @Override
+            public void onReRunPerform(AjaxRequestTarget target) {
+                if (getModelObject().getTaskObject() != null) {
+                    super.onReRunPerform(target);
+                    return;
+                }
+                tokenModel.reset();
+                statusModel.reset();
+                super.onReRunPerform(target);
+                target.add(this);
+                target.add(getPageBase().getFeedbackPanel());
             }
 
             @Override

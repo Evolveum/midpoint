@@ -9,6 +9,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.connector.development.componen
 import com.evolveum.midpoint.gui.api.page.PageAdminLTE;
 import com.evolveum.midpoint.gui.api.prism.wrapper.*;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardStepPanel;
 import com.evolveum.midpoint.gui.impl.component.wizard.collapse.log.OperationLogProvider;
@@ -16,6 +17,8 @@ import com.evolveum.midpoint.gui.impl.component.wizard.collapse.log.OperationRes
 import com.evolveum.midpoint.gui.impl.component.wizard.withnavigation.WizardModelWithParentSteps;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.ConnectorDevelopmentDetailsModel;
+import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.RepairObjectClassButton;
+import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.ScriptConnectorStepPanel;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -62,6 +65,7 @@ import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -257,12 +261,68 @@ public class ConnectorDevelopmentWizardUtil {
             String panelId = stepId + "." + source;
             var result = buildValidationOperationResult(entry.getValue(), source);
             if (source.equals(fileName)) {
-                wizardModel.addOperationResult(panelId, step.getStepId(), result);
+                wizardModel.addOperationResult(panelId, step.getStepId(), result, fixScriptAction(step, step.getStepId()));
             } else {
                 wizardModel.addOperationResult(panelId, result, disableAction(step, panelId, source),
                         "OperationResultCollapsedItemPanel.disableButton", "fa fa-ban");
             }
         }
+    }
+
+    /**
+     * Same as {@link #reportScriptValidationErrors}, but for a caller whose own {@code
+     * step.getStepId()} is NOT the right fix-navigation target - e.g. {@code
+     * FixObjectClassReviewConnectorStepPanel} shows the error inline above its own editor, but the
+     * error actually belongs to a different, underlying script step ({@code fixPanelId}), and
+     * that underlying step's id is what {@code RepairObjectClassButton}/{@code isStepWithError}
+     * need to see to recognize there is still something pending for it.
+     */
+    public static void reportScriptValidationErrorsForStep(
+            AbstractWizardStepPanel<ConnectorDevelopmentDetailsModel> step, String stepId, String fixPanelId,
+            List<ConnDevArtifactValidationResult.Error> errors, String source) {
+        if (!(step.getWizard() instanceof WizardModelWithParentSteps wizardModel)) {
+            return;
+        }
+        String panelId = stepId + "." + source;
+        var result = buildValidationOperationResult(errors, source);
+        wizardModel.addOperationResult(panelId, fixPanelId, result);
+    }
+
+    /**
+     * Builds a drawer fix button's click handler that navigates to {@code fixPanelId}, then either
+     * regenerates it, or - if more than one script of this object class currently has a pending
+     * error - repairs the whole object class instead. {@code reportingStep} is used only to reach
+     * the wizard ({@link AbstractWizardStepPanel#getWizard()}) - the step actually acted upon is
+     * re-resolved live by id after navigating, since a drawer entry can outlive the part-item
+     * structure {@code reportingStep} was created in (e.g. a later "Configure" shortcut that rebuilds
+     * the wizard's part items), which would otherwise leave a stale, detached object to act on.
+     */
+    public static SerializableConsumer<AjaxRequestTarget> fixScriptAction(
+            AbstractWizardStepPanel<ConnectorDevelopmentDetailsModel> reportingStep, String fixPanelId) {
+        return clickTarget -> {
+            if (!(reportingStep.getWizard() instanceof WizardModelWithParentSteps wizardModel)) {
+                return;
+            }
+            wizardModel.setActiveStepById(fixPanelId);
+            wizardModel.fireActiveStepChanged();
+            clickTarget.add(wizardModel.getPanel());
+
+            if (!(wizardModel.getActiveStep() instanceof ScriptConnectorStepPanel scriptStep)) {
+                return;
+            }
+            Set<String> affectedSteps = wizardModel.getFixPanelIdsWithResults(RepairObjectClassButton.OBJECT_CLASS_SCRIPT_STEP_IDS);
+            if (affectedSteps.size() > 1) {
+                scriptStep.triggerRepair(clickTarget);
+            } else {
+                scriptStep.triggerRegenerate(clickTarget);
+            }
+
+            wizardModel.removeOperationResultsForFixSteps(RepairObjectClassButton.OBJECT_CLASS_SCRIPT_STEP_IDS);
+            if (!wizardModel.hasOperationResults()) {
+                wizardModel.clearSelection();
+            }
+            refreshDrawerPanel(reportingStep, clickTarget);
+        };
     }
 
     /**
@@ -307,10 +367,14 @@ public class ConnectorDevelopmentWizardUtil {
 
     /**
      * Registers {@code provider} as the log viewer drawer's source for {@code panelId} and refreshes the
-     * drawer, mirroring {@link #reportScriptValidationErrors}.
+     * drawer, mirroring {@link #reportScriptValidationErrors}. The log viewer is an experimental GUI
+     * feature, so this is a no-op unless experimental features are enabled.
      */
     public static void reportOperationLogs(
             AbstractWizardStepPanel<?> step, String panelId, OperationLogProvider provider, AjaxRequestTarget target) {
+        if (!WebModelServiceUtils.isEnableExperimentalFeature(step.getPageBase())) {
+            return;
+        }
         if (provider == null) {
             return;
         }
@@ -653,6 +717,19 @@ public class ConnectorDevelopmentWizardUtil {
                 ItemPath.create(ConnectorDevelopmentType.F_CONNECTOR, ConnDevConnectorType.F_CONNECTOR_REF));
     }
 
+    /**
+     * Whether the item is one of the connector coordinate properties (groupId, artifactId, version)
+     * that identify the generated connector and thus become read-only once the connector is created.
+     */
+    public static boolean isConnectorCoordinateItem(ItemPath path) {
+        return path != null && (path.endsWith(
+                        ItemPath.create(ConnectorDevelopmentType.F_CONNECTOR, ConnDevConnectorType.F_GROUP_ID))
+                || path.endsWith(
+                        ItemPath.create(ConnectorDevelopmentType.F_CONNECTOR, ConnDevConnectorType.F_ARTIFACT_ID))
+                || path.endsWith(
+                        ItemPath.create(ConnectorDevelopmentType.F_CONNECTOR, ConnDevConnectorType.F_VERSION)));
+    }
+
     public static boolean isConnectionComplete(ConnectorDevelopmentDetailsModel detailsModel) {
         return isConnectionComplete(detailsModel, null);
     }
@@ -821,8 +898,23 @@ public class ConnectorDevelopmentWizardUtil {
         }
     }
 
-    public static void enableConnectorLogCapture(Task task) {
+    /**
+     * Prepares a task for a connector-development operation: runs it in the simulated development
+     * execution mode and, when {@code logCaptureEnabled}, additionally enables connector log capture
+     * (see {@link #enableConnectorLogCapture}) so the wizard's log viewer drawer can show it.
+     */
+    public static void configureConnectorDevelopmentTask(Task task, boolean logCaptureEnabled) {
         task.setExecutionMode(TaskExecutionMode.SIMULATED_SHADOWS_DEVELOPMENT);
+        if (logCaptureEnabled) {
+            enableConnectorLogCapture(task);
+        }
+    }
+
+    /**
+     * Enables connector log capture on the task: connector operations are traced and their log lines
+     * collected into operation results, where the wizard's log viewer drawer picks them up.
+     */
+    public static void enableConnectorLogCapture(Task task) {
         task.addTracingRequest(TracingRootType.CONNECTOR_OPERATION);
         task.setTracingProfile(new TracingProfileType()
                 .collectLogEntries(true)
@@ -869,6 +961,11 @@ public class ConnectorDevelopmentWizardUtil {
         try {
             PrismPropertyWrapper<ConnDevIntegrationType> integrationType = detailsModel.getObjectWrapper().findProperty(
                     ItemPath.create(ConnectorDevelopmentType.F_CONNECTOR, ConnDevConnectorType.F_INTEGRATION_TYPE));
+            if (integrationType.getValue().getRealValue() == null) {
+                integrationType = detailsModel.getObjectWrapper().findProperty(
+                        ItemPath.create(ConnectorDevelopmentType.F_APPLICATION, ConnDevApplicationInfoType.F_INTEGRATION_TYPE)
+                );
+            }
             return ConnDevIntegrationType.SQL.equals(integrationType.getValue().getRealValue());
         } catch (SchemaException e) {
             return false;

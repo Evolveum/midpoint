@@ -78,6 +78,10 @@ public class PropertySearchItemWrapper<T> extends FilterableSearchItemWrapper<T>
         }
     }
 
+    protected ItemDefinition<?> getItemDef() {
+        return itemDef;
+    }
+
     @Override
     public Class<? extends SingleSearchItemPanel> getSearchItemPanelClass() {
         return TextSearchItemPanel.class;

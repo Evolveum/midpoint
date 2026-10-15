@@ -3,7 +3,7 @@ package com.evolveum.midpoint.smart.impl.conndev.activity;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinitionFactory;
 import com.evolveum.midpoint.smart.impl.conndev.ConnectorDevelopmentBackend;
-import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.LocalizableMessageBuilder;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -22,8 +22,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 
 import java.io.IOException;
 import java.net.URL;
-
-import static com.evolveum.midpoint.util.MiscUtil.configNonNull;
 
 @Component
 public class CreateConnectorActivityHandler
@@ -56,7 +54,14 @@ public class CreateConnectorActivityHandler
 
         public WorkDefinition(WorkDefinitionFactory.@NotNull WorkDefinitionInfo info) throws ConfigurationException {
             super(info);
-            templateUrl  = MiscUtil.configNonNull(typedDefinition.getBaseTemplateUrl(), "No Base template URL specified");
+            var baseTemplateUrl = typedDefinition.getBaseTemplateUrl();
+            if (baseTemplateUrl == null) {
+                throw new ConfigurationException(new LocalizableMessageBuilder()
+                        .key("CreateConnectorActivityHandler.noTemplateUrl")
+                        .fallbackMessage("No Base template URL specified")
+                        .build());
+            }
+            templateUrl = baseTemplateUrl;
         }
     }
 
@@ -70,6 +75,11 @@ public class CreateConnectorActivityHandler
                 ActivityRunInstantiationContext<CreateConnectorActivityHandler.WorkDefinition, CreateConnectorActivityHandler> context) {
             super(context);
             setInstanceReady();
+        }
+
+        @Override
+        public boolean isExcludedFromStalenessChecking() {
+            return true;
         }
 
         @Override

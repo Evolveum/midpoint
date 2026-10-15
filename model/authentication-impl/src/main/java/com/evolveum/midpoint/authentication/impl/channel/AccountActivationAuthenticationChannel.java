@@ -22,8 +22,10 @@ import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
  * Channel for the account activation flow (issue 5490). The user opens the activation link from a notification,
  * authenticates by the mail nonce and by the password, and is then redirected to the account activation page.
  *
- * The principal gets no authorizations from its assignments in this channel. It gets exactly what the activation
- * page needs: access to the page, reading its own shadows and setting password and purpose on them.
+ * The channel grants exactly what the activation page does: access to the page, reading own shadows and setting
+ * password and purpose on them. Anything else that happens during the activation in a particular deployment
+ * (changes derived for the user by mappings, notifications reading other objects) is for the administrator to
+ * authorize by roles. Assigned authorizations are kept in this channel, except for other UI pages.
  */
 public class AccountActivationAuthenticationChannel extends AuthenticationChannelImpl {
 
@@ -48,7 +50,17 @@ public class AccountActivationAuthenticationChannel extends AuthenticationChanne
 
     @Override
     public Authorization resolveAuthorization(Authorization autz) {
-        return null;
+        if (autz == null) {
+            return null;
+        }
+        Authorization retAutz = autz.clone();
+        retAutz.getAction().removeIf(action ->
+                !AuthorizationConstants.AUTZ_UI_ACCOUNT_ACTIVATION_URL.equals(action)
+                        && action.contains(AuthorizationConstants.NS_AUTHORIZATION_UI));
+        if (retAutz.getAction().isEmpty()) {
+            return null;
+        }
+        return retAutz;
     }
 
     @Override

@@ -74,6 +74,9 @@ oid="00000000-0000-0000-0000-000000000380">
         </expression>
         <target>
             <path>name</path>
+            <set>
+                <predefined>all</predefined>
+            </set>
         </target>
     </mapping>
     <mapping id="2">
@@ -96,6 +99,9 @@ oid="00000000-0000-0000-0000-000000000380">
         </expression>
         <target>
             <path>fullName</path>
+            <set>
+                <predefined>all</predefined>
+            </set>
         </target>
     </mapping>
     <mapping id="3">
@@ -119,6 +125,9 @@ oid="00000000-0000-0000-0000-000000000380">
         </expression>
         <target>
             <path>displayName</path>
+            <set>
+                <predefined>all</predefined>
+            </set>
         </target>
     </mapping>
 </objectTemplate>

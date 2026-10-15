@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.relation;
 
+import java.io.IOException;
 import java.util.List;
 
 import org.apache.wicket.Component;
@@ -18,6 +19,8 @@ import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
+import com.evolveum.midpoint.gui.impl.component.data.provider.BaseSortableDataProvider;
 import com.evolveum.midpoint.gui.impl.component.data.provider.MultivalueContainerListDataProvider;
 import com.evolveum.midpoint.gui.impl.component.tile.TileTablePanel;
 import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardStepPanel;
@@ -27,12 +30,17 @@ import com.evolveum.midpoint.gui.impl.page.admin.connector.development.Connector
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.ConnectorDevelopmentController;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnDevArtifactType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnDevConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnDevRelationInfoType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorDevelopmentType;
@@ -58,6 +66,8 @@ public class RelationshipsConnectorStepPanel extends AbstractWizardStepPanel<Con
     private static final String ID_TABLE = "table";
 
     private IModel<List<PrismContainerValueWrapper<ConnDevRelationInfoType>>> relationshipModel;
+
+    private TileTablePanel<ConnectorRelationshipTile, PrismContainerValueWrapper<ConnDevRelationInfoType>> table;
 
     public RelationshipsConnectorStepPanel(WizardPanelHelper<? extends Containerable, ConnectorDevelopmentDetailsModel> helper) {
         super(helper);
@@ -106,8 +116,7 @@ public class RelationshipsConnectorStepPanel extends AbstractWizardStepPanel<Con
         addObjectClassButton.setOutputMarkupId(true);
         add(addObjectClassButton);
 
-        TileTablePanel<ConnectorRelationshipTile, PrismContainerValueWrapper<ConnDevRelationInfoType>> table
-                = new TileTablePanel<>(ID_TABLE) {
+        table = new TileTablePanel<>(ID_TABLE) {
             @Override
             protected ISortableDataProvider createProvider() {
                 return new MultivalueContainerListDataProvider<>(
@@ -140,12 +149,55 @@ public class RelationshipsConnectorStepPanel extends AbstractWizardStepPanel<Con
 
                     @Override
                     protected void configureRelationshipPerformed(AjaxRequestTarget target) {
-
+                        getController().editRelationship(model.getObject().getValue().getRealValue().getName(), target);
                     }
 
                     @Override
                     protected void deleteRelationshipPerformed(AjaxRequestTarget target) {
+                        PrismContainerValueWrapper<ConnDevRelationInfoType> value = model.getObject().getValue();
+                        String filename = null;
+                        try {
+                            PrismContainerWrapper<ConnDevArtifactType> scriptContainer =
+                                    value.findContainer(ConnDevRelationInfoType.F_SCHEMA_SCRIPT);
+                            if (scriptContainer != null && !scriptContainer.getValues().isEmpty()) {
+                                ConnDevArtifactType scriptValue = scriptContainer.getValue().getRealValue();
+                                if (scriptValue != null) {
+                                    filename = scriptValue.getFilename();
+                                }
+                            }
+                            value.getParent().remove(value, getDetailsModel().getPageAssignmentHolder());
+                        } catch (SchemaException e) {
+                            throw new RuntimeException(e);
+                        }
 
+                        OperationResult result = getHelper().onSaveObjectPerformed(target);
+                        getDetailsModel().getConnectorDevelopmentOperation();
+                        if (result == null || result.isError()) {
+                            target.add(getFeedback());
+                            ((BaseSortableDataProvider<?>) table.getProvider()).clearCache();
+                            table.getTilesModel().detach();
+                            table.refresh(target);
+                        } else {
+                            Task task = getPageBase().createSimpleTask(
+                                    RelationshipsConnectorStepPanel.class.getName() + ".deleteRelationship");
+                            if (filename != null) {
+                                try {
+                                    getDetailsModel().getConnectorDevelopmentOperation()
+                                            .deleteArtifactFile(filename, task, task.getResult());
+                                } catch (IOException | CommonException e) {
+                                    getPageBase().error("Couldn't delete " + filename + ": " + e.getMessage());
+                                    target.add(getFeedback());
+                                }
+                            }
+                            try {
+                                getDetailsModel().getConnectorDevelopmentOperation().recomputeConnectorManifest(task, task.getResult());
+                            } catch (IOException | CommonException e) {
+                                getPageBase().error("Couldn't update the connector manifest: " + e.getMessage());
+                                target.add(getFeedback());
+                            }
+                            getDetailsModel().reloadPrismObjectByOid();
+                            getController().refreshWizardPartsOnRelationships(target);
+                        }
                     }
                 };
             }
@@ -162,6 +214,10 @@ public class RelationshipsConnectorStepPanel extends AbstractWizardStepPanel<Con
         };
         table.setOutputMarkupId(true);
         add(table);
+    }
+
+    private ConnectorDevelopmentController getController() {
+        return (ConnectorDevelopmentController) getWizard();
     }
 
     @Override

@@ -24,8 +24,8 @@ import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.StringResourceModel;
+import org.apache.wicket.validation.INullAcceptingValidator;
 import org.apache.wicket.validation.IValidatable;
-import org.apache.wicket.validation.IValidator;
 import org.apache.wicket.validation.ValidationError;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
@@ -36,6 +36,9 @@ import com.evolveum.midpoint.web.component.prism.InputPanel;
  * "Recommended Object Classes" selection in the connector development wizard.
  * Each option is rendered as a card with a radio button, a title and a short description;
  * clicking the card selects the option.
+ *
+ * <p>A read-only panel renders its selection as disabled and is excluded from form
+ * processing, so a form submission can neither change nor clear the locked value.
  *
  * @param <T> enum type of the selected value
  */
@@ -81,9 +84,17 @@ public class EnumCardChoicePanel<T extends Enum<?>> extends InputPanel {
     private void initLayout() {
         RadioGroup<T> radioGroup = new RadioGroup<>(ID_INPUT, valueModel);
         radioGroup.setOutputMarkupId(true);
+        if (readOnly) {
+            // A read-only selection must survive form submissions: a disabled radio input is
+            // never submitted, so an enabled group would convert the missing input to null and
+            // wipe the value (e.g. the locked SQL integration type of a connector development)
+            // whenever the surrounding form is submitted. Disabling the group makes Wicket skip
+            // both its validation and its model update, so the value is only rendered.
+            radioGroup.setEnabled(false);
+        }
 
         if (required) {
-            radioGroup.add(new IValidator<T>() {
+            radioGroup.add(new INullAcceptingValidator<T>() {
 
                 @Serial
                 private static final long serialVersionUID = 1L;
@@ -133,6 +144,7 @@ public class EnumCardChoicePanel<T extends Enum<?>> extends InputPanel {
                         if (readOnly) {
                             return;
                         }
+                        radioGroup.clearInput();
                         valueModel.setObject(option.getValue());
                         target.add(radioGroup);
                     }

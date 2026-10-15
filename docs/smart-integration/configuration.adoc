@@ -1,0 +1,6 @@
+= Smart Integration configuration
+:page-toc: top
+:page-since: "4.11"
+:page-upkeep-status: green
+
+// TODO (Andrej): Describe smart integration configuration.

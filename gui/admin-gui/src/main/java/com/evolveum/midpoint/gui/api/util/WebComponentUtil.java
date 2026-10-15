@@ -620,6 +620,18 @@ public final class WebComponentUtil {
                 && (isRunnableTask(task) || (isClosedTask(task) && !isRecurringTask(task)));
     }
 
+    /**
+     * Restart (suspend, delete the work state and the result, resume) makes sense for a root task that has not finished:
+     * a closed one is started anew by "run now" anyway.
+     */
+    public static boolean canRestartTask(TaskType task, PageBase pageBase) {
+        return task != null
+                && task.getParent() == null
+                && pageBase.isAuthorized(ModelAuthorizationAction.SUSPEND_TASK, task.asPrismObject())
+                && pageBase.isAuthorized(ModelAuthorizationAction.RESUME_TASK, task.asPrismObject())
+                && (isRunnableTask(task) || isRunningTask(task) || isWaitingTask(task) || isSuspendedTask(task));
+    }
+
     /** Checks user-visible state, not the technical (scheduling) state. So RUNNABLE means the task is not actually running. */
     public static boolean isRunnableTask(TaskType task) {
         return task != null && task.getExecutionState() == TaskExecutionStateType.RUNNABLE;

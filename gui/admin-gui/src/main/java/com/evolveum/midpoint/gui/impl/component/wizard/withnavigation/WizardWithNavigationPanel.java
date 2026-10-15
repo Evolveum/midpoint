@@ -106,7 +106,7 @@ public class WizardWithNavigationPanel<AH extends AssignmentHolderType, ADM exte
 
             @Override
             protected void onBackPerformed(AjaxRequestTarget target) {
-                onBackRedirect();
+                onBackRedirect(target);
             }
 
             @Override
@@ -215,7 +215,7 @@ public class WizardWithNavigationPanel<AH extends AssignmentHolderType, ADM exte
 
         stepInProgress.add(new Label(
                 ID_PARENT_STEP_LABEL,
-                () -> getController().getActiveParentStep() != null ? getController().getActiveParentStep().getTitle().getObject() : ""));
+                () -> getController().getInProgressParentStep() != null ? getController().getInProgressParentStep().getTitle().getObject() : ""));
 
         IModel<List<WizardStep>> modelStepsView = () -> new ArrayList<>(getController().getInProgressChildrenSteps());
         ListView<WizardStep> stepsView = new ListView<>(ID_CARD, modelStepsView) {
@@ -229,7 +229,6 @@ public class WizardWithNavigationPanel<AH extends AssignmentHolderType, ADM exte
                         !getController().isShowedSummary()
                                 && getController().getActiveParentStepIndex() != -1
                                 && getController().getInProgressParentStepIndex() == getController().getActiveParentStepIndex());
-
             }
         };
         stepInProgress.add(stepsView);
@@ -250,7 +249,7 @@ public class WizardWithNavigationPanel<AH extends AssignmentHolderType, ADM exte
         return Model.of();
     }
 
-    protected void onBackRedirect() {
+    protected void onBackRedirect(AjaxRequestTarget target) {
         getPageBase().redirectBack();
     }
 
@@ -267,6 +266,9 @@ public class WizardWithNavigationPanel<AH extends AssignmentHolderType, ADM exte
             protected void onEvent(AjaxRequestTarget target) {
                 if (!Strings.CS.equals(listItem.getModelObject().getStepId(), getController().getActiveStep().getStepId())) {
                     getController().setActiveStepById(listItem.getModelObject().getStepId());
+                    if (listItem.getModelObject() instanceof WizardParentStep) {
+                        getController().clearChildStep();
+                    }
                     getController().fireActiveStepChanged(getController().getActiveStep());
                     target.add(getController().getPanel());
                 }
@@ -286,6 +288,7 @@ public class WizardWithNavigationPanel<AH extends AssignmentHolderType, ADM exte
         if (listItem.getIndex() == lastShowedIndex) {
             keySuffix = "inProgress";
             badgeClass = "bg-info";
+            setSelectedItem = true;
         } else if (setSelectedItem && listItem.getIndex() == activeIndex) {
             if (getController().isStepWithError(listItem.getModelObject().getStepId())) {
                 keySuffix = "fixing";

@@ -9,9 +9,13 @@ package com.evolveum.midpoint.gui.impl.page.admin.connector.development.componen
 import com.evolveum.midpoint.gui.api.component.progressbar.ProgressBar;
 import com.evolveum.midpoint.gui.api.component.progressbar.ProgressBarPanel;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardStepPanel;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.gui.impl.component.wizard.withnavigation.WizardParentStep;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.ConnectorDevelopmentDetailsModel;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.web.component.prism.ValueStatus;
 
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.ConnectorDevelopmentController;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.ConnectorDevelopmentWizardUtil;
@@ -25,6 +29,8 @@ import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnDevConnectorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnDevObjectClassInfoType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorDevelopmentType;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationTypeType;
@@ -128,7 +134,7 @@ public class ConnectorDevelopmentWizardSummaryPanel extends WizardStepPanel impl
             list.add(new NumberOfObjectsWidgetDto(
                     "fa fa-layer-group",
                     createStringResource("ConnectorDevelopmentWizardSummaryPanel.objectClasses"),
-                    () -> detailsModel.getObjectType().getConnector().getObjectClass().size(),
+                    () -> countConfiguredObjectClasses(),
                     createStringResource("ConnectorDevelopmentWizardSummaryPanel.objectClassesButton")) {
 
                 @Override
@@ -153,6 +159,22 @@ public class ConnectorDevelopmentWizardSummaryPanel extends WizardStepPanel impl
 
             return list;
         };
+    }
+
+    private int countConfiguredObjectClasses() {
+        PrismContainerWrapper<ConnDevObjectClassInfoType> container;
+        try {
+            container = detailsModel.getObjectWrapper().findContainer(
+                    ItemPath.create(ConnectorDevelopmentType.F_CONNECTOR, ConnDevConnectorType.F_OBJECT_CLASS));
+        } catch (SchemaException e) {
+            throw new RuntimeException(e);
+        }
+        if (container == null) {
+            return 0;
+        }
+        return (int) container.getValues().stream()
+                .filter(value -> value.getStatus() != ValueStatus.ADDED && value.getStatus() != ValueStatus.DELETED)
+                .count();
     }
 
     private IModel<List<ContainerWithStatusWidgetDto>> createStatusWidgetsModel() {

@@ -12,6 +12,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.web.util.ExpressionUtil;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.text.StringEscapeUtils;
 import org.apache.wicket.Session;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.head.IHeaderResponse;
@@ -109,6 +110,13 @@ public class AceEditor extends TextArea<String> {
         String module = mode!= null? mode.module : "";
 
         target.appendJavaScript("window.MidPointAceEditor.changeMode('" + getMarkupId() + "','" + module + "');");
+    }
+
+    /** Pushes a model change into the already-initialized Ace instance - a plain re-render alone won't, since initEditor() no-ops once it exists. */
+    public void updateValue(AjaxRequestTarget target, String value) {
+        setModelObject(value);
+        String escaped = StringEscapeUtils.escapeEcmaScript(value != null ? value : "");
+        target.appendJavaScript("window.MidPointAceEditor.setValue('" + getMarkupId() + "','" + escaped + "');");
     }
 
     public int getMinHeight() {

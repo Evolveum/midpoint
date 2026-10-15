@@ -18,6 +18,7 @@ import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismReferenceWrapper;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 import com.evolveum.midpoint.gui.impl.component.wizard.withnavigation.WizardModelWithParentSteps;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
@@ -37,6 +38,8 @@ import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.session.PageStorage;
+import com.evolveum.midpoint.web.session.ResourceContentStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnDevObjectClassInfoType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnDevTestingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorDevelopmentType;
@@ -44,6 +47,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationTypeType;
 
 /**
  * Wizard step showing the results of Search Filter script execution.
+ *
+ * TODO NOT FINAL: this is an interim implementation, reusing the generic resource
+ * search panel with a plain searchAll run upfront and filters applied through its
+ * existing search mechanism; an unsupported filter surfaces as a raw exception in
+ * the table instead of a dedicated message. Revisit the step's own design.
  */
 @PanelType(name = "cdw-show-search-filter-result")
 @PanelInstance(identifier = "cdw-show-search-filter-result",
@@ -56,6 +64,8 @@ public class SearchFilterObjectsConnectorStepPanel extends ScriptConfirmationPan
     private static final String PANEL_TYPE = "cdw-show-search-filter-result";
 
     private static final String ID_PANEL = "panel";
+
+    private final PageStorage pageStorage = new ResourceContentStorage(null);
 
     public SearchFilterObjectsConnectorStepPanel(WizardPanelHelper<? extends Containerable,
             ConnectorDevelopmentDetailsModel> helper, IModel<PrismContainerValueWrapper<ConnDevObjectClassInfoType>> valueModel) {
@@ -94,6 +104,7 @@ public class SearchFilterObjectsConnectorStepPanel extends ScriptConfirmationPan
             throw new RuntimeException(e);
         }
 
+        // TODO NOT FINAL: generic resource search table, searchAll runs on load; see class javadoc
         ResourceUncategorizedPanel table = new ResourceUncategorizedPanel(
                 ID_PANEL, resourceDetailsModel, getContainerConfiguration(PANEL_TYPE)) {
             @Override
@@ -103,12 +114,22 @@ public class SearchFilterObjectsConnectorStepPanel extends ScriptConfirmationPan
 
             @Override
             protected boolean isShadowDetailsEnabled() {
-                return false;
+                return true;
+            }
+
+            @Override
+            protected boolean showPopupShadowDetailsOnClick() {
+                return true;
             }
 
             @Override
             protected QName getDefaultObjectClass() {
                 return new QName(getValueModel().getObject().getRealValue().getName());
+            }
+
+            @Override
+            protected PageStorage getPageStorage() {
+                return pageStorage;
             }
 
             @Override
@@ -118,7 +139,9 @@ public class SearchFilterObjectsConnectorStepPanel extends ScriptConfirmationPan
 
             @Override
             protected Consumer<Task> createProviderSearchTaskCustomizer() {
-                return (Consumer<Task> & Serializable) ConnectorDevelopmentWizardUtil::enableConnectorLogCapture;
+                boolean logCaptureEnabled = WebModelServiceUtils.isEnableExperimentalFeature(getPageBase());
+                return (Consumer<Task> & Serializable) (task) ->
+                        ConnectorDevelopmentWizardUtil.configureConnectorDevelopmentTask(task, logCaptureEnabled);
             }
 
             @Override
@@ -133,14 +156,30 @@ public class SearchFilterObjectsConnectorStepPanel extends ScriptConfirmationPan
 
             @Override
             protected boolean isHeaderVisible() {
-                return false;
+                return true;
+            }
+
+            @Override
+            protected boolean allwaysProvideResult() {
+                return true;
             }
 
             @Override
             protected void processResult(OperationResult errorResult) {
                 if (getWizard() instanceof WizardModelWithParentSteps wizardModel) {
-                    wizardModel.addOperationResult(getStepId(), "cdw-search-filter-script", errorResult);
+                    ConnectorDevelopmentWizardUtil.collectConnectorResults(errorResult, (connIdResult) -> {
+                        wizardModel.addOperationResult(getStepId(), "cdw-search-filter-script", connIdResult,
+                                ConnectorDevelopmentWizardUtil.fixScriptAction(
+                                        SearchFilterObjectsConnectorStepPanel.this, "cdw-search-filter-script"));
+                    });
                     ConnectorDevelopmentWizardUtil.reportConnectorLogs(SearchFilterObjectsConnectorStepPanel.this, getStepId(), errorResult, null);
+                }
+            }
+
+            @Override
+            protected void onTableSearchPerformed(AjaxRequestTarget target) {
+                if (getWizard() instanceof WizardModelWithParentSteps wizardModel) {
+                    target.add(wizardModel.getPanel());
                 }
             }
 

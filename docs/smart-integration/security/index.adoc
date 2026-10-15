@@ -1,0 +1,10 @@
+= Smart Integration security
+:page-toc: top
+:page-since: "4.11"
+:page-upkeep-status: green
+
+== Topics
+
+* xref:data-access-permissions.adoc[Data access permissions] - (TODO)
+* xref:authorization.adoc[Smart Integration authorization] - Dedicated `#smartIntegration` authorization for recommendation operations, REST API and GUI; statistics protected by object-scoped authorizations.
+* xref:auditing-logging.adoc[Auditing and logging] - (TODO)

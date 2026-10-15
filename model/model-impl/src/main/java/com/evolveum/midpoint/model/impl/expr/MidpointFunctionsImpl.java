@@ -1777,6 +1777,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 
         NonceType nonceType = new NonceType();
         nonceType.setValue(nonceCredentials);
+        nonceType.setSequenceIdentifier(sequenceIdentifier);
 
         return nonceType;
     }

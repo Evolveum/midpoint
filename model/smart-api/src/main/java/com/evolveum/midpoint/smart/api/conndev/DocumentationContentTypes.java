@@ -8,6 +8,7 @@ package com.evolveum.midpoint.smart.api.conndev;
 
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Resolves the content type of connector-development documentation files.
@@ -38,10 +39,53 @@ public final class DocumentationContentTypes {
             Map.entry(".graphql", "application/graphql"),
             Map.entry(".gql", "application/graphql"),
             Map.entry(".log", "text/plain"),
+            Map.entry(".openapi", "text/plain"),
             Map.entry(".pdf", "application/pdf"),
             Map.entry(".docx", "application/vnd.openxmlformats-officedocument.wordprocessingml.document"));
 
+    /** Content types the generation service can parse. */
+    private static final Set<String> SUPPORTED_CONTENT_TYPES = Set.of(
+            "application/json",
+            "application/openapi+json",
+            "application/schema+json",
+            "application/scim+json",
+            "application/sql+json",
+            "application/conndev+json",
+            "application/com.evolveum.conndev+json",
+            "application/x-yaml",
+            "application/yaml",
+            "application/vnd.yaml",
+            "application/xhtml+xml",
+            "application/xml",
+            "application/csv",
+            "application/sql",
+            "application/x-sql",
+            "application/pdf",
+            "application/vnd.openxmlformats-officedocument.wordprocessingml.document");
+
     private DocumentationContentTypes() {
+    }
+
+    /**
+     * Checks whether the generation service can parse the documentation file.
+     *
+     * @param declaredContentType content type reported by the upload source
+     * @param fileName name of the documentation file
+     * @return true for a known suffix, a known content type or a text content type
+     */
+    public static boolean isSupported(String declaredContentType, String fileName) {
+        var declared = normalize(declaredContentType);
+        if (declared.startsWith("text/") || SUPPORTED_CONTENT_TYPES.contains(declared)) {
+            return true;
+        }
+        return detect(fileName) != null;
+    }
+
+    /**
+     * @return file name suffixes the generation service can parse
+     */
+    public static Set<String> getSupportedSuffixes() {
+        return SUFFIXES.keySet();
     }
 
     /**

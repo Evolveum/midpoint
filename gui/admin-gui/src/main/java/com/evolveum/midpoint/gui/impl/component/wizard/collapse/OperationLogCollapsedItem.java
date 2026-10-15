@@ -17,6 +17,7 @@ import org.apache.wicket.model.Model;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.component.wizard.collapse.log.OperationCompoundLogPanel;
+import com.evolveum.midpoint.gui.impl.component.wizard.collapse.log.OperationLogLevel;
 import com.evolveum.midpoint.gui.impl.component.wizard.collapse.log.OperationLogProvider;
 import com.evolveum.midpoint.gui.impl.component.wizard.withnavigation.WizardModelWithParentSteps;
 
@@ -53,9 +54,10 @@ public class OperationLogCollapsedItem extends CollapsedItem<WizardModelWithPare
 
     @Override
     public int countOfObject() {
-        return providers.values().stream()
-                .mapToInt(provider -> provider.getOperationLogEntries().size())
-                .sum();
+        return (int) providers.values().stream()
+                .flatMap(provider -> provider.getOperationLogEntries().stream())
+                .filter(entry -> entry.getLevel() == OperationLogLevel.ERROR)
+                .count();
     }
 
     @Override

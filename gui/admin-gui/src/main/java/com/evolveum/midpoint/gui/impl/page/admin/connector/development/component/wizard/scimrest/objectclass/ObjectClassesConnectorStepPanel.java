@@ -22,6 +22,7 @@ import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.impl.component.data.provider.BaseSortableDataProvider;
 import com.evolveum.midpoint.gui.impl.component.data.provider.MultivalueContainerListDataProvider;
 import com.evolveum.midpoint.gui.impl.component.tile.TemplateTile;
@@ -149,7 +150,19 @@ public class ObjectClassesConnectorStepPanel extends AbstractWizardStepPanel<Con
                 return new ConnectorObjectClassTilePanel(id, model) {
                     @Override
                     protected void deleteObjectClassPerformed(AjaxRequestTarget target) {
+                        String objectClassName = model.getObject().getValue().getRealValue().getName();
                         PrismContainerValueWrapper<ConnDevObjectClassInfoType> value = model.getObject().getValue();
+
+                        List<String> filenamesToDelete = new ArrayList<>();
+                        for (ConnectorDevelopmentArtifacts.KnownArtifactType type : ConnectorObjectClassTilePanel.OBJECT_CLASS_CAPABILITIES) {
+                            PrismContainerValueWrapper<ConnDevArtifactType> scriptValue =
+                                    ConnectorDevelopmentWizardUtil.getScript(getDetailsModel(), type, objectClassName);
+                            if (scriptValue != null && scriptValue.getRealValue() != null
+                                    && scriptValue.getRealValue().getFilename() != null) {
+                                filenamesToDelete.add(scriptValue.getRealValue().getFilename());
+                            }
+                        }
+
                         try {
                             value.getParent().remove(value, getDetailsModel().getPageAssignmentHolder());
                         } catch (SchemaException e) {
@@ -160,8 +173,30 @@ public class ObjectClassesConnectorStepPanel extends AbstractWizardStepPanel<Con
                         getDetailsModel().getConnectorDevelopmentOperation();
                         if (result == null || result.isError()) {
                             target.add(getFeedback());
+                            ((BaseSortableDataProvider<?>) table.getProvider()).clearCache();
+                            table.getTilesModel().detach();
+                            table.refresh(target);
+                        } else {
+                            Task task = getPageBase().createSimpleTask(
+                                    ObjectClassesConnectorStepPanel.class.getName() + ".deleteArtifactFile");
+                            for (String filename : filenamesToDelete) {
+                                try {
+                                    getDetailsModel().getConnectorDevelopmentOperation()
+                                            .deleteArtifactFile(filename, task, task.getResult());
+                                } catch (IOException | CommonException e) {
+                                    getPageBase().error("Couldn't delete " + filename + ": " + e.getMessage());
+                                    target.add(getFeedback());
+                                }
+                            }
+                            try {
+                                getDetailsModel().getConnectorDevelopmentOperation().recomputeConnectorManifest(task, task.getResult());
+                            } catch (IOException | CommonException e) {
+                                getPageBase().error("Couldn't update the connector manifest: " + e.getMessage());
+                                target.add(getFeedback());
+                            }
+                            getDetailsModel().reloadPrismObjectByOid();
+                            getController().refreshWizardPartsOnObjectClasses(target);
                         }
-                        target.add(ObjectClassesConnectorStepPanel.this);
                     }
 
                     @Override
@@ -188,7 +223,9 @@ public class ObjectClassesConnectorStepPanel extends AbstractWizardStepPanel<Con
                                 new ArrayList<>(ConnectorObjectClassTilePanel.getAvailableCapabilities(objectClassValue));
                         remaining.removeAll(selected);
 
+                        boolean objectClassRemoved = false;
                         if (remaining.isEmpty()) {
+                            objectClassRemoved = true;
                             try {
                                 objectClassValue.getParent().remove(objectClassValue, getDetailsModel().getPageAssignmentHolder());
                             } catch (SchemaException e) {
@@ -213,6 +250,9 @@ public class ObjectClassesConnectorStepPanel extends AbstractWizardStepPanel<Con
                         getDetailsModel().getConnectorDevelopmentOperation();
                         if (result == null || result.isError()) {
                             target.add(getFeedback());
+                            ((BaseSortableDataProvider<?>) table.getProvider()).clearCache();
+                            table.getTilesModel().detach();
+                            table.refresh(target);
                         } else {
                             Task task = getPageBase().createSimpleTask(
                                     ObjectClassesConnectorStepPanel.class.getName() + ".deleteArtifactFile");
@@ -231,11 +271,15 @@ public class ObjectClassesConnectorStepPanel extends AbstractWizardStepPanel<Con
                                 getPageBase().error("Couldn't update the connector manifest: " + e.getMessage());
                                 target.add(getFeedback());
                             }
+                            if (objectClassRemoved) {
+                                getDetailsModel().reloadPrismObjectByOid();
+                                getController().refreshWizardPartsOnObjectClasses(target);
+                            } else {
+                                ((BaseSortableDataProvider<?>) table.getProvider()).clearCache();
+                                table.getTilesModel().detach();
+                                table.refresh(target);
+                            }
                         }
-
-                        ((BaseSortableDataProvider<?>) table.getProvider()).clearCache();
-                        table.getTilesModel().detach();
-                        table.refresh(target);
                     }
 
                     @Override
@@ -271,6 +315,11 @@ public class ObjectClassesConnectorStepPanel extends AbstractWizardStepPanel<Con
                     @Override
                     protected void editDeletePerformed(String objectClassName, AjaxRequestTarget target) {
                         getController().editDeleteOp(objectClassName, target);
+                    }
+
+                    @Override
+                    protected void editFixScriptsPerformed(String objectClassName, AjaxRequestTarget target) {
+                        getController().editFixScripts(objectClassName, target);
                     }
                 };
             }
@@ -312,10 +361,25 @@ public class ObjectClassesConnectorStepPanel extends AbstractWizardStepPanel<Con
                 .map(itemNameEntry -> {
                     PolyStringType label = PolyStringType.fromOrig(itemNameEntry.getKey());
                     label.setTranslation(new PolyStringTranslationType().key(itemNameEntry.getKey()));
+                    boolean disabled = itemNameEntry.getValue().stream().anyMatch(itemName -> isScriptDisabled(value, itemName));
                     return new DisplayType()
                             .label(label)
-                            .cssClass("bg-default");
+                            .cssClass(disabled ? "text-decoration-line-through opacity-50" : null);
                 }).toList();
+    }
+
+    /** Whether the script backing this object-class capability tag is currently {@code disabled} in the manifest. */
+    private boolean isScriptDisabled(PrismContainerValueWrapper<ConnDevObjectClassInfoType> value, ItemName itemName) {
+        try {
+            PrismContainerWrapper<ConnDevArtifactType> container = value.findContainer(itemName);
+            if (container == null || container.getValues().isEmpty()) {
+                return false;
+            }
+            ConnDevArtifactType artifact = container.getValue().getRealValue();
+            return artifact != null && Boolean.TRUE.equals(artifact.isDisabled());
+        } catch (SchemaException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override

@@ -80,6 +80,11 @@ public class DiscoverObjectClassEndpointsActivityHandler
         }
 
         @Override
+        public boolean isExcludedFromStalenessChecking() {
+            return true;
+        }
+
+        @Override
         protected @NotNull ActivityRunResult runLocally(OperationResult result) throws CommonException {
             String objectClass = getWorkDefinition().objectClass;
             String connectorDevelopmentOid = getWorkDefinition().connectorDevelopmentOid;

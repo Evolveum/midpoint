@@ -13,7 +13,7 @@
     <filter>
         <q:text>
             eventStage = 'execution'
-            and timestamp > `basic.addDuration(basic.currentDateTime(), "-P1D")`
+            and timestamp > mel`now - duration('24h')`
         </q:text>
     </filter>
 </objectCollection>

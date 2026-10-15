@@ -89,8 +89,14 @@ Some authenticator apps ignore this parameter and support only 30 seconds (e.g.,
 </totp>
 ----
 
-IMPORTANT: For secure configuration, be sure to define a credential policy for TOTP secrets, limiting the number of failed attempts and specifying lockout durations.
-(See below.)
+[IMPORTANT]
+====
+*Security best practices*
+
+* Define a credential policy for TOTP secrets, limiting the number of failed attempts and specifying lockout durations.
+For details, see xref:/midpoint/reference/security/authentication/flexible-authentication/modules/totp/#optional-credential-policy-configuration[Optional credential policy configuration].
+* When implementing TOTP for users who have REST access, use xref:/midpoint/security/security-guide/#best-practices[separate accounts].
+====
 
 === Authentication sequence configuration
 

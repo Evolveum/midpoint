@@ -9,7 +9,7 @@ visibility: hidden
 :page-liquid:
 :page-toc: top
 
-Release {release-version} is a seventy-second midPoint release, code-named _Braille_.
+Release {release-version} is a eighty-sixth midPoint release, code-named _Čapek_.
 The {release-version} release brings accessibility improvements, compliance features as well as many incremental improvements and bugfixes.
 
 ++++
@@ -19,16 +19,15 @@ The {release-version} release brings accessibility improvements, compliance feat
 ++++
 {% capture dedicationContent %}
 <p>
-<a href="https://en.wikipedia.org/wiki/Louis_Braille">Louis Braille</a> (1809-1852) was a French educator.
-He invented a reading and writing system named after him, intended for use by visually impaired people.
-Braille invented the system at an early age, and dedicated most of his life to improve his system.
-The system invented by Braille opened up the world of knowledge and learning to the visually impaired people.
+<a href="https://en.wikipedia.org/wiki/Karel_%C4%8Capek">Karel Čapek</a> (1890–1938) was a Czech writer, playwright, critic, and journalist.
+He is known for his science fiction, including his play R.U.R. (Rossum's Universal Robots), which introduced the word "robot".
+He also wrote many politically charged works, opposing the rise of both fascism and communism.
 </p>
 <p>
-Similarly to Braille's system, midPoint 4.10 brings major improvements in accessibility.
-Self-service part of midPoint user interface was meticulously reviewed and improved to correctly support tools used by the visually impaired people.
-Moreover, midPoint 4.10 brings many incremental improvements and new features in various areas, reminiscent of Braille's relentless improvements of his system through his life.
-Overall, midPoint 4.10 opens up the world of identity management and governance to everybody.
+The sci-fi themes of Čapek's works align with the innovations brought by midPoint 4.11.
+Practical AI-powered features were introduced in midPoint 4.11 to make application onboarding faster and easier.
+Čapek's opposition to both fascism and communism is echoed in the digital sovereignty that midPoint brings to identity governance.
+Moreover, midPoint 4.11 made a significant leap towards secure-by-default configuration, which is helpful in keeping malicious actors at bay.
 </p>
 {% endcapture %}
 {% include release-dedication.html content=dedicationContent %}
@@ -38,58 +37,64 @@ Overall, midPoint 4.10 opens up the world of identity management and governance 
 
 === New Features and Major Improvements
 
-* xrefv:/midpoint/reference/master/expressions/expressions/script/mel/[MidPoint expression language]: secure expression language for use in mappings and customization.
+* xrefv:/midpoint/reference/master/expressions/expressions/script/mel/[**MidPoint expression language**] (MEL): secure expression language for use in mappings and customization.
 
-* New Smart Integration features:
+* New xrefv:/midpoint/reference/master/smart-integration/[**smart integration**] features:
 ** Suggestions of object types (delineation).
 ** Suggestions of focus type.
 ** Suggestions of correlators.
 ** Suggestions of mappings.
 ** Suggestions of simple associations.
-** Object Type / Object Class statistics.
+** Object type and object class statistics.
 ** Correlators simulation.
 ** Inbound mappings simulation.
 ** Dedicated `#smartIntegration` authorization for suggestion operations.
-* **Connector generator wizard**: AI-assisted, low-code wizard that generates a working manifest-based connector JAR for an external application without hand-writing connector code.
-** Supports SCIM, REST and SQL protocols.
-** Guided workflow using wizard:
-*** start from scratch or import an existing low-code connector
-*** basic information (application identification, connector coordinates)
-*** application documentation discovery with AI processing
-*** connection setup (base URL, authentication methods, AI-generated authentication scripts, credentials, connectivity endpoint discovery and testing)
-*** object class discovery, schema generation
-*** Support for per-operation code generation
-scripts (search all, search by ID, search filter)
-*** Limited support for create, update, delete, relationships
-** Runs in a limited offline mode (skeleton scripts, no documentation processing, no relationships) when the Connector Generator microservice is not configured.
-** In-progress connector developments are tracked as `ConnectorDevelopmentType` objects, listed under *Connectors* > *Connector developments*.
-** Protected by the dedicated `#connectorWizard` authorization, not granted by any out-of-the-box role (Superuser reaches it only via `#all`), because the wizard generates and executes connector code.
+    See xrefv:/midpoint/reference/master/smart-integration/security/authorization/[].
+* **Connector generator wizard**: an AI-assisted low-code wizard that generates a working manifest-based connector JAR helping you integrate an external application without writing the connector code from scratch.
+    See xref:/midpoint/get-started/try-ai-in-midpoint/[].
+** Supports SCIM, REST, and SQL protocols.
+** Connector creation workflow guided by the wizard:
+*** Start from scratch or import an existing low-code connector.
+*** Provide basic information about the target application and its connectivity.
+*** Review the application documentation sources discovered by the AI and select the most fitting ones.
+    The connector generator uses the documentation to analyze how the application communicates and suggest appropriate connector scripts.
+*** Set up connection to the target application (base URL, authentication methods, AI-generated authentication scripts, credentials, endpoint for connectivity test).
+*** Review the discovered object classes and AI-generated schema scripts for the classes you choose to integrate.
+*** Review suggested endpoints for operations on the object classes (REST).
+** The connector generator wizard supports per-operation scripts (search all, search by ID, search filter).
+*** It has limited support for relationships and create, update, and delete operations.
+** The wizard can run in a limited offline mode (skeleton scripts, no documentation processing, no relationships) when the xref:/midpoint/get-started/install/midpilot-setup/[connector generator microservice] is not configured or available.
+** Connectors under construction are tracked in the `ConnectorDevelopmentType` object and listed under *Connectors* > *In-progress connectors* in the GUI.
+** Access to the connector generator wizard is protected by the `#connectorWizard` authorization.
+    This authorization is not granted by any out-of-the-box role, because the wizard generates and executes connector code (the superuser reaches it via the `#all` authorization).
 
 * UI/UX improvements:
-** Improved Object Type wizard.
-** Improved Mappings page.
-** Improved Correlation page.
+** Improved object type wizard.
+** Improved mappings screen.
+** Improved correlation screen.
 
-* Multi-tab Browser Support. See bug:MID-11050[].
+* **Multi-tab browser support**: you can now open midPoint in multiple browser tabs or windows while maintaining consistent experience across the views.
+See xrefv:/midpoint/reference/master/admin-gui/multi-tab-browser-support/[].
+See also bug:MID-11050[].
 
-* xref:/midpoint/guides/updating-native-db/updating-to-pg18.adoc[Support for PostgreSQL 18]
+* xref:/midpoint/guides/updating-native-db/updating-to-pg18[Support for PostgreSQL 18].
 
-* bug:MID-11358[] Added connector signature verification for production environments without an active subscription,
-including import of signed allowed-connectors list and subscription compliance enforcement. See #TODO link to docs#
+* Added connector signature verification for production environments without an active subscription,
+including an ability to import a signed list of allowed connectors for subscription compliance enforcement.
+See xref:/connectors/integration-catalog/share-connectors/validate-connector/[] and xref:/connectors/integration-catalog/[].
+See also bug:MID-11358[].
 
-* xref:/midpoint/reference/resources/manual/ticketing/[ITSM ticketing]: the built-in manual connector can now manage provisioning tickets on a real ITSM system, using a dedicated ticketing resource.
-The ticket is managed as a projection (a shadow of the `work` kind) of the midPoint case.
+* xrefv:/midpoint/reference/master/resources/manual/ticketing/[**ITSM ticketing**]: the built-in manual connector can now manage provisioning tickets on a real ITSM system, using a dedicated ticketing resource.
+The tickets are managed as projections (shadows of the `work` kind) of the respective midPoint cases.
+** A new `work` shadow kind for work items (issues, tickets, cases, work packages).
+** Cases can now hold projections: the new `ProjectionHolderType` schema type is a common parent of `FocusType` and `CaseType`.
 
-* New `work` shadow kind for work items (issues, tickets, cases, work packages).
-
-* Cases can now hold projections: the new `ProjectionHolderType` schema type is a common parent of `FocusType` and `CaseType`.
-
-* xref:/midpoint/reference/security/authentication/flexible-authentication/modules/totp/[TOTP support]: new `totp` authentication module brings multi-factor authentication based on time-based one-time passwords to flexible authentication.
+* xrefv:/midpoint/reference/master/security/authentication/flexible-authentication/modules/totp/[**TOTP support**]: the new `totp` authentication module brings multi-factor authentication based on time-based one-time passwords to xrefv:/midpoint/reference/master/security/authentication/flexible-authentication/[flexible authentication].
 Users can set up and reset their authenticator application in the self-service user interface.
 See bug:MID-11049[].
 
-* xref:/midpoint/reference/tasks/focus-policies-in-activities/[Focus policies in activities]: focus-based policy rules can now be configured and evaluated per task activity, not only for the whole task.
-This allows separate focus-based thresholds for individual activities of composite tasks, including the `restartActivity` and `skipActivity` policy actions.
+* xrefv:/midpoint/reference/master/tasks/focus-policies-in-activities/[**Focus policies in activities**]: focus-based policy rules can now be configured and evaluated per task activity, not only for the whole task.
+This allows for separate focus-based thresholds for individual activities of composite tasks, including the `restartActivity` and `skipActivity` policy actions.
 See bug:MID-11051[].
 
 #TODO#
@@ -121,7 +126,7 @@ See bug:MID-11051[].
 * Custom deployment colors (header color or skin) or a custom logo are now taken as an indication that midPoint runs in a production environment. See bug:MID-11977[].
 * Added lifecycle state configuration for construction inducement. See bug:MID-11922[].
 * Added English (Europe) locale. See bug:MID-10286[].
-* Added auditing of Smart Integration service calls, including request payload recording and full-text payload search. See bug:MID-11325[].
+* Added auditing of smart integration service calls, including request payload recording and full-text payload search. See bug:MID-11325[].
 * Form multipart limit (adminGuiConfiguration/formMaxMultiparts) now defaults to the Tomcat server.tomcat.max-part-count value instead of a fixed 100.
 * Improved security filtering of transient pending objects before GUI rendering. See bug:MID-12062[]
 * Changed password hints to be stored as ProtectedStringType instead of plain strings. See bug:MID-12111[] and xref:/midpoint/guides/migrating-plaintext-password-hints/[migration guide].
@@ -135,10 +140,10 @@ See xref:/midpoint/guides/account-activation-sequence/[Account Activation Authen
 * Added mapping authoritativeness indicators based on mapping strength and range to mapping tables and previews. See bug:MID-12021[].
 * Added quick actions to apply Correlate later, Do not touch, and Invalid data marks directly from simulation results. See bug:MID-11583[].
 * Improved correlation configuration with selection and creation of inbound mappings directly from correlation items. See bug:MID-12036[] and bug:MID-11920[].
-* Improved reporting of Smart Integration suggestion errors, including access to operation details and the related task. See bug:MID-11393[].
+* Improved reporting of smart integration suggestion errors, including access to operation details and the related task. See bug:MID-11393[].
 * Added GUI support for configuring mapping iteration settings and reviewing iteration settings in mapping suggestions. See bug:MID-11712[] and bug:MID-11753[].
-* Added a configurable Smart Integration service response timeout using smartIntegration/serviceResponseTimeout. See bug:MID-11902[].
-* Improved object class search in Smart Integration to support case-insensitive matching and searching object class documentation. See bug:MID-11394[].
+* Added a configurable smart integration service response timeout using smartIntegration/serviceResponseTimeout. See bug:MID-11902[].
+* Improved object class search in smart integration to support case-insensitive matching and searching object class documentation. See bug:MID-11394[].
 * Improved default mapping range initialization based on target cardinality while preserving custom ranges. See bug:MID-12404[].
 * Added GUI editor for role auto-assignment, including the condition. See bug:MID-4684[].
 * Added support for range in mappings in GUI. See bug:MID-11767[].
@@ -238,7 +243,7 @@ See xref:/midpoint/guides/account-activation-sequence/[Account Activation Authen
 * Fixed breaking too long labels into lines. See bug:MID-11714[]
 * Fixed empty recipient filter expressions bypassing notification redirection to file. See bug:MID-11828[]
 * Fixed saving dynamic extension attributes. See bug:MID-11716[]
-* Fixed recursive processing of post-initial objects in midpoint.sh and ninja.sh scripts. See bug:MID-11201[]
+* Enabled recursive processing of post-initial objects in midpoint.sh and ninja.sh scripts; symlinks are not followed anymore. See bug:MID-11201[]
 * Improved handling of unavailable OIDC issuers during GUI authentication. See bug:MID-11293[]
 * Fixed resolver errors caused by unnecessary JAXB namespace imports in serialized enum schemas. See bug:MID-10558[]
 * Fixed suspension of iterative scripting tasks when a threshold policy action is triggered. See bug:MID-11073[]
@@ -351,7 +356,7 @@ Even though midPoint may work well on mobile devices, the support for small scre
 Partial support for small screens (e.g. only for self-service purposes) may be provided, but it has to be explicitly negotiated in a subscription contract.
 
 * There are several add-ons and extensions for midPoint that are not explicitly distributed with midPoint.
-This includes xrefv:/midpoint/reference/support-4.9/interfaces/midpoint-client-java/[Java client library],
+This includes xrefv:/midpoint/reference/master/interfaces/midpoint-client-java/[Java client library],
 various https://github.com/Evolveum/midpoint-samples[samples], scripts, connectors and other non-bundled items.
 Support for these non-bundled items is limited.
 Generally speaking, those non-bundled items are supported only for platform subscribers and those that explicitly negotiated the support in their contract.
@@ -361,7 +366,7 @@ This part of midPoint user interface is not finished.
 The only supported parts of this user interface are those that are used to process requests, approvals, and manual correlation.
 Other parts of case management user interface are considered to be experimental, especially the parts dealing with manual provisioning cases.
 
-* Smart Integration features which leverages LLMs, requires an external "Smart Integration" microservice to work properly (publicly available at our https://github.com/Evolveum/midpilot-smart-integration/tree/main[GitHub]).
+* Smart integration features which leverages LLMs, requires an external "smart integration" microservice to work properly (publicly available at our https://github.com/Evolveum/midpilot-smart-integration/tree/main[GitHub]).
 For all such features there is also the requirement of either hosting your own LLM inference service, or use some third party LLM inference provider.
 
 This list is just an overview, it may not be complete.
@@ -414,12 +419,12 @@ Use of open source OpenJDK builds with public support is recommended instead of 
 *PostgreSQL is the only supported database* for midPoint deployments since 4.10.
 
 Although in previous versions of midPoint other databases were supported using object-relational mapping abstraction (Hibernate), it is no longer the case now.
-xrefv:/midpoint/reference/support-4.9/repository/native-postgresql/[Native PostgreSQL repository implementation] was developed and tuned specially for PostgreSQL database, taking advantage of native database features, providing improved performance and scalability.
+xrefv:/midpoint/reference/master/repository/native-postgresql/[Native PostgreSQL repository implementation] was developed and tuned specially for PostgreSQL database, taking advantage of native database features, providing improved performance and scalability.
 It is currently the only option.
 
 Our strategy is to officially support the latest stable version of PostgreSQL database (to the practically possible extent).
 We make no commitments for future support of any other database engines.
-See xrefv:/midpoint/reference/support-4.9/repository/repository-database-support/[] page for the details.
+See xrefv:/midpoint/reference/master/repository/repository-database-support/[] page for the details.
 
 Only a direct connection from midPoint to the database engine is supported.
 Database and/or SQL proxies, database load balancers or any other devices (e.g. firewalls) that alter the communication are not supported.
@@ -494,21 +499,21 @@ Although we try to our best, it is not possible to foresee all possible uses of 
 Therefore, the information provided in this section are for information purposes only without any guarantees of completeness.
 In case of any doubts about upgrade or behavior changes please use services associated with xref:/support/subscription-sponsoring/[midPoint subscription programs].
 
-Please refer to the xrefv:/midpoint/reference/support-4.9/upgrade/upgrade-guide/[] for general instructions and description of the upgrade process.
+Please refer to the xrefv:/midpoint/reference/master/upgrade/upgrade-guide/[] for general instructions and description of the upgrade process.
 The guide describes the steps applicable for upgrades of all midPoint releases.
 Following sections provide details regarding release {release-version}.
 
 === Upgrade From MidPoint 4.10
 
 MidPoint {release-version} data model is backwards compatible with previous midPoint version.
-Please follow our xrefv:/midpoint/reference/support-4.10/upgrade/upgrade-guide/[Upgrade guide] carefully.
+Please follow our xrefv:/midpoint/reference/master/upgrade/upgrade-guide/[Upgrade guide] carefully.
 
 [IMPORTANT]
 Be sure to be on the latest maintenance version for 4.10, otherwise you will not be warned about all the necessary schema changes and other possible incompatibilities.
 
 Note that:
 
-* There are database schema changes (see xrefv:/midpoint/reference/support-4.10/upgrade/database-schema-upgrade/[Database schema upgrade]).
+* There are database schema changes (see xrefv:/midpoint/reference/master/upgrade/database-schema-upgrade/[Database schema upgrade]).
 ** New tables for `ApplicationType`, `ConnectorDevelopmentType` were added.
 ** Few other smaller changes.
 
@@ -547,6 +552,23 @@ In that case, set `useTokenOnlyOnConflict` to `false` explicitly.
 have been removed from  `OidcResourceServerAuthenticationModuleType`.
 These attributes can be used in the token definition instead (see attributes `jwt` and `opaqueToken`).
 
+* Container images for midPoint 4.11.0 and later versions are built to run as non-root user `midpoint` with UID 1000.
+This means that any containerized (Docker/compose or Kubernetes) deployment with pre-existing volume/PVC needs to make the content on the persistent volumes writable to the new user.
+If a midPoint container detects at startup that $MP_DIR is not writable by the running user, it prints out a warning and suggested steps for Kubernetes deployments.
++
+Remediation depends on the concrete deployment style and all the cases cannot be covered universally, but possible options are:
++
+--
+** Set `securityContext.fsGroup: 1000` on the pod and k8s will relabel the volume group on mount.
+** Add an `initContainer` executing the ownership change, e.g. `chown -R 1000:1000` on the relevant directories.
+** For Docker volumes, run: `docker run --rm -v <volume>:/var --user 0 busybox chown -R 1000:1000 /var`
+--
++
+Take the options above as examples and adapt them to the specifics of your deployment.
+Check further details about the new https://docs.evolveum.com/midpoint/get-started/install/containers/container-image-naming/[Container Image Naming],
+and also the document describing the https://docs.evolveum.com/midpoint/get-started/install/containers/container-image-2026-change/[container image changes],
+including the https://docs.evolveum.com/midpoint/get-started/install/containers/container-image-2026-change/#default-container-user[container user change].
+
 === Changes In Initial Objects Since 4.10
 
 NOTE: This section is relevant to the majority of midPoint deployments.
@@ -562,7 +584,7 @@ The following list contains a description of changes to the initial objects in t
 The complete new set of initial objects is in the `repo/system-init/src/main/resources/initial-objects` directory in the source distribution and in the `doc/config/initial-objects` directory in the binary distribution.
 
 _Actions required:_ Please review the changes and apply them appropriately to your configuration. Ninja can help with updating existing initial objects during upgrade procedure using `initial-objects` command.
-For more information see xrefv:/midpoint/reference/support-4.10/upgrade/upgrade-with-ninja/#initial-objects-update[here].
+For more information see xrefv:/midpoint/reference/master/upgrade/upgrade-with-ninja/#initial-objects-update[].
 
 New initial objects:
 
@@ -609,7 +631,7 @@ Modified:
 * 730-mark-projection-activated.xml to 738-mark-projection-resource-object-affected.xml - Added display label and help with translation keys.
 * 899-dashboard-compliance.xml - Widget colors updated to `--bs-*` CSS variables.
 * 015-security-policy.xml - Added `otp` credentials policy for TOTP. Password hint is hidden by default (`passwordHintConfigurability` set to `neverConfigure`).
-* 380-object-template-person.xml - Fixed max. iterations for the "Full name" construction. Added displayName mapping from preferredName, falling back to fullName.
+* 380-object-template-person.xml - Fixed max. iterations for the "Full name" construction. Added displayName mapping from preferredName, falling back to fullName. Added `range=all` to the mappings for `name`, `fullName`, and `displayName`.
 * 110-report-user-list.xml - Added displayName column.
 * 050-user-administrator.xml - Added displayName.
 * 300-policy-require-classification.xml - Added archetype.

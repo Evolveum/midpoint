@@ -1,4 +1,5 @@
-= Smart Integration Authorization
+= Smart Integration authorization
+:page-moved-from: /midpoint/reference/smart-integrations/authorization/, /midpoint/reference/smart-integration/authorization/
 :page-toc: top
 :page-since: "4.11"
 :page-upkeep-status: green
@@ -36,7 +37,7 @@ Grant them explicitly to custom roles that should use Smart Integration, e.g. re
 
 == Enforcement
 
-=== Backend Service
+=== Backend service
 
 `SmartIntegrationService` checks `authorization-ui-3#smartIntegration` at the start of each suggestion-related operation.
 This also applies to the suggestion activities, which run under the identity of the task owner.
@@ -52,7 +53,7 @@ This also covers clients that call the REST API directly, e.g. midPoint Studio.
 
 Users without `authorization-ui-3#smartIntegration` don't see Smart Integration suggestion features in the resource wizard: suggestion buttons, suggestion toggles, and AI progress/alert panels for object types, associations, mappings and correlations.
 
-== Statistics and Smart Integration Artifacts
+== Statistics and Smart Integration artifacts
 
 Object type and object class statistics, as well as schema match results, are stored as `SmartIntegrationArtifactType` objects.
 They are read, created and deleted through the model layer, so regular object-scoped authorizations apply (`read`, `add`, `delete` on `SmartIntegrationArtifactType`).

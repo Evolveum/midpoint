@@ -42,7 +42,7 @@ https://github.com/Evolveum/midpoint/commit/9f0e268bc00353edde7bb6c45aca143c53b1
 https://github.com/Evolveum/midpoint/commit/ff54cfcbc9a1e9e24e2951891c3b33c0dcacc4d8[ff54cfcb],
 https://github.com/Evolveum/midpoint/commit/e577b418dee1cf0a70798173d848db49c2944a26[e577b418],
 https://github.com/Evolveum/midpoint/commit/37499c3a1ec528aedc57bfe30fee0d878f6bb64b[37499c3a]
-* Docs: xref:/midpoint/reference/smart-integrations/authorization/[Smart Integration Authorization]
+* Docs: xref:/midpoint/reference/smart-integration/security/authorization/[Smart Integration Authorization]
 
 === 2026-09-25 Smart Integration: common "c:" namespace prefix removed from service requests
 
@@ -65,7 +65,7 @@ Required Upgrade Steps:
 Notes & References:
 
 * Related commits: https://github.com/Evolveum/midpoint/commit/e7b95080a87c06110a8c47491b27a84598af8d73[e7b95080]
-* Docs: xref:/midpoint/reference/smart-integrations/service-item-paths/[Item Paths and Type Names in Smart Integration Service Requests]
+* Docs: xref:/midpoint/reference/smart-integration/service-item-paths/[Item Paths and Type Names in Smart Integration Service Requests]
 
 === 2026-09-24 Safe Velocity mode introduced
 

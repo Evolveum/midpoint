@@ -22,28 +22,46 @@ public interface ConnectorInstallationService {
 
     DownloadedConnector writeConnector(String targetName, CheckedConsumer<FileOutputStream> writter) throws CommonException;
 
-    EditableConnector editableConnectorFor(@NotNull ConnectorType objectable);
+    /**
+     * A readable view of the local bundle of the given connector - the bundle directory, or a
+     * read-only view over the JAR file when the connector was installed as a JAR bundle.
+     * Returns {@code null} when the connector has no local (file-based) bundle, e.g. when it is
+     * provided by a connector host.
+     */
+    ReadableConnector readableConnectorFor(@NotNull ConnectorType objectable);
 
+    /**
+     * A fully editable view of the local bundle directory with the given name (under the
+     * connector scan directory).
+     */
     EditableConnector editableConnectorFor(String directory);
 
     /**
-     * Copies the local bundle directory of the given connector to a new bundle directory with the
-     * given name (under the connector scan directory) and returns an editable handle to the copy.
+     * Whether a connector bundle directory with the given name (under the connector scan
+     * directory) exists.
+     */
+    boolean isConnectorDirectoryPresent(String directory);
+
+    /**
+     * Copies the local bundle of the given connector - its bundle directory, or the content of
+     * its bundle JAR - to a new bundle directory with the given name (under the connector scan
+     * directory) and returns an editable handle to the copy.
      * The staging/atomic-move semantics mirror {@link DownloadedConnector#install(OperationResult)}:
      * the copy is written to {@code <targetName>.tmp} first and then moved to the final location,
-     * so a concurrent bundle scan never sees a half-copied directory. Any pre-existing directory
+     * so a concurrent bundle scan never sees a half-copied bundle. Any pre-existing directory
      * (or staging file) with the target name is removed first.
      *
      * @throws com.evolveum.midpoint.util.exception.SystemException if the connector has no local
-     *         (file-based) bundle directory or the copy fails
+     *         (file-based) bundle or the copy fails
      */
     EditableConnector copyBundle(@NotNull ConnectorType sourceConnector, @NotNull String targetDirectoryName,
             OperationResult result);
 
     /**
      * The {@code ConnectorBundle-ConnectorClass} manifest attribute of the local bundle of the
-     * given connector (the fully-qualified class name of its {@code @ConnectorClass}), or {@code null}
-     * when the connector has no local bundle or the attribute is absent.
+     * given connector (the fully-qualified class name of its {@code @ConnectorClass}) - read
+     * from the bundle directory or from the bundle JAR - or {@code null} when the attribute
+     * is absent.
      */
     String getConnectorClass(@NotNull ConnectorType connector);
 

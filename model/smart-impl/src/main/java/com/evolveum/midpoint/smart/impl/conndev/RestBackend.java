@@ -6,6 +6,7 @@ import com.evolveum.midpoint.smart.api.conndev.SupportedAuthorization;
 import com.evolveum.midpoint.smart.impl.conndev.activity.ConnDevBeans;
 import com.evolveum.midpoint.smart.impl.mappings.ConnDevJsonMapper;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.LocalizableMessageBuilder;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -142,7 +143,8 @@ public class RestBackend extends ConnectorDevelopmentBackend {
     }
 
     @Override
-    public List<ConnDevDocumentationSourceType> discoverDocumentation(boolean skipCache) {
+    public List<ConnDevDocumentationSourceType> discoverDocumentation(boolean skipCache) throws CommunicationException {
+        var serviceUrl = beans.getServiceUrl(result);
 
         ObjectNode request = JSON_FACTORY.objectNode();
         request.set("applicationName", JSON_FACTORY.textNode(
@@ -176,7 +178,13 @@ public class RestBackend extends ConnectorDevelopmentBackend {
                 return ret;
             });
         } catch (IOException e) {
-            throw new SystemException("Couldn't discover candidate links", e);
+            throw new CommunicationException(
+                    new LocalizableMessageBuilder()
+                            .key("RestBackend.discoverDocumentation.serviceError")
+                            .arg(serviceUrl)
+                            .fallbackMessage("Couldn't discover candidate links: " + e.getMessage())
+                            .build(),
+                    e);
         }
     }
 
