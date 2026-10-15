@@ -158,9 +158,10 @@
                 <previousColumn>stageCases</previousColumn>
                 <export>
                     <expression>
-                        <javaMethodReference>
-                            <methodName>certificationCasesDecidedPercentageAllStagesAllIterations</methodName>
-                        </javaMethodReference>
+                        <script>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
+                            <code>"%.1f %%".format(input.certificationCasesDecidedPercentage())</code>
+                        </script>
                     </expression>
                 </export>
             </column>

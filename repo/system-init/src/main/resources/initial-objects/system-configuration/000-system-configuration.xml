@@ -2503,6 +2503,22 @@
         <expressionProfile>safe</expressionProfile>
     </defaultObjectPolicyConfiguration>
     <defaultObjectPolicyConfiguration>
+        <type>ObjectCollectionType</type>
+        <expressionProfile>safe</expressionProfile>
+    </defaultObjectPolicyConfiguration>
+    <defaultObjectPolicyConfiguration>
+        <type>DashboardType</type>
+        <expressionProfile>safe</expressionProfile>
+    </defaultObjectPolicyConfiguration>
+    <defaultObjectPolicyConfiguration>
+        <type>AccessCertificationDefinitionType</type>
+        <expressionProfile>safe</expressionProfile>
+    </defaultObjectPolicyConfiguration>
+    <defaultObjectPolicyConfiguration>
+        <type>AccessCertificationCampaignType</type>
+        <expressionProfile>safe</expressionProfile>
+    </defaultObjectPolicyConfiguration>
+    <defaultObjectPolicyConfiguration>
         <type>RoleType</type>
         <expressionProfile>safe</expressionProfile>
     </defaultObjectPolicyConfiguration>

@@ -8,12 +8,18 @@ package com.evolveum.midpoint.model.common.expression.script.mel.extension;
 import com.evolveum.midpoint.model.common.expression.functions.BasicExpressionFunctions;
 import com.evolveum.midpoint.model.common.expression.functions.TimestampFormatUtil;
 import com.evolveum.midpoint.model.common.expression.script.mel.CelTypeMapper;
+import com.evolveum.midpoint.model.common.expression.script.mel.value.ObjectDeltaOperationCelValue;
 import com.evolveum.midpoint.model.common.expression.script.mel.value.PolyStringCelValue;
 import com.evolveum.midpoint.model.common.expression.script.mel.value.ReferenceCelValue;
+import com.evolveum.midpoint.schema.DeltaConvertor;
+import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.util.SchemaDisplayUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectDeltaOperationType;
 
 import com.google.common.collect.ImmutableSet;
 import dev.cel.common.CelFunctionDecl;
@@ -27,13 +33,11 @@ import dev.cel.runtime.CelFunctionOverload;
 import dev.cel.runtime.NullabilityProperties;
 import org.jetbrains.annotations.NotNull;
 
+import java.lang.reflect.InvocationTargetException;
 import java.text.ParseException;
 import java.time.Instant;
 import java.time.ZonedDateTime;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Extensions for CEL compiler and runtime implementing formatting and parsing functions.
@@ -48,6 +52,8 @@ public class CelFormatExtensions extends AbstractMidPointCelExtensions {
     private static final String FUNCTION_NAME_PREFIX_DOT = FUNCTION_NAME_PREFIX+".";
 
     private final BasicExpressionFunctions basicExpressionFunctions;
+
+    private static final String REPORT_UTILS_CLASS_NAME = "com.evolveum.midpoint.report.impl.ReportUtils";
 
     public CelFormatExtensions(BasicExpressionFunctions basicExpressionFunctions) {
         this.basicExpressionFunctions = basicExpressionFunctions;
@@ -219,8 +225,33 @@ public class CelFormatExtensions extends AbstractMidPointCelExtensions {
                         CelFunctionBinding.from("string_" + FUNCTION_NAME_PREFIX + "_strptime",
                                 String.class, String.class, this::strptime)
 
-                )
+                ),
 
+                // format.formatAuditDelta (multivalued input) - TEMPORARY/EXPERIMENTAL METHOD, to be reconsidered (#12788)
+                new Function(
+                        CelFunctionDecl.newFunctionDeclaration(
+                                FUNCTION_NAME_PREFIX_DOT + "formatAuditDelta",
+                                CelOverloadDecl.newGlobalOverload(
+                                        FUNCTION_NAME_PREFIX + "_formatAuditDelta",
+                                        "Formats deltas for audit.",
+                                        ListType.create(SimpleType.STRING),
+                                        ListType.create(ObjectDeltaOperationCelValue.CEL_TYPE))),
+                        CelFunctionBinding.from(FUNCTION_NAME_PREFIX + "_formatAuditDelta",
+                                List.class, this::formatAuditDelta)
+                ),
+
+                // format.formatAuditDelta (single-valued input) - TEMPORARY/EXPERIMENTAL METHOD, to be reconsidered (#12788)
+                new Function(
+                        CelFunctionDecl.newFunctionDeclaration(
+                                FUNCTION_NAME_PREFIX_DOT + "formatAuditDelta",
+                                CelOverloadDecl.newGlobalOverload(
+                                        FUNCTION_NAME_PREFIX + "_formatAuditDelta_single",
+                                        "Formats a delta for audit.",
+                                        ListType.create(SimpleType.STRING),
+                                        NullableType.create(ObjectDeltaOperationCelValue.CEL_TYPE))),
+                        CelFunctionBinding.from(FUNCTION_NAME_PREFIX + "_formatAuditDelta_single",
+                                ObjectDeltaOperationCelValue.class, this::formatAuditDeltaSingle)
+                )
         ));
 
         functions.addAll(functionsParseName("parseGivenName", this::parseGivenName));
@@ -372,4 +403,63 @@ public class CelFormatExtensions extends AbstractMidPointCelExtensions {
         return basicExpressionFunctions.parseHonorificSuffix(CelTypeMapper.toJavaValue(fullName));
     }
 
+    /**
+     * Formats an audit delta for report output, preserving support for unknown item types.
+     *
+     * Used by {@code 016-object-collection-audit}.
+     */
+    private List<Object> formatAuditDeltaSingle(ObjectDeltaOperationCelValue input) {
+        try {
+            return CelTypeMapper.toCelValues(
+                    formatAuditDeltaInternal(Collections.singletonList(input.getJavaValue())));
+        } catch (SchemaException e) {
+            throw createException(e);
+        }
+    }
+
+    /** Multi-valued variant of {@link #formatAuditDeltaSingle(ObjectDeltaOperationCelValue)}. */
+    private List<Object> formatAuditDelta(List<Object> input) {
+        try {
+            //noinspection unchecked
+            return CelTypeMapper.toCelValues(
+                    formatAuditDeltaInternal((List<ObjectDeltaOperationType>) CelTypeMapper.toJavaValues(input)));
+        } catch (SchemaException e) {
+            throw createException(e);
+        }
+    }
+
+    private static List<String> formatAuditDeltaInternal(List<ObjectDeltaOperationType> input) throws SchemaException {
+
+        var formatted = new ArrayList<String>(input.size());
+
+        for (ObjectDeltaOperationType deltaType : input) {
+            var delta = DeltaConvertor.createObjectDeltaOperation(deltaType, true);
+            formatted.add(printAuditDelta(delta));
+        }
+
+        return formatted;
+    }
+
+    /**
+     * UGLY HACK. We don't have enough time to move all this formatting-for-report machinery to lower layers, as there is
+     * quite a lot of code involved. To be resolved in 4.12 - see #12788.
+     */
+    private static String printAuditDelta(ObjectDeltaOperation<?> delta) {
+        try {
+            Class<?> reportUtils = Class.forName(REPORT_UTILS_CLASS_NAME);
+            return (String) reportUtils
+                    .getMethod("printDelta", ObjectDeltaOperation.class)
+                    .invoke(null, delta);
+        } catch (InvocationTargetException e) {
+            Throwable cause = e.getCause();
+            if (cause instanceof RuntimeException runtimeException) {
+                throw runtimeException;
+            } else if (cause instanceof Error error) {
+                throw error;
+            }
+            throw new IllegalStateException("Couldn't format audit delta", cause);
+        } catch (ReflectiveOperationException e) {
+            throw new IllegalStateException("Couldn't access the report delta formatter", e);
+        }
+    }
 }
