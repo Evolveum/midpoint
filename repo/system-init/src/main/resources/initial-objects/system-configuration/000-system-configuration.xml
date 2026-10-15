@@ -2543,6 +2543,10 @@
         <expressionProfile>configuration</expressionProfile>
     </defaultObjectPolicyConfiguration>
     <defaultObjectPolicyConfiguration>
+        <type>MarkType</type>
+        <expressionProfile>configuration</expressionProfile>
+    </defaultObjectPolicyConfiguration>
+    <defaultObjectPolicyConfiguration>
         <type>SystemConfigurationType</type>
         <expressionProfile>configuration</expressionProfile>
     </defaultObjectPolicyConfiguration>
