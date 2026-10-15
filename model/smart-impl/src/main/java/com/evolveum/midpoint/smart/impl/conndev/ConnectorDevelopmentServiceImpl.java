@@ -421,21 +421,21 @@ public class ConnectorDevelopmentServiceImpl implements ConnectorDevelopmentServ
             return submitTask("Discover Basic Information for " + connectorNameForTasks(),
                     new WorkDefinitionsType().discoverGlobalInformation(new ConnDevDiscoverGlobalInformationWorkDefinitionType()
                             .connectorDevelopmentRef(stateObject.getOid(), ConnectorDevelopmentType.COMPLEX_TYPE)
-                    ), task, result);
+                    ), true, task, result);
         }
 
         public String submitDiscoverConnectivityEndpoint(Task task, OperationResult result) {
             return submitTask("Discover Connectivity Endpoint for " + connectorNameForTasks(),
                     new WorkDefinitionsType().discoverConnectivityEndpoint(new ConnDevDiscoverConnectivityEndpointWorkDefinitionType()
                             .connectorDevelopmentRef(stateObject.getOid(), ConnectorDevelopmentType.COMPLEX_TYPE)
-                    ), task, result);
+                    ), true, task, result);
         }
 
         public String submitDiscoverDocumentation(Task task, OperationResult result) {
             return submitTask("Discovering documentation for " + connectorNameForTasks(),
                     new WorkDefinitionsType().discoverDocumentation(new ConnDevDiscoverDocumentationWorkDefinitionType()
                             .connectorDevelopmentRef(stateObject.getOid(), ConnectorDevelopmentType.COMPLEX_TYPE)
-                    ), task, result);
+                    ), true, task, result);
         }
 
         @Override
@@ -443,7 +443,7 @@ public class ConnectorDevelopmentServiceImpl implements ConnectorDevelopmentServ
             return submitTask("Processing documentation for " +stateObject.getOid(),
                     new WorkDefinitionsType().processDocumentation(new ConnDevProcessDocumentationWorkDefinitionType()
                             .connectorDevelopmentRef(stateObject.getOid(), ConnectorDevelopmentType.COMPLEX_TYPE)
-                    ), task, result);
+                    ), true, task, result);
         }
 
         @Override
@@ -451,7 +451,7 @@ public class ConnectorDevelopmentServiceImpl implements ConnectorDevelopmentServ
             return submitTask("Discovering object classes for for " + connectorNameForTasks(),
                     new WorkDefinitionsType().discoverObjectClassInformation(new ConnDevDiscoverObjectClassInformationDefinitionType()
                             .connectorDevelopmentRef(stateObject.getOid(), ConnectorDevelopmentType.COMPLEX_TYPE)
-                    ), task, result);
+                    ), true, task, result);
         }
 
         @Override
@@ -461,7 +461,7 @@ public class ConnectorDevelopmentServiceImpl implements ConnectorDevelopmentServ
                     new WorkDefinitionsType().discoverObjectClassAttributes(new ConnDevDiscoverObjectClassAttributesDefinitionType()
                             .connectorDevelopmentRef(stateObject.getOid(), ConnectorDevelopmentType.COMPLEX_TYPE)
                             .objectClass(objectClass)),
-                    task, result);
+                    true, task, result);
         }
 
         @Override
@@ -471,7 +471,7 @@ public class ConnectorDevelopmentServiceImpl implements ConnectorDevelopmentServ
                     new WorkDefinitionsType().discoverObjectClassEndpoints(new ConnDevDiscoverObjectClassEndpointsDefinitionType()
                             .connectorDevelopmentRef(stateObject.getOid(), ConnectorDevelopmentType.COMPLEX_TYPE)
                             .objectClass(objectClass)),
-                    task, result);
+                    true, task, result);
         }
 
         @Deprecated
@@ -510,7 +510,7 @@ public class ConnectorDevelopmentServiceImpl implements ConnectorDevelopmentServ
                     .artifact(artifact.clone());
             customizer.accept(definition);
             return submitTask("Generating script " + artifact.getFilename() + " for " + connectorNameForTasks(),
-                    new WorkDefinitionsType().generateConnectorArtifact(definition), task, result);
+                    new WorkDefinitionsType().generateConnectorArtifact(definition), true, task, result);
         }
 
         @Override
@@ -526,7 +526,7 @@ public class ConnectorDevelopmentServiceImpl implements ConnectorDevelopmentServ
                 currentScripts.forEach(script -> definition.artifact(script.clone()));
             }
             return submitTask("Fixing object class '" + objectClass + "' for " + connectorNameForTasks(),
-                    new WorkDefinitionsType().fixObjectClass(definition), task, result);
+                    new WorkDefinitionsType().fixObjectClass(definition), true, task, result);
         }
 
         @Override
@@ -673,7 +673,7 @@ public class ConnectorDevelopmentServiceImpl implements ConnectorDevelopmentServ
             return submitTask("Refreshing schema for " + connectorNameForTasks(),
                     new WorkDefinitionsType().refreshSchema(new ConnDevRefreshSchemaWorkDefinitionType()
                             .connectorDevelopmentRef(stateObject.getOid(), ConnectorDevelopmentType.COMPLEX_TYPE)
-                    ), task, result);
+                    ), true, task, result);
         }
 
         private String connectorNameForTasks() {
@@ -682,6 +682,16 @@ public class ConnectorDevelopmentServiceImpl implements ConnectorDevelopmentServ
     }
 
     private String submitTask(String name, WorkDefinitionsType work, Task task, OperationResult result) {
+        return submitTask(name, work, false, task, result);
+    }
+
+    private String submitTask(String name, WorkDefinitionsType work, boolean requiresAiService, Task task, OperationResult result) {
+        if (requiresAiService) {
+            var readiness = ConnDevBeans.get().checkReadiness(result);
+            if (!readiness.ready()) {
+                throw new SystemException(readiness.message());
+            }
+        }
         try {
             securityEnforcer.authorize(AuthorizationConstants.AUTZ_UI_CONNECTOR_WIZARD_URL, task, result);
 

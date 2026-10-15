@@ -1,5 +1,6 @@
 package com.evolveum.midpoint.smart.impl.conndev.activity;
 
+import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.model.api.ModelService;
 
@@ -57,6 +58,7 @@ public class ConnDevBeans {
     @Autowired public SystemObjectCache systemObjectCache;
     @Autowired public MidpointConfiguration configuration;
     @Autowired public Protector protector;
+    @Autowired public LocalizationService localizationService;
     private CloseableHttpClient client;
 
     @PostConstruct
@@ -167,6 +169,52 @@ public class ConnDevBeans {
 
     public boolean isOffline() {
         return getServiceUrl(new OperationResult("isOffline")) == null;
+    }
+
+    private static final String API_KEY_HEADER = "X-Gravitee-Api-Key"; // must match ServiceClient.API_KEY_HEADER
+
+    /**
+     * Calls the connector generation service's {@code /ready} endpoint, to be checked right
+     * before starting an operation that depends on it - so a missing/unreachable service is
+     * reported immediately, instead of only after a task has started and failed.
+     */
+    public ReadinessStatus checkReadiness(OperationResult result) {
+        var apiBase = getServiceUrl(result);
+        if (apiBase == null) {
+            return new ReadinessStatus(false, translate("ConnDevBeans.readiness.notConfigured"));
+        }
+        var uri = (apiBase.endsWith("/") ? apiBase : apiBase + "/") + "ready";
+        var request = new HttpGet(uri);
+        var apiKey = getConnectorGeneratorApiKey(result);
+        if (apiKey != null) {
+            request.setHeader(API_KEY_HEADER, apiKey);
+        }
+        try {
+            return client.execute(request, response -> fromResponse(response.getCode()));
+        } catch (IOException e) {
+            return new ReadinessStatus(false, translate("ConnDevBeans.readiness.unreachable", e.getMessage()));
+        }
+    }
+
+    private ReadinessStatus fromResponse(int code) {
+        if (code == HttpStatus.SC_OK) {
+            return new ReadinessStatus(true, null);
+        }
+        if (code == HttpStatus.SC_FORBIDDEN) {
+            return new ReadinessStatus(false, translate("ConnDevBeans.readiness.forbidden"));
+        }
+        return new ReadinessStatus(false, translate("ConnDevBeans.readiness.unreachable", "HTTP " + code));
+    }
+
+    private String translate(String key, Object... args) {
+        return localizationService.translate(key, args, localizationService.getDefaultLocale(), key);
+    }
+
+    /**
+     * Result of {@link #checkReadiness}, with a message ready to show the user when {@code ready}
+     * is {@code false}: what is wrong, and - where it can be determined - why.
+     */
+    public record ReadinessStatus(boolean ready, String message) {
     }
 
     public void downloadFile(URL url, FileOutputStream target) throws IOException {

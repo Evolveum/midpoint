@@ -307,9 +307,11 @@ public abstract class WaitingConnectorStepPanel extends AbstractWizardStepPanel<
                 }
                 tokenModel.reset();
                 statusModel.reset();
+                getSession().getFeedbackMessages().clear();
                 super.onReRunPerform(target);
                 target.add(this);
                 target.add(getPageBase().getFeedbackPanel());
+                target.add(getFeedback());
             }
 
             @Override
