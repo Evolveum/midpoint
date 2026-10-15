@@ -150,7 +150,7 @@ public abstract class AbstractDummyTest extends AbstractProvisioningIntegrationT
     String accountWillCurrentPassword = ACCOUNT_WILL_PASSWORD;
 
     private static final TestObject<ArchetypeType> ARCHETYPE_OBJECT_MARK = TestObject.classPath(
-            "initial-objects/archetype", "701-archetype-object-mark.xml", SystemObjectsType.ARCHETYPE_OBJECT_MARK.value());
+            "initial-objects/archetype", "016-archetype-object-mark.xml", SystemObjectsType.ARCHETYPE_OBJECT_MARK.value());
 
     private static final TestObject<ArchetypeType> ARCHETYPE_SHADOW_POLICY_MARK = TestObject.classPath(
             "initial-objects/archetype", "705-archetype-shadow-policy-mark.xml",
