@@ -63,6 +63,7 @@ public class DiscoverConnectivityEndpointActivityHandler
 
         @Override
         protected @NotNull ActivityRunResult runLocally(OperationResult result) throws CommonException {
+            getActivityHandler().checkDevelopmentToolsEnabled();
             var backend = ConnectorDevelopmentBackend.backendFor(
                     getWorkDefinition().connectorDevelopmentOid, getRunningTask(), result);
             var skipCache = Boolean.TRUE.equals(getWorkDefinition().typedDefinition.getSkipCache());

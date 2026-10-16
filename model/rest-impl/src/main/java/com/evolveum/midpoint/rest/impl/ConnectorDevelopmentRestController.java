@@ -69,6 +69,18 @@ public class ConnectorDevelopmentRestController extends AbstractRestController {
     @Autowired private ModelService modelService;
     @Autowired private SecurityEnforcer securityEnforcer;
 
+    /**
+     * Fails the request when the connector development tools are disabled by the deployment
+     * configuration ({@code midpoint.connectors/developmentToolsEnabled} in {@code config.xml}).
+     * Treated the same way as the connector-generation wizard authorization - only the reported
+     * message is different (see {@link ConnectorDevelopmentService#ERROR_CONNECTOR_DEVELOPMENT_DISABLED}).
+     */
+    private void checkDevelopmentToolsEnabled() throws AuthorizationException {
+        if (!configuration.isConnectorDevelopmentToolsEnabled()) {
+            throw new AuthorizationException(ConnectorDevelopmentService.ERROR_CONNECTOR_DEVELOPMENT_DISABLED);
+        }
+    }
+
     @PostMapping(ConnectorGeneratorConstants.RPC_START_FROM_NEW)
     public ResponseEntity<?> startFromNew(
             @RequestBody @NotNull ConnDevApplicationInfoType applicationInfoType
@@ -78,6 +90,7 @@ public class ConnectorDevelopmentRestController extends AbstractRestController {
         var result = createSubresult(task, START_FROM_NEW);
 
         try {
+            checkDevelopmentToolsEnabled();
 
             return createResponse(
                     HttpStatus.OK,
@@ -102,6 +115,7 @@ public class ConnectorDevelopmentRestController extends AbstractRestController {
         var result = createSubresult(task, START_FROM_EXISTING);
 
         try {
+            checkDevelopmentToolsEnabled();
             var connector = modelService.getObject(ConnectorType.class, oid, null, task, result).asObjectable();
 
             return createResponse(
@@ -124,6 +138,7 @@ public class ConnectorDevelopmentRestController extends AbstractRestController {
         var result = createSubresult(task, IS_MANIFEST_BASED_CONNECTOR);
 
         try {
+            checkDevelopmentToolsEnabled();
             var connector = modelService.getObject(ConnectorType.class, oid, null, task, result).asObjectable();
 
             return createResponse(
@@ -529,6 +544,7 @@ public class ConnectorDevelopmentRestController extends AbstractRestController {
         var result = createSubresult(task, OPERATION_DOWNLOAD_CONNECTOR);
 
         try {
+            checkDevelopmentToolsEnabled();
             securityEnforcer.authorize(AuthorizationConstants.AUTZ_UI_CONNECTOR_WIZARD_URL, task, result);
 
             Configuration config = configuration.getConfiguration(MidpointConfiguration.ICF_CONFIGURATION);
@@ -615,6 +631,7 @@ public class ConnectorDevelopmentRestController extends AbstractRestController {
             CommunicationException,
             ConfigurationException,
             ObjectNotFoundException, SubscriptionComplianceException {
+        checkDevelopmentToolsEnabled();
         securityEnforcer.authorize(AuthorizationConstants.AUTZ_UI_CONNECTOR_WIZARD_URL, task, result);
 
         PrismObject<ConnectorDevelopmentType> connectorDevelopmentType = modelService.getObject(
@@ -655,6 +672,7 @@ public class ConnectorDevelopmentRestController extends AbstractRestController {
             SmartIntegrationOperationExecutor<ConnectorDevelopmentService, StatusInfo<?>> serviceExecutor
     ) {
         try {
+            checkDevelopmentToolsEnabled();
             var statusInfo = serviceExecutor.execute(connectorDevelopmentService);
             var smartIntegrationOperationStatusInfoType = new SmartIntegrationOperationStatusInfoType();
             smartIntegrationOperationStatusInfoType.setStatus(statusInfo.getStatus());

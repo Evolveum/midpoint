@@ -84,6 +84,7 @@ public class CreateConnectorActivityHandler
 
         @Override
         protected @NotNull ActivityRunResult runLocally(OperationResult result) throws CommonException {
+            getActivityHandler().checkDevelopmentToolsEnabled();
 
             var task = getRunningTask();
             var beans = ConnDevBeans.get();

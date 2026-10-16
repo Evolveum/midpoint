@@ -200,7 +200,7 @@ public class PageConnectors extends PageAdmin {
             }
         };
         developMenu.setVisibilityChecker((rowModel, isHeader) -> {
-            if (isHeader) {
+            if (isHeader || !getMidpointConfiguration().isConnectorDevelopmentToolsEnabled()) {
                 return false;
             }
             var casted = (Model<SelectableBean<ConnectorType>>) rowModel;

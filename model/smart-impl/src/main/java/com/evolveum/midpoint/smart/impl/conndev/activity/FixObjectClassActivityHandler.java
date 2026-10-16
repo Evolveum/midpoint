@@ -74,6 +74,7 @@ public class FixObjectClassActivityHandler
 
         @Override
         protected @NotNull ActivityRunResult runLocally(OperationResult result) throws CommonException {
+            getActivityHandler().checkDevelopmentToolsEnabled();
 
             var task = getRunningTask();
 
