@@ -20,7 +20,7 @@ Smart Integration provide AI-assisted and automated capabilities for resource co
 *** xref:recommendations/correlation/correlators-simulation.adoc[Correlators simulation] - (TODO)
 ** xref:recommendations/mappings/mappings-recommendation.adoc[Smart mappings recommendation] - How midPoint recommends inbound and outbound attribute mappings (as-is, heuristic, AI-generated and categorical scripts), quality assessment and result structure.
 *** xref:recommendations/mappings/mappings-simulation.adoc[Mappings simulation] - (TODO)
-** xref:recommendations/associations/associations-recommendation.adoc[Smart associations recommendation] - (TODO)
+** xref:recommendations/associations/associations-recommendation.adoc[Smart associations recommendation] - How midPoint recommends associations between configured object types from references in the resource schema without the AI microservice, including the generated inbound and outbound mappings, membership correlation and synchronization.
 ** xref:recommendations/synchronization/synchronization-recommendation.adoc[Smart synchronization recommendation] - (TODO)
 
 == Supporting functions
