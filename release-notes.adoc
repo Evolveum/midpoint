@@ -302,6 +302,7 @@ See xref:/midpoint/guides/account-activation-sequence/[Account Activation Authen
 * Fixed script expression description updates and preservation when editing scripts or changing their language. See bug:MID-11779[] and bug:MID-11988[].
 * Fixed autocomplete filtering in numeric input fields when suggested values are provided as strings. See bug:MID-12237[].
 * Fixed correlation rule validation to require at least one correlation item before saving. See bug:MID-12421[].
+* Fixed "variables is null" error logged when opening an object list from a dashboard widget with a script expression in the collection filter. See bug:MID-12803[].
 
 === Releases Of Other Components
 
