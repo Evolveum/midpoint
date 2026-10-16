@@ -19,12 +19,13 @@ import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
                 @Url(mountUrl = "/admin/integrationApplicationService", matchUrlForSecurity = "/admin/integrationApplicationService")
         },
         encoder = OnePageParameterEncoder.class, action = {
-        @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_SERVICES_ALL_URL,
+            @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_SERVICES_ALL_URL,
                 label = "PageAdminServices.auth.servicesAll.label",
                 description = "PageAdminServices.auth.servicesAll.description"),
-        @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_SERVICE_URL,
+            @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_SERVICE_URL,
                 label = "PageService.auth.role.label",
-                description = "PageService.auth.role.description") })
+                description = "PageService.auth.role.description") },
+        experimental = true)
 public class PageIntegrationApplicationService extends PageApplicationService {
 
     @Serial private static final long serialVersionUID = 1L;
