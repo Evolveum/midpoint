@@ -267,7 +267,7 @@ public abstract class AbstractWizardController<AH extends AssignmentHolderType, 
             return getActiveParentStep();
         }
 
-        return getActivePartItem().getInProgressParentStep();
+        return getInProgressPartItem().getInProgressParentStep();
     }
 
     public List<WizardParentStep> getParentSteps() {
@@ -377,5 +377,9 @@ public abstract class AbstractWizardController<AH extends AssignmentHolderType, 
 
     protected final void removeActivePartItem() {
         partItems.remove(getActivePartItem());
+    }
+
+    public boolean isActiveAndInProgressParentSame() {
+        return indexOfInProgressPart == indexOfActivePart && getInProgressParentStepIndex() == getActiveParentStepIndex();
     }
 }

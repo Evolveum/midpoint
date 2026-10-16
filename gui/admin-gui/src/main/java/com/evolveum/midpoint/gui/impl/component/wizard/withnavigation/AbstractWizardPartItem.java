@@ -364,6 +364,14 @@ public abstract class AbstractWizardPartItem<AH extends AssignmentHolderType, AD
         return childrenSteps.get(activeStepIndex);
     }
 
+    public WizardStep getInProgressStep() {
+        List<WizardStep> childrenSteps = getInProgressChildrenSteps();
+        if (inProgressStepIndex < 0 || inProgressStepIndex >= childrenSteps.size()) {
+            return getParentSteps().get(inProgressParentStepIndex);
+        }
+        return childrenSteps.get(inProgressStepIndex);
+    }
+
     public List<WizardStep> getActiveChildrenSteps() {
         return getChildrenSteps(getActiveParentStep());
     }
