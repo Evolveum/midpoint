@@ -76,6 +76,7 @@ import static com.evolveum.midpoint.prism.util.PrismTestUtil.createPolyStringTyp
 
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.NS_C;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
 
 /**
@@ -400,6 +401,37 @@ public class TestMelExpressions extends AbstractScriptTest {
                 "expression-format-reference.xml",
                 createVariables("input", null, definition),
                 "");
+    }
+
+    /**
+     * Audit records without deltas provide null input; the column must stay empty (used by 016-object-collection-audit).
+     * The report code declares the input as plain Object, so both overloads of the function match.
+     */
+    @Test
+    public void testFormatAuditDeltaNull() throws Exception {
+        List<PrismPropertyValue<String>> values = executeScript(
+                "expression-format-audit-delta.xml",
+                DOMUtil.XSD_STRING,
+                false,
+                createVariables("input", null, Object.class));
+
+        assertThat(values).as("formatted deltas").isEmpty();
+    }
+
+    /** The same as above, but with the input declared using the audit record delta definition. */
+    @Test
+    public void testFormatAuditDeltaNullTyped() throws Exception {
+        var definition = prismContext.getSchemaRegistry()
+                .findContainerDefinitionByType(AuditEventRecordType.COMPLEX_TYPE)
+                .findPropertyDefinition(AuditEventRecordType.F_DELTA);
+
+        List<PrismPropertyValue<String>> values = executeScript(
+                "expression-format-audit-delta.xml",
+                DOMUtil.XSD_STRING,
+                false,
+                createVariables("input", null, definition));
+
+        assertThat(values).as("formatted deltas").isEmpty();
     }
 
     @Test

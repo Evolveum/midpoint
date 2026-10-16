@@ -237,7 +237,8 @@ public class CelFormatExtensions extends AbstractMidPointCelExtensions {
                                         ListType.create(SimpleType.STRING),
                                         ListType.create(ObjectDeltaOperationCelValue.CEL_TYPE))),
                         CelFunctionBinding.from(FUNCTION_NAME_PREFIX + "_formatAuditDelta",
-                                List.class, this::formatAuditDelta)
+                                List.class, this::formatAuditDelta,
+                                NullabilityProperties.NULLABLE_EMPTY_LIST)
                 ),
 
                 // format.formatAuditDelta (single-valued input) - TEMPORARY/EXPERIMENTAL METHOD, to be reconsidered (#12788)
@@ -250,7 +251,8 @@ public class CelFormatExtensions extends AbstractMidPointCelExtensions {
                                         ListType.create(SimpleType.STRING),
                                         NullableType.create(ObjectDeltaOperationCelValue.CEL_TYPE))),
                         CelFunctionBinding.from(FUNCTION_NAME_PREFIX + "_formatAuditDelta_single",
-                                ObjectDeltaOperationCelValue.class, this::formatAuditDeltaSingle)
+                                ObjectDeltaOperationCelValue.class, this::formatAuditDeltaSingle,
+                                NullabilityProperties.NULLABLE_EMPTY_LIST)
                 )
         ));
 
