@@ -1,0 +1,130 @@
+= Microservice logging
+:page-toc: top
+:page-since: "4.11"
+:page-upkeep-status: green
+
+== Overview
+
+The Smart Integration microservice writes its logs to the standard output.
+When it runs in a container, the logs are collected by the container runtime, for example with `docker logs`.
+
+Each log message has this format:
+
+----
+<time> | <level> | <logger> | request_id=<request ID> | <message>
+----
+
+The Hypercorn server also writes its own messages and the access log in its own format, see <<Access logs>>.
+
+== Log levels
+
+The log level is set by the `LOGGING__LEVEL` environment variable.
+The default is `info`.
+
+[cols="20%,80%",options="header"]
+|===
+| Level | What is logged
+
+| `debug`
+| Everything below, plus the start of each request, the start and the end of each LLM call with its duration, successful health checks, and details of timeouts and invalid values.
+The libraries also log at this level, for example the details of each HTTP connection to the LLM provider.
+
+| `info`
+| Everything below, plus a summary of each successful request, each HTTP request to the LLM provider with its URL and status, and the startup messages of the server.
+
+| `warning`
+| Everything below, plus requests that ended with a `4xx` status, LLM calls that timed out or were cancelled.
+
+| `error`
+| Everything below, plus requests that ended with a `5xx` status or failed, failed LLM calls, failed health checks and answers of the LLM that could not be parsed.
+
+| `critical`
+| Critical errors only.
+|===
+
+The level also applies to the logs of the Hypercorn server.
+
+== Request logs
+
+The microservice logs one summary message for each request when the request is completed:
+
+----
+Request completed: method=POST path=/api/v1/matching/matchSchema status=200 duration_ms=5120.8
+----
+
+The level of the message depends on the result:
+
+* `INFO` for a successful request.
+* `WARNING` for a request with a `4xx` status, for example an invalid request.
+* `ERROR` for a request with a `5xx` status, for example a timeout of the LLM.
+* `DEBUG` for a successful health check, so that regular health checks do not fill the log.
+
+If the request fails with an unexpected error, the message is `Request failed` with the type of the error.
+
+At the `debug` level, the microservice also logs the start of each request and the start and the end of each LLM call:
+
+----
+Request started: method=POST path=/api/v1/matching/matchSchema
+LLM chain started, timeout=120s
+LLM chain completed, duration_ms=5098.2
+----
+
+== Request correlation
+
+The microservice generates a random identifier for each request.
+The identifier is in the `request_id` field of all log messages written while the request is processed.
+Messages written outside of a request, for example during startup, have `request_id=-`.
+
+The same identifier is returned in the `X-Request-ID` response header.
+It can be used to find the log messages of a specific call, for example a call that failed in midPoint.
+
+== Access logs
+
+The Hypercorn server writes an access log line for each request to the standard output, in its own format.
+The line contains the address and port of the client, the time, the method, the path, the status, the size of the response and the user agent:
+
+----
+[2026-10-16 11:19:28 +0200] [70192] [INFO] 127.0.0.1:58909 - - [16/Oct/2026:11:19:28 +0200] "GET /health 1.1" 200 235 "-" "Apache-CXF/4.2.3"
+----
+
+The access log does not contain the request ID.
+
+The access log is enabled by default and can be disabled by setting `LOGGING__ACCESS_LOG` to `false`.
+
+== Tracing with Langfuse
+
+The microservice can send traces to https://langfuse.com/[Langfuse].
+A trace contains the request and the response of the endpoint, and every LLM call with its prompt, answer, duration and token usage.
+Traces are useful for evaluating and tuning the prompts.
+
+WARNING: Traces contain all data that midPoint sends to the microservice and all prompts sent to the LLM.
+Enable tracing only if the Langfuse server is allowed to store such data.
+
+Tracing is disabled by default.
+It is configured by these environment variables:
+
+[cols="35%,65%",options="header"]
+|===
+| Variable | Description
+
+| `LANGFUSE__TRACING_ENABLED`
+| `true` to enable tracing.
+The default is `false`.
+
+| `LANGFUSE__HOST`
+| URL of the Langfuse server.
+
+| `LANGFUSE__PUBLIC_KEY`
+| Public key of the Langfuse project.
+
+| `LANGFUSE__SECRET_KEY`
+| Secret key of the Langfuse project.
+
+| `LANGFUSE__ENVIRONMENT`
+| Name of the environment, used to filter traces in Langfuse.
+
+| `LANGFUSE__CA_CERT_FILE`
+| CA certificate file for a Langfuse server with an internal TLS certificate.
+|===
+
+When tracing is enabled, the xref:endpoints/health.adoc[health check] also checks the connection to Langfuse.

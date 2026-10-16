@@ -1,0 +1,6 @@
+= Microservice configuration
+:page-toc: top
+:page-since: "4.11"
+:page-upkeep-status: green
+
+// TODO: Describe microservice configuration (environment variables, LLM provider, application server settings).

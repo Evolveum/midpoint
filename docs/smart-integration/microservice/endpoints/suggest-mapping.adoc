@@ -1,0 +1,121 @@
+= Suggest mapping endpoint
+:page-toc: top
+:page-since: "4.11"
+:page-upkeep-status: green
+
+== Overview
+
+`POST /api/v1/mapping/suggestMapping`
+
+The endpoint recommends a MEL transformation script for a mapping between one resource attribute and one focus property.
+The script is inferred from examples of values on both sides.
+MidPoint calls it with the `SUGGEST_MAPPING` method, see xref:../../recommendations/mappings/mappings-recommendation.adoc[].
+
+== Request
+
+[cols="25%,15%,60%",options="header"]
+|===
+| Field | Required | Description
+
+| `applicationAttribute`
+| yes
+| Resource attribute.
+
+| `midPointAttribute`
+| yes
+| Focus property.
+
+| `inbound`
+| yes
+| `true` for an inbound mapping (resource to midPoint), `false` for an outbound mapping (midPoint to resource).
+
+| `example`
+| yes
+a| Examples of values.
+Each example contains:
+
+* `application` - list of resource attribute values.
+* `midPoint` - list of focus property values.
+
+| `errorLog`
+| no
+| Error from the evaluation of the script returned by a previous call.
+
+| `previousScript`
+| no
+| Script returned by a previous call that caused the error in `errorLog`.
+|===
+
+== Response
+
+[cols="25%,75%",options="header"]
+|===
+| Field | Description
+
+| `description`
+| One-line description of the transformation, or nothing.
+
+| `transformationScript`
+| MEL script with commented description on the first line.
+If the LLM cannot find a reliable transformation, the field is empty.
+
+| `metadata`
+| AI provider name and model, see xref:index.adoc#_response_metadata[Response metadata].
+|===
+
+== Processing
+
+The microservice converts the examples in the form `<source> -> <target>`, quoted according to the attribute types:
+
+* For an inbound mapping, the source variable is `input`, for example `[input: "jack"] -> "JACK"`.
+* For an outbound mapping, the source variable is the name of the focus property without the namespace prefix, for example `[givenName: "Jack"] -> "jack"`.
+
+Only these lines are sent to the LLM, together with the error log and the previous script, if present.
+The attribute descriptions are not sent.
+
+The prompt asks the LLM to find a general rule rather than to memorize the examples, and to return no script when there is no reliable rule.
+If the returned script contains no code (for example only a comment or `null`), the microservice returns an empty response.
+
+The microservice does not evaluate the script.
+MidPoint evaluates it and can call the endpoint again with the error log and the previous script.
+
+== Errors
+
+* An example value that does not match the attribute type is rejected with the status `400`.
+* An attribute type that is not supported is rejected with the status `422`.
+* If the answer of the LLM cannot be parsed, the status is `550`.
+
+== Example
+
+.Request
+[source,json]
+----
+{
+    "applicationAttribute": { "name": "attributes/icfs:name", "type": "xsd:string", "minOccurs": 1, "maxOccurs": 1 },
+    "midPointAttribute": { "name": "name", "type": "xsd:string", "minOccurs": 0, "maxOccurs": 1 },
+    "inbound": true,
+    "example": [
+        {
+            "application": [ { "name": "attributes/icfs:name", "value": [ "jack" ] } ],
+            "midPoint": [ { "name": "name", "value": [ "JACK" ] } ]
+        },
+        {
+            "application": [ { "name": "attributes/icfs:name", "value": [ "jim" ] } ],
+            "midPoint": [ { "name": "name", "value": [ "JIM" ] } ]
+        }
+    ]
+}
+----
+
+.Response
+[source,json]
+----
+{
+    "description": "Uppercase input",
+    "transformationScript": "// Uppercase input\ninput.uc()",
+    "metadata": {
+        "provider": "openrouter",
+        "model": "openai/gpt-oss-20b"
+    }
+}
+----
