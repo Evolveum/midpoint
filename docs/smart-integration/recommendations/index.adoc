@@ -7,7 +7,7 @@
 == Overview
 
 *Smart recommendations* help the user configure a resource.
-midPoint analyzes the resource schema and sample data, optionally with the help of the AI microservice, and proposes parts of the resource configuration.
+MidPoint analyzes the resource schema and sample data, optionally with the help of the AI microservice, and proposes parts of the resource configuration.
 
 Recommendations are never applied automatically.
 The user reviews them in the GUI and decides which of them to accept.
@@ -63,5 +63,5 @@ See xref:../schema-match.adoc[Schema match].
 ** xref:correlation/correlators-simulation.adoc[Correlators simulation] - (TODO)
 * xref:mappings/mappings-recommendation.adoc[Smart mappings recommendation] - How midPoint recommends inbound and outbound attribute mappings (as-is, heuristic, AI-generated and categorical scripts), quality assessment and result structure.
 ** xref:mappings/mappings-simulation.adoc[Mappings simulation] - (TODO)
-* xref:associations/associations-recommendation.adoc[Smart associations recommendation] - (TODO)
+* xref:associations/associations-recommendation.adoc[Smart associations recommendation] - How midPoint recommends associations between configured object types from references in the resource schema without the AI microservice, including the generated inbound and outbound mappings, membership correlation and synchronization.
 * xref:synchronization/synchronization-recommendation.adoc[Smart synchronization recommendation] - (TODO)

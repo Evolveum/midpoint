@@ -1,0 +1,99 @@
+= Suggest focus type endpoint
+:page-toc: top
+:page-since: "4.11"
+:page-upkeep-status: green
+
+== Overview
+
+`POST /api/v1/focusType/suggestFocusType`
+
+The endpoint recommends the focus type for a resource object type.
+MidPoint calls it with the `SUGGEST_FOCUS_TYPE` method, see xref:../../recommendations/focus-type/focus-type-recommendation.adoc[].
+
+== Request
+
+[cols="25%,15%,60%",options="header"]
+|===
+| Field | Required | Description
+
+| `kind`
+| yes
+| Kind of the object type, for example `account`.
+
+| `intent`
+| yes
+| Intent of the object type, for example `employee`.
+
+| `baseContextFilter`
+| no
+| Filter of the base context of the object type, in midPoint Query Language.
+
+| `schema`
+| yes
+| Schema of the object class, see xref:index.adoc#_schema_attributes[Schema attributes].
+|===
+
+== Response
+
+[cols="25%,75%",options="header"]
+|===
+| Field | Description
+
+| `focusTypeName`
+| Recommended focus type, one of `UserType`, `RoleType`, `OrgType` or `ServiceType`.
+
+| `metadata`
+| AI provider name and model, see xref:index.adoc#_response_metadata[Response metadata].
+|===
+
+== Processing
+
+The microservice sends the LLM the name of the object class, the kind, the intent, the base context filter and the names of the attributes.
+Attribute types, descriptions and cardinalities are not sent to the LLM.
+
+The LLM classifies the object type into one of the four focus types:
+
+* `UserType` - a human or a service account, with person-like attributes.
+* `RoleType` - a grouping of access rights, for example an administrator or a reader group.
+* `OrgType` - an organizational or group unit, for example a department, a team or an organizational unit.
+* `ServiceType` - a concrete or abstract service or device, for example a virtual machine, a printer or an application.
+
+An answer with any other focus type is rejected by the response parser.
+
+== Errors
+
+Any failure while calling the LLM or parsing its answer, including a timeout, is reported with the status `550`.
+
+== Example
+
+.Request
+[source,json]
+----
+{
+    "kind": "account",
+    "intent": "default",
+    "schema": {
+        "name": "ri:account",
+        "description": "Contains user accounts",
+        "attribute": [
+            { "name": "attributes/icfs:name", "type": "xsd:string", "minOccurs": 1, "maxOccurs": 1 },
+            { "name": "attributes/ri:email", "type": "xsd:string", "minOccurs": 1, "maxOccurs": 1 },
+            { "name": "attributes/ri:fullname", "type": "xsd:string", "minOccurs": 1, "maxOccurs": 1 },
+            { "name": "attributes/ri:department", "type": "xsd:string", "minOccurs": 0, "maxOccurs": 1 },
+            { "name": "activation/administrativeStatus", "type": "xsd:string", "minOccurs": 0, "maxOccurs": 1 }
+        ]
+    }
+}
+----
+
+.Response
+[source,json]
+----
+{
+    "focusTypeName": "UserType",
+    "metadata": {
+        "provider": "openrouter",
+        "model": "openai/gpt-oss-20b"
+    }
+}
+----

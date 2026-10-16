@@ -1,0 +1,97 @@
+= Suggest categorical mapping endpoint
+:page-toc: top
+:page-since: "4.11"
+:page-upkeep-status: green
+
+== Overview
+
+`POST /api/v1/mapping/suggestCategoricalMapping`
+
+The endpoint recommends a MEL script that maps the values of a categorical resource attribute to the allowed values of a focus property, for example `A`, `D` to `enabled`, `disabled`.
+Unlike the xref:suggest-mapping.adoc[suggest mapping] endpoint, it does not need pairs of values: it uses the observed resource values and the allowed midPoint values.
+MidPoint calls it with the `SUGGEST_CATEGORICAL_MAPPING` method, see xref:../../recommendations/mappings/mappings-recommendation.adoc[].
+
+== Request
+
+[cols="25%,15%,60%",options="header"]
+|===
+| Field | Required | Description
+
+| `applicationAttribute`
+| yes
+| Resource attribute, see xref:index.adoc#_schema_attributes[Schema attributes].
+
+| `midPointAttribute`
+| yes
+| Focus property, in the same structure.
+
+| `inbound`
+| yes
+| Must be `true`.
+Outbound categorical mappings are not supported.
+
+| `applicationAttributeValue`
+| no
+| Observed values of the resource attribute.
+
+| `midPointCategoryValue`
+| no
+| Allowed values of the focus property, for example `enabled`, `disabled`, `archived`.
+|===
+
+== Response
+
+[cols="25%,75%",options="header"]
+|===
+| Field | Description
+
+| `description`
+| One-line description of the transformation, or nothing.
+
+| `transformationScript`
+| MEL script.
+The first line is a comment with the description, followed by a map from resource values to midPoint values selected by `input`.
+If the LLM cannot map the values, the field is empty.
+
+| `metadata`
+| AI provider name and model, see xref:index.adoc#_response_metadata[Response metadata].
+|===
+
+== Processing
+
+The microservice sends the LLM the names of both attributes, the type of the resource attribute, the observed resource values and the allowed midPoint values.
+
+The prompt asks the LLM to map every observed resource value to one of the allowed midPoint values, without default branches.
+If the returned script contains no code, the microservice returns an empty response.
+
+== Errors
+
+* A request with `inbound` set to `false` is rejected with the status `422`.
+* If the answer of the LLM cannot be parsed, the status is `550`.
+
+== Example
+
+.Request
+[source,json]
+----
+{
+    "applicationAttribute": { "name": "attributes/ri:status", "type": "xsd:string", "minOccurs": 0, "maxOccurs": 1 },
+    "midPointAttribute": { "name": "activation/administrativeStatus", "type": "ActivationStatusType", "minOccurs": 0, "maxOccurs": 1 },
+    "inbound": true,
+    "applicationAttributeValue": [ "A", "D" ],
+    "midPointCategoryValue": [ "enabled", "disabled", "archived" ]
+}
+----
+
+.Response
+[source,json]
+----
+{
+    "description": "Map status codes to administrative status",
+    "transformationScript": "// Map status codes to administrative status\n{'A': 'enabled', 'D': 'disabled'}[input]",
+    "metadata": {
+        "provider": "openrouter",
+        "model": "openai/gpt-oss-20b"
+    }
+}
+----

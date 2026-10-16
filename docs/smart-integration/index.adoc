@@ -20,7 +20,7 @@ Smart Integration provide AI-assisted and automated capabilities for resource co
 *** xref:recommendations/correlation/correlators-simulation.adoc[Correlators simulation] - (TODO)
 ** xref:recommendations/mappings/mappings-recommendation.adoc[Smart mappings recommendation] - How midPoint recommends inbound and outbound attribute mappings (as-is, heuristic, AI-generated and categorical scripts), quality assessment and result structure.
 *** xref:recommendations/mappings/mappings-simulation.adoc[Mappings simulation] - (TODO)
-** xref:recommendations/associations/associations-recommendation.adoc[Smart associations recommendation] - (TODO)
+** xref:recommendations/associations/associations-recommendation.adoc[Smart associations recommendation] - How midPoint recommends associations between configured object types from references in the resource schema without the AI microservice, including the generated inbound and outbound mappings, membership correlation and synchronization.
 ** xref:recommendations/synchronization/synchronization-recommendation.adoc[Smart synchronization recommendation] - (TODO)
 
 == Supporting functions
@@ -49,5 +49,9 @@ Setting relevant to Smart Integration are configured globally in the midPoint sy
 
 == Smart Integration microservice
 
-* xref:microservice/index.adoc[Smart Integration microservice] - (TODO)
+* xref:microservice/index.adoc[Smart Integration microservice] - Separate service that provides the AI part of the recommendations, its architecture and communication with midPoint.
+** xref:microservice/endpoints/index.adoc[Microservice endpoints] - Endpoints of the microservice with their requests, responses, processing and errors.
+** xref:microservice/logging.adoc[Microservice logging] - Log format and levels, request logs and correlation and Langfuse tracing.
+** xref:microservice/configuration.adoc[Microservice configuration] - (TODO)
+** xref:microservice/deployment.adoc[Microservice deployment] - (TODO)
 * xref:service-item-paths.adoc[Item paths and type names in service requests] - Format of item paths and type names sent to the Smart Integration microservice (common `c:` namespace prefix is omitted).
