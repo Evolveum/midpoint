@@ -2183,7 +2183,6 @@
 
                 Use for:
 
-                - reports
                 - admin GUI configuration
                 - role management
                 - policy management
@@ -2247,10 +2246,11 @@
             <privilegeElevation>deny</privilegeElevation>
         </expressionProfile>
         <expressionProfile>
-            <identifier>templating</identifier>
+            <identifier>reporting</identifier>
             <description>
                 Use for:
 
+                - reports
                 - message templates
 
                 Limitation: Review and adapt to your particular situation.
@@ -2291,10 +2291,10 @@
             <evaluator>
                 <type>script</type>
                 <decision>deny</decision> <!-- default decision of those script languages that are not explicitly enumerated. -->
-                <script> <!-- inherited from "safe" -->
+                <script> <!-- specific to this profile -->
                     <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                     <decision>allow</decision>
-                    <permissionProfile>mel-safe</permissionProfile>
+                    <permissionProfile>mel-reporting</permissionProfile>
                 </script>
                 <script> <!-- specific to this profile -->
                     <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#safe-velocity</language>
@@ -2366,7 +2366,7 @@
                     <decision>allow</decision>
                     <!-- all MEL functions -->
                 </script>
-                <script> <!-- inherited from "templating" profile -->
+                <script> <!-- inherited from "reporting" profile -->
                     <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#safe-velocity</language>
                     <decision>allow</decision>
                 </script>
@@ -2485,11 +2485,69 @@
                 <name>log</name>
                 <decision>allow</decision>
             </package>
+            <!-- disallowed: simulation, midpoint, secret -->
+        </permissionProfile>
+        <permissionProfile>
+            <identifier>mel-reporting</identifier>
+            <decision>deny</decision>
             <package>
-                <name>simulation</name> <!-- needed for built-in reports -->
+                <name>bindings</name>
                 <decision>allow</decision>
             </package>
-            <!-- disallowed: midpoint, secret -->
+            <package>
+                <name>math</name>
+                <decision>allow</decision>
+            </package>
+            <package>
+                <name>sets</name>
+                <decision>allow</decision>
+            </package>
+            <package>
+                <name>encoders</name>
+                <decision>allow</decision>
+            </package>
+            <package>
+                <name>lists</name>
+                <decision>allow</decision>
+            </package>
+            <package>
+                <name>regex</name>
+                <decision>allow</decision>
+            </package>
+            <package>
+                <name>comprehensions</name>
+                <decision>allow</decision>
+            </package>
+            <package>
+                <name>mel</name>
+                <decision>allow</decision>
+            </package>
+            <package>
+                <name>format</name>
+                <decision>allow</decision>
+            </package>
+            <package>
+                <name>ldap</name>
+                <decision>allow</decision>
+            </package>
+            <package>
+                <name>object</name>
+                <decision>allow</decision>
+            </package>
+            <package>
+                <name>log</name>
+                <decision>allow</decision>
+            </package>
+            <!-- needed for built-in reports -->
+            <package>
+                <name>simulation</name>
+                <decision>allow</decision>
+            </package>
+            <package>
+                <name>midpoint</name>
+                <decision>allow</decision>
+            </package>
+            <!-- disallowed: secret -->
         </permissionProfile>
         <defaults>
             <authorizedObjects>prohibitive</authorizedObjects>
@@ -2498,10 +2556,6 @@
         </defaults>
     </expressions>
 
-    <defaultObjectPolicyConfiguration>
-        <type>ReportType</type>
-        <expressionProfile>safe</expressionProfile>
-    </defaultObjectPolicyConfiguration>
     <defaultObjectPolicyConfiguration>
         <type>ObjectCollectionType</type>
         <expressionProfile>safe</expressionProfile>
@@ -2543,8 +2597,12 @@
         <expressionProfile>safe</expressionProfile>
     </defaultObjectPolicyConfiguration>
     <defaultObjectPolicyConfiguration>
+        <type>ReportType</type>
+        <expressionProfile>reporting</expressionProfile>
+    </defaultObjectPolicyConfiguration>
+    <defaultObjectPolicyConfiguration>
         <type>MessageTemplateType</type>
-        <expressionProfile>templating</expressionProfile>
+        <expressionProfile>reporting</expressionProfile>
     </defaultObjectPolicyConfiguration>
     <defaultObjectPolicyConfiguration>
         <type>ResourceType</type>

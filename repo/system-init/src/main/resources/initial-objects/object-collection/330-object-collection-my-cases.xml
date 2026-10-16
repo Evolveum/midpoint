@@ -12,7 +12,7 @@
     <filter>
         <q:text>
             state != 'closed'
-            and requestorRef = mel`midpoint.getPrincipalRef()`
+            and requestorRef = mel`currentPrincipalRef()`
         </q:text>
     </filter>
     <baseCollection>

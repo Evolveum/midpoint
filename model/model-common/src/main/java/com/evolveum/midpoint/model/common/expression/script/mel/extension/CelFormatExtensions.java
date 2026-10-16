@@ -5,9 +5,11 @@
  */
 package com.evolveum.midpoint.model.common.expression.script.mel.extension;
 
+import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
 import com.evolveum.midpoint.model.common.expression.functions.BasicExpressionFunctions;
 import com.evolveum.midpoint.model.common.expression.functions.TimestampFormatUtil;
 import com.evolveum.midpoint.model.common.expression.script.mel.CelTypeMapper;
+import com.evolveum.midpoint.model.common.expression.script.mel.value.ContainerValueCelValue;
 import com.evolveum.midpoint.model.common.expression.script.mel.value.ObjectDeltaOperationCelValue;
 import com.evolveum.midpoint.model.common.expression.script.mel.value.PolyStringCelValue;
 import com.evolveum.midpoint.model.common.expression.script.mel.value.ReferenceCelValue;
@@ -15,11 +17,14 @@ import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.util.SchemaDisplayUtil;
+import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectDeltaOperationType;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectSetType;
 
 import com.google.common.collect.ImmutableSet;
 import dev.cel.common.CelFunctionDecl;
@@ -39,6 +44,8 @@ import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.util.*;
 
+import static com.evolveum.midpoint.model.common.expression.script.mel.extension.CelMidPointExtensions.toJavaContainerable;
+
 /**
  * Extensions for CEL compiler and runtime implementing formatting and parsing functions.
  *
@@ -52,11 +59,13 @@ public class CelFormatExtensions extends AbstractMidPointCelExtensions {
     private static final String FUNCTION_NAME_PREFIX_DOT = FUNCTION_NAME_PREFIX+".";
 
     private final BasicExpressionFunctions basicExpressionFunctions;
+    private final MidpointFunctions midpointExpressionFunctions;
 
     private static final String REPORT_UTILS_CLASS_NAME = "com.evolveum.midpoint.report.impl.ReportUtils";
 
-    public CelFormatExtensions(BasicExpressionFunctions basicExpressionFunctions) {
+    public CelFormatExtensions(BasicExpressionFunctions basicExpressionFunctions, MidpointFunctions midpointExpressionFunctions) {
         this.basicExpressionFunctions = basicExpressionFunctions;
+        this.midpointExpressionFunctions = midpointExpressionFunctions;
         initialize();
     }
 
@@ -253,6 +262,35 @@ public class CelFormatExtensions extends AbstractMidPointCelExtensions {
                         CelFunctionBinding.from(FUNCTION_NAME_PREFIX + "_formatAuditDelta_single",
                                 ObjectDeltaOperationCelValue.class, this::formatAuditDeltaSingle,
                                 NullabilityProperties.NULLABLE_EMPTY_LIST)
+                ),
+
+                // format.defaultNameForResourceRelatedTask(taskTypeName, resourceObjectSet) - TEMPORARY/EXPERIMENTAL, needs a new home
+                new Function(
+                        CelFunctionDecl.newFunctionDeclaration(
+                                FUNCTION_NAME_PREFIX_DOT + "defaultNameForResourceRelatedTask",
+                                CelOverloadDecl.newGlobalOverload(
+                                        FUNCTION_NAME_PREFIX + "_defaultNameForResourceRelatedTask",
+                                        "Determines the default name for a task that executes an operation against given resource, like import or reconciliation.",
+                                        SimpleType.STRING,
+                                        SimpleType.STRING, NullableType.create(ContainerValueCelValue.CEL_TYPE))),
+                        CelFunctionBinding.from(FUNCTION_NAME_PREFIX + "_defaultNameForResourceRelatedTask",
+                                String.class, Object.class,
+                                this::getDefaultNameForResourceRelatedTask,
+                                NullabilityProperties.NULLABLE)
+                ),
+
+                // format.translateKeyInCurrentLocale(key) - TEMPORARY/EXPERIMENTAL, needs a new home
+                new Function(
+                        CelFunctionDecl.newFunctionDeclaration(
+                                FUNCTION_NAME_PREFIX_DOT + "translateKeyInCurrentLocale",
+                                CelOverloadDecl.newGlobalOverload(
+                                        FUNCTION_NAME_PREFIX + "_translateKeyInCurrentLocale",
+                                        "Translates message key in user's current locale.",
+                                        SimpleType.STRING,
+                                        SimpleType.STRING)),
+                        CelFunctionBinding.from(FUNCTION_NAME_PREFIX + "_translateKeyInCurrentLocale",
+                                String.class,
+                                key -> midpointExpressionFunctions.translateKeyInCurrentLocale(key))
                 )
         ));
 
@@ -317,8 +355,8 @@ public class CelFormatExtensions extends AbstractMidPointCelExtensions {
     private static final class Library implements CelExtensionLibrary<CelFormatExtensions> {
         private final CelFormatExtensions version0;
 
-        private Library(BasicExpressionFunctions basicExpressionFunctions) {
-            version0 = new CelFormatExtensions(basicExpressionFunctions);
+        private Library(BasicExpressionFunctions basicExpressionFunctions, MidpointFunctions midpointExpressionFunctions) {
+            version0 = new CelFormatExtensions(basicExpressionFunctions, midpointExpressionFunctions);
         }
 
         @Override
@@ -332,8 +370,9 @@ public class CelFormatExtensions extends AbstractMidPointCelExtensions {
         }
     }
 
-    public static CelExtensionLibrary<CelFormatExtensions> library(BasicExpressionFunctions basicExpressionFunctions) {
-        return new Library(basicExpressionFunctions);
+    public static CelExtensionLibrary<CelFormatExtensions> library(
+            BasicExpressionFunctions basicExpressionFunctions, MidpointFunctions midpointExpressionFunctions) {
+        return new Library(basicExpressionFunctions, midpointExpressionFunctions);
     }
 
     @Override
@@ -462,6 +501,17 @@ public class CelFormatExtensions extends AbstractMidPointCelExtensions {
             throw new IllegalStateException("Couldn't format audit delta", cause);
         } catch (ReflectiveOperationException e) {
             throw new IllegalStateException("Couldn't access the report delta formatter", e);
+        }
+    }
+
+    private String getDefaultNameForResourceRelatedTask(String taskTypeName, Object set) {
+        try {
+            @SuppressWarnings("unchecked")
+            ResourceObjectSetType javaSet = isCelNull(set)
+                    ? null : toJavaContainerable((ContainerValueCelValue<ResourceObjectSetType>) set);
+            return midpointExpressionFunctions.getDefaultNameForResourceRelatedTask(taskTypeName, javaSet);
+        } catch (CommonException e) {
+            throw createException(e);
         }
     }
 }

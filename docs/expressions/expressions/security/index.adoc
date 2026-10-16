@@ -61,7 +61,7 @@ Those profiles are:
 
 * `prohibitive` - nothing is allowed
 * `safe` - expression evaluators that are generally considered to be safe are allowed (but read below for more precise explanation!)
-* `templating` - as `safe` but allowing Safe Velocity expression language; suitable for writing message templates
+* `reporting` - as `safe` but allowing more MEL functions and the Safe Velocity expression language; suitable for writing reports and message templates
 * `configuration` - greater scale of features, with some potentially dangerous methods (but still without unlimited access provided by general-purpose scripting languages, even if they are enabled by the OS administrator); suitable for the system configuration tasks, like defining resources or object templates
 * `permissive` - full access, limited only by the setting that enables or disables general-purpose scripting languages
 
@@ -69,7 +69,7 @@ Individual evaluators are categorized into those default expression profiles in 
 
 [%autowidth]
 |===
-| Evaluator | Profile `prohibitive` | Profile `safe` | Profile `templating` | Profile `configuration` | Profile `permissive`
+| Evaluator | Profile `prohibitive` | Profile `safe` | Profile `reporting` | Profile `configuration` | Profile `permissive`
 
 | literal (`value`)
 | -
@@ -129,8 +129,8 @@ Individual evaluators are categorized into those default expression profiles in 
 
 | `script` for MEL
 | -
-| only selected modules
-| only selected modules
+| only basic modules
+| more modules
 | all modules
 | Yes
 
@@ -263,11 +263,11 @@ Again, this setting is fully configurable; both at the level of object types and
 | SystemConfigurationType
 | configuration
 
-| MessageTemplateType
-| templating
-
 | ReportType
-| safe
+| reporting
+
+| MessageTemplateType
+| reporting
 
 | ObjectCollectionType
 | safe
