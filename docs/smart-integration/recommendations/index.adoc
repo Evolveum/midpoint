@@ -58,7 +58,7 @@ See xref:../schema-match.adoc[Schema match].
 == Topics
 
 * xref:object-types/object-types-recommendation.adoc[Smart object types recommendation] - How midPoint recommends object types (kind, intent, delineation, focus type) for an object class from its statistics, filter validation, retry and regeneration.
-* xref:focus-type/focus-type-recommendation.adoc[Smart focus type recommendation] - (TODO)
+* xref:focus-type/focus-type-recommendation.adoc[Smart focus type recommendation] - How midPoint recommends the focus type (for example `UserType` or `RoleType`) for an object type from the object class schema with the help of the AI microservice.
 * xref:correlation/correlation-recommendation.adoc[Smart correlation recommendation] - How midPoint recommends single-item correlators for known identifying properties from the schema match and existing inbound mappings, and how their quality is evaluated on sampled data.
 ** xref:correlation/correlators-simulation.adoc[Correlators simulation] - (TODO)
 * xref:mappings/mappings-recommendation.adoc[Smart mappings recommendation] - How midPoint recommends inbound and outbound attribute mappings (as-is, heuristic, AI-generated and categorical scripts), quality assessment and result structure.
