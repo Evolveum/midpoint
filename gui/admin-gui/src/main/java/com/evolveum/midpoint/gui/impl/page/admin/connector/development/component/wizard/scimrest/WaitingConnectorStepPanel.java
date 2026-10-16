@@ -370,7 +370,11 @@ public abstract class WaitingConnectorStepPanel extends AbstractWizardStepPanel<
             if (statusModel == null || !statusModel.isLoaded()) {
                 return !isCompleted();
             }
-            return !statusModel.getObject().isFinished();
+            if (!statusModel.getObject().isFinished()) {
+                return true;
+            }
+
+            return statusModel.getObject().isFailed();
         };
     }
 
