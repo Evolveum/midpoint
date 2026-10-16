@@ -31,6 +31,29 @@ Notes & References:
 * Related commits: <this one>
 * Docs: To be specified
 
+=== 2026-10-15 Initial objects were changed (javaMethodReference -> MEL)
+
+Task: https://support.evolveum.com/wp/10946[10946]
+
+Description:
+
+Expressions in:
+
+* `016-object-collection-audit.xml`
+* `100-report-reconciliation.xml`
+* `140-report-certification-campaigns.xml`
+
+were changed from `javaMethodReference` to use MEL.
+
+Require upgrade steps:
+
+- Reimport these initial objects (if you use them as-is), or merge the selected changes into your existing objects.
+
+Notes & References:
+
+* Related commits: <this one>
+* Docs: To be specified
+
 == 4.11-RC2
 
 === 2026-09-30 Smart Integration: dedicated authorization added

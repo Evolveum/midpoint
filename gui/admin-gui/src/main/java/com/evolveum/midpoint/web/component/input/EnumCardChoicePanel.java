@@ -13,6 +13,7 @@ import java.util.List;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.attributes.AjaxRequestAttributes;
 import org.apache.wicket.ajax.form.AjaxFormChoiceComponentUpdatingBehavior;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.basic.Label;
@@ -82,14 +83,23 @@ public class EnumCardChoicePanel<T extends Enum<?>> extends InputPanel {
     }
 
     private void initLayout() {
-        RadioGroup<T> radioGroup = new RadioGroup<>(ID_INPUT, valueModel);
+        RadioGroup<T> radioGroup = new RadioGroup<>(ID_INPUT, valueModel) {
+
+            @Serial
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public void updateModel() {
+                boolean realSubmit = getForm() != null && getForm().isSubmitted();
+                if (getConvertedInput() != null || realSubmit) {
+                    super.updateModel();
+                } else {
+                    clearInput();
+                }
+            }
+        };
         radioGroup.setOutputMarkupId(true);
         if (readOnly) {
-            // A read-only selection must survive form submissions: a disabled radio input is
-            // never submitted, so an enabled group would convert the missing input to null and
-            // wipe the value (e.g. the locked SQL integration type of a connector development)
-            // whenever the surrounding form is submitted. Disabling the group makes Wicket skip
-            // both its validation and its model update, so the value is only rendered.
             radioGroup.setEnabled(false);
         }
 
@@ -101,6 +111,10 @@ public class EnumCardChoicePanel<T extends Enum<?>> extends InputPanel {
 
                 @Override
                 public void validate(IValidatable<T> validatable) {
+                    boolean realSubmit = radioGroup.getForm() != null && radioGroup.getForm().isSubmitted();
+                    if (validatable.getValue() == null && !realSubmit && valueModel.getObject() != null) {
+                        return;
+                    }
                     if (validatable.getValue() == null) {
                         ValidationError error = new ValidationError();
                         error.addKey("EnumCardChoicePanel.required");
@@ -147,11 +161,29 @@ public class EnumCardChoicePanel<T extends Enum<?>> extends InputPanel {
                         radioGroup.clearInput();
                         valueModel.setObject(option.getValue());
                         target.add(radioGroup);
+                        clearRequiredError(radioGroup, target);
+                    }
+                });
+
+                radio.add(new AjaxEventBehavior("click") {
+
+                    @Serial
+                    private static final long serialVersionUID = 1L;
+
+                    @Override
+                    protected void onEvent(AjaxRequestTarget target) {
+                    }
+
+                    @Override
+                    protected void updateAjaxAttributes(AjaxRequestAttributes attributes) {
+                        super.updateAjaxAttributes(attributes);
+                        attributes.setEventPropagation(AjaxRequestAttributes.EventPropagation.STOP);
                     }
                 });
             }
         };
         list.setOutputMarkupId(true);
+        list.setReuseItems(true);
         radioGroup.add(list);
 
         radioGroup.add(new AjaxFormChoiceComponentUpdatingBehavior() {
@@ -160,11 +192,23 @@ public class EnumCardChoicePanel<T extends Enum<?>> extends InputPanel {
 
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
-                target.add(radioGroup);
+                if (getFormComponent().getConvertedInput() != null) {
+                    clearRequiredError(radioGroup, target);
+                }
             }
         });
 
         add(radioGroup);
+    }
+
+    private void clearRequiredError(RadioGroup<T> radioGroup, AjaxRequestTarget target) {
+        radioGroup.getFeedbackMessages().clear();
+        if (getParent() != null) {
+            Component feedback = getParent().get("feedback");
+            if (feedback != null) {
+                target.add(feedback);
+            }
+        }
     }
 
     private String getCardCssClass() {

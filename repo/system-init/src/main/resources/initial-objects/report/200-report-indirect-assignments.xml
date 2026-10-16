@@ -342,7 +342,7 @@
                                                             ? nil : cel.bind(channel,
                                                                 assignments[0].metadata.createChannel,
                                                                 cel.bind(parts, channel.split('#'),
-                                                                    midpoint.translateKeyInCurrentLocale(
+                                                                    format.translateKeyInCurrentLocale(
                                                                         'Channel.' + parts[parts.size() - 1]))))))
                             </code>
                         </script>
