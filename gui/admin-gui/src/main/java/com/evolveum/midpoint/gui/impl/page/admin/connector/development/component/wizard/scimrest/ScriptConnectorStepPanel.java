@@ -11,7 +11,6 @@ import java.time.Duration;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.text.WordUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.attributes.AjaxRequestAttributes;
@@ -19,17 +18,14 @@ import org.apache.wicket.ajax.attributes.ThrottlingSettings;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.form.ChoiceRenderer;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.cycle.RequestCycle;
 
 import com.evolveum.midpoint.gui.api.component.button.DropdownButtonDto;
 import com.evolveum.midpoint.gui.api.component.button.DropdownButtonPanel;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardModel;
-import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardStep;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
@@ -137,7 +133,7 @@ public abstract class ScriptConnectorStepPanel extends AbstractWizardStepPanel<C
         super.onBeforeRender();
         if (scriptEditor != null) {
             languageModel.detach();
-            AceEditor.Mode currentMode = toAceMode(languageModel.getObject());
+            AceEditor.Mode currentMode = AceEditor.Mode.forScriptFormat(languageModel.getObject());
             var target = RequestCycle.get().find(AjaxRequestTarget.class);
             target.ifPresentOrElse(
                     t -> scriptEditor.updateMode(t, currentMode),
@@ -262,7 +258,7 @@ public abstract class ScriptConnectorStepPanel extends AbstractWizardStepPanel<C
                 editor.setMinHeight(minSize);
                 editor.setHeight(400);
                 editor.setResizeToMaxHeight(false);
-                lastPushedMode = toAceMode(languageModel.getObject());
+                lastPushedMode = AceEditor.Mode.forScriptFormat(languageModel.getObject());
                 editor.setMode(lastPushedMode);
                 add(editor);
                 return editor;
@@ -309,42 +305,19 @@ public abstract class ScriptConnectorStepPanel extends AbstractWizardStepPanel<C
         return scriptActionsMenu;
     }
 
-    private DropDownChoicePanel<ConnDevScriptFormat> createLanguageSelect() {
-        IModel<List<ConnDevScriptFormat>> choices = Model.ofList(List.of(ConnDevScriptFormat.values()));
-
-        DropDownChoicePanel<ConnDevScriptFormat> languageSelect = new DropDownChoicePanel<>(
-                ID_LANGUAGE_SELECT, languageModel, choices,
-                new ChoiceRenderer<>() {
-                    @Override
-                    public Object getDisplayValue(ConnDevScriptFormat format) {
-                        return format == ConnDevScriptFormat.YAML ? "YAML" : WordUtils.capitalizeFully(format.name());
-                    }
-                }, false);
-        languageSelect.setOutputMarkupId(true);
-        languageSelect.getBaseFormComponent().add(AttributeAppender.append("class", "form-select form-select-sm"));
-        languageSelect.getBaseFormComponent().add(AttributeAppender.append("style", "width: 10rem;"));
-
-        languageSelect.getBaseFormComponent().add(new AjaxFormComponentUpdatingBehavior("change") {
+    private ScriptFormatSelectPanel createLanguageSelect() {
+        ScriptFormatSelectPanel languageSelect = new ScriptFormatSelectPanel(ID_LANGUAGE_SELECT, languageModel) {
             @Override
-            protected void onUpdate(AjaxRequestTarget target) {
-                ConnDevScriptFormat selectedFormat = languageSelect.getBaseFormComponent().getConvertedInput();
-                languageModel.setObject(selectedFormat);
+            protected void onFormatChanged(AjaxRequestTarget target, ConnDevScriptFormat format) {
                 if (scriptEditor != null) {
-                    AceEditor.Mode selectedMode = toAceMode(selectedFormat);
+                    AceEditor.Mode selectedMode = AceEditor.Mode.forScriptFormat(format);
                     scriptEditor.updateMode(target, selectedMode);
                     lastPushedMode = selectedMode;
                 }
             }
-        });
-        return languageSelect;
-    }
-
-    /** Bridges {@link ConnDevScriptFormat} to {@link AceEditor.Mode}; exhaustive so a new format fails to compile until mapped. */
-    private static AceEditor.Mode toAceMode(ConnDevScriptFormat format) {
-        return switch (format) {
-            case GROOVY -> AceEditor.Mode.GROOVY;
-            case YAML -> AceEditor.Mode.YAML;
         };
+        languageSelect.setOutputMarkupId(true);
+        return languageSelect;
     }
 
     @Override

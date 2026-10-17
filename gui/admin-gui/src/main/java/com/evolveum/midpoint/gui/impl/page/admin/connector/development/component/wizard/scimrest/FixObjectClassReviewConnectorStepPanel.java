@@ -27,6 +27,7 @@ import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LambdaModel;
 import org.apache.wicket.model.Model;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
@@ -474,46 +475,22 @@ public class FixObjectClassReviewConnectorStepPanel extends AbstractWizardStepPa
         return sourceSelect;
     }
 
-    private DropDownChoicePanel<ConnDevScriptFormat> createLanguageSelect() {
-        IModel<List<ConnDevScriptFormat>> choices = Model.ofList(List.of(ConnDevScriptFormat.values()));
-        DropDownChoicePanel<ConnDevScriptFormat> languageSelect = new DropDownChoicePanel<>(
+    private ScriptFormatSelectPanel createLanguageSelect() {
+        IModel<ConnDevArtifactType> artifactModel = this::currentWorkingArtifact;
+        ScriptFormatSelectPanel languageSelect = new ScriptFormatSelectPanel(
                 ID_LANGUAGE_SELECT,
-                new IModel<>() {
-                    @Override
-                    public ConnDevScriptFormat getObject() {
-                        ConnDevArtifactType artifact = currentWorkingArtifact();
-                        return ConnDevScriptFormat.fromFilename(artifact != null ? artifact.getFilename() : null);
-                    }
-
-                    @Override
-                    public void setObject(ConnDevScriptFormat object) {
-                        // Handled explicitly in the "change" handler below - it also has to rename
-                        // the working artifact's filename, which a plain field assignment can't do.
-                    }
-                },
-                choices,
-                new ChoiceRenderer<>() {
-                    @Override
-                    public Object getDisplayValue(ConnDevScriptFormat format) {
-                        return format == ConnDevScriptFormat.YAML ? "YAML" : WordUtils.capitalizeFully(format.name());
-                    }
-                }, false);
-        languageSelect.setOutputMarkupId(true);
-        languageSelect.getBaseFormComponent().add(AttributeAppender.append("class", "form-select form-select-sm"));
-        languageSelect.getBaseFormComponent().add(AttributeAppender.append("style", "width: 10rem;"));
-        languageSelect.getBaseFormComponent().add(new AjaxFormComponentUpdatingBehavior("change") {
+                LambdaModel.of(
+                        artifactModel,
+                        artifact -> ConnDevScriptFormat.fromFilename(artifact.getFilename()),
+                        (artifact, format) -> artifact.setFilename(format.withExtension(artifact.getFilename())))) {
             @Override
-            protected void onUpdate(AjaxRequestTarget target) {
-                ConnDevScriptFormat selectedFormat = languageSelect.getBaseFormComponent().getConvertedInput();
-                ConnDevArtifactType artifact = currentWorkingArtifact();
-                if (artifact != null && selectedFormat != null) {
-                    artifact.setFilename(selectedFormat.withExtension(artifact.getFilename()));
-                }
+            protected void onFormatChanged(AjaxRequestTarget target, ConnDevScriptFormat format) {
                 if (scriptEditor != null) {
-                    scriptEditor.updateMode(target, toAceMode(selectedFormat));
+                    scriptEditor.updateMode(target, AceEditor.Mode.forScriptFormat(format));
                 }
             }
-        });
+        };
+        languageSelect.setOutputMarkupId(true);
         return languageSelect;
     }
 
@@ -557,7 +534,7 @@ public class FixObjectClassReviewConnectorStepPanel extends AbstractWizardStepPa
 
     private AceEditor.Mode currentEditorMode() {
         ConnDevArtifactType artifact = currentWorkingArtifact();
-        return toAceMode(ConnDevScriptFormat.fromFilename(artifact != null ? artifact.getFilename() : null));
+        return AceEditor.Mode.forScriptFormat(ConnDevScriptFormat.fromFilename(artifact != null ? artifact.getFilename() : null));
     }
 
     /** Pushes the newly selected type/source's content and mode into the (reused) editor, and re-renders the selects around it. */
@@ -570,14 +547,6 @@ public class FixObjectClassReviewConnectorStepPanel extends AbstractWizardStepPa
         target.add(get(ID_SOURCE_SELECT));
         target.add(get(ID_LANGUAGE_SELECT));
         target.add(get(ID_ENABLED_TOGGLE));
-    }
-
-    /** Mirrors {@code ScriptConnectorStepPanel#toAceMode} - see there for why this stays an exhaustive switch. */
-    private static AceEditor.Mode toAceMode(ConnDevScriptFormat format) {
-        return switch (format) {
-            case GROOVY -> AceEditor.Mode.GROOVY;
-            case YAML -> AceEditor.Mode.YAML;
-        };
     }
 
     /**
