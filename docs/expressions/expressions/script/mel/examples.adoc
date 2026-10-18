@@ -1,6 +1,6 @@
 ---
 midpoint-feature: expression-mel
-doc-type: config
+doc-type: example
 ---
 = MidPoint Expression Language Examples
 :page-nav-title: Examples
