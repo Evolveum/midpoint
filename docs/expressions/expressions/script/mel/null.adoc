@@ -7,6 +7,8 @@ doc-type: intro
 :page-upkeep-status: yellow
 :page-toc: top
 :page-display-order: 500
+:page-keywords: mel, midpoint expression language, null, null-safety
+:page-description: This article describes how null-safety works in MEL.
 
 MEL data structures and functions are generally null-safe.
 I.e. expression authors do not need to worry about passing `null` values into functions, or even invoking member functions on `null` values.

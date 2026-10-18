@@ -7,9 +7,11 @@ doc-type: config
 :page-upkeep-status: green
 :page-toc: top
 :page-display-order: 200
+:page-keywords: mel, midpoint expression language, secure, expression, scripting
+:page-description: This article shows examples of MEL usage in practical scenarios.
 
+This article presents examples of MEL usage in practical scenarios.
 xref:../introduction/[MidPoint Expression Language (MEL)] is an expression language, designed to support customization of midPoint functionality in an easy-to-use and secure way.
-This page lists examples of MEL usage in practical scenarios.
 
 == Assignments
 
