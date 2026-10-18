@@ -6,6 +6,7 @@ doc-type: intro
 :page-nav-title: Introduction
 :page-upkeep-status: green
 :page-toc: top
+:page-display-order: 100
 
 MidPoint Expression Language (MEL) is an expression language, designed to support customization of midPoint functionality in an easy-to-use and secure way.
 MEL expressions are meant to be used in midpoint xref:/midpoint/reference/expressions/mappings/[mappings],
