@@ -210,7 +210,7 @@ public class WizardWithNavigationPanel<AH extends AssignmentHolderType, ADM exte
                         listItem,
                         parentCard,
                         getController().getInProgressParentStepIndex(),
-                        getController().getActiveParentStep().getStepId(),
+                        getController().getActiveParentStep() != null ? getController().getActiveParentStep().getStepId() : "",
                         getController().getInProgressChildrenSteps().isEmpty(),
                         getController().getActiveChildrenSteps().isEmpty(),
                         new VisibleBehaviour(() -> !isActiveParentWithChild(listItem.getModelObject().getStepId())));
@@ -235,7 +235,7 @@ public class WizardWithNavigationPanel<AH extends AssignmentHolderType, ADM exte
                                 listItem,
                                 listItem,
                                 -1,
-                                getController().getActiveStep().getStepId(),
+                                getController().getActiveStep() != null ? getController().getActiveStep().getStepId() : "",
                                 true,
                                 !getController().isShowedSummary()
                                         && getController().getActiveParentStepIndex() != -1,
@@ -271,7 +271,7 @@ public class WizardWithNavigationPanel<AH extends AssignmentHolderType, ADM exte
                         listItem,
                         listItem,
                         lastShowedIndex,
-                        getController().getActiveStep().getStepId(),
+                        getController().getActiveStep() != null ? getController().getActiveStep().getStepId() : "",
                         true,
                         !getController().isShowedSummary()
                                 && getController().getActiveParentStepIndex() != -1
@@ -314,6 +314,9 @@ public class WizardWithNavigationPanel<AH extends AssignmentHolderType, ADM exte
     }
 
     private boolean isActiveParentWithChild(String stepId) {
+        if (getController().getActiveParentStep() == null) {
+            return false;
+        }
         return Strings.CS.equals(stepId, getController().getActiveParentStep().getStepId())
                 && !getController().getActiveChildrenSteps().isEmpty();
     }

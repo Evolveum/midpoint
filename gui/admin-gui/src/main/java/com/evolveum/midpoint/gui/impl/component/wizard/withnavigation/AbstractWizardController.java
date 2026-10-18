@@ -380,6 +380,9 @@ public abstract class AbstractWizardController<AH extends AssignmentHolderType, 
     }
 
     public boolean isActiveAndInProgressParentSame() {
+        if (indexOfActivePart == -1 || indexOfInProgressPart == -1) {
+            return false;
+        }
         return indexOfInProgressPart == indexOfActivePart && getInProgressParentStepIndex() == getActiveParentStepIndex();
     }
 }

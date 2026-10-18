@@ -373,6 +373,10 @@ public abstract class AbstractWizardPartItem<AH extends AssignmentHolderType, AD
     }
 
     public List<WizardStep> getActiveChildrenSteps() {
+        if (getActiveParentStep() == null) {
+            return List.of();
+        }
+
         return getChildrenSteps(getActiveParentStep());
     }
 
