@@ -1,6 +1,6 @@
 ---
 midpoint-feature: expression-mel
-doc-type: config
+doc-type: guide
 ---
 = MidPoint Expression Language Tips and Recommendations
 :page-nav-title: Tips

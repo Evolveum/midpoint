@@ -1,6 +1,6 @@
 ---
 midpoint-feature: expression-mel
-doc-type: config
+doc-type: guide
 ---
 = MidPoint Expression Language Troubleshooting
 :page-nav-title: Troubleshooting

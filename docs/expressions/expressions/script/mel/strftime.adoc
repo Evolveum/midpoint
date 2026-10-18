@@ -1,6 +1,6 @@
 ---
 midpoint-feature: expression-mel
-doc-type: intro
+doc-type: config
 ---
 = MidPoint Expression Language strftime Formatting
 :page-nav-title: strftime
