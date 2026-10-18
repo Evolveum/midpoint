@@ -5,7 +5,6 @@ doc-type: intro
 = MidPoint Expression Language strftime Formatting
 :page-nav-title: strftime
 :page-upkeep-status: yellow
-:page-toc: top
 :page-display-order: 600
 
 Following formatting clauses can be used in MEL `strftime` and `strptime` functions:

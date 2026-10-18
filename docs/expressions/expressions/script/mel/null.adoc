@@ -25,6 +25,8 @@ No additional null checks are needed.
 givenName.substring(0,1)
 ----
 
+{empty}
+
 [source,mel]
 ----
 substring(givenName,0,1)
