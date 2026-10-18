@@ -486,6 +486,8 @@ However, the null values of are rendered as string `null`.
 format('%s has %d apples', ['Jack', 3])
 ----
 
+{empty}
+
 .Example
 [source,mel]
 ----
@@ -1435,6 +1437,8 @@ which enables placing of log functions into complex expression without breaking 
 log.error('The {} is broken', 'system')
 ----
 
+{empty}
+
 .Example
 [source,mel]
 ----
@@ -1460,6 +1464,8 @@ which enables placing of log functions into complex expression without breaking 
 // Logs message 'The system is broken', returns 'system' as its output
 log.warn('The {} is broken', 'system')
 ----
+
+{empty}
 
 .Example
 [source,mel]
@@ -1487,6 +1493,8 @@ which enables placing of log functions into complex expression without breaking 
 log.debug('The {} is broken', 'system')
 ----
 
+{empty}
+
 .Example
 [source,mel]
 ----
@@ -1512,6 +1520,8 @@ which enables placing of log functions into complex expression without breaking 
 // Logs message 'The system is broken', returns 'system' as its output
 log.trace('The {} is broken', 'system')
 ----
+
+{empty}
 
 .Example
 [source,mel]
