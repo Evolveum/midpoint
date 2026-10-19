@@ -120,12 +120,14 @@ Formerly known as Indirect assignment report.</description>
                             <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                             <objectVariableMode>prismReference</objectVariableMode>
                             <code>
-                                !isPresent(data) ? 'Unknown owner' : cel.bind(owner,
-                                        midpoint.resolveReferenceIfExists(
-                                            data.provenance.assignmentPath.sourceRef),
-                                        isPresent(owner) &amp;&amp; isPresent(owner.name) &amp;&amp;
-                                        isPresent(owner.name.orig) &amp;&amp; owner.name.orig != ''
-                                            ? owner.name.orig : 'Unknown owner')
+                                cel.bind(values, list(data),
+                                    values.size() == 0 ? list('Unknown owner') : values.map(d,
+                                        cel.bind(owner,
+                                            midpoint.resolveReferenceIfExists(
+                                                d.provenance.assignmentPath.sourceRef),
+                                            isPresent(owner) &amp;&amp; isPresent(owner.name) &amp;&amp;
+                                            isPresent(owner.name.orig) &amp;&amp; owner.name.orig != ''
+                                                ? owner.name.orig : 'Unknown owner')))
                             </code>
                         </script>
                     </expression>
@@ -199,16 +201,17 @@ Formerly known as Indirect assignment report.</description>
                             <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                             <objectVariableMode>prismReference</objectVariableMode>
                             <code>
-                                !isPresent(data) ||
-                                data.provenance.assignmentPath.segment.size() == 0
-                                    ? '?' : cel.bind(path,
-                                        data.provenance.assignmentPath.segment
-                                            .map(segment, midpoint.resolveReferenceIfExists(segment.targetRef))
-                                            .map(target, isPresent(target) &amp;&amp; isPresent(target.name)
-                                                    ? stringify(target.name.orig, 'null')
-                                                    : 'null')
-                                            .join(' -> '),
-                                        path != '' ? path : '?')
+                                cel.bind(values, list(data),
+                                    values.size() == 0 ? list('?') : values.map(d,
+                                        d.provenance.assignmentPath.segment.size() == 0
+                                            ? '?' : cel.bind(path,
+                                                d.provenance.assignmentPath.segment
+                                                    .map(segment, midpoint.resolveReferenceIfExists(segment.targetRef))
+                                                    .map(target, isPresent(target) &amp;&amp; isPresent(target.name)
+                                                            ? stringify(target.name.orig, 'null')
+                                                            : 'null')
+                                                    .join(' -> '),
+                                                path != '' ? path : '?')))
                             </code>
                         </script>
                     </expression>
@@ -227,15 +230,16 @@ Formerly known as Indirect assignment report.</description>
                             <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                             <objectVariableMode>prismReference</objectVariableMode>
                             <code>
-                                !isPresent(data) ||
-                                data.provenance.assignmentPath.segment.size() == 0
-                                    ? '?' : data.provenance.assignmentPath.segment.size() == 1
-                                        ? 'Direct' : cel.bind(parent,
-                                            midpoint.resolveReferenceIfExists(
-                                                data.provenance.assignmentPath.segment[
-                                                    data.provenance.assignmentPath.segment.size() - 2].targetRef),
-                                            isPresent(parent) &amp;&amp; isPresent(parent.name)
-                                                ? parent.name.orig : nil)
+                                cel.bind(values, list(data),
+                                    values.size() == 0 ? list('?') : values.map(d,
+                                        d.provenance.assignmentPath.segment.size() == 0
+                                            ? '?' : d.provenance.assignmentPath.segment.size() == 1
+                                                ? 'Direct' : cel.bind(parent,
+                                                    midpoint.resolveReferenceIfExists(
+                                                        d.provenance.assignmentPath.segment[
+                                                            d.provenance.assignmentPath.segment.size() - 2].targetRef),
+                                                    isPresent(parent) &amp;&amp; isPresent(parent.name)
+                                                        ? parent.name.orig : nil)))
                             </code>
                         </script>
                     </expression>
@@ -254,15 +258,16 @@ Formerly known as Indirect assignment report.</description>
                             <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                             <objectVariableMode>prismReference</objectVariableMode>
                             <code>
-                                !isPresent(data) ? nil : cel.bind(path, data.provenance.assignmentPath,
+                                list(data).map(d,
+                                    cel.bind(path, d.provenance.assignmentPath,
                                         path.segment.size() == 0 ? nil : cel.bind(owner,
-                                                midpoint.resolveReferenceIfExists(path.sourceRef),
-                                                !isPresent(owner) ? nil : cel.bind(assignments,
-                                                        owner.assignment.filter(assignment,
-                                                            assignment.id == path.segment[0].assignmentId),
-                                                        assignments.size() == 0 ||
-                                                        !isPresent(assignments[0].activation)
-                                                            ? nil : assignments[0].activation.effectiveStatus)))
+                                            midpoint.resolveReferenceIfExists(path.sourceRef),
+                                            !isPresent(owner) ? nil : cel.bind(assignments,
+                                                owner.assignment.filter(assignment,
+                                                    assignment.id == path.segment[0].assignmentId),
+                                                assignments.size() == 0 ||
+                                                !isPresent(assignments[0].activation)
+                                                    ? nil : assignments[0].activation.effectiveStatus))))
                             </code>
                         </script>
                     </expression>
@@ -280,15 +285,16 @@ Formerly known as Indirect assignment report.</description>
                             <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                             <objectVariableMode>prismReference</objectVariableMode>
                             <code>
-                                !isPresent(data) ? nil : cel.bind(path, data.provenance.assignmentPath,
+                                list(data).map(d,
+                                    cel.bind(path, d.provenance.assignmentPath,
                                         path.segment.size() == 0 ? nil : cel.bind(owner,
-                                                midpoint.resolveReferenceIfExists(path.sourceRef),
-                                                !isPresent(owner) ? nil : cel.bind(assignments,
-                                                        owner.assignment.filter(assignment,
-                                                            assignment.id == path.segment[0].assignmentId),
-                                                        assignments.size() == 0 ||
-                                                        !isPresent(assignments[0].activation)
-                                                            ? nil : assignments[0].activation.validTo)))
+                                            midpoint.resolveReferenceIfExists(path.sourceRef),
+                                            !isPresent(owner) ? nil : cel.bind(assignments,
+                                                owner.assignment.filter(assignment,
+                                                    assignment.id == path.segment[0].assignmentId),
+                                                assignments.size() == 0 ||
+                                                !isPresent(assignments[0].activation)
+                                                    ? nil : assignments[0].activation.validTo))))
                             </code>
                         </script>
                     </expression>
@@ -306,8 +312,8 @@ Formerly known as Indirect assignment report.</description>
                             <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                             <objectVariableMode>prismReference</objectVariableMode>
                             <code>
-                                isPresent(data) &amp;&amp; isPresent(data.storage)
-                                    ? data.storage.createTimestamp : nil
+                                list(data).map(d,
+                                    isPresent(d.storage) ? d.storage.createTimestamp : nil)
                             </code>
                         </script>
                     </expression>
@@ -325,20 +331,21 @@ Formerly known as Indirect assignment report.</description>
                             <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                             <objectVariableMode>prismReference</objectVariableMode>
                             <code>
-                                !isPresent(data) ? nil : cel.bind(path, data.provenance.assignmentPath,
+                                list(data).map(d,
+                                    cel.bind(path, d.provenance.assignmentPath,
                                         path.segment.size() == 0 ? nil : cel.bind(owner,
-                                                midpoint.resolveReferenceIfExists(path.sourceRef),
-                                                !isPresent(owner) ? nil : cel.bind(assignments,
-                                                        owner.assignment.filter(assignment,
-                                                            assignment.id == path.segment[0].assignmentId),
-                                                        assignments.size() == 0 ||
-                                                        !isPresent(assignments[0].metadata) ||
-                                                        !isPresent(assignments[0].metadata.createChannel)
-                                                            ? nil : cel.bind(channel,
-                                                                assignments[0].metadata.createChannel,
-                                                                cel.bind(parts, channel.split('#'),
-                                                                    format.translateKeyInCurrentLocale(
-                                                                        'Channel.' + parts[parts.size() - 1]))))))
+                                            midpoint.resolveReferenceIfExists(path.sourceRef),
+                                            !isPresent(owner) ? nil : cel.bind(assignments,
+                                                owner.assignment.filter(assignment,
+                                                    assignment.id == path.segment[0].assignmentId),
+                                                assignments.size() == 0 ||
+                                                !isPresent(assignments[0].metadata) ||
+                                                !isPresent(assignments[0].metadata.createChannel)
+                                                    ? nil : cel.bind(channel,
+                                                        assignments[0].metadata.createChannel,
+                                                        cel.bind(parts, channel.split('#'),
+                                                            format.translateKeyInCurrentLocale(
+                                                                'Channel.' + parts[parts.size() - 1])))))))
                             </code>
                         </script>
                     </expression>
