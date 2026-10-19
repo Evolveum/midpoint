@@ -89,7 +89,8 @@ public class ReportObjectsListPanel<C extends Serializable> extends Containerabl
         try {
             Task task = getPageBase().createSimpleTask("create compiled view");
             view = getPageBase().getReportManager().createCompiledView(getReport().getObjectCollection(), true, task, task.getResult());
-            view.getOptions().addAll(getDefaultOptions());
+            // Merge per selector path, collection may already define root options (issue 12812).
+            view.setOptions(GetOperationOptions.merge(view.getOptions(), getDefaultOptions()));
             guiView = getPageBase().getCompiledGuiProfile().findObjectCollectionView(
                     view.getContainerType() == null ? ObjectType.COMPLEX_TYPE : view.getContainerType(), null);
         } catch (Exception e) {
