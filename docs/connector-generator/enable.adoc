@@ -24,6 +24,8 @@ the default `config.xml` shipped with midPoint sets it to `false`:
 The rationale is security: the generator produces connector bundles with executable (Groovy) scripts,
 so a hardened deployment may not want anyone - not even a system administrator - to create or modify such connectors.
 
+If the `developmentToolsEnabled` element is missing from the `config.xml` file, midPoint treats the connector generator as disabled.
+
 == What the flag controls
 
 When the connector generator is disabled:
