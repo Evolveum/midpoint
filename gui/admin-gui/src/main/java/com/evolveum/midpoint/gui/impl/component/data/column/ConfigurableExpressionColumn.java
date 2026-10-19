@@ -257,6 +257,9 @@ public class ConfigurableExpressionColumn<S extends SelectableRow<T>, T extends 
 
             if (columnItem != null) {
                 variablesMap.put(ExpressionConstants.VAR_INPUT, columnItem, columnItem.getDefinition());
+            } else if (!isItemPathDefined(WebComponentUtil.getPath(customColumn)) && rowValue != null) {
+                // Column without path: input is the whole row value, the same as in report export (issue 12807).
+                variablesMap.put(ExpressionConstants.VAR_INPUT, rowValue, rowValue.getClass());
             } else {
                 variablesMap.put(ExpressionConstants.VAR_INPUT, null, String.class);
             }
