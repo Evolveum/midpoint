@@ -8,6 +8,7 @@ package com.evolveum.midpoint.web.component;
 
 import com.evolveum.midpoint.gui.api.component.form.TextArea;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.smart.api.conndev.ConnDevScriptFormat;
 
 import com.evolveum.midpoint.web.util.ExpressionUtil;
 
@@ -59,6 +60,19 @@ public class AceEditor extends TextArea<String> {
             }
 
             return null;
+        }
+
+        /**
+         * Maps the script format of a connector development script to the editor mode.
+         *
+         * @param format script format
+         * @return editor mode used for syntax highlighting of the script
+         */
+        public static Mode forScriptFormat(ConnDevScriptFormat format) {
+            return switch (format) {
+                case GROOVY -> GROOVY;
+                case YAML -> YAML;
+            };
         }
     }
 
