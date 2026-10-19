@@ -26,7 +26,7 @@ Smart Integration provide AI-assisted and automated capabilities for resource co
 == Supporting functions
 
 * xref:schema-match.adoc[Schema match] - How midPoint pairs resource attributes with focus properties (well-known schemas, AI-assisted matching, post-processing heuristics), and how the result is stored and reused.
-* xref:statistics.adoc[Statistics] - Object class, object type and focus statistics used by the recommendations. (TODO)
+* xref:statistics.adoc[Statistics] - Object class, object type and focus statistics: content, value patterns, storage, reuse and which recommendations use them.
 * xref:shadow-sampling.adoc[Shadow sampling configuration] - Configure sample size constraints for correlation and mappings recommendations based on shadow caching availability.
 
 == Configuration
