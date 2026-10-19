@@ -249,7 +249,9 @@ public class WizardWithNavigationPanel<AH extends AssignmentHolderType, ADM exte
 
         WebMarkupContainer stepInProgress = new WebMarkupContainer(ID_STEP_IN_PROGRESS);
         stepInProgress.setOutputMarkupId(true);
-        stepInProgress.add(new VisibleBehaviour(() -> !getController().getInProgressChildrenSteps().isEmpty()));
+        stepInProgress.add(new VisibleBehaviour(() ->
+                getController().getInProgressStepIndex() != -1
+                        && !getController().getInProgressChildrenSteps().isEmpty()));
         navigation.add(stepInProgress);
 
         stepInProgress.add(new Label(

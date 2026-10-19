@@ -173,10 +173,12 @@ public abstract class AbstractWizardPartItem<AH extends AssignmentHolderType, AD
 
                 setActiveParentStepIndex(i);
                 List<WizardStep> childrenSteps = getChildrenSteps(parentStep);
-                if (childrenSteps.isEmpty()) {
-                    setActiveStepIndex(-1);
-                } else {
-                    setActiveStepIndex(0);
+                setActiveStepIndex(-1);
+                for (int childI = 0; childI < childrenSteps.size(); childI++) {
+                    if (Boolean.TRUE.equals(childrenSteps.get(childI).isStepVisible().getObject())) {
+                        setActiveStepIndex(childI);
+                        break;
+                    }
                 }
                 return true;
             }
@@ -335,7 +337,7 @@ public abstract class AbstractWizardPartItem<AH extends AssignmentHolderType, AD
         return findNextStep(false);
     }
 
-    private void setActiveParentStepIndex(int activeParentStepIndex) {
+    void setActiveParentStepIndex(int activeParentStepIndex) {
         if (this.lastActiveParentStepIndex < activeParentStepIndex) {
             lastActiveParentStepIndex = activeParentStepIndex;
         }
@@ -346,7 +348,7 @@ public abstract class AbstractWizardPartItem<AH extends AssignmentHolderType, AD
         }
     }
 
-    private void setActiveStepIndex(int activeStepIndex) {
+    void setActiveStepIndex(int activeStepIndex) {
         if (this.lastActiveStepIndex < activeStepIndex) {
             lastActiveStepIndex = activeStepIndex;
         }

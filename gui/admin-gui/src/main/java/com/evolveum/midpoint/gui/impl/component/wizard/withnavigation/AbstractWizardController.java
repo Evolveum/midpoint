@@ -119,7 +119,15 @@ public abstract class AbstractWizardController<AH extends AssignmentHolderType, 
         for (int i = 0; i < partItems.size(); i++) {
             AbstractWizardPartItem<AH, ADM> partItem = partItems.get(i);
             if (partItem.setActiveStepById(id)) {
+                int exactlyActiveParentStepIndex = partItem.getActiveParentStepIndex();
+                int exactlyActiveStepIndex = partItem.getActiveStepIndex();
                 setActiveWizardPartIndex(i);
+                if (exactlyActiveParentStepIndex != partItem.getActiveParentStepIndex()) {
+                    partItem.setActiveParentStepIndex(exactlyActiveParentStepIndex);
+                    partItem.setActiveStepIndex(exactlyActiveStepIndex);
+                } else if (exactlyActiveStepIndex == -1 || partItem.getActiveStepIndex() == -1){
+                    partItem.setActiveStepIndex(exactlyActiveStepIndex);
+                }
                 return;
             }
         }
