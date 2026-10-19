@@ -15,6 +15,7 @@ import java.util.List;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
+import org.apache.wicket.MarkupContainer;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -32,6 +33,7 @@ import com.evolveum.midpoint.gui.api.component.wizard.TileEnum;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.component.data.provider.MultivalueContainerListDataProvider;
 import com.evolveum.midpoint.gui.impl.component.dialog.OnePanelPopupPanel;
@@ -54,6 +56,7 @@ import com.evolveum.midpoint.schema.util.SmartMetadataUtil;
 import com.evolveum.midpoint.smart.api.conndev.DocumentationContentTypes;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -62,6 +65,7 @@ import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
+import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.dialog.HelpInfoPanel;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
@@ -456,6 +460,7 @@ public class DocumentationConnectorStepPanel extends AbstractWizardStepPanel<Con
             protected WebMarkupContainer createPanel(String id) {
                 ItemPanelSettings settings = new ItemPanelSettingsBuilder()
                         .headerVisibility(false)
+                        .mandatoryHandler(wrapper -> QNameUtil.match(wrapper.getItemName(), ConnDevDocumentationSourceType.F_URI))
                         .build();
                 settings.setConfig(getContainerConfiguration(PANEL_TYPE));
 
@@ -487,6 +492,22 @@ public class DocumentationConnectorStepPanel extends AbstractWizardStepPanel<Con
                     @Override
                     protected boolean isShowEmptyButtonVisible() {
                         return false;
+                    }
+                };
+            }
+
+            @Override
+            protected Component createDoneButton(String id) {
+                return new AjaxSubmitButton(id) {
+
+                    @Override
+                    public void onSubmit(AjaxRequestTarget target) {
+                        processHide(target);
+                    }
+
+                    @Override
+                    protected void onError(AjaxRequestTarget target) {
+                        WebComponentUtil.refreshFeedbacks((MarkupContainer) getPanel(), target);
                     }
                 };
             }
