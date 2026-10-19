@@ -17,6 +17,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.querydsl.core.Tuple;
 import org.jetbrains.annotations.NotNull;
@@ -35,17 +36,6 @@ import com.evolveum.midpoint.repo.sqlbase.mapping.TableRelationResolver;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkItemOutputType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationWorkItemType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ArchetypeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ServiceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
  * Mapping between {@link QAccessCertificationWorkItem} and {@link AccessCertificationWorkItemType}.
@@ -367,6 +357,8 @@ public class QAccessCertificationWorkItemMapping
             } else if (RoleType.COMPLEX_TYPE.equals(type)
                     || ServiceType.COMPLEX_TYPE.equals(type)
                     || ArchetypeType.COMPLEX_TYPE.equals(type)
+                    || PolicyType.COMPLEX_TYPE.equals(type)
+                    || ApplicationType.COMPLEX_TYPE.equals(type)
                     || OrgType.COMPLEX_TYPE.equals(type)) {
                 // For AbstractRole types, set displayName
                 RoleType role = new RoleType();
