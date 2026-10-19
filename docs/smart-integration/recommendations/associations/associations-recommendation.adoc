@@ -124,10 +124,8 @@ Memberships can change when the saved mappings are evaluated during synchronizat
 
 == How association suggestions work
 
-The process uses configured object types and their references to identify possible
-associations. It skips pairs that already have an association on the resource and
-builds suggestions for the remaining combinations. The following sections explain
-each step.
+The process uses configured object types and their references to identify possible associations and build suggestions.
+The following sections explain each step.
 
 === 1. Read the resource configuration
 
@@ -242,7 +240,7 @@ For example, `account/default` might expose `ri:group`, while three entitlement 
 | `account/default` | `entitlement/org-group` | Organizational group membership
 |===
 
-All three are candidates because their classes match, assuming none of the pairs is already configured.
+All three are candidates because their classes match.
 The algorithm does not choose which category should grant access.
 
 Rules called *delineation* distinguish which actual groups belong to each type.
@@ -250,41 +248,9 @@ Generation matches the class without evaluating those rules against group data.
 Classification uses them when resource objects are processed.
 See xref:../../../resources/resource-configuration/schema-handling/delineation.adoc[Object Type Delineation].
 
-=== 5. Exclude already configured associations
+=== 5. Build the suggested configuration
 
-Before generating a suggestion, midPoint checks whether an association
-between the same subject and object types already exists on the resource.
-
-For example, consider three possible associations:
-
-.Existing and potential associations
-[source,text]
-----
-account/default
-      |
-      +----> entitlement/app-group      (already configured)
-      |
-      +----> entitlement/generic-group  (suggested)
-      |
-      +----> entitlement/org-group      (suggested)
-----
-
-MidPoint skips `entitlement/app-group` because its association
-is already configured. The other two relationships remain eligible
-for suggestions.
-
-The comparison uses the *kind* and *intent* of both participants,
-not the association's name. Renaming an existing association
-does not make it eligible for another suggestion.
-
-Only associations on the current resource are considered.
-Associations configured on other resources do not affect generation.
-
-NOTE: Association exclusion prevents duplicate configuration suggestions.
-
-=== 6. Build the suggested configuration
-
-For each remaining combination of subject type, reference, and target type,
+For each eligible combination of subject type, reference, and target type,
 midPoint generates an association definition.
 
 For example, a suggestion connecting `account/default` to
@@ -315,8 +281,7 @@ described in <<Generated configuration>>.
 When started from the GUI, generation runs as a background task.
 The generated suggestions are then available for review.
 
-If all supported associations are already configured or no
-matching target types are found, the result may be empty.
+The result may be empty if no supported references or matching target types are found.
 
 == Generated configuration
 
