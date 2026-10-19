@@ -323,6 +323,9 @@ public class ConnectorIdentificationConnectorStepPanel extends AbstractFormWizar
     }
 
     private boolean isItemEditable(ItemWrapper itemWrapper) {
+        if (ConnectorDevelopmentWizardUtil.isLockedIntegrationTypeItem(itemWrapper)) {
+            return false;
+        }
         if (!ConnectorDevelopmentWizardUtil.isBasicSettingsComplete(getDetailsModel().getObjectWrapper())) {
             return true;
         }

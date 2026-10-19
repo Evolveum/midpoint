@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard;
 
 import com.evolveum.midpoint.gui.api.page.PageAdminLTE;
+import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.prism.wrapper.*;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
@@ -38,8 +39,10 @@ import com.evolveum.midpoint.smart.api.conndev.SupportedAuthorization;
 import com.evolveum.midpoint.smart.api.conndev.ConnectorDevelopmentOperation;
 import com.evolveum.midpoint.smart.api.conndev.ConnectorDevelopmentService;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.web.component.util.SerializableConsumer;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -728,6 +731,47 @@ public class ConnectorDevelopmentWizardUtil {
                         ItemPath.create(ConnectorDevelopmentType.F_CONNECTOR, ConnDevConnectorType.F_ARTIFACT_ID))
                 || path.endsWith(
                         ItemPath.create(ConnectorDevelopmentType.F_CONNECTOR, ConnDevConnectorType.F_VERSION)));
+    }
+
+    /**
+     * Checks whether the item is the integration type that can no longer be changed.
+     *
+     * @param itemWrapper wrapper of the checked item
+     * @return true for the integration type of a created connector or of a persisted SQL connector development
+     */
+    public static boolean isLockedIntegrationTypeItem(ItemWrapper<?, ?> itemWrapper) {
+        if (!isIntegrationTypeItem(itemWrapper) || !(itemWrapper instanceof PrismPropertyWrapper<?> propertyWrapper)) {
+            return false;
+        }
+        PrismObjectWrapper<ConnectorDevelopmentType> objectWrapper = itemWrapper.findObjectWrapper();
+        if (objectWrapper != null && isBasicSettingsComplete(objectWrapper)) {
+            return true;
+        }
+        return getPersistedIntegrationType(propertyWrapper) == ConnDevIntegrationType.SQL;
+    }
+
+    private static boolean isIntegrationTypeItem(ItemWrapper<?, ?> itemWrapper) {
+        if (itemWrapper.getParentContainerValue(ConnDevApplicationInfoType.class) != null) {
+            return QNameUtil.match(itemWrapper.getItemName(), ConnDevApplicationInfoType.F_INTEGRATION_TYPE);
+        }
+        if (itemWrapper.getParentContainerValue(ConnDevConnectorType.class) != null) {
+            return QNameUtil.match(itemWrapper.getItemName(), ConnDevConnectorType.F_INTEGRATION_TYPE);
+        }
+        return false;
+    }
+
+    private static ConnDevIntegrationType getPersistedIntegrationType(PrismPropertyWrapper<?> itemWrapper) {
+        if (itemWrapper.findObjectStatus() == ItemStatus.ADDED) {
+            return null;
+        }
+        try {
+            var oldValue = itemWrapper.getValue().getOldValue();
+            return oldValue != null && oldValue.getRealValue() instanceof ConnDevIntegrationType integrationType
+                    ? integrationType
+                    : null;
+        } catch (SchemaException e) {
+            throw new SystemException("Couldn't determine current value of " + itemWrapper.getItemName(), e);
+        }
     }
 
     public static boolean isConnectionComplete(ConnectorDevelopmentDetailsModel detailsModel) {
