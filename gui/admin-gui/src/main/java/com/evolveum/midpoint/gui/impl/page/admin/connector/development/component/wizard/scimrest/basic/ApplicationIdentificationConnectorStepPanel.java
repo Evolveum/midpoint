@@ -91,6 +91,7 @@ public class ApplicationIdentificationConnectorStepPanel extends AbstractFormWiz
         ItemPanelSettings settings = new ItemPanelSettingsBuilder()
                 .visibilityHandler(getVisibilityHandler())
                 .mandatoryHandler(this::checkMandatory)
+                .editabilityHandler(this::isItemEditable)
                 .build();
         VerticalFormPanel panel = new VerticalFormPanel(ID_FORM, getContainerFormModel(), settings, getContainerConfiguration()) {
             @Override
@@ -157,6 +158,11 @@ public class ApplicationIdentificationConnectorStepPanel extends AbstractFormWiz
             return true;
         }
         return itemWrapper.isMandatory();
+    }
+
+    private boolean isItemEditable(ItemWrapper itemWrapper) {
+        return !itemWrapper.isReadOnly()
+                && !ConnectorDevelopmentWizardUtil.isLockedIntegrationTypeItem(itemWrapper);
     }
 
     @Override
