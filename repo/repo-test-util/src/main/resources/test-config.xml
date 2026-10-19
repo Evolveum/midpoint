@@ -42,6 +42,10 @@
                 <auditServiceFactoryClass>com.evolveum.midpoint.test.DummyAuditServiceFactory</auditServiceFactoryClass>
             </auditService>
         </audit>
+        <!-- Connector development tools are enabled for the connector development (conndev) tests -->
+        <connectors>
+            <developmentToolsEnabled>true</developmentToolsEnabled>
+        </connectors>
         <taskManager>
             <jdbcJobStore>false</jdbcJobStore>
             <waitingTasksCheckInterval>5</waitingTasksCheckInterval>
