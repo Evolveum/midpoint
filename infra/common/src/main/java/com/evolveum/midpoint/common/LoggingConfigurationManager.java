@@ -75,7 +75,7 @@ public class LoggingConfigurationManager {
 
             if (PrismUtil.realValueEquals(currentlyUsedConfiguration, updatedConfiguration)) {
                 LOGGER.debug("Skipped logging configuration update (version {}) because the same configuration is already"
-                                + " applied", updatedVersion);
+                        + " applied", updatedVersion);
                 result.recordNotApplicableIfUnknown();
                 return;
             }
@@ -452,13 +452,33 @@ public class LoggingConfigurationManager {
         }
     }
 
-    private static void prepareCommonAppenderFooter(StringBuilder sb, AppenderConfigurationType appender) {
-        sb.append("\t\t<encoder>\n");
+    public static void prepareCommonAppenderFooter(StringBuilder sb, AppenderConfigurationType appender) {
+       /* sb.append("\t\t<encoder>\n");
         sb.append("\t\t\t<pattern>");
         sb.append(appender.getPattern());
         sb.append("</pattern>\n");
         sb.append("\t\t</encoder>\n");
-        sb.append("\t</appender>\n");
+        sb.append("\t</appender>\n");*/
+
+        AppenderLayoutType layout = appender.getLayout();
+        if (layout == null) {
+            layout = AppenderLayoutType.PATTERN;
+        }
+
+        if (layout == AppenderLayoutType.JSON) {
+            sb.append("        <encoder class=\"net.logstash.logback.encoder.LogstashEncoder\"/>\n");
+        } else {
+
+            sb.append("        <encoder>\n");
+            String pattern = appender.getPattern();
+
+            if (StringUtils.isNotEmpty(pattern)) {
+                sb.append("            <pattern>").append(pattern).append("</pattern>\n");
+            }
+            sb.append("        </encoder>\n");
+        }
+
+        sb.append("    </appender>\n");
     }
 
     private static void generateAuditingLogConfig(LoggingAuditingConfigurationType auditing, StringBuilder sb) {
