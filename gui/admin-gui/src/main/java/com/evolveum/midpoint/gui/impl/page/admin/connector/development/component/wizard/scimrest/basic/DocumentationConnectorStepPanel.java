@@ -302,7 +302,8 @@ public class DocumentationConnectorStepPanel extends AbstractWizardStepPanel<Con
                         } catch (CommonException e) {
                             throw new RuntimeException(e);
                         }
-                        refreshAndDetach(target);
+                        adjustPagingIfEmpty();
+                        refresh(target);
                     }
                 };
             }
@@ -514,8 +515,12 @@ public class DocumentationConnectorStepPanel extends AbstractWizardStepPanel<Con
 
             @Override
             protected void processHide(AjaxRequestTarget target) {
-                valuesModel.detach();
-                ((MultiSelectContainerActionTileTablePanel) DocumentationConnectorStepPanel.this.get(ID_PANEL)).refreshAndDetach(target);
+                var newValue = (PrismContainerValueWrapper<ConnDevDocumentationSourceType>) getPanel().getDefaultModelObject();
+                if (newValue != null && StringUtils.isNotEmpty(newValue.getRealValue().getName())) {
+                    newValue.setSelected(true);
+                    valuesModel.getObject().add(0, newValue);
+                }
+                ((MultiSelectContainerActionTileTablePanel) DocumentationConnectorStepPanel.this.get(ID_PANEL)).refresh(target);
                 super.processHide(target);
             }
         };
@@ -528,8 +533,7 @@ public class DocumentationConnectorStepPanel extends AbstractWizardStepPanel<Con
             @Override
             protected void onFileUploaded(FileUpload fileUpload, AjaxRequestTarget target) {
                 if (uploadDocumentationFile(fileUpload, target)) {
-                    valuesModel.detach();
-                    ((MultiSelectContainerActionTileTablePanel) DocumentationConnectorStepPanel.this.get(ID_PANEL)).refreshAndDetach(target);
+                    ((MultiSelectContainerActionTileTablePanel) DocumentationConnectorStepPanel.this.get(ID_PANEL)).refresh(target);
                 }
                 getPageBase().hideMainPopup(target);
             }
@@ -557,6 +561,8 @@ public class DocumentationConnectorStepPanel extends AbstractWizardStepPanel<Con
         // saveDocumentationFile), so both elements describe the file identically.
         newItemWrapper.findProperty(ConnDevDocumentationSourceType.F_CONTENT_TYPE).getValue()
                 .setRealValue(DocumentationContentTypes.resolve(fileUpload.getContentType(), fileUpload.getClientFileName()));
+        newItemWrapper.setSelected(true);
+        valuesModel.getObject().add(0, newItemWrapper);
     }
 
     private boolean uploadDocumentationFile(FileUpload fileUpload, AjaxRequestTarget target) {
