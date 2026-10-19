@@ -16112,6 +16112,40 @@
         </xsd:restriction>
     </xsd:simpleType>
 
+    <xsd:simpleType name="AppenderLayoutType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Output format of a logging appender.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.12</a:since>
+                <jaxb:typesafeEnumClass/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="PATTERN">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Text output formatted by the "pattern" element (default).
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="PATTERN"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="JSON">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        One JSON object per log record.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="JSON"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
+
     <xsd:complexType name="AppenderConfigurationType">
         <xsd:annotation>
             <xsd:documentation>
@@ -16137,6 +16171,19 @@
             <xsd:annotation>
                     <xsd:appinfo>
                         <a:displayName>AppenderConfigurationType.name</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+
+            <xsd:element name="layout" type="tns:AppenderLayoutType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Output format of the appender. If not specified, PATTERN is used.
+                        With JSON, the "pattern" element is not used to format the output of this appender.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>AppenderConfigurationType.layout</a:displayName>
+                        <a:since>4.12</a:since>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
