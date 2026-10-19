@@ -1,0 +1,82 @@
+---
+midpoint-feature: connector-generator
+doc-type: config
+---
+= Enabling the Connector Generator
+:page-nav-title: Enabling the Connector Generator
+:page-since: "4.11"
+:page-upkeep-status: green
+:page-toc: top
+
+The connector generator (the low-code connector development tool) is disabled by default.
+The switch is the `developmentToolsEnabled` flag in the `connectors` section of the `config.xml` file;
+the default `config.xml` shipped with midPoint sets it to `false`:
+
+[source,xml]
+----
+<configuration>
+    <midpoint>
+        ...
+        <connectors>
+            <developmentToolsEnabled>false</developmentToolsEnabled>
+        </connectors>
+        ...
+    </midpoint>
+</configuration>
+----
+
+The rationale is security: the generator produces connector bundles with executable (Groovy) scripts,
+so a hardened deployment may not want anyone - not even a system administrator - to create or modify such connectors.
+
+== What the flag controls
+
+When the connector generator is disabled:
+
+* the "Develop Connector" action is hidden on the Connectors page,
+* the connector development page shows a notice that the development tools are disabled, instead of the development wizard,
+* the connector generator REST API (`/rest/connector-generator/...`) and all connector development tasks
+  fail with the error "Connector development is disabled by deployment configuration".
+
+Regular connectors are not affected: existing connectors can still be edited, tested and used for provisioning.
+
+== How to enable the connector generator
+
+=== Permanently - in config.xml
+
+Edit the `config.xml` file in the midPoint home directory and set the flag in the `connectors` section:
+
+[source,xml]
+----
+<connectors>
+    <developmentToolsEnabled>true</developmentToolsEnabled>
+</connectors>
+----
+
+Then restart midPoint - `config.xml` is read only at startup.
+
+=== Temporarily - without modifying config.xml
+
+The value from `config.xml` can be overridden at startup:
+
+* with a JVM system property (see xref:/midpoint/deployment/midpoint-home-directory/overriding-config-xml-parameters/[Overriding config.xml parameters]):
++
+[source,bash]
+----
+-Dmidpoint.connectors.developmentToolsEnabled=true
+----
+
+* or with an environment variable - note that the name must match the configuration key exactly (case and dots included):
++
+[source,bash]
+----
+MP_SET_midpoint_connectors_developmentToolsEnabled=true
+----
+
+The override takes precedence over the value from `config.xml` and lasts for the lifetime of the running midPoint process only;
+after a restart without the override, the value from `config.xml` is used again.
+
+== Verifying
+
+After (re)starting midPoint with the flag enabled, the "Develop Connector" action appears in the row menu
+of low-code (manifest-based) connectors on the Connectors page, and the connector development page opens
+the development wizard instead of the "disabled" notice.

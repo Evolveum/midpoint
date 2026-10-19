@@ -1,0 +1,15 @@
+= Connector Generator
+:page-nav-title: Connector Generator
+:page-toc: top
+:page-since: "4.11"
+:page-upkeep-status: green
+
+The connector generator is the low-code tool for developing midPoint connectors - it guides you through the creation of a new connector (or the further development of an existing low-code connector): discovering the target application, generating the connector's scripts, and installing the resulting connector bundle.
+
+Because the generator allows editing connectors with executable (Groovy) scripts, the connector generator is disabled by default and must be explicitly enabled in the deployment configuration.
+
+++++
+{% children %}
+++++
+
+include::../_reference-disclaimer.adoc[]
