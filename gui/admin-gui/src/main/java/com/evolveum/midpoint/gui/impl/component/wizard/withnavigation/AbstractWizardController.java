@@ -338,10 +338,7 @@ public abstract class AbstractWizardController<AH extends AssignmentHolderType, 
     public List<WizardParentStep> getAllParentSteps() {
         List<WizardParentStep> list = new ArrayList<>();
         partItems.stream()
-                .map(
-                        partItem -> partItem.getParentSteps().stream()
-                                .filter(parentStep -> BooleanUtils.isTrue(parentStep.isStepVisible().getObject()))
-                                .toList())
+                .map(AbstractWizardPartItem::getParentSteps)
                 .forEach(list::addAll);
         return list;
     }
