@@ -77,7 +77,7 @@ Moreover, midPoint 4.11 made a significant leap towards secure-by-default config
 See xrefv:/midpoint/reference/master/admin-gui/multi-tab-browser-support/[].
 See also bug:MID-11050[].
 
-* xref:/midpoint/guides/updating-native-db/updating-to-pg18[Support for PostgreSQL 18].
+* xref:/midpoint/guides/updating-native-db/updating-to-pg18[Support for PostgreSQL 18]. See bug:MID-10986[].
 
 * Added connector signature verification for production environments without an active subscription,
 including an ability to import a signed list of allowed connectors for subscription compliance enforcement.
@@ -150,8 +150,8 @@ See xref:/midpoint/guides/account-activation-sequence/[Account Activation Authen
 * Added support for filter expressions and conditions in GUI. See bug:MID-11865[].
 * Improved handling of conditions in GUI. See bug:MID-11864[].
 * Added support for value expression returning null in GUI. See bug:MID-11768[].
-
-#TODO#
+* The `notifyChange` REST operation can address the shadow by its attributes (identifiers), the shadow OID is no longer required. See bug:MID-11230[].
+* Shadow details can be displayed directly in the resource wizard. See bug:MID-8617[].
 
 === Other Bug Fixes
 
@@ -303,24 +303,38 @@ See xref:/midpoint/guides/account-activation-sequence/[Account Activation Authen
 * Fixed autocomplete filtering in numeric input fields when suggested values are provided as strings. See bug:MID-12237[].
 * Fixed correlation rule validation to require at least one correlation item before saving. See bug:MID-12421[].
 * Fixed "variables is null" error logged when opening an object list from a dashboard widget with a script expression in the collection filter. See bug:MID-12803[].
+* Fixed memory leak caused by authentication filters when calling the public health check endpoint. See bug:MID-9794[].
+* Fixed empty popup when opening a compressed role in the role mining operation panel. See bug:MID-10895[].
+* Fixed filtering of certification campaigns by "Created at", campaigns now have creation metadata. See bug:MID-10901[].
+* Fixed authorization problems when a role is assigned both directly and as an inducement of an archetype. See bug:MID-10970[].
+* Fixed Task Errors tab content not visible to non-administrator users with appropriate read authorizations. See bug:MID-10976[].
+* Fixed shadows becoming unreadable after upgrade. See bug:MID-11016[] and bug:MID-11034[].
+* Fixed audit log crash when rendering `ObjectReferenceType` extension attribute with custom `defaultPrefix`. See bug:MID-11040[].
+* Fixed missing `.csv` extension of exported files. See bug:MID-11046[].
+* Fixed GUI error in Subtasks tab of reconciliation task with tailoring. See bug:MID-11107[].
+* Fixed loss of task error history, previous errors are retained in the task error log. See bug:MID-11113[].
+* Fixed localization keys rendered verbatim in several GUI areas (e.g., value policy labels in self-service password change). See bug:MID-11269[].
+* Fixed object filter not being saved in reports without extra click. See bug:MID-11542[].
+* Fixed SAML authentication failure caused by OpenSAML and Spring Security dependency incompatibility. See bug:MID-11626[].
+* Fixed wrapping of values with long labels in object detail panels. See bug:MID-11628[].
+* Fixed read-only text attributes overflowing their container. See bug:MID-11868[].
 
 === Releases Of Other Components
 
-#TODO UDPATE#
+* New version (3.10) of xref:/connectors/connectors/com.evolveum.polygon.connector.ldap.LdapConnector/[AD/LDAP Connector] was released and bundled with midPoint.
+** Object class descriptions are provided in the schema.
+** Improved configuration suggestions for OpenLDAP (e.g., `placeholderMember` attribute).
+** Managed association pairs are ordered by relevancy and the default member attribute is suggested. See bug:MID-11447[].
+** Fixed handling of the "exists" filter.
+** Active Directory security descriptor is handled as binary attribute.
+** Recognition of additional Active Directory `X_BIND_REQUIRED` error.
+** Updated dependencies.
 
-* New version (1.5.2.0) of xref:/connectors/connectors/org.identityconnectors.databasetable.DatabaseTableConnector/[DatabaseTable Connector] was released and bundled with midPoint. The connector suggest all names of columns for configuration properties related with name of column.
-
-* New version (2.8) of xref:/connectors/connectors/com.evolveum.polygon.connector.csv.CsvConnector/[CSV Connector] was released and bundled with midPoint. The connector suggest all names of columns for configuration properties related with name of column.
-** Fixed NPE with multivalue attributes when delimiter is not defined. (bug:MID-8609[]).
-** Fix UTF-8 BOM character in csv file during of discovery functions. (bug:MID-9497[] and bug:MID-9498[]).
-
-* New version (3.8) of xref:/connectors/connectors/com.evolveum.polygon.connector.ldap.LdapConnector/[AD/LDAP Connector] was released and bundled with midPoint. The connector suggest all names of columns for configuration properties related with name of column.
-** Native association support.
-** Possibility to choose attributes that should not be returned by default.
-** Possibility to choose to encode string values in case of the presence of non standard ASCII characters.
-** Workaround for open-ldap mandatory member attribute.
-** Possibility to specify used auxiliary object classes in connector configuration.
-** Allow to send the LDAP_DIRSYNC_OBJECT_SECURITY flag in Active Directory sync request control.
+* New version (2.10) of xref:/connectors/connectors/com.evolveum.polygon.connector.csv.CsvConnector/[CSV Connector] was released and bundled with midPoint.
+** Support for native associations (object references).
+** Improved configuration and discovery.
+** Fixed error handling for empty unique attribute value. See bug:MID-10911[].
+** Fixed false comment marker detection. See bug:MID-10956[].
 
 ++++
 {% include release-quality.html %}
@@ -460,19 +474,19 @@ We reserve the right not to support customized web browsers.
 | Component | Version | Description
 
 | Tomcat
-| 10.1.55
+| 11.0.25
 | Web container
 
 | ConnId
-| 1.7.0.0-SNAPSHOT #TODO#
+| 1.7.0.0-M0
 | ConnId Connector Framework
 
 | xref:/connectors/connectors/com.evolveum.polygon.connector.ldap.LdapConnector/[LDAP connector bundle]
-| 3.10-SNAPSHOT  #TODO#
+| 3.10
 | LDAP and Active Directory
 
 | xref:/connectors/connectors/com.evolveum.polygon.connector.csv.CsvConnector/[CSV connector]
-| 2.10-SNAPSHOT #TODO#
+| 2.10
 | Connector for CSV files
 
 | xref:/connectors/connectors/org.identityconnectors.databasetable.DatabaseTableConnector/[DatabaseTable connector]
@@ -515,7 +529,9 @@ Be sure to be on the latest maintenance version for 4.10, otherwise you will not
 Note that:
 
 * There are database schema changes (see xrefv:/midpoint/reference/master/upgrade/database-schema-upgrade/[Database schema upgrade]).
-** New tables for `ApplicationType`, `ConnectorDevelopmentType` were added.
+** New tables for `ApplicationType`, `ConnectorDevelopmentType`, `AllowedConnectorsListType`, `SmartIntegrationArtifactType` and `ProjectionHolderType` were added.
+** New columns for `displayName` and `preferredName` of `UserType` were added.
+** New `WORK` value of shadow kind was added.
 ** Few other smaller changes.
 
  * Version numbers of some bundled connectors have changed.
@@ -594,6 +610,9 @@ New initial objects:
 * 100-archetype-smart-integration-resource-object-class-statistics.xml
 * 100-archetype-smart-integration-resource-object-type-statistics.xml
 * 100-archetype-smart-integration-schema-match.xml
+* 539-archetype-task-user-submitted.xml
+* 602-origin-artificial-intelligence.xml
+* 603-origin-system-intelligence.xml
 * 739-mark-shadow-correlation-owner-found.xml
 * 740-mark-shadow-correlation-owner-not-found.xml
 * 741-mark-shadow-correlation-owner-not-certain.xml
@@ -604,49 +623,56 @@ New initial objects:
 * 746-mark-item-value-change-not-applied.xml
 * 747-mark-item-value-failed.xml
 * 748-mark-projection-operational-changes-only.xml
-* 602-origin-artificial-intelligence.xml
-* 603-origin-system-intelligence.xml
+
+Renamed (the file name prefix was changed to fix the import order, the content and OIDs are unchanged unless stated otherwise in the _Modified_ section):
+
+* 701-archetype-object-mark.xml -> 016-archetype-object-mark.xml
+* 252-object-collection-application-role.xml -> 016-object-collection-application-role.xml
+* 253-object-collection-application.xml -> 016-object-collection-application.xml
+* 270-object-collection-audit.xml -> 016-object-collection-audit.xml
+* 280-object-collection-certification-campaign-all.xml -> 016-object-collection-certification-campaign-all.xml
+* 290-object-collection-shadow-all.xml -> 016-object-collection-shadow-all.xml
+* 250-mark-no-classification.xml -> 017-mark-no-classification.xml
+* 250-mark-privileged-access.xml -> 017-mark-privileged-access.xml
+* 250-mark-unowned.xml -> 017-mark-unowned.xml
+* 062-archetype-classification.xml -> 018-archetype-classification.xml
+* 300-classification-privileged-access.xml -> 019-classification-privileged-access.xml
+* 350-object-collection-role-all.xml -> 349-object-collection-role-all.xml
 
 Modified:
 
-* 062-archetype-classification.xml - Change display icon.
+* 000-system-configuration.xml
+** Poly-string translation keys added.
+** Added `smartIntegration` configuration.
+** Added `rw-type-delineation` panel to resource wizard configuration.
+** Added search items for Persons view.
+** SQL logger in `functional-sql-logging` tracing profile changed to `com.evolveum.midpoint.repo.sqlbase.querydsl.SqlLogger`.
+** Removed obsolete Hibernate loggers.
+** Added new logger `com.evolveum.midpoint.common.CachedResourceBundleMessageSource` with level `ERROR` to avoid log pollution.
+* 010-value-policy.xml - Replaced the default Groovy password policy expression with MEL for safe-expression compatibility.
+* 015-security-policy.xml - Added `otp` credentials policy for TOTP. Password hint is hidden by default (`passwordHintConfigurability` set to `neverConfigure`).
+* 016-object-collection-audit.xml (former 270-object-collection-audit.xml) - Delta formatting expression migrated from Groovy to MEL.
+* 017-mark-privileged-access.xml (former 250-mark-privileged-access.xml) - Added archetype.
+* 018-archetype-classification.xml (former 062-archetype-classification.xml) - Changed display icon.
 * 029-archetype-application.xml - Poly-string translation keys added.
-* 501-archetype-task-reconciliation.xml - Poly-string translation keys added.
-* 502-archetype-task-recomputation.xml - Poly-string translation keys added.
-* 503-archetype-task-import.xml - Poly-string translation keys added.
-* 504-archetype-task-live-sync.xml - Poly-string translation keys added.
-* 505-archetype-task-async-update.xml - Poly-string translation keys added.
-* 506-archetype-task-cleanup.xml - Poly-string translation keys added.
-* 507-archetype-task-report.xml - Poly-string translation keys added.
-* 508-archetype-task-single-bulk-action.xml - Poly-string translation keys added.
-* 509-archetype-task-iterative-bulk-action.xml - Poly-string translation keys added.
-* 536-archetype-task-certification-start-campaign.xml - Poly-string translation keys added.
-* 537-archetype-task-certification-close-current-stage.xml - Poly-string translation keys added.
-* 538-archetype-task-certification-reiterate-campaign.xml - Poly-string translation keys added.
-* 702-archetype-person.xml - Poly-string translation keys added.
-* 705-archetype-shadow-policy-mark.xml - Poly-string translation keys added.
+* 041-role-approver.xml, 042-role-reviewer.xml - Removed obsolete authorization item references (`employeeType`, `roleType`, `orgType`, `serviceType`) and added `personalNumber` alongside deprecated `employeeNumber`.
+* 050-user-administrator.xml - Added displayName.
+* 100-report-reconciliation.xml, 110-report-user-list.xml, 130-report-certification-definitions.xml, 140-report-certification-campaigns.xml, 150-report-certification-cases.xml, 160-report-certification-work-items.xml, 170-report-simulation-objects.xml, 171-report-simulation-objects-with-metrics.xml, 172-report-simulation-items-changed.xml, 173-report-simulation-values-changed.xml, 180-report-simulation-results.xml, 200-report-indirect-assignments.xml - Expressions migrated from Groovy (and `javaMethodReference`) to MEL.
+* 110-report-user-list.xml - Added displayName column.
 * 200-lookup-languages.xml - Added Slovenian (sl) and Latvian (lv) languages.
 * 210-lookup-locales.xml - Added Slovenian (sl) and Latvian (lv) locales.
-* 250-mark-privileged-access.xml - Added archetype.
-* 710-mark-focus-activated.xml to 716-mark-focus-role-membership-changed.xml - Added display label and help with translation keys.
-* 730-mark-projection-activated.xml to 738-mark-projection-resource-object-affected.xml - Added display label and help with translation keys.
-* 899-dashboard-compliance.xml - Widget colors updated to `--bs-*` CSS variables.
-* 015-security-policy.xml - Added `otp` credentials policy for TOTP. Password hint is hidden by default (`passwordHintConfigurability` set to `neverConfigure`).
-* 380-object-template-person.xml - Fixed max. iterations for the "Full name" construction. Added displayName mapping from preferredName, falling back to fullName. Added `range=all` to the mappings for `name`, `fullName`, and `displayName`.
-* 110-report-user-list.xml - Added displayName column.
-* 050-user-administrator.xml - Added displayName.
+* 271-object-collection-audit-24h.xml, 272-object-collection-audit-errors-24h.xml, 273-object-collection-audit-modifications-24h.xml, 330-object-collection-my-cases.xml - Filter expressions migrated from Groovy to MEL.
 * 300-policy-require-classification.xml - Added archetype.
 * 300-policy-require-owner.xml - Added archetype.
-* 000-system-configuration.xml - Poly-string translation keys added.
-Added `smartIntegration` configuration.
-Added `rw-type-delineation` panel to resource wizard configuration.
-Added search items for Persons view.
-Allowed `null` expression evaluator in `safe` expression profile.
-SQL logger in `functional-sql-logging` tracing profile changed to `com.evolveum.midpoint.repo.sqlbase.querydsl.SqlLogger`.
-Added new logger `com.evolveum.midpoint.common.CachedResourceBundleMessageSource` with level `ERROR` to avoid log pollution.
-* 041-role-approver.xml - Removed obsolete authorization item references and added `personalNumber` alongside deprecated `employeeNumber`.
-* 042-role-reviewer.xml - Removed obsolete authorization item references and added `personalNumber` alongside deprecated `employeeNumber`.
-* 010-value-policy.xml - Replaced the default Groovy password policy expression with MEL for safe-expression compatibility.
+* 310-dashboard-admin.xml - Expressions migrated from Groovy to MEL.
+* 380-object-template-person.xml - Fixed max. iterations for the "Full name" construction. Added displayName mapping from preferredName, falling back to fullName. Added `range=all` to the mappings for `name`, `fullName`, and `displayName`. Expressions migrated from Groovy to MEL.
+* 501-archetype-task-reconciliation.xml to 509-archetype-task-iterative-bulk-action.xml, 536-archetype-task-certification-start-campaign.xml to 538-archetype-task-certification-reiterate-campaign.xml - Poly-string translation keys added.
+* 501-archetype-task-reconciliation.xml to 533-archetype-task-multi-propagation.xml (except 507-archetype-task-report.xml) - Task naming expressions migrated from Groovy to MEL (or to plain path sources).
+* 702-archetype-person.xml - Poly-string translation keys added.
+* 705-archetype-shadow-policy-mark.xml - Poly-string translation keys added.
+* 710-mark-focus-activated.xml to 716-mark-focus-role-membership-changed.xml - Added display label and help with translation keys.
+* 730-mark-projection-activated.xml to 738-mark-projection-resource-object-affected.xml - Added display label and help with translation keys.
+* 899-dashboard-compliance.xml - Widget colors updated to `--bs-*` CSS variables. Expressions migrated to MEL.
 
 Please review link:https://github.com/Evolveum/midpoint/commits/master/repo/system-init/src/main/resources/initial-objects[source code history] for detailed list of changes.
 
@@ -709,9 +735,9 @@ You should at least scan through it - or use the `ninja` tool to check the depre
 | `displayName`, `preferredName`
 | New properties, see behavior changes below.
 
-| `FocusType`
-| `email`, `phoneNumber`, `physicalAddress`
-| Multi-value containers for contact information.
+| `EmailAddressType`, `PhoneNumberType`, `PhysicalMailingAddressType`
+| (new types)
+| Experimental types for contact information, usable in extensions.
 
 | `CredentialsType`
 | `otps`
