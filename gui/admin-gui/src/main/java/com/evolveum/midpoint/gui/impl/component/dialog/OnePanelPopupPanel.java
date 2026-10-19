@@ -44,7 +44,20 @@ public abstract class OnePanelPopupPanel extends SimplePopupable {
         Fragment footer = new Fragment(Popupable.ID_FOOTER, ID_BUTTONS, this);
         footer.setOutputMarkupId(true);
 
-        AjaxButton done = new AjaxButton(ID_BUTTON_DONE) {
+        Component done = createDoneButton(ID_BUTTON_DONE);
+        done.setOutputMarkupId(true);
+        footer.add(done);
+        this.footer = footer;
+    }
+
+    /**
+     * Creates the button that closes the popup.
+     *
+     * @param id component id of the button
+     * @return button closing the popup
+     */
+    protected Component createDoneButton(String id) {
+        return new AjaxButton(id) {
 
             private static final long serialVersionUID = 1L;
 
@@ -53,9 +66,6 @@ public abstract class OnePanelPopupPanel extends SimplePopupable {
                 processHide(target);
             }
         };
-        done.setOutputMarkupId(true);
-        footer.add(done);
-        this.footer = footer;
     }
 
     private void initLayout(){
