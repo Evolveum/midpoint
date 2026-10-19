@@ -1,7 +1,3 @@
----
-midpoint-feature: connector-generator
-doc-type: config
----
 = Enabling the Connector Generator
 :page-nav-title: Enabling the Connector Generator
 :page-since: "4.11"
@@ -58,7 +54,7 @@ Then restart midPoint - `config.xml` is read only at startup.
 
 The value from `config.xml` can be overridden at startup:
 
-* with a JVM system property (see xref:/midpoint/deployment/midpoint-home-directory/overriding-config-xml-parameters/[Overriding config.xml parameters]):
+* with a JVM system property (see xref:/midpoint/reference/deployment/midpoint-home-directory/overriding-config-xml-parameters/[Overriding config.xml parameters]):
 +
 [source,bash]
 ----
