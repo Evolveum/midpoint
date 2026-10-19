@@ -740,6 +740,136 @@ No primary key is defined for this table.
 
 |===
 
+[[m_smart_integration_artifact]]
+=== `m_smart_integration_artifact`
+
+Stores artifacts related to smart integration.
+
+Represents persistent SmartIntegrationArtifactType.
+
+XSD type: `\http://midpoint.evolveum.com/xml/ns/public/common/common-3#SmartIntegrationArtifactType`
+
+Inherits from: xref:infrastructure.adoc#m_assignment_holder[`m_assignment_holder`]
+
+==== Columns
+
+[cols="1,1,2,3", options="header"]
+|===
+| Column
+| Type
+| Required / constraints
+| Description
+
+| `oid`
+| `UUID`
+| primary key, required
+| Object identifier.
+
+| `objectType`
+| `ObjectType`
+| 
+| 
+
+| `resourceRefTargetOid`
+| `UUID`
+| 
+| OID of the resourceRef (describing the scope).
+
+| `resourceRefTargetType`
+| `ObjectType`
+| 
+| Object type of the resourceRef (describing the scope) - should be ResourceType.
+
+| `resourceRefRelationId`
+| `INTEGER`
+| 
+| Relation URI identifier of the resourceRef (describing the scope).
+
+| `objectClassId`
+| `INTEGER`
+| 
+| Object class (describing the scope).
+
+| `kind`
+| `ShadowKindType`
+| 
+| Resource object kind (describing the scope)..
+
+| `intent`
+| `TEXT`
+| 
+| Resource object intent (describing the scope).
+
+| `focusTypeId`
+| `INTEGER`
+| 
+| Focus object type (describing the scope).
+
+|===
+
+==== Indexes
+
+[cols="1,2,2", options="header"]
+|===
+| Name
+| Columns
+| Purpose / notes
+
+| `m_smart_integration_artifact_nameOrig_idx`
+| `nameOrig`
+| Speeds up lookup by original object name. Used for: original name searches
+
+| `m_smart_integration_artifact_nameNorm_idx`
+| `nameNorm`
+| Speeds up lookup by normalized object name. Used for: normalized name lookup. unique
+
+| `m_smart_integration_artifact_ext_idx`
+| `USING gin (ext)`
+| 
+
+| `m_smart_integration_artifact_fullTextInfo_idx`
+| `USING gin (fullTextInfo)`
+| Speeds up full-text-like object searches. Used for: full-text-like object searches
+
+| `m_smart_integration_artifact_createTimestamp_idx`
+| `createTimestamp`
+| Speeds up filtering or ordering by creation time. Used for: creation time filters and ordering
+
+| `m_smart_integration_artifact_modifyTimestamp_idx`
+| `modifyTimestamp`
+| Speeds up filtering or ordering by modification time. Used for: modification time filters and ordering
+
+| `m_smart_integration_artifact_scope_object_type_idx`
+| `resourceRefTargetOid, kind, intent, focusTypeId`
+| Speeds up filtering or ordering by resourceRef + kind + intent + (optionally) focusTypeId. Used for: scope filters and ordering
+
+| `m_smart_integration_artifact_scope_object_class_idx`
+| `resourceRefTargetOid, objectClassId`
+| Speeds up filtering or ordering by resourceRef + object class. Used for: scope filters and ordering
+
+|===
+
+==== Foreign keys
+
+[cols="1,2", options="header"]
+|===
+| Column
+| References
+
+| `oid`
+| xref:infrastructure.adoc#m_object_oid[`m_object_oid.oid`]
+
+| `resourceRefRelationId`
+| xref:infrastructure.adoc#m_uri[`m_uri.id`]
+
+| `objectClassId`
+| xref:infrastructure.adoc#m_uri[`m_uri.id`]
+
+| `focusTypeId`
+| xref:infrastructure.adoc#m_uri[`m_uri.id`]
+
+|===
+
 == Views
 
 Views present derived or queryable data from repository tables.
@@ -839,6 +969,24 @@ Triggers run routines automatically when table rows are inserted, updated, or de
 | `m_shadow_update_tr`
 | Maintains object update metadata before rows are updated in `m_shadow`.
 | xref:#m_shadow[`m_shadow`]
+| xref:infrastructure.adoc#routine_before_update_object[`before_update_object`]
+
+[[trigger_m_smart_integration_artifact_oid_delete_tr]]
+| `m_smart_integration_artifact_oid_delete_tr`
+| Removes the object OID registry entry when rows are deleted from `m_smart_integration_artifact`.
+| xref:#m_smart_integration_artifact[`m_smart_integration_artifact`]
+| xref:infrastructure.adoc#routine_delete_object_oid[`delete_object_oid`]
+
+[[trigger_m_smart_integration_artifact_oid_insert_tr]]
+| `m_smart_integration_artifact_oid_insert_tr`
+| Maintains the object OID registry when rows are inserted into `m_smart_integration_artifact`.
+| xref:#m_smart_integration_artifact[`m_smart_integration_artifact`]
+| xref:infrastructure.adoc#routine_insert_object_oid[`insert_object_oid`]
+
+[[trigger_m_smart_integration_artifact_update_tr]]
+| `m_smart_integration_artifact_update_tr`
+| Maintains object update metadata before rows are updated in `m_smart_integration_artifact`.
+| xref:#m_smart_integration_artifact[`m_smart_integration_artifact`]
 | xref:infrastructure.adoc#routine_before_update_object[`before_update_object`]
 
 |===
