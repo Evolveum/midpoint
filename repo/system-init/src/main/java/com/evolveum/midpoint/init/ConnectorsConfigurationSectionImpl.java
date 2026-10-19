@@ -21,6 +21,6 @@ record ConnectorsConfigurationSectionImpl(boolean developmentToolsEnabled) imple
 
     static ConnectorsConfigurationSectionImpl create(Configuration configuration) {
         return new ConnectorsConfigurationSectionImpl(
-                configuration.getBoolean(DEVELOPMENT_TOOLS_ENABLED, true));
+                configuration.getBoolean(DEVELOPMENT_TOOLS_ENABLED, false));
     }
 }
