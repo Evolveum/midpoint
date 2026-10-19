@@ -160,7 +160,7 @@
                     <expression>
                         <script>
                             <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
-                            <code>"%.1f %%".format(input.certificationCasesDecidedPercentage())</code>
+                            <code>"%.1f %%".format(object.certificationCasesDecidedPercentage())</code>
                         </script>
                     </expression>
                 </export>
