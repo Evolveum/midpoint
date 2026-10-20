@@ -77,7 +77,7 @@ And so on.
 The cases are also used for manual provisioning.
 If no ITSM integration is present then the cases are used in place of the ITSM tickets.
 
-Since midPoint 4.11 the case is also a xref:/midpoint/reference/schema/focus-and-projections/[projection holder].
+Since midPoint 4.11.0 the case is also a xref:/midpoint/reference/schema/focus-and-projections/[projection holder].
 Just like a focal object, a case can have xref:/midpoint/reference/resources/shadow/[shadow] objects (projections) linked to it.
 This capability is used by the xref:/midpoint/reference/resources/manual/ticketing/[ITSM ticketing] integration, where the case is linked to the ticket that is managed on a remote ITSM system.
 
@@ -87,7 +87,7 @@ This capability is used by the xref:/midpoint/reference/resources/manual/ticketi
 System administrator in most environments are used to work with existing IT Service Management (ITSM) system, such as Atlassian Jira, HP Service Manager or Remedy ARS.
 MidPoint provides two ways how to integrate with such systems:
 
-* xref:/midpoint/reference/resources/manual/ticketing/[ITSM ticketing] (since midPoint 4.11): the manual connector is configured to use a dedicated "ticketing" resource pointing to the ITSM system.
+* xref:/midpoint/reference/resources/manual/ticketing/[ITSM ticketing] (since midPoint 4.11.0): the manual connector is configured to use a dedicated "ticketing" resource pointing to the ITSM system.
 The manual provisioning cases are created as tickets in the ITSM system and their state is tracked through the regular midPoint synchronization (mappings and the shadow refresh task).
 No custom development is needed - the integration is expressed by the standard xref:/midpoint/reference/resources/resource-configuration/schema-handling/[resource schema handling] and mappings.
 

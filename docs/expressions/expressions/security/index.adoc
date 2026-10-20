@@ -15,7 +15,7 @@ Previously, the expressions could use general-purpose scripting languages such a
 Therefore, such expressions had almost unlimited capabilities.
 Which means that the expressions could damage the system or compromise security of the system.
 
-In 4.11, we bring forth two major improvements in this area:
+In 4.11.0, we bring forth two major improvements in this area:
 
 . By default, general-purpose scripting languages are disabled by default.
 As an alternative, lightweight and secure MidPoint Expression Language (MEL) is offered.
@@ -511,7 +511,7 @@ In such a case, users may theoretically create an assignment which includes unsa
 // System administrators of midPoint 4.10 are expected to apply expression profiles explicitly in a way that matches the requirement of their specific deployment.
 //
 // Default configuration of expression profiles and other security aspects of midPoint are being constantly developed and improved.
-// It is likely that this configuration of expression profiles will be applied by default in midPoint 4.11.
+// It is likely that this configuration of expression profiles will be applied by default in midPoint 4.11.0.
 // ====
 
 == Limitations

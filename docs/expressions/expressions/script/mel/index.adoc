@@ -14,7 +14,7 @@ Its language URL is:
 
  http://midpoint.evolveum.com/xml/ns/public/expression/language#mel
 
-Since midPoint 4.11, MEL is a recommended expression language to create script expressions in midPoint.
+Since midPoint 4.11.0, MEL is a recommended expression language to create script expressions in midPoint.
 
 == MidPoint Expression Language
 

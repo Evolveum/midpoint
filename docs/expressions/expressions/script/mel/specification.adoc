@@ -3566,7 +3566,7 @@ Following configuration allows access to all MEL extensions, except for `midpoin
 </systemConfiguration>
 ----
 
-// TODO: default expression profiles in 4.11
+// TODO: default expression profiles in 4.11.0
 
 == MEL and CEL
 
