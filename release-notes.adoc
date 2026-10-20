@@ -68,7 +68,7 @@ Moreover, midPoint 4.11.0 made a significant leap towards secure-by-default conf
 ** Access to the connector generator wizard is protected by the `#connectorWizard` authorization.
     This authorization is not granted by any out-of-the-box role, because the wizard generates and executes connector code (the superuser reaches it via the `#all` authorization).
 
-* UI/UX improvements:
+* **UI/UX improvements**:
 ** Improved object type wizard.
 ** Improved mappings screen.
 ** Improved correlation screen.
@@ -97,7 +97,19 @@ See bug:MID-11049[].
 This allows for separate focus-based thresholds for individual activities of composite tasks, including the `restartActivity` and `skipActivity` policy actions.
 See bug:MID-11051[].
 
-#TODO#
+* **Secure-by-default expression configuration**: midPoint can now run without any unsafe scripting language (such as Groovy) enabled.
+** xrefv:/midpoint/reference/master/expressions/expressions/profiles/[Expression profiles] are now enforced throughout the system.
+The initial system configuration provides default `safe`, `reporting` and `configuration` expression profiles, assigned to object types (e.g., roles, orgs, archetypes, policies, dashboards and collections use `safe`, reports and message templates use `reporting`, resources and object templates use `configuration`).
+See bug:MID-10948[].
+** New `#safe-velocity` scripting language, a restricted variant of Velocity that is safe to be used by ordinary users (e.g., in notification templates).
+See xrefv:/midpoint/reference/master/misc/notifications/velocity/[] and bug:MID-12389[].
+** The `config.xml` shipped with midPoint sets `safeScriptingLanguagesOnly` to `true`, so unsafe scripting languages are disabled in deployments using it.
+See xrefv:/midpoint/reference/master/expressions/expressions/configuration/[].
+** Scripting languages that are not accessible (because of expression profiles or the `safeScriptingLanguagesOnly` switch) are hidden in the GUI script editor.
+See bug:MID-12472[].
+** All built-in initial objects (reports, dashboards, collections, task archetypes, object templates, value policy) were migrated from Groovy and `javaMethodReference` to MEL and other safe expressions.
+See bug:MID-12424[].
+** MEL is the default script language (`expressions/defaultScriptLanguage` in the initial system configuration).
 
 === Other Improvements
 
@@ -586,6 +598,41 @@ Check further details about the new https://docs.evolveum.com/midpoint/get-start
 and also the document describing the https://docs.evolveum.com/midpoint/get-started/install/containers/container-image-2026-change/[container image changes],
 including the https://docs.evolveum.com/midpoint/get-started/install/containers/container-image-2026-change/#default-container-user[container user change].
 
+* xrefv:/midpoint/reference/master/expressions/expressions/profiles/[Expression profiles] are now enforced throughout the system.
+The expression profile of an expression stored in the repository is derived from the type (archetype, subtype) of the object containing it.
+Expressions that were previously not checked against the declared expression profiles may now fail.
+In rare cases when midPoint cannot determine the expression profile, it reports a "TrustDescriptor is required but not set" error; please report such cases as bugs.
+Review and test your expressions according to the expression profiles declared in your deployment.
+See bug:MID-10948[].
+
+* Default expression profiles for midPoint actions (bulk actions) were changed, and the `bulkActions` and `privilegedBulkActions` default settings were deprecated (see _Schema Changes_ below).
+It is strongly recommended to set explicit expression profiles (via archetypes) on all objects that contain midPoint actions, and to migrate the deprecated default settings to the new ones.
+See xrefv:/midpoint/reference/master/expressions/expressions/profiles/configuration/[].
+
+* Because of the new `#safe-velocity` language, `#parse` and `#include` directives and inline macro definitions are no longer allowed in regular `#velocity` scripts.
+If you need them, set `legacyVelocityEngine` to `true` in `config.xml` (the `#safe-velocity` language is not available then), or migrate your templates.
+It is recommended to gradually migrate your scripts to `#safe-velocity` and then disable the full `#velocity` language via expression profiles.
+See bug:MID-12389[].
+
+* Script evaluation in reports was unified with the evaluation of other expressions.
+Reports that depend on the ordering of values returned by scripts may behave differently, as the ordering is not guaranteed anymore.
+See bug:MID-10948[].
+
+* Classes related to script execution were renamed (`ScriptExpression` to `Script`, `ScriptExpressionFactory` to `ScriptFactory`, `ScriptExpressionEvaluationContext` to `ScriptExecutionContext`, `ScriptEvaluator` to `ScriptExecutor`).
+This affects only scripts or overlays that use these classes directly, and logging configuration referring to them.
+Use `midpoint.isEvaluateNew()` instead of `ScriptExpressionEvaluationContext.getThreadLocal().isEvaluateNew()`.
+
+* The temporary `DefaultJavaMethodReferenceLibrary` methods (used by `javaMethodReference` expressions in built-in reports and collections) were removed and replaced by MEL functions.
+Custom objects that call these methods need to be migrated to MEL.
+
+* Internal caching APIs were cleaned up (`repo.api.Cache` and `repo.api.CacheListener` were removed, `repo.api.CacheDispatcher` was renamed to `repo.api.ClusterwideCacheInvalidationDispatcher`).
+This affects only custom code (overlays) that implemented custom caches or dispatched cache invalidations.
+See bug:MID-11992[].
+
+* The obsolete `xercesImpl` library was removed.
+Custom Groovy or overlay code that used it needs to be adapted.
+See bug:MID-12034[].
+
 === Changes In Initial Objects Since 4.10
 
 NOTE: This section is relevant to the majority of midPoint deployments.
@@ -648,6 +695,10 @@ Modified:
 ** Added search items for Persons view.
 ** SQL logger in `functional-sql-logging` tracing profile changed to `com.evolveum.midpoint.repo.sqlbase.querydsl.SqlLogger`.
 ** Removed obsolete Hibernate loggers.
+** Expression profiles were reworked: the `safe` profile was revised (allows MEL with the `mel-safe` permission profile, `null` expression evaluator allowed), new `reporting` and `configuration` expression profiles, new `mel-safe` and `mel-reporting` permission profiles, the `script-limited` permission profile was removed.
+** Added default expression profiles for object types (`defaultObjectPolicyConfiguration/expressionProfile`) and for principals and authorized objects (`expressions/defaults`).
+** MEL set as the default script language (`expressions/defaultScriptLanguage`).
+** Search item expressions in resource-related views migrated to MEL.
 ** Added new logger `com.evolveum.midpoint.common.CachedResourceBundleMessageSource` with level `ERROR` to avoid log pollution.
 * 010-value-policy.xml - Replaced the default Groovy password policy expression with MEL for safe-expression compatibility.
 * 015-security-policy.xml - Added `otp` credentials policy for TOTP. Password hint is hidden by default (`passwordHintConfigurability` set to `neverConfigure`).
@@ -865,6 +916,15 @@ See also bug:MID-11250[].
 +
 Existing users may not have `displayName` populated immediately after upgrade. Most user-facing places use fallback display logic, but places that display the raw `displayName` value may remain empty until the value is materialized.
 To populate `displayName` for existing person users, set `preferredName` where needed and recompute the users so the person object-template mapping is applied. See also bug:MID-8802[].
+
+* New deployments are secure by default.
++
+The `config.xml` shipped with midPoint sets `expressions/safeScriptingLanguagesOnly` to `true`.
+The connector generator is disabled unless `connectors/developmentToolsEnabled` is explicitly set to `true` in `config.xml`.
+These settings prevent executing arbitrary code on the underlying operating system (e.g., via Groovy scripts or the connector generator).
+The initial system configuration assigns the `safe`, `reporting` and `configuration` expression profiles to object types, and sets MEL as the default script language.
+Existing deployments keep their `config.xml` and system configuration, but it is recommended to adapt them in a similar way.
+See xrefv:/midpoint/reference/master/expressions/expressions/configuration/[], xrefv:/midpoint/reference/master/expressions/expressions/profiles/[] and xrefv:/midpoint/reference/master/connector-generator/enable/[].
 
 
 ++++
