@@ -24,6 +24,7 @@ import com.evolveum.midpoint.test.TestReport;
 import com.evolveum.midpoint.test.TestTask;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import static com.evolveum.midpoint.model.test.CommonInitialObjects.REPORTS;
 
 @ContextConfiguration(locations = { "classpath:ctx-report-test-main.xml" })
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
@@ -43,8 +44,8 @@ public class TestCsvReportAllAssignments extends TestCsvReport {
     private static final int C_SOURCE = 9;
     private static final String SAFE_SCRIPTS_ONLY = "safe-scripts-only";
 
-    private static final TestReport REPORT_INDIRECT_ASSIGNMENTS = TestReport.classPath(DIR_REPORTS,
-            "report-indirect-assignments.xml", "7f1695f2-d826-4d78-a046-b8249b79d2b5");
+    private static final TestReport REPORT_INDIRECT_ASSIGNMENTS = TestReport.classPath(
+            REPORTS, "200-report-indirect-assignments.xml", "00000000-0000-0000-0000-000000000200");
 
     private static final TestTask TASK_EXPORT_CLASSIC_ROLE_CACHING = new TestTask(TEST_DIR_REPORTS,
             "task-export-role-caching.xml", "0ff414b6-76c6-4d38-95e8-d2d34c7a11cb");
@@ -64,6 +65,7 @@ public class TestCsvReportAllAssignments extends TestCsvReport {
         setDefaultExpressionProfile(SAFE_SCRIPTS_ONLY, initTask, initResult);
 
         CommonInitialObjects.ARCHETYPE_REPORT.init(this, initTask, initResult);
+        CommonInitialObjects.ARCHETYPE_COLLECTION_REPORT.init(this, initTask, initResult);
         REPORT_INDIRECT_ASSIGNMENTS.init(this, initTask, initResult); // new style (2023-02 and later)
         repoAdd(TASK_EXPORT_CLASSIC_ROLE_CACHING, initResult); // old style
 
