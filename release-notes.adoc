@@ -653,6 +653,7 @@ For more information see xrefv:/midpoint/reference/master/upgrade/upgrade-with-n
 New initial objects:
 
 * 064-archetype-governance-policy.xml
+* 070-initial-open-source-connectors.xml
 * 100-archetype-smart-integration-focus-object-type-statistics.xml
 * 100-archetype-smart-integration-resource-object-class-statistics.xml
 * 100-archetype-smart-integration-resource-object-type-statistics.xml
