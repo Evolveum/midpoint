@@ -12,11 +12,7 @@ import java.lang.reflect.Proxy;
 import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
+import java.util.*;
 import java.util.function.Function;
 
 import com.evolveum.midpoint.common.Clock;
@@ -277,6 +273,10 @@ public class TestMelExpressions extends AbstractScriptTest {
         var definition = prismContext.getSchemaRegistry()
                 .findObjectDefinitionByCompileTimeClass(UserType.class)
                 .findReferenceDefinition(UserType.F_ROLE_MEMBERSHIP_REF);
+        var referenceWithoutMetadata = new ObjectReferenceType()
+                .oid("00000000-0000-0000-0000-000000000000")
+                .type(RoleType.COMPLEX_TYPE)
+                .asReferenceValue();
         var referenceValue = new ObjectReferenceType()
                 .oid("00000000-0000-0000-0000-000000000001")
                 .type(RoleType.COMPLEX_TYPE)
@@ -294,6 +294,12 @@ public class TestMelExpressions extends AbstractScriptTest {
 
         switchToRestrictedMode();
         try {
+            assertThat(referenceWithoutMetadata.getValueMetadataIfExists()).isNull();
+            executeAndAssertStringScalarExpression(
+                    "expression-reference-value-metadata.xml",
+                    createVariables("input", referenceWithoutMetadata, definition),
+                    "");
+            assertThat(referenceWithoutMetadata.getValueMetadataIfExists()).isNull();
             executeAndAssertStringScalarExpression(
                     "expression-reference-value-metadata.xml",
                     createVariables("input", referenceValue, definition),
@@ -306,6 +312,46 @@ public class TestMelExpressions extends AbstractScriptTest {
             switchToUnrestrictedMode();
         }
     }
+
+
+    @Test
+    public void testContainerValueMetadata() throws Exception {
+        var definition = prismContext.getSchemaRegistry().findContainerDefinitionByType(AssignmentType.COMPLEX_TYPE);
+
+        var assignmentWithoutMetadata = new AssignmentType();
+        var assignmentWithOneMetadataValue = new AssignmentType();
+        assignmentWithOneMetadataValue.asPrismContainerValue().getValueMetadata().addMetadataValue(
+                new ValueMetadataType()
+                        .storage(new StorageMetadataType().createChannel("first"))
+                        .asPrismContainerValue());
+
+        var assignmentWithTwoMetadataValues = assignmentWithOneMetadataValue.clone();
+        assignmentWithTwoMetadataValues.asPrismContainerValue().getValueMetadata().addMetadataValue(
+                new ValueMetadataType()
+                        .storage(new StorageMetadataType().createChannel("second"))
+                        .asPrismContainerValue());
+
+        executeAndAssertStringScalarExpression(
+                "expression-container-value-metadata.xml",
+                createVariables("input", assignmentWithoutMetadata, definition),
+                "");
+
+        executeAndAssertStringScalarExpression(
+                "expression-container-value-metadata.xml",
+                createVariables("input", assignmentWithOneMetadataValue, definition),
+                "first");
+
+        executeAndAssertStringScalarExpression(
+                "expression-container-value-metadata.xml",
+                createVariables("input", assignmentWithTwoMetadataValues, definition),
+                "first,second");
+
+        executeAndAssertStringScalarExpression(
+                "expression-container-value-metadata.xml",
+                createVariables("input", null, definition),
+                "");
+    }
+
 
     @Test
     public void testTracingAccountCondition() throws Exception {

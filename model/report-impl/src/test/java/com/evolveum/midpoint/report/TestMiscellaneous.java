@@ -19,6 +19,8 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.util.exception.SchemaException;
+
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
@@ -56,6 +58,8 @@ public class TestMiscellaneous extends EmptyReportIntegrationTest {
             REPORTS, "200-report-indirect-assignments.xml", "00000000-0000-0000-0000-000000000200");
 
     private static final String IGA_OWNER_OID = "00000000-0000-0000-0000-000000012798";
+    private static final String IGA_LEGACY_OWNER_OID = "00000000-0000-0000-0000-000000012796";
+    private static final String IGA_NO_CHANNEL_OWNER_OID = "00000000-0000-0000-0000-000000012797";
     private static final String IGA_BUSINESS_ROLE_OID = "00000000-0000-0000-0001-000000012798";
     private static final String IGA_TARGET_ROLE_OID = "00000000-0000-0000-0002-000000012798";
 
@@ -176,10 +180,28 @@ public class TestMiscellaneous extends EmptyReportIntegrationTest {
                 .oid(IGA_OWNER_OID)
                 .name("iga-owner")
                 .assignment(igaAssignment(101L, IGA_TARGET_ROLE_OID))
-                .assignment(igaAssignment(102L, IGA_BUSINESS_ROLE_OID)), task, result);
+                .assignment(igaAssignment(102L, IGA_BUSINESS_ROLE_OID, SchemaConstants.CHANNEL_REST_URI)), task, result);
+        repositoryService.addObject(new UserType()
+                .oid(IGA_LEGACY_OWNER_OID)
+                .name("iga-legacy-owner")
+                .assignment(igaLegacyAssignment(103L, IGA_TARGET_ROLE_OID))
+                .assignment(igaEmptyModernMetadataWithLegacyChannelAssignment(105L, IGA_TARGET_ROLE_OID))
+                .assignment(igaModernAndLegacyChannelAssignment(106L, IGA_TARGET_ROLE_OID))
+                .assignment(igaMultipleModernMetadataAssignment(107L, IGA_TARGET_ROLE_OID))
+                .asPrismObject(), null, result);
+        repositoryService.addObject(new UserType()
+                .oid(IGA_NO_CHANNEL_OWNER_OID)
+                .name("iga-no-channel-owner")
+                .assignment(igaAssignmentWithoutChannel(104L, IGA_TARGET_ROLE_OID))
+                .asPrismObject(), null, result);
 
         ValueMetadataType direct = igaMetadata(101L, IGA_TARGET_ROLE_OID);
         ValueMetadataType indirect = igaMetadata(102L, IGA_BUSINESS_ROLE_OID, IGA_TARGET_ROLE_OID);
+        ValueMetadataType legacy = igaMetadata(IGA_LEGACY_OWNER_OID, 103L, IGA_TARGET_ROLE_OID);
+        ValueMetadataType noChannel = igaMetadata(IGA_NO_CHANNEL_OWNER_OID, 104L, IGA_TARGET_ROLE_OID);
+        ValueMetadataType emptyModernWithLegacy = igaMetadata(IGA_LEGACY_OWNER_OID, 105L, IGA_TARGET_ROLE_OID);
+        ValueMetadataType modernAndLegacy = igaMetadata(IGA_LEGACY_OWNER_OID, 106L, IGA_TARGET_ROLE_OID);
+        ValueMetadataType multipleModern = igaMetadata(IGA_LEGACY_OWNER_OID, 107L, IGA_TARGET_ROLE_OID);
 
         Map<String, List<Object>> scalar = evaluateColumns(
                 REPORT_INDIRECT_ASSIGNMENTS_BUILT_IN, IGA_DATA_COLUMNS, "data", direct, ValueMetadataType.COMPLEX_TYPE, task, result);
@@ -194,18 +216,40 @@ public class TestMiscellaneous extends EmptyReportIntegrationTest {
                 ValueMetadataType.COMPLEX_TYPE, task, result);
         Map<String, List<Object>> empty = evaluateColumns(
                 REPORT_INDIRECT_ASSIGNMENTS_BUILT_IN, IGA_DATA_COLUMNS, "data", List.of(), ValueMetadataType.COMPLEX_TYPE, task, result);
+        Map<String, List<Object>> legacyScalar = evaluateColumns(
+                REPORT_INDIRECT_ASSIGNMENTS_BUILT_IN, IGA_DATA_COLUMNS, "data", legacy, ValueMetadataType.COMPLEX_TYPE, task, result);
+        Map<String, List<Object>> noChannelScalar = evaluateColumns(
+                REPORT_INDIRECT_ASSIGNMENTS_BUILT_IN, IGA_DATA_COLUMNS, "data", noChannel, ValueMetadataType.COMPLEX_TYPE, task, result);
+        Map<String, List<Object>> emptyModernWithLegacyScalar = evaluateColumns(
+                REPORT_INDIRECT_ASSIGNMENTS_BUILT_IN, IGA_DATA_COLUMNS, "data", emptyModernWithLegacy,
+                ValueMetadataType.COMPLEX_TYPE, task, result);
+        Map<String, List<Object>> modernAndLegacyScalar = evaluateColumns(
+                REPORT_INDIRECT_ASSIGNMENTS_BUILT_IN, IGA_DATA_COLUMNS, "data", modernAndLegacy,
+                ValueMetadataType.COMPLEX_TYPE, task, result);
+        Map<String, List<Object>> multipleModernScalar = evaluateColumns(
+                REPORT_INDIRECT_ASSIGNMENTS_BUILT_IN, IGA_DATA_COLUMNS, "data", multipleModern,
+                ValueMetadataType.COMPLEX_TYPE, task, result);
 
         assertThat(singleton).isEqualTo(scalar);
         assertThat(scalar.get("allPath")).containsExactly("iga-target-role");
         assertThat(scalar.get("parent")).containsExactly("Direct");
+        assertThat(scalar.get("createChannel")).containsExactly("User");
         assertThat(indirectScalar.get("allPath")).containsExactly("iga-business-role -> iga-target-role");
         assertThat(indirectScalar.get("parent")).containsExactly("iga-business-role");
+        assertThat(indirectScalar.get("createChannel")).containsExactly("REST");
         assertThat(multiple.get("allPath"))
                 .containsExactlyInAnyOrder("iga-target-role", "iga-business-role -> iga-target-role");
         assertThat(multiple.get("parent")).containsExactlyInAnyOrder("Direct", "iga-business-role");
+        assertThat(multiple.get("createChannel")).containsExactlyInAnyOrder("User", "REST");
         assertThat(empty.get("user")).containsExactly("Unknown owner");
         assertThat(empty.get("allPath")).containsExactly("?");
         assertThat(empty.get("parent")).containsExactly("?");
+        assertThat(empty.get("createChannel")).isEmpty();
+        assertThat(legacyScalar.get("createChannel")).containsExactly("User");
+        assertThat(noChannelScalar.get("createChannel")).isEmpty();
+        assertThat(emptyModernWithLegacyScalar.get("createChannel")).containsExactly("REST");
+        assertThat(modernAndLegacyScalar.get("createChannel")).containsExactly("User");
+        assertThat(multipleModernScalar.get("createChannel")).containsExactly("User");
 
         assertSuccess(result);
     }
@@ -243,18 +287,75 @@ public class TestMiscellaneous extends EmptyReportIntegrationTest {
         assertSuccess(result);
     }
 
-    private AssignmentType igaAssignment(long id, String targetOid) {
+    private AssignmentType igaAssignment(long id, String targetOid) throws SchemaException {
+        return igaAssignment(id, targetOid, SchemaConstants.CHANNEL_USER_URI);
+    }
+
+    private AssignmentType igaAssignment(long id, String targetOid, String channel) throws SchemaException {
+        AssignmentType assignment = baseIgaAssignment(id, targetOid);
+        assignment.asPrismContainerValue().setValueMetadata(new ValueMetadataType()
+                .storage(new StorageMetadataType().createChannel(channel)));
+        return assignment;
+    }
+
+    private AssignmentType igaAssignmentWithoutChannel(long id, String targetOid) throws SchemaException {
+        AssignmentType assignment = baseIgaAssignment(id, targetOid);
+        assignment.asPrismContainerValue().setValueMetadata(new ValueMetadataType()
+                .storage(new StorageMetadataType().createTimestamp("2026-01-01T00:00:00Z")));
+        return assignment;
+    }
+
+    private AssignmentType igaLegacyAssignment(long id, String targetOid) {
+        return baseIgaAssignment(id, targetOid)
+                .metadata(new MetadataType().createChannel(SchemaConstants.CHANNEL_USER_URI));
+    }
+
+    private AssignmentType igaEmptyModernMetadataWithLegacyChannelAssignment(long id, String targetOid) throws SchemaException {
+        AssignmentType assignment = baseIgaAssignment(id, targetOid)
+                .metadata(new MetadataType().createChannel(SchemaConstants.CHANNEL_REST_URI));
+        addIgaValueMetadata(assignment, null);
+        return assignment;
+    }
+
+    private AssignmentType igaModernAndLegacyChannelAssignment(long id, String targetOid) throws SchemaException {
+        AssignmentType assignment = baseIgaAssignment(id, targetOid)
+                .metadata(new MetadataType().createChannel(SchemaConstants.CHANNEL_REST_URI));
+        addIgaValueMetadata(assignment, SchemaConstants.CHANNEL_USER_URI);
+        return assignment;
+    }
+
+    private AssignmentType igaMultipleModernMetadataAssignment(long id, String targetOid) throws SchemaException {
+        AssignmentType assignment = baseIgaAssignment(id, targetOid)
+                .metadata(new MetadataType().createChannel(SchemaConstants.CHANNEL_REST_URI));
+        addIgaValueMetadata(assignment, null);
+        addIgaValueMetadata(assignment, SchemaConstants.CHANNEL_USER_URI);
+        return assignment;
+    }
+
+    private void addIgaValueMetadata(AssignmentType assignment, String createChannel) throws SchemaException {
+        StorageMetadataType storage = new StorageMetadataType().createTimestamp("2026-01-01T00:00:00Z");
+        if (createChannel != null) {
+            storage.createChannel(createChannel);
+        }
+        assignment.asPrismContainerValue().getValueMetadata().addMetadataValue(
+                new ValueMetadataType().storage(storage).asPrismContainerValue());
+    }
+
+    private AssignmentType baseIgaAssignment(long id, String targetOid) {
         return new AssignmentType()
                 .id(id)
                 .targetRef(targetOid, RoleType.COMPLEX_TYPE)
                 .activation(new ActivationType()
                         .effectiveStatus(ActivationStatusType.ENABLED)
-                        .validTo("2030-01-01T00:00:00Z"))
-                .metadata(new MetadataType().createChannel(SchemaConstants.CHANNEL_USER_URI));
+                        .validTo("2030-01-01T00:00:00Z"));
     }
 
     private ValueMetadataType igaMetadata(long assignmentId, String... pathTargetOids) {
-        AssignmentPathMetadataType path = new AssignmentPathMetadataType().sourceRef(IGA_OWNER_OID, UserType.COMPLEX_TYPE);
+        return igaMetadata(IGA_OWNER_OID, assignmentId, pathTargetOids);
+    }
+
+    private ValueMetadataType igaMetadata(String ownerOid, long assignmentId, String... pathTargetOids) {
+        AssignmentPathMetadataType path = new AssignmentPathMetadataType().sourceRef(ownerOid, UserType.COMPLEX_TYPE);
         for (int i = 0; i < pathTargetOids.length; i++) {
             path.beginSegment()
                     .segmentOrder(i + 1)

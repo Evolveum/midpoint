@@ -339,18 +339,19 @@
                             <code>
                                 list(data).map(d,
                                     cel.bind(path, d.provenance.assignmentPath,
-                                        path.segment.size() == 0 ? nil : cel.bind(owner,
+                                        isEmpty(path.segment) ? nil : cel.bind(owner,
                                             midpoint.resolveReferenceIfExists(path.sourceRef),
                                             !isPresent(owner) ? nil : cel.bind(assignments,
+                                                // Find the originating assignment for this path.
                                                 owner.assignment.filter(assignment,
                                                     assignment.id == path.segment[0].assignmentId),
-                                                assignments.size() == 0 ||
-                                                !isPresent(assignments[0].metadata.createChannel)
-                                                    ? nil : cel.bind(channel,
-                                                        assignments[0].metadata.createChannel,
-                                                        cel.bind(parts, channel.split('#'),
-                                                            format.translateKeyInCurrentLocale(
-                                                                'Channel.' + parts[parts.size() - 1])))))))
+                                                isEmpty(assignments) ? nil : cel.bind(assignment, assignments[0],
+                                                    // Prefer modern value metadata, falling back to legacy metadata.
+                                                    cel.bind(channels,
+                                                        default(assignment.containerValueMetadata().map(m, isPresent(m.storage.createChannel), m.storage.createChannel),
+                                                            list(assignment.metadata.createChannel)),
+                                                        isEmpty(channels) ? nil : cel.bind(parts, channels[0].split('#'),
+                                                            format.translateKeyInCurrentLocale('Channel.' + parts[parts.size() - 1]))))))))
                             </code>
                         </script>
                     </expression>
