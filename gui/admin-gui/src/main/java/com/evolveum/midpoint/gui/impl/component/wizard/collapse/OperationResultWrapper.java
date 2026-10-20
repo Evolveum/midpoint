@@ -33,7 +33,7 @@ public class OperationResultWrapper implements Serializable {
     }
 
     /**
-     * @param panelId            the drawer entry's own key, used by the "Ignore" button to remove it
+     * @param panelId            the drawer entry's own key, used by the "Dismiss" button to remove it
      * @param result             the validation/operation failure this drawer entry reports
      * @param fixPanelId         wizard step to navigate to on fix-button click, used only when
      *                           {@code fixAction} is null
