@@ -912,7 +912,6 @@ public class ModelRestController extends AbstractRestController {
         ResponseEntity<?> response;
         try {
             if (Boolean.TRUE.equals(asynchronous)) {
-                // FIXME expression profile!
                 var taskOid = modelInteraction.submitScriptingExpression(command, task, result);
                 response = createResponseWithLocation(
                         HttpStatus.CREATED,

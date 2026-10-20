@@ -17901,6 +17901,13 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
+            <xsd:enumeration value="83225dc6-bf8a-4d37-97e5-c94a3f77da54">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ARCHETYPE_SYSTEM_SUBMITTED_TASK"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
             <xsd:enumeration value="00000000-0000-0000-0000-000000000170">
                 <xsd:annotation>
                     <xsd:appinfo>
