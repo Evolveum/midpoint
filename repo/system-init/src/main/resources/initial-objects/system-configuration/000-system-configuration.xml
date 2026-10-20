@@ -162,8 +162,8 @@
         <statisticsTtl>P1D</statisticsTtl>
         <schemaMatchTtl>P1D</schemaMatchTtl>
         <mappingSuggestionRetryCount>1</mappingSuggestionRetryCount>
-        <connectorFrameworkUrl>https://nexus.evolveum.com/nexus/repository/releases/com/evolveum/polygon/scimrest/connector-scimrest-template/0.2.0-RC2/connector-scimrest-template-0.2.0-RC2.jar</connectorFrameworkUrl>
-        <connectorSqlFrameworkUrl>https://nexus.evolveum.com/nexus/repository/releases/com/evolveum/polygon/sql/connector-sql-template/0.2.0-RC2/connector-sql-template-0.2.0-RC2.jar</connectorSqlFrameworkUrl>
+        <connectorFrameworkUrl>https://nexus.evolveum.com/nexus/repository/releases/com/evolveum/polygon/scimrest/connector-scimrest-template/0.2.0/connector-scimrest-template-0.2.0.jar</connectorFrameworkUrl>
+        <connectorSqlFrameworkUrl>https://nexus.evolveum.com/nexus/repository/releases/com/evolveum/polygon/sql/connector-sql-template/0.2.0/connector-sql-template-0.2.0.jar</connectorSqlFrameworkUrl>
     </smartIntegration>
     <adminGuiConfiguration>
         <homePage id="21">

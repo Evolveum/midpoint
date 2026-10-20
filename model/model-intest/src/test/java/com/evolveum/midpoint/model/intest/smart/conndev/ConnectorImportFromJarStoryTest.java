@@ -71,7 +71,7 @@ public class ConnectorImportFromJarStoryTest extends AbstractEmptyModelIntegrati
     private static final String ARTIFACT_ID = "connector-scimrest-jar";
     private static final String SOURCE_VERSION = ScimRestTemplateJar.VERSION;
     // ConnectorVersionUtil.bumpMinor(SOURCE_VERSION)
-    private static final String TARGET_VERSION = "0.3.0-RC2";
+    private static final String TARGET_VERSION = "0.3.0";
 
     private static final String MANIFEST_YAML = """
             application:
