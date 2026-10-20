@@ -1,6 +1,6 @@
 = Smart associations recommendation
 :page-toc: top
-:page-since: "4.11"
+:page-since: "4.11.0"
 :page-upkeep-status: green
 :page-description: Generate association suggestions in the GUI and learn how midPoint identifies possible associations and generates their configuration.
 

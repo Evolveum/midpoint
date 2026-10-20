@@ -1,7 +1,7 @@
 = Item paths and type names in Smart Integration service requests
 :page-moved-from: /midpoint/reference/smart-integrations/service-item-paths/
 :page-toc: top
-:page-since: "4.11"
+:page-since: "4.11.0"
 :page-upkeep-status: green
 
 == Overview

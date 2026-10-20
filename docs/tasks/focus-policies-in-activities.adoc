@@ -1,5 +1,5 @@
 = Focus policies in activities
-:page-since: "4.11"
+:page-since: "4.11.0"
 :page-toc: top
 :page-upkeep-status: green
 :page-description: This page describes how focus-type policy rules can be applied to objects processed by a task activity, either directly, through a referenced policy object, or through virtual assignments.

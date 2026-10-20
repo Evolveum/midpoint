@@ -1,6 +1,6 @@
 = Automatic ranges
 :page-toc: top
-:page-since: "4.11"
+:page-since: "4.11.0"
 :page-upkeep-status: green
 :page-description: Automatic range selection for mapping targets
 

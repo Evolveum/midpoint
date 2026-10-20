@@ -1,7 +1,7 @@
 = Smart Integration authorization
 :page-moved-from: /midpoint/reference/smart-integrations/authorization/, /midpoint/reference/smart-integration/authorization/
 :page-toc: top
-:page-since: "4.11"
+:page-since: "4.11.0"
 :page-upkeep-status: green
 
 == Overview

@@ -1,6 +1,6 @@
 = Iterators configuration
 :page-toc: top
-:page-since: "4.11"
+:page-since: "4.11.0"
 :page-upkeep-status: green
 
 // TODO (Andrej): Describe iterators configuration.

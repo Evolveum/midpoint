@@ -1,6 +1,6 @@
 = Module TOTP
 :page-toc: top
-:page-since: "4.11"
+:page-since: "4.11.0"
 :page-upkeep-status: green
 :experimental:
 :page-description: This page describes how to use the TOTP module in midPoint.

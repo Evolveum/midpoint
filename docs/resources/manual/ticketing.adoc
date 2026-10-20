@@ -4,7 +4,7 @@ doc-type: config
 ---
 = ITSM Ticketing
 :page-nav-title: ITSM Ticketing
-:page-since: "4.11"
+:page-since: "4.11.0"
 :page-upkeep-status: green
 :page-experimental: true
 :page-toc: top
