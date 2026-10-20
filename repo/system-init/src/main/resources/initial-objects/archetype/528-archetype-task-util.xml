@@ -27,7 +27,21 @@
                 <color>green</color>
             </icon>
         </display>
-        <!-- no configuration yet -->
+        <adminGuiConfiguration>
+            <objectDetails>
+                <type>TaskType</type>
+                <panel id="3">
+                    <identifier>activity</identifier>
+                    <panel id="4">
+                        <identifier>work</identifier>
+                        <container id="5">
+                            <identifier>work-explicitChangeExecution</identifier>
+                            <path>activity/work/explicitChangeExecution</path>
+                        </container>
+                    </panel>
+                </panel>
+            </objectDetails>
+        </adminGuiConfiguration>
     </archetypePolicy>
     <assignment id="1">
         <identifier>holderType</identifier>
