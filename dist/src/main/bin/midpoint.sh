@@ -169,9 +169,9 @@ if [ "${1}" = "init-native" ]; then
   fi
 
   # Import bundled Let's Encrypt root CA certificates into the keystore
-  echo "Importing Let's Encrypt root CA certificates."
-  LE_CERTS_DIR="${BASE_DIR}/var/lets-encrypt-root-certs"
+  LE_CERTS_DIR="${BASE_DIR}/certs/lets-encrypt-root-certs"
   if [ -d "${LE_CERTS_DIR}" ]; then
+    echo "Importing Let's Encrypt root CA certificates."
     keystorepw="${MP_PW:-${MP_PW_DEF:-}}"
     if [ "${MP_KEYSTORE:-}" != "" ]; then
       if [ "${keystorepw}" = "" ]; then
