@@ -30,6 +30,7 @@
             <class name="com.evolveum.midpoint.repo.sqale.func.UriCacheTest"/>
             <class name="com.evolveum.midpoint.repo.sqale.func.ShadowPartitioningTest" />
             <class name="com.evolveum.midpoint.repo.sqale.func.ChangedItemPathComputerTest"/>
+            <class name="com.evolveum.midpoint.repo.sqale.func.SqaleRepoCertWorkItemPreloadedObjectTest"/>
         </classes>
     </test>
     <test name="Slow functional tests" parallel="none">
