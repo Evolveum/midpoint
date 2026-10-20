@@ -1,0 +1,312 @@
+= TOTP use cases
+
+:page-toc: top
+:page-keywords: TOTP, totp, module totp, totp module, module TOTP, TOTOP module, use case, example
+:page-description: This page describes example use cases for the TOTP module.
+:experimental:
+
+
+This page describes example use cases for the xref:/midpoint/reference/security/authentication/flexible-authentication/modules/totp/[TOTP module].
+
+== Require TOTP authentication for a group of users
+
+=== Scenario
+
+This describes a scenario in which we have two distinct groups of users, external and internal.
+Because internal users have broader, and potentially more destructive permissions, we want to require TOTP authentication for those users.
+This allows us to increase security for internal users.
+However, for external users, we do not need to enforce TOTP.
+
+Based on the user type, we want to introduce the following:
+
+* Mandatory TOTP authentication for internal users.
+* Optional TOTP authentication for external users.
+
+=== Solution
+
+We address this situation by applying security policies by archetype specific to individual user groups.
+To achieve that, we will:
+
+. Assign the internal and external users distinct xref:/midpoint/reference/schema/archetypes/[archetypes].
+. Employ a general xref:/midpoint/reference/security/security-policy/[security policy] that makes TOTP optional.
+This policy applies to all users.
+. Employ a security policy for the internal users that requires TOTP.
+
+
+[[archetype-internal]]
+==== Archetype for internal users
+
+We need to differentiate between internal users to which we want apply different authentication rules, and other users.
+
+We will do that by using a dedicated xref:/midpoint/reference/schema/archetypes/[archetype].
+This will allow us to distinguish internal users from other users (external in our scenario) and apply different policies (and permissions) to them.
+
+Below is an example of an archetype that we assign to internal users.
+
+.Example Internal user archetype
+[source,xml]
+----
+<archetype xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+           xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+           xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+           xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3"
+           xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+           xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+           xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" oid="d92fdd2f-c76f-4423-88c7-1814265e199a">
+    <name>Custom Archetype</name>
+    <activation/>
+    <inducement id="2">
+        <targetRef oid="00000000-0000-0000-0000-000000000008" relation="org:default" type="c:RoleType">
+            <!-- End user -->
+        </targetRef>
+    </inducement>
+    <archetypeType>structural</archetypeType>
+
+    <archetypePolicy>
+        <display>
+            <label>
+                <t:orig>Internal user</t:orig>
+                <t:norm>internal user</t:norm>
+                <t:translation>
+                    <t:key>InternalUser.label</t:key>
+                </t:translation>
+            </label>
+            <pluralLabel>
+                <t:orig>Internal Users</t:orig>
+                <t:norm>internal users</t:norm>
+                <t:translation>
+                    <t:key>InternalUsers.pluralLabel</t:key>
+                </t:translation>
+            </pluralLabel>
+            <tooltip>
+                <t:orig>Internal user</t:orig>
+                <t:norm>internal user</t:norm>
+                <t:translation>
+                    <t:key>InternalUser.archetype.tooltip</t:key>
+                </t:translation>
+            </tooltip>
+            <icon>
+                <cssClass>fa fa-user</cssClass>
+                <color>brown</color>
+            </icon>
+        </display>
+        <!-- An optional template -->
+        <objectTemplateRef oid="00000000-0000-0000-0000-000000000380" relation="org:default" type="c:ObjectTemplateType">
+        </objectTemplateRef>
+    </archetypePolicy>
+
+    <securityPolicyRef oid="00000000-0000-0000-0000-000000000121" relation="org:default" type="c:SecurityPolicyType">
+        <!-- Alternative Security Policy -->
+    </securityPolicyRef>
+
+</archetype>
+----
+
+[[general-policy]]
+==== General security policy
+
+In the previous section, we have <<archetype-internal,created a dedicated archetype for internal users>>.
+We will address their authentication later.
+
+For now, we need to define a general login security policy for all users.
+This policy will apply to both external and internal users.
+It will not require TOTP authentication for users who do not have TOTP configured, i.e., the external users.
+
+The following general security policy introduces optional TOTP authentication that is required only for users who configure it, but it is not mandatory for other users:
+
+.Example general security policy
+[source,xml]
+----
+<securityPolicy xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+                xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+                xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+                xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3"
+                xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+                xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+                xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+                xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" oid="00000000-0000-0000-0000-000000000120">
+    <name>Default Security Policy</name>
+    <authentication>
+        <modules>
+            <!-- TOTP module -->
+            <totp>
+                <identifier>totpModule</identifier>
+                <issuer>local midpoint</issuer>
+
+                <!-- following properties are optional, default values are shown -->
+
+                <!-- item path to FocusType property used as label in auth URI -->
+                <label>name</label>
+                <!-- Time step in seconds. -->
+                <period>30</period>
+                <!--
+                    Number of digits in generated OTP, default is 6, supported values are 6 and 8.
+                    Most authenticator apps support only 6 digits.
+                -->
+                <digits>6</digits>
+                <!-- Supported algorithms are: sha1, sha256, sha512 -->
+                <algorithm>sha1</algorithm>
+                <!-- Secret length in bytes, defaults are specified for all supported algorithms. -->
+                <secretLength>20</secretLength>
+            </totp>
+            <!-- Default modules -->
+            <loginForm id="1">
+                <identifier>loginForm</identifier>
+            </loginForm>
+            <httpBasic id="2">
+                <identifier>httpBasic</identifier>
+            </httpBasic>
+        </modules>
+
+        <!-- TOTP sequence-->
+        <sequence>
+            <identifier>totp-sequence</identifier>
+            <displayName>Default TOTP sequence</displayName>
+            <channel>
+                <default>true</default>
+                <channelId>http://midpoint.evolveum.com/xml/ns/public/common/channels-3#user</channelId>
+                <urlSuffix>gui-totp</urlSuffix>
+            </channel>
+            <module>
+                <identifier>loginForm</identifier>
+                <order>1</order>
+                <necessity>requisite</necessity>
+            </module>
+            <module>
+                <identifier>totpModule</identifier>
+                <order>2</order>
+                <necessity>requisite</necessity>
+                <acceptEmpty>true</acceptEmpty> <1>
+            </module>
+        </sequence>
+
+        <sequence id="3">
+            <identifier>admin-gui-default</identifier>
+            <displayName>Default gui sequence</displayName>
+            <channel>
+                <channelId>http://midpoint.evolveum.com/xml/ns/public/common/channels-3#user</channelId>
+                <default>true</default>
+                <urlSuffix>gui-default</urlSuffix>
+            </channel>
+            <module id="6">
+                <identifier>loginForm</identifier>
+                <order>1</order>
+                <necessity>sufficient</necessity>
+            </module>
+        </sequence>
+        <sequence id="4">
+            <identifier>rest-default</identifier>
+            <channel>
+                <channelId>http://midpoint.evolveum.com/xml/ns/public/common/channels-3#rest</channelId>
+                <default>true</default>
+                <urlSuffix>rest-default</urlSuffix>
+            </channel>
+            <module id="7">
+                <identifier>httpBasic</identifier>
+                <order>1</order>
+                <necessity>sufficient</necessity>
+            </module>
+        </sequence>
+        <sequence id="5">
+            <identifier>actuator-default</identifier>
+            <channel>
+                <channelId>http://midpoint.evolveum.com/xml/ns/public/common/channels-3#actuator</channelId>
+                <default>true</default>
+                <urlSuffix>actuator-default</urlSuffix>
+            </channel>
+            <module id="8">
+                <identifier>httpBasic</identifier>
+                <order>1</order>
+                <necessity>sufficient</necessity>
+            </module>
+        </sequence>
+        <ignoredLocalPath>/actuator/health</ignoredLocalPath>
+    </authentication>
+    <credentials>
+        <password>
+            <minOccurs>0</minOccurs>
+            <lockoutMaxFailedAttempts>3</lockoutMaxFailedAttempts>
+            <lockoutFailedAttemptsDuration>PT3M</lockoutFailedAttemptsDuration>
+            <lockoutDuration>PT15M</lockoutDuration>
+            <valuePolicyRef oid="00000000-0000-0000-0000-000000000003" relation="org:default" type="c:ValuePolicyType"/>
+        </password>
+    </credentials>
+</securityPolicy>
+----
+
+<1> This makes sure TOTP authentication is not required for users who do not have TOTP configured.
+
+==== Security policy for internal users
+
+// In the <<archetype-internal,previous section>>, we have created a dedicated archetype for internal users.
+Above, we have defined a <<general-policy,general security policy>> what we want to apply to external users.
+This policy is not very restrictive.
+For internal users, however, we need to define a different, stricter security policy.
+This time, TOTP authentication will always be required.
+
+This allows us to tighten security around the internal users to whom we assign higher permissions than to external users.
+
+.Example security policy with mandatory TOTP authentication
+[source, xml]
+----
+<securityPolicy xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+                xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+                xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+                xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3"
+                xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+                xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+                xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+                xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" oid="00000000-0000-0000-0000-000000000121">
+    <name>Alternative Security Policy</name>
+    <authentication>
+        <modules>
+            <!-- TOTP module -->
+            <totp>
+                <identifier>totpModule</identifier>
+                <issuer>local midpoint</issuer>
+
+                <!-- following properties are optional, default values are shown -->
+
+                <!-- item path to FocusType property used as label in auth URI -->
+                <label>name</label>
+                <!-- Time step in seconds. -->
+                <period>30</period>
+                <!--
+                    Number of digits in generated OTP, default is 6, supported values are 6 and 8.
+                    Most authenticator apps support only 6 digits.
+                -->
+                <digits>6</digits>
+                <!-- Supported algorithms are: sha1, sha256, sha512 -->
+                <algorithm>sha1</algorithm>
+                <!-- Secret length in bytes, defaults are specified for all supported algorithms. -->
+                <secretLength>20</secretLength>
+            </totp>
+        </modules>
+
+        <!-- TOTP sequence-->
+        <sequence>
+            <identifier>totp-sequence</identifier>
+            <displayName>Alternative TOTP sequence</displayName>
+            <channel>
+                <default>true</default>
+                <channelId>http://midpoint.evolveum.com/xml/ns/public/common/channels-3#user</channelId>
+                <urlSuffix>gui-totp</urlSuffix>
+            </channel>
+            <module>
+                <identifier>loginForm</identifier>
+                <order>1</order>
+                <necessity>requisite</necessity>
+            </module>
+            <module>
+                <identifier>totpModule</identifier>
+                <order>2</order>
+                <necessity>requisite</necessity>
+                <acceptEmpty>false</acceptEmpty>
+            </module>
+        </sequence>
+    </authentication>
+</securityPolicy>
+----
+
+With this configuration, internal users will always have to use TOTP authentication, while external users will only need to use it if they have configured TOTP.
