@@ -51,8 +51,8 @@ It decides which situations get a reaction, see <<Source direction>> and <<Targe
 ----
 Direction
     ↓
-SOURCE ──→ 4 reactions: unmatched, deleted, unlinked, linked
-TARGET ──→ 5 reactions: unmatched, deleted, disputed, unlinked, linked
+SOURCE ──→ 4 reactions: unlinked, linked, unmatched, deleted
+TARGET ──→ 5 reactions: unlinked, linked, unmatched, deleted, disputed
     ↓
 SynchronizationReactionsType
 ----

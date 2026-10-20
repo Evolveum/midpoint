@@ -3,4 +3,197 @@
 :page-since: "4.11.0"
 :page-upkeep-status: green
 
-// TODO (Andrej): Describe smart integration configuration.
+== Overview
+
+Smart Integration is configured globally in the system configuration (`SystemConfigurationType`), in the `<smartIntegration>` container (`SmartIntegrationConfigurationType`).
+All settings are optional.
+If a setting is missing, its default value is used.
+
+The settings are read from the system configuration every time an operation needs them.
+Changes therefore apply to new operations without restarting midPoint.
+
+This page describes the midPoint side of the configuration.
+The Smart Integration microservice has its own configuration, see xref:microservice/configuration.adoc[Microservice configuration].
+
+== Settings
+
+[cols="35%,15%,15%,35%",options="header"]
+|===
+| Setting | Type | Default | Description
+
+| `serviceUrl`
+| `string`
+| -
+| URL of the Smart Integration microservice, see <<Microservice connection>>.
+
+| `serviceApiKey`
+| `ProtectedStringType`
+| -
+| API key sent with every request to the microservice.
+
+| `serviceResponseTimeout`
+| `duration`
+| 120 seconds
+| Maximum time to wait for a response from the microservice.
+
+| `statisticsTtl`
+| `duration`
+| `P1D`
+| How long stored statistics are reused, see <<Reuse of statistics and schema matches>>.
+
+| `schemaMatchTtl`
+| `duration`
+| `P1D`
+| How long a stored schema match is reused, see <<Reuse of statistics and schema matches>>.
+
+| `mappingSuggestionRetryCount`
+| `int`
+| `1`
+| Number of retries when an AI-generated mapping script fails validation, see <<Mappings recommendation>>.
+
+| `shadowSampling`
+| container
+| see link
+| Sizes of shadow samples used by correlation and mappings recommendations, see xref:shadow-sampling.adoc[].
+
+| `connectorGenerationUrl`
+| `string`
+| -
+| URL of the code generation microservice, see <<Connector generator>>.
+
+| `connectorGeneratorApiKey`
+| `ProtectedStringType`
+| -
+| API key sent with every request to the code generation microservice.
+
+| `connectorFrameworkUrl`
+| `string`
+| -
+| URL of the connector framework used by the connector generator.
+
+| `connectorSqlFrameworkUrl`
+| `string`
+| -
+| URL of the SQL connector framework template used by the connector generator.
+
+| `connectorGenerationTransientErrorTimeout`
+| `duration`
+| `PT15S`
+| How long transient gateway errors of the code generation microservice are tolerated.
+|===
+
+== Microservice connection
+
+The `serviceUrl`, `serviceApiKey` and `serviceResponseTimeout` settings configure the connection to the Smart Integration microservice.
+The microservice provides the AI part of the recommendations, see xref:microservice/index.adoc[Smart Integration microservice].
+
+[cols="30%,70%",options="header"]
+|===
+| Setting | Description
+
+| `serviceUrl`
+| Base URL of the microservice, for example `https://smart-integration.example.com`.
+
+| `serviceApiKey`
+| API key sent in the `X-Gravitee-Api-Key` HTTP header of every request, including the health check.
+It is intended for an API gateway in front of the microservice.
+The value is stored encrypted, like other protected strings in midPoint.
+If it is not set, no header is sent.
+
+| `serviceResponseTimeout`
+| Maximum time midPoint waits for a response to a single request, for example `PT3M`.
+The default is 120 seconds.
+|===
+
+If the URL is not configured, operations that call the microservice fail with the error `Smart integration service URL is not configured`.
+Operations that do not use the microservice, such as the xref:recommendations/associations/associations-recommendation.adoc[associations] and xref:recommendations/synchronization/synchronization-recommendation.adoc[synchronization] recommendations, work without it.
+
+== Reuse of statistics and schema matches
+
+Statistics and schema matches are stored as `SmartIntegrationArtifactType` objects and reused by later recommendations.
+Each of them expires after the configured time-to-live, counted from its `timestamp`:
+
+[cols="30%,70%",options="header"]
+|===
+| Setting | Description
+
+| `statisticsTtl`
+| Time-to-live of object class, object type and focus statistics, see xref:statistics.adoc#_reuse_and_expiration[Statistics].
+
+| `schemaMatchTtl`
+| Time-to-live of schema matches, see xref:schema-match.adoc#_reuse[Schema match].
+|===
+
+Expired objects are deleted when they are looked up, and new ones are computed when they are needed.
+There is no periodic cleanup.
+
+A shorter time-to-live makes the recommendations reflect changes in the resource data sooner, but they have to be computed more often.
+
+== Mappings recommendation
+
+`mappingSuggestionRetryCount` sets how many times midPoint asks the microservice again when an AI-generated mapping script fails validation.
+The maximum number of attempts is `1 + mappingSuggestionRetryCount`.
+`0` disables retries.
+A negative value is ignored and the default `1` is used.
+
+See xref:recommendations/mappings/mappings-recommendation.adoc#_retry_of_ai_generated_scripts[Retry of AI-generated scripts].
+
+== Shadow sampling
+
+The `shadowSampling` container limits the number of shadows sampled by correlation and mappings recommendations.
+The limits differ depending on whether shadow caching is enabled.
+See xref:shadow-sampling.adoc[Shadow sampling configuration].
+
+== Connector generator
+
+The `connector*` settings are used by the connector generator, not by the recommendations.
+The connector generator must be enabled separately, see xref:../connector-generator/enable.adoc[Enabling the Connector Generator].
+
+[cols="35%,65%",options="header"]
+|===
+| Setting | Description
+
+| `connectorGenerationUrl`
+| URL of the code generation microservice.
+
+| `connectorGeneratorApiKey`
+| API key sent with every request to the code generation microservice.
+The value is stored encrypted.
+
+| `connectorFrameworkUrl`
+| URL of the connector framework.
+
+| `connectorSqlFrameworkUrl`
+| URL of the SQL connector framework template.
+
+| `connectorGenerationTransientErrorTimeout`
+| Maximum time for which HTTP `502 Bad Gateway` and `504 Gateway Timeout` errors are tolerated while midPoint monitors asynchronous jobs of the code generation microservice.
+|===
+
+== Example
+
+[source,xml]
+----
+<systemConfiguration xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
+    ...
+    <smartIntegration>
+        <serviceUrl>https://smart-integration.example.com</serviceUrl>
+        <serviceApiKey>
+            <t:clearValue>my-api-key</t:clearValue>
+        </serviceApiKey>
+        <serviceResponseTimeout>PT3M</serviceResponseTimeout>
+        <statisticsTtl>PT12H</statisticsTtl>
+        <schemaMatchTtl>P7D</schemaMatchTtl>
+        <mappingSuggestionRetryCount>2</mappingSuggestionRetryCount>
+        <shadowSampling>
+            <correlationSampleSizeCached>8000</correlationSampleSizeCached>
+            <mappingValidationSampleSizeUncached>300</mappingValidationSampleSizeUncached>
+        </shadowSampling>
+    </smartIntegration>
+</systemConfiguration>
+----
+
+The `clearValue` of the API key is encrypted when the system configuration is saved.
+
+Each recommendation page lists the settings that affect it in its *Configuration* section.
