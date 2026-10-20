@@ -92,16 +92,6 @@
     </signedConnector>
     <signedConnector>
         <connector>
-            <className>com.evolveum.polygon.connector.ldap.LdapConnector</className>
-            <bundle>30eeddc3-3c48-4e4a-b196-ce2c84ddba50</bundle>
-        </connector>
-        <signature>
-            <keyId>key-2026-01</keyId>
-            <value>Ln9BE9bMOxGyoPkFxtIU152S4kofaWteggELDWR0rzrnMpxmgkLm56XHfTS8IjZQ98oBVpHw9AiysvLhFHHVDg==</value>
-        </signature>
-    </signedConnector>
-    <signedConnector>
-        <connector>
             <className>com.evolveum.polygon.connector.cloud.objectstorage.csv.CloudCsvObjectStorageConnector</className>
             <bundle>com.evolveum.polygon.connector-cloud-csv</bundle>
         </connector>
