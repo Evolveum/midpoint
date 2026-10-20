@@ -3,4 +3,141 @@
 :page-since: "4.11.0"
 :page-upkeep-status: green
 
-// TODO: Describe microservice configuration (environment variables, LLM provider, application server settings).
+== Overview
+
+The Smart Integration microservice is configured by environment variables.
+It has no configuration file, and it does not read any configuration from midPoint.
+
+The variables are grouped into sections.
+The name of a variable consists of the section name and the setting name, separated by two underscores, for example `LLM__MODEL_NAME`.
+The names are not case-sensitive.
+
+[cols="20%,80%",options="header"]
+|===
+| Section | Settings
+
+| `LLM__`
+| Connection to the LLM provider and the model, see <<LLM provider>>.
+
+| `LOGGING__`
+| Logging, see <<Logging and tracing>>.
+
+| `LANGFUSE__`
+| Tracing with Langfuse, see <<Logging and tracing>>.
+|===
+
+The configuration is read only at startup.
+The microservice must be restarted to apply changes.
+
+This page describes the configuration of the microservice itself.
+The connection from midPoint to the microservice is configured in midPoint, see xref:../configuration.adoc[Smart Integration configuration].
+
+== LLM provider
+
+The microservice works with any LLM provider that offers an OpenAI-compatible chat API, for example OpenRouter or a self-hosted model.
+
+[cols="30%,25%,45%",options="header"]
+|===
+| Variable | Default | Description
+
+| `LLM__OPENAI_API_KEY`
+| -
+| API key of the LLM provider.
+It is required, because there is no default value.
+
+| `LLM__OPENAI_API_BASE`
+| `https://openrouter.ai/api/v1`
+| Base URL of the OpenAI-compatible API.
+
+| `LLM__MODEL_NAME`
+| `openai/gpt-oss-20b`
+| Identifier of the model, as used by the provider.
+
+| `LLM__PROVIDER_NAME`
+| `openrouter`
+| Name of the provider.
+It is used only for information, see <<Provider and model in midPoint>>.
+
+| `LLM__REASONING_EFFORT`
+| `high`
+| Reasoning effort sent with every request to the model.
+
+| `LLM__EXTRA_BODY`
+| `{}`
+| Additional provider-specific parameters sent with every request to the model, as a JSON object.
+
+| `LLM__REQUEST_TIMEOUT`
+| `120`
+| Maximum time in seconds for processing one LLM call, see <<Timeouts>>.
+
+| `LLM__CA_CERT_FILE`
+| -
+| Path to a CA certificate file, for an LLM provider with an internal TLS certificate.
+|===
+
+If the API key is invalid, the requests fail with the HTTP status `401` and the message `Authentication with the LLM service failed`.
+The API key is not included in the message.
+
+=== Provider and model in midPoint
+
+The microservice returns `LLM__PROVIDER_NAME` and `LLM__MODEL_NAME` in the response of the xref:endpoints/health.adoc[health check].
+MidPoint shows them in the GUI, so that the user knows which AI provider and model process the data.
+
+The health check also verifies that the LLM provider is reachable with the configured API key and that `LLM__MODEL_NAME` is among the models offered by the provider.
+If not, the health check reports an error.
+
+=== Timeouts
+
+`LLM__REQUEST_TIMEOUT` limits the whole processing of one LLM call, including a retry when the answer of the model cannot be parsed.
+When the time runs out, the call is cancelled and the request fails with the HTTP status `504`.
+
+MidPoint has its own timeout for waiting for the response, `serviceResponseTimeout` (120 seconds by default), see xref:../configuration.adoc#_microservice_connection[Microservice connection].
+Keep the midPoint timeout at least as long as `LLM__REQUEST_TIMEOUT`.
+Otherwise midPoint stops waiting before the microservice can return the result or the timeout error.
+
+== Logging and tracing
+
+[cols="30%,15%,55%",options="header"]
+|===
+| Variable | Default | Description
+
+| `LOGGING__LEVEL`
+| `info`
+| Log level: `debug`, `info`, `warning`, `error` or `critical`.
+
+| `LOGGING__ACCESS_LOG`
+| `true`
+| Enables the access log of the Hypercorn server.
+
+| `LOGGING__COLORS`
+| `false`
+| Enables colored log output, useful in a terminal.
+
+| `LOGGING__LIVE_RELOAD`
+| `false`
+| Enables reloading of the logging configuration on code changes.
+|===
+
+Tracing with Langfuse is configured by the `LANGFUSE__*` variables and is disabled by default.
+
+See xref:logging.adoc[Microservice logging] for the description of the logs and the Langfuse settings.
+
+== Example
+
+The following environment variables configure the microservice for a self-hosted model with an OpenAI-compatible API and an internal TLS certificate:
+
+[source,bash]
+----
+LLM__OPENAI_API_BASE=https://llm.example.com/v1
+LLM__OPENAI_API_KEY=my-llm-api-key
+LLM__PROVIDER_NAME=example-llm
+LLM__MODEL_NAME=gpt-oss-120b
+LLM__REQUEST_TIMEOUT=180
+LLM__CA_CERT_FILE=/etc/ssl/certs/example-ca.pem
+
+LOGGING__LEVEL=info
+----
+
+With `LLM__REQUEST_TIMEOUT=180`, set `serviceResponseTimeout` in midPoint to at least `PT3M`.
+
+When the microservice runs with Docker Compose, the variables can be stored in a `.env` file next to `docker-compose.yaml`.

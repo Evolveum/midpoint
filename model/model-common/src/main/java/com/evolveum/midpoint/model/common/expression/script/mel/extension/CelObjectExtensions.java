@@ -167,6 +167,20 @@ public class CelObjectExtensions extends AbstractMidPointCelExtensions {
                             CelObjectExtensions::valueMetadata,
                             NullabilityProperties.NULLABLE_EMPTY_LIST)),
 
+            // container.containerValueMetadata()
+            new Function(
+                    CelFunctionDecl.newFunctionDeclaration(
+                            "containerValueMetadata",
+                            CelOverloadDecl.newMemberOverload(
+                                    "prism-container-containerValueMetadata",
+                                    "Returns value metadata attached to a container value.",
+                                    ListType.create(ContainerValueCelValue.CEL_TYPE),
+                                    NullableType.create(ContainerValueCelValue.CEL_TYPE))),
+                    CelFunctionBinding.from("prism-container-containerValueMetadata",
+                            ContainerValueCelValue.class,
+                            CelObjectExtensions::containerValueMetadata,
+                            NullabilityProperties.NULLABLE_EMPTY_LIST)),
+
             // object.structuralArchetype()
             new Function(
                     CelFunctionDecl.newFunctionDeclaration(
@@ -549,11 +563,21 @@ public class CelObjectExtensions extends AbstractMidPointCelExtensions {
     }
 
     private static List<?> valueMetadata(ReferenceCelValue reference) {
-        return reference.getObjectReferenceValue()
-                .getValueMetadata()
-                .getRealValues()
-                .stream()
-                .map(metadata -> ContainerValueCelValue.create(metadata.asPrismContainerValue()))
+        return valueMetadata(reference.getObjectReferenceValue());
+    }
+
+    private static List<?> containerValueMetadata(ContainerValueCelValue<?> container) {
+        return valueMetadata(container.getContainerValue());
+    }
+
+    private static List<?> valueMetadata(PrismValue value) {
+        var metadata = value.getValueMetadataIfExists();
+        if (metadata == null) {
+            return List.of();
+        }
+        return metadata
+                .getRealValues().stream()
+                .map(metadataValue -> ContainerValueCelValue.create(metadataValue.asPrismContainerValue()))
                 .toList();
     }
 

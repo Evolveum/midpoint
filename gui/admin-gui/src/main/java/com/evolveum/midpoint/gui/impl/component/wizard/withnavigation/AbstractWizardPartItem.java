@@ -353,7 +353,8 @@ public abstract class AbstractWizardPartItem<AH extends AssignmentHolderType, AD
             lastActiveStepIndex = activeStepIndex;
         }
         this.activeStepIndex = activeStepIndex;
-        if (this.activeStepIndex > inProgressStepIndex) {
+        if (this.activeParentStepIndex == this.inProgressParentStepIndex
+                && this.activeStepIndex > inProgressStepIndex) {
             inProgressStepIndex = this.activeStepIndex;
         }
     }

@@ -76,5 +76,5 @@ Which data midPoint sends depends on the data access permissions granted to the 
 ** xref:endpoints/suggest-categorical-mapping.adoc[Suggest categorical mapping endpoint] - MEL script mapping categorical resource values to allowed midPoint values.
 ** xref:endpoints/health.adoc[Health check endpoint] - Status of the microservice, the LLM provider and Langfuse, and the AI provider name and model.
 * xref:logging.adoc[Microservice logging] - Log format and levels, request logs and correlation and Langfuse tracing.
-* xref:configuration.adoc[Microservice configuration] - (TODO)
+* xref:configuration.adoc[Microservice configuration] - Environment variables of the microservice: LLM provider and model, timeouts, logging and tracing.
 * xref:deployment.adoc[Microservice deployment] - (TODO)

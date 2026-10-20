@@ -94,9 +94,15 @@ public class TestCsvReportAllAssignments extends TestCsvReport {
 
         // Initialization of the bulk of the users
         for (int i = 1; i <= USERS; i++) {
+            AssignmentType businessRoleAssignment = new AssignmentType()
+                    .targetRef(businessRoleOid, RoleType.COMPLEX_TYPE);
+            if (i == 1) {
+                businessRoleAssignment.asPrismContainerValue().setValueMetadata(new ValueMetadataType()
+                        .storage(new StorageMetadataType().createChannel(SchemaConstants.CHANNEL_USER_URI)));
+            }
             UserType user = new UserType()
                     .name(String.format("user-%05d", i))
-                    .assignment(new AssignmentType().targetRef(businessRoleOid, RoleType.COMPLEX_TYPE));
+                    .assignment(businessRoleAssignment);
             if (i % 3 == 0) {
                 // To mix it up, every third user has also direct assignment to the service.
                 XMLGregorianCalendar validTo = MiscUtil.asXMLGregorianCalendar(Instant.now().plus(1, ChronoUnit.DAYS));
@@ -160,16 +166,18 @@ public class TestCsvReportAllAssignments extends TestCsvReport {
                         .assertValue(C_ACTIVATION, "Enabled")
                         .assertValue(C_VALID_TO, "")
                         .assertValueNotEmpty(C_SINCE)
-                        .assertValue(C_SOURCE, ""))
+                        .assertValue(C_SOURCE, "User"))
                 .forRecord(C_NAME, "appRole", record -> record
                         .assertValue(C_USER, "user-00001")
                         .assertValue(C_PATH, "businessRole -> appRole")
-                        .assertValue(C_PARENT, "businessRole"))
+                        .assertValue(C_PARENT, "businessRole")
+                        .assertValue(C_SOURCE, "User"))
                 .forRecord(C_NAME, "appService", record -> record
                         .assertValue(C_USER, "user-00001")
                         .assertValue(C_ARCHETYPE, "Application")
                         .assertValue(C_PATH, "businessRole -> appRole -> appService")
-                        .assertValue(C_PARENT, "appRole"));
+                        .assertValue(C_PARENT, "appRole")
+                        .assertValue(C_SOURCE, "User"));
     }
 
     @Test
