@@ -52,8 +52,6 @@ public class TestMiscellaneous extends EmptyReportIntegrationTest {
             TEST_DIR, "report-export-users.xml", "63665d73-9829-4064-a8ec-0a04c554ebcc");
     private static final TestReport REPORT_IMPORT_USERS = TestReport.file(
             TEST_DIR, "report-import-users.xml", "54319c28-cc40-4005-bac3-a5a9dbabd91b");
-    private static final TestReport REPORT_INDIRECT_ASSIGNMENTS = TestReport.file(
-            TEST_DIR_REPORTS, "report-indirect-assignments.xml", "7f1695f2-d826-4d78-a046-b8249b79d2b5");
     private static final TestReport REPORT_INDIRECT_ASSIGNMENTS_BUILT_IN = TestReport.classPath(
             REPORTS, "200-report-indirect-assignments.xml", "00000000-0000-0000-0000-000000000200");
 
@@ -183,33 +181,32 @@ public class TestMiscellaneous extends EmptyReportIntegrationTest {
         ValueMetadataType direct = igaMetadata(101L, IGA_TARGET_ROLE_OID);
         ValueMetadataType indirect = igaMetadata(102L, IGA_BUSINESS_ROLE_OID, IGA_TARGET_ROLE_OID);
 
-        for (TestReport report : List.of(REPORT_INDIRECT_ASSIGNMENTS, REPORT_INDIRECT_ASSIGNMENTS_BUILT_IN)) {
-            Map<String, List<Object>> scalar = evaluateColumns(
-                    report, IGA_DATA_COLUMNS, "data", direct, ValueMetadataType.COMPLEX_TYPE, task, result);
-            Map<String, List<Object>> indirectScalar = evaluateColumns(
-                    report, IGA_DATA_COLUMNS, "data", indirect, ValueMetadataType.COMPLEX_TYPE, task, result);
-            Map<String, List<Object>> singleton = evaluateColumns(
-                    report, IGA_DATA_COLUMNS, "data", List.of(direct.asPrismContainerValue()),
-                    ValueMetadataType.COMPLEX_TYPE, task, result);
-            Map<String, List<Object>> multiple = evaluateColumns(
-                    report, IGA_DATA_COLUMNS, "data",
-                    List.of(direct.asPrismContainerValue(), indirect.asPrismContainerValue()),
-                    ValueMetadataType.COMPLEX_TYPE, task, result);
-            Map<String, List<Object>> empty = evaluateColumns(
-                    report, IGA_DATA_COLUMNS, "data", List.of(), ValueMetadataType.COMPLEX_TYPE, task, result);
+        Map<String, List<Object>> scalar = evaluateColumns(
+                REPORT_INDIRECT_ASSIGNMENTS_BUILT_IN, IGA_DATA_COLUMNS, "data", direct, ValueMetadataType.COMPLEX_TYPE, task, result);
+        Map<String, List<Object>> indirectScalar = evaluateColumns(
+                REPORT_INDIRECT_ASSIGNMENTS_BUILT_IN, IGA_DATA_COLUMNS, "data", indirect, ValueMetadataType.COMPLEX_TYPE, task, result);
+        Map<String, List<Object>> singleton = evaluateColumns(
+                REPORT_INDIRECT_ASSIGNMENTS_BUILT_IN, IGA_DATA_COLUMNS, "data", List.of(direct.asPrismContainerValue()),
+                ValueMetadataType.COMPLEX_TYPE, task, result);
+        Map<String, List<Object>> multiple = evaluateColumns(
+                REPORT_INDIRECT_ASSIGNMENTS_BUILT_IN, IGA_DATA_COLUMNS, "data",
+                List.of(direct.asPrismContainerValue(), indirect.asPrismContainerValue()),
+                ValueMetadataType.COMPLEX_TYPE, task, result);
+        Map<String, List<Object>> empty = evaluateColumns(
+                REPORT_INDIRECT_ASSIGNMENTS_BUILT_IN, IGA_DATA_COLUMNS, "data", List.of(), ValueMetadataType.COMPLEX_TYPE, task, result);
 
-            assertThat(singleton).isEqualTo(scalar);
-            assertThat(scalar.get("allPath")).containsExactly("iga-target-role");
-            assertThat(scalar.get("parent")).containsExactly("Direct");
-            assertThat(indirectScalar.get("allPath")).containsExactly("iga-business-role -> iga-target-role");
-            assertThat(indirectScalar.get("parent")).containsExactly("iga-business-role");
-            assertThat(multiple.get("allPath"))
-                    .containsExactlyInAnyOrder("iga-target-role", "iga-business-role -> iga-target-role");
-            assertThat(multiple.get("parent")).containsExactlyInAnyOrder("Direct", "iga-business-role");
-            assertThat(empty.get("user")).containsExactly("Unknown owner");
-            assertThat(empty.get("allPath")).containsExactly("?");
-            assertThat(empty.get("parent")).containsExactly("?");
-        }
+        assertThat(singleton).isEqualTo(scalar);
+        assertThat(scalar.get("allPath")).containsExactly("iga-target-role");
+        assertThat(scalar.get("parent")).containsExactly("Direct");
+        assertThat(indirectScalar.get("allPath")).containsExactly("iga-business-role -> iga-target-role");
+        assertThat(indirectScalar.get("parent")).containsExactly("iga-business-role");
+        assertThat(multiple.get("allPath"))
+                .containsExactlyInAnyOrder("iga-target-role", "iga-business-role -> iga-target-role");
+        assertThat(multiple.get("parent")).containsExactlyInAnyOrder("Direct", "iga-business-role");
+        assertThat(empty.get("user")).containsExactly("Unknown owner");
+        assertThat(empty.get("allPath")).containsExactly("?");
+        assertThat(empty.get("parent")).containsExactly("?");
+
         assertSuccess(result);
     }
 
