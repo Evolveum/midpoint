@@ -52,7 +52,7 @@
                 <expression>
                     <script>
                         <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
-                        <code>format.formatAuditDelta(input)</code>
+                        <code>format.formatAuditDelta(list(input))</code>
                     </script>
                 </expression>
             </export>
