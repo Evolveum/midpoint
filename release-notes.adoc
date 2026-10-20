@@ -24,10 +24,10 @@ He is known for his science fiction, including his play R.U.R. (Rossum's Univers
 He also wrote many politically charged works, opposing the rise of both fascism and communism.
 </p>
 <p>
-The sci-fi themes of Čapek's works align with the innovations brought by midPoint 4.11.
-Practical AI-powered features were introduced in midPoint 4.11 to make application onboarding faster and easier.
+The sci-fi themes of Čapek's works align with the innovations brought by midPoint 4.11.0.
+Practical AI-powered features were introduced in midPoint 4.11.0 to make application onboarding faster and easier.
 Čapek's opposition to both fascism and communism is echoed in the digital sovereignty that midPoint brings to identity governance.
-Moreover, midPoint 4.11 made a significant leap towards secure-by-default configuration, which is helpful in keeping malicious actors at bay.
+Moreover, midPoint 4.11.0 made a significant leap towards secure-by-default configuration, which is helpful in keeping malicious actors at bay.
 </p>
 {% endcapture %}
 {% include release-dedication.html content=dedicationContent %}
@@ -553,7 +553,7 @@ It refers to the most significant functionality removals and changes in this ver
 Previously, due to the old PolyStringType structure, there were situations where the orig value of a polystring was interpreted as a translation key.
 For example, this occurred when a polystring was defined within a DisplayType object as a label for an object collection view.
 In such cases, if no explicit translation key was provided, midPoint attempted to translate the orig value.
-Starting from 4.11 version, the orig value will never be translated.
+Starting from 4.11.0 version, the orig value will never be translated.
 Please ensure that all PolyStringType values in your environment are defined correctly.
 If localization is required, explicitly define translation keys or language-specific values within the polystring.
 
