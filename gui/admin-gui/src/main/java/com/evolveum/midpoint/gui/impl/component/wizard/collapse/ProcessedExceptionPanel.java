@@ -57,7 +57,7 @@ public class ProcessedExceptionPanel extends BasePanel<OperationResultWrapper> {
     private static final String ID_MAP_VALUE = "mapValue";
     private static final String ID_STACK_TRACE_LINK = "stackTraceLink";
     private static final String ID_TEXT = "text";
-    private static final String ID_IGNORE_BUTTON = "ignoreButton";
+    private static final String ID_DISMISS_BUTTON = "dismissButton";
     private static final String ID_FIX_BUTTON = "fixButton";
 
     private static final String KEY_MAP_PREFIX = "ProcessedExceptionPanel.key.";
@@ -98,7 +98,7 @@ public class ProcessedExceptionPanel extends BasePanel<OperationResultWrapper> {
         details.add(createMapRows());
         details.add(createStackTraceLink());
         details.add(createText());
-        details.add(createIgnoreButton());
+        details.add(createDismissButton());
         details.add(createFixButton());
     }
 
@@ -198,11 +198,11 @@ public class ProcessedExceptionPanel extends BasePanel<OperationResultWrapper> {
         return new Label(ID_TEXT, createStringResource("ProcessedExceptionPanel.text"));
     }
 
-    private @NotNull AjaxButton createIgnoreButton() {
+    private @NotNull AjaxButton createDismissButton() {
         String panelId = getModelObject().getPanelId();
 
-        AjaxButton ignoreButton = new AjaxButton(ID_IGNORE_BUTTON,
-                createStringResource("ProcessedExceptionPanel.ignoreButton")) {
+        AjaxButton dismissButton = new AjaxButton(ID_DISMISS_BUTTON,
+                createStringResource("ProcessedExceptionPanel.dismissButton")) {
 
             @Serial private static final long serialVersionUID = 1L;
 
@@ -218,8 +218,8 @@ public class ProcessedExceptionPanel extends BasePanel<OperationResultWrapper> {
                 }
             }
         };
-        ignoreButton.setOutputMarkupId(true);
-        return ignoreButton;
+        dismissButton.setOutputMarkupId(true);
+        return dismissButton;
     }
 
     private @NotNull AjaxButton createFixButton() {
