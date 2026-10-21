@@ -1,6 +1,6 @@
 services:
   midpoint_data:
-    image: postgres:16-alpine
+    image: postgres:17-alpine
     environment:
      - POSTGRES_PASSWORD=db.secret.pw.007
      - POSTGRES_USER=midpoint
