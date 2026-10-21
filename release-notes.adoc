@@ -38,94 +38,102 @@ Moreover, midPoint 4.11.0 made a significant leap towards secure-by-default conf
 === New Features and Major Improvements
 
 * **Connector generator wizard**: an AI-assisted wizard that guides the user through the creation of a new no-code/low-code connector (or the further development of an existing low-code connector) helping user integrate an external application without writing the connector code from scratch.
-** The wizard has guided workflow, that  discovers the target application documentation, generates the connector's definitions / scripts based on that documentation
+** The wizard has guided workflow, that discovers the target application documentation and generates the connector's definitions / scripts based on that documentation.
 ** Supports SCIM, REST, and SQL protocols.
-** Primary support for read-only operation, but also  limited support for relationships and create, update, and delete operations.
-** The wizard can be used  in a limited offline mode (withour AI,
-** Connectors under construction are  listed under *Connectors* > *In-progress connectors* in the GUI.
-** Wizard is disabled by default, access to the connector generator wizard is protected by xrefv:/midpoint/reference/master/connector-generator/enable/[separate authorization and deployment configuration].
+** Primary support is for read-only operations, but there's also limited support for create, update, and delete operations.
+** Relationships between objects are partially supported.
+** The wizard can be used in a limited offline mode, i.e. without AI.
+** Note that the wizard is disabled by default for security reasons.
+Access to the wizard is protected by xrefv:/midpoint/reference/master/connector-generator/enable/[separate authorization and deployment configuration].
 
 * New xrefv:/midpoint/reference/master/smart-integration/[**smart integration**] features:
 ** AI and local heuristics powered recommending of various resource configuration, such as:
-*** object types (delineation) - categorize the resource data.
-*** focus type - maps the object types (categories) to specific type of midPoint object.
-*** correlators - correlate data on resource with existing data in midPoint (and vice versa).
-*** mappings - maps resource data from/to midPoint objects.
+*** object types (delineation) - categorize the resource objects into object types,
+*** focus type - maps the resource object types to specific types of midPoint object (like LDAP accounts to midPoint users),
+*** correlators - correlate objects on resource to existing objects in midPoint,
+*** mappings - maps resource object attributes from/to midPoint object properties,
 *** simple associations - associate accounts with entitlements.
 ** Object type and object class statistics for better understanding of your resource and midPoint data.
 ** Simulation of proposed and/or already active correlators to better evaluate their coverage and to help you catch potential misses.
-** Simulation of inbound mappings to verify the validity of your expressions.
-** New dedicated authorization action for recommending suggestions, which allows you to fine tune access to the above-mentioned recommending features.
-See xrefv:/midpoint/reference/master/smart-integration/security/authorization/[].
+** Simulation of individual mappings to verify the validity of your expressions.
 ** Related UI/UX improvements in object type wizard, mappings and correlation screen to guide you through, simplify and make the resource configuration more understandable.
 
-* **Significantly improved expression security**:
+* Significantly improved **expression security**:
 ** New xrefv:/midpoint/reference/master/expressions/expressions/script/mel/[MidPoint expression language] (MEL), a restricted expression language designed for safe use even by untrusted users.
 ** New xrefv:/midpoint/reference/master/misc/notifications/velocity/[Safe Velocity] scripting language, a restricted variant of Velocity designed for safe use even by untrusted users.
 ** Ability to completely turn off powerful but unsafe general-purpose scripting languages (Groovy, JavaScript, Python, original Velocity) by the platform (OS) administrator via `config.xml` and Java system property.
-*** This is the default setting from 4.11.0 onwards.
-*** All built-in initial objects (reports, dashboards, collections, task archetypes, object templates, value policy) were migrated from Groovy to MEL.
+*** This is the default setting from 4.11.0 onwards: only MEL and Safe Velocity are enabled in fresh 4.11.0 installations of midPoint.
 *** MEL replaced Groovy as the default scripting language for expressions.
+*** All built-in initial objects (reports, dashboards, collections, task archetypes, object templates, value policy) were migrated from Groovy to MEL.
 ** xrefv:/midpoint/reference/master/expressions/expressions/profiles/[Expression profiles] are now enforced throughout the system.
-*** The initial system configuration provides default `safe`, `reporting` and `configuration` expression profiles, assigned to individual object types according to their expected needs, like
-`safe` for roles, `reporting` for reports, and `configuration` for resources.
+*** The initial system configuration provides default `safe`, `reporting` and `configuration` expression profiles, assigned to individual object types according to their expected needs, like `safe` for roles, `reporting` for reports, and `configuration` for resources.
 
 * xrefv:/midpoint/reference/master/resources/manual/ticketing/[**ITSM ticketing**]: Ability to manage target applications via external ITSM systems, without the need to write Java code in midPoint overlays.
 Instead, tickets are created in ITSM systems via standard ConnId connectors, managed as projections (shadows of the new `work` kind) of the respective midPoint `CaseType` objects.
 
-* xrefv:/midpoint/reference/master/tasks/focus-policies-in-activities/[**Focus policies in activities**]: focus-based policy rules can now be configured and evaluated per task activity, not only for the whole task.
-This allows for separate focus-based thresholds for individual activities of composite tasks, including the `restartActivity` and `skipActivity` policy actions.
+* xrefv:/midpoint/reference/master/tasks/focus-policies-in-activities/[**Focus policies in activities**]: Focus-oriented policy rules (like "don't allow more than 15 user objects being deleted") can now be configured and evaluated per task activity, not only for the whole task.
+This allows for separate thresholds for individual activities of composite tasks.
+Also, this brings the ability to use activity-specific policy actions that were introduced in midPoint 4.10 (like "restart activity" or "skip activity") to be used within focus-oriented policy rules.
 
-* xrefv:/midpoint/reference/master/security/authentication/flexible-authentication/modules/totp/[**TOTP support**]: the new `totp` authentication module brings multi-factor authentication based on time-based one-time passwords to xrefv:/midpoint/reference/master/security/authentication/flexible-authentication/[flexible authentication].
+* xrefv:/midpoint/reference/master/security/authentication/flexible-authentication/modules/totp/[**TOTP support**]: The new `totp` authentication module brings multi-factor authentication based on time-based one-time passwords to xrefv:/midpoint/reference/master/security/authentication/flexible-authentication/[flexible authentication].
 Users can set up and reset their authenticator application in the self-service user interface.
 
-* xrefv:/midpoint/reference/master/admin-gui/multi-tab-browser-support/[**Multi-tab browser support**]: you can now open midPoint in multiple browser tabs or windows while maintaining consistent experience across the views.
+* xrefv:/midpoint/reference/master/admin-gui/multi-tab-browser-support/[**Multi-tab browser support**]: You can now open midPoint in multiple browser tabs or windows while maintaining consistent experience across the views.
 
-* Supporting sharing of open-source connectors by requiring that all connectors used by midPoint in production must be xref:/connectors/integration-catalog/share-connectors/validate-connector/[open-sourced] and listed in the xref:/connectors/integration-catalog/[Integration Catalog], except for customers supporting midPoint development via subscription.
+* Since this version, we promote sharing of open-source connectors by requiring that all connectors used by midPoint in production must be xref:/connectors/integration-catalog/share-connectors/validate-connector/[open-sourced] and listed in the xref:/connectors/integration-catalog/[Integration Catalog], except for customers supporting midPoint development via subscription.
 // TODO link public announcement here
 
 * Support for xref:/midpoint/guides/updating-native-db/updating-to-pg18[PostgreSQL 18] and bug:MID-10867[Java 25].
 
 === Other Improvements
 
-* Improved patch management of docker images, updated tagging of docker images.
-See xref:/midpoint/get-started/install/containers/container-image-naming/[].
-* Multiple libraries updated, including Spring Boot, AdminLTE (bug:MID-11538[]), and Apache CXF (bug:MID-11948[]).
-* Added support for Slovenian (sl), Latvian (lv) language and English (Europe) locale (bug:MID-10286[]).
-* Many improvements in accessibility of the self-service, approval process and identity recovery user interface (WCAG 2.2 AA compliance).
-* bug:MID-11036[] Implemented support for exporting reports and tables to XLSX.
-* bug:MID-11229[] Implemented streaming export for XLSX format.
-* bug:MID-10997[] Added support for additional (custom) footer.
-* bug:MID-10918[] Improved audit record for skipped approval stage.
-* bug:MID-9476[] Improved search box in Object Collection view.
-* bug:MID-10875[] Added Order constraints tab for Assignments panel.
-* bug:MID-10714[] Improved handling of operation execution collisions in multi-thread setup - a problem that was reflected in duplication of assignments.
-* Implemented new configuration options for processing uploaded images.
-* bug:MID-8802[] Added displayName and preferredName to UserType.
-* bug:MID-11867[], bug:MID-11768[] Added support for "null" expression.
+==== Security
 
-* Added configurable validation and processing of uploaded files, including content type verification, image conversion, and metadata stripping. See bug:MID-11849[].
-//* Custom deployment colors (header color or skin) or a custom logo are now taken as an indication that midPoint runs in a production environment. See bug:MID-11977[].
-* Added lifecycle state configuration for construction inducement. See bug:MID-11922[].
-* Form multipart limit (adminGuiConfiguration/formMaxMultiparts) now defaults to the Tomcat server.tomcat.max-part-count value instead of a fixed 100.
-* Improved security filtering of transient pending objects before GUI rendering. See bug:MID-12062[]
-* Changed password hints to be stored as ProtectedStringType instead of plain strings. See bug:MID-12111[] and xref:/midpoint/guides/migrating-plaintext-password-hints/[migration guide].
+* Multiple libraries were updated, including major ones like Spring Boot and Apache CXF. See bug:MID-11948[].
+* Improved patch management of midPoint container (Docker) images, updated tagging of these images, and security improvements (using non-root user by default).
+See xref:/midpoint/get-started/install/containers/container-image-naming/[].
+* Improved security filtering of transient pending objects before GUI rendering. See bug:MID-12062[].
+* Changed password hints to be stored as protected strings (`ProtectedStringType`) instead of plain strings. See bug:MID-12111[] and xref:/midpoint/guides/migrating-plaintext-password-hints/[migration guide].
 * Password hint is now hidden by default in the self-service user interface.
-* Account activation now uses a dedicated authentication sequence and a one-time link.
-This is mainly used when password hashing is enabled.
-See xref:/midpoint/guides/account-activation-sequence/[Account Activation Authentication Sequence] for the required configuration.
 * Registration confirmation notifier doesn't send cleartext username and password by default.
-* Added option to relax email address validation when sending notifications (`mail.mime.address.strict` JVM property). See bug:MID-11048[].
+* Improved audit record for skipped approval stage. See bug:MID-10918[].
+* Added configurable validation and processing of uploaded files, including content type verification, image conversion, and metadata stripping.
+This lowers the risk of malicious files being processed by midPoint.
+See bug:MID-11849[].
+* Account activation (used mainly when password hashing is enabled) now uses a dedicated authentication sequence and a one-time link.
+This is to improve midPoint security.
+See xref:/midpoint/guides/account-activation-sequence/[Account Activation Authentication Sequence] for the required configuration.
+
+==== User Interface
+
+* Implemented support for exporting reports and tables to XLSX (see bug:MID-11036[]), including streaming export (see bug:MID-11229[]).
+* Improving user experience, accessibility, and midPoint security by upgrading AdminLTE to 4.1. See bug:MID-11538[].
+* Many improvements in accessibility of the self-service, approval process and identity recovery user interface (WCAG 2.2 AA compliance).
+* Added support for additional (custom) footer in GUI. See bug:MID-10997[].
+* Improved search box in Object Collection view. See bug:MID-9476[].
+* Added ability to set order constraints for assignments via GUI. See bug:MID-10875[].
+* Added ability to set lifecycle state when creating inducement for a role via GUI. See bug:MID-11922[].
+* Added ability to define filter-based expressions and conditions in GUI. See bug:MID-11865[].
+* Added ability to define role auto-assignment expressions and conditions. See bug:MID-4684[].
+* Generally, improved handling of all expression conditions in GUI. See bug:MID-11864[].
+* Added ability to define mapping ranges via GUI. See bug:MID-11767[].
 * Added mapping authoritativeness indicators based on mapping strength and range to mapping tables and previews. See bug:MID-12021[].
 * Added quick actions to apply Correlate later, Do not touch, and Invalid data marks directly from simulation results. See bug:MID-11583[].
 * Added GUI support for configuring mapping iteration settings and reviewing iteration settings in mapping suggestions. See bug:MID-11712[] and bug:MID-11753[].
-* Improved default mapping range initialization based on target cardinality while preserving custom ranges. See bug:MID-12404[].
-* Added GUI editor for role auto-assignment, including the condition. See bug:MID-4684[].
-* Added support for range in mappings in GUI. See bug:MID-11767[].
-* Added support for filter expressions and conditions in GUI. See bug:MID-11865[].
-* Improved handling of conditions in GUI. See bug:MID-11864[].
-* The `notifyChange` REST operation can address the shadow by its attributes (identifiers), the shadow OID is no longer required. See bug:MID-11230[].
+* Added support for Slovenian (sl), Latvian (lv) language and English (Europe) locale (for the last one, see bug:MID-10286[]).
 * Shadow details can be displayed directly in the resource wizard. See bug:MID-8617[].
+
+=== Other Areas
+
+* Added `displayName` and `preferredName` to `UserType` (see bug:MID-8802[]).
+* Added support for "null" expression, simplifying writing data mappings (see bug:MID-11867[], bug:MID-11768[]).
+* Improved handling of operation execution collisions in multi-thread setup - a problem that was reflected in duplication of assignments (see bug:MID-10714[]).
+* Form multipart limit (adminGuiConfiguration/formMaxMultiparts) now defaults to the Tomcat server.tomcat.max-part-count value instead of a fixed 100.
+* Added option to relax email address validation when sending notifications (`mail.mime.address.strict` JVM property). See bug:MID-11048[].
+* The `notifyChange` REST operation can address the shadow by its attributes (identifiers).
+The shadow OID is no longer required.
+This significantly simplifies informing midPoint about changes of objects on resources.
+See bug:MID-11230[].
 
 === Bug Fixes
 
