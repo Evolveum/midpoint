@@ -5,7 +5,7 @@
 
 == Overview
 
-Smart Integration suggestion operations send resource and midPoint data to the external Smart Integration microservice (which may use an LLM) and create background tasks.
+Smart Integration recommendation operations send resource and midPoint data to the external Smart Integration microservice (which may use an LLM) and create background tasks.
 Access to them is controlled by a dedicated authorization, enforced on the backend service, the REST API, and in the GUI.
 
 Statistics are not covered by this authorization; they are protected by regular object-scoped model authorizations.
@@ -53,7 +53,7 @@ The user also needs the usual authorizations for working with resources in the G
 * resource pages and wizard.
 * reading and raw operations with connectors (`ConnectorType`)
 * reading and modifying the resource (`ResourceType`).
-* reading and modifying the shadows (`ShadowType).
+* reading and modifying the shadows (`ShadowType`).
 
 Many of the functions runs correlation process internally.
 That means authorizations for reading and modifying relevant focus objects are also required (e.g. `UserType` if you plan to use suggestions only for account-like objects).
@@ -71,7 +71,7 @@ The task owner therefore needs the authorization, too.
 === REST API
 
 Each Smart Integration REST endpoint requires `authorization-rest-3#smartIntegration`.
-The backend service check then applies as well, that means the `authorization-ui-3#smartIntegration` is also needed.
+Although it may sound odd, the `authorization-ui-3#smartIntegration` are needed for REST operations too, because the above-mentioned backend service check applies here as well.
 This also covers clients that call the REST API directly, e.g. midPoint Studio.
 
 === GUI
@@ -156,7 +156,7 @@ NOTE: Bellow example contains various authorizations, which users would need als
         </object>
     </authorization>
     <authorization>
-        <name>shador-objects-read-and-modify</name>
+        <name>shadow-objects-read-and-modify</name>
         <description>Allows to read and modify shadows in order to allow correlation processes</description>
         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#modify</action>
@@ -175,15 +175,6 @@ NOTE: Bellow example contains various authorizations, which users would need als
             <type>UserType</type>
         </object>
     </authorization>
-<!--    <authorization>-->
-<!--        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>-->
-<!--        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#add</action>-->
-<!--        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#modify</action>-->
-<!--        <object>-->
-<!--            &lt;!&ndash; Many of the Smart Integrations features runs in tasks, thus this permission &ndash;&gt;-->
-<!--            <type>TaskType</type>-->
-<!--        </object>-->
-<!--    </authorization>-->
 
     <!-- Authorizations related to simulations e.g. to allow correlators simulation -->
     <authorization>
