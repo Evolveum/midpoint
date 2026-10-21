@@ -80,7 +80,8 @@ Users can set up and reset their authenticator application in the self-service u
 
 * xrefv:/midpoint/reference/master/admin-gui/multi-tab-browser-support/[**Multi-tab browser support**]: You can now open midPoint in multiple browser tabs or windows while maintaining consistent experience across the views.
 
-* Since this version, we promote sharing of open-source connectors by requiring that all connectors used by midPoint in production must be xref:/connectors/integration-catalog/share-connectors/validate-connector/[open-sourced] and listed in the xref:/connectors/integration-catalog/[Integration Catalog], except for customers supporting midPoint development via subscription.
+* Since this version, as part of our commitment to open source, we encourage our community to share their connectors with others through the xref:/connectors/integration-catalog/[Integration Catalog], helping everyone benefit from shared contributions.
+If you prefer to keep your custom connector private, you can continue using it with a MidPoint Support Subscription.
 // TODO link public announcement here
 
 * Support for xref:/midpoint/guides/updating-native-db/updating-to-pg18[PostgreSQL 18] and bug:MID-10867[Java 25].
