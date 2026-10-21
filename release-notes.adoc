@@ -37,23 +37,13 @@ Moreover, midPoint 4.11.0 made a significant leap towards secure-by-default conf
 
 === New Features and Major Improvements
 
-* **Connector generator wizard**: an AI-assisted  wizard that generates a working no-code/low-code connector helping you integrate an external application without writing the connector code from scratch.
-    See xref:/midpoint/get-started/try-ai-in-midpoint/[].
+* **Connector generator wizard**: an AI-assisted wizard that guides the user through the creation of a new no-code/low-code connector (or the further development of an existing low-code connector) helping user integrate an external application without writing the connector code from scratch.
+** The wizard has guided workflow, that  discovers the target application documentation, generates the connector's definitions / scripts based on that documentation
 ** Supports SCIM, REST, and SQL protocols.
-** Connector creation workflow guided by the wizard:
-*** Start from scratch or import an existing low-code connector.
-*** Provide basic information about the target application and its connectivity.
-*** Review the application documentation sources discovered by the AI and select the most fitting ones.
-    The connector generator uses the documentation to analyze how the application communicates and suggest appropriate connector scripts.
-*** Set up connection to the target application (base URL, authentication methods, AI-generated authentication scripts, credentials, endpoint for connectivity test).
-*** Review the discovered object classes and AI-generated schema scripts for the classes you choose to integrate.
-*** Review suggested endpoints for operations on the object classes (REST).
-** The connector generator wizard supports per-operation scripts (search all, search by ID, search filter).
-*** It has limited support for relationships and create, update, and delete operations.
-** The wizard can run in a limited offline mode (skeleton scripts, no documentation processing, no relationships) when the connector generator microservice is not configured or available.
+** Primary support for read-only operation, but also  limited support for relationships and create, update, and delete operations.
+** The wizard can be used  in a limited offline mode (withour AI,
 ** Connectors under construction are  listed under *Connectors* > *In-progress connectors* in the GUI.
-** Access to the connector generator wizard is protected by separate authorization.
-    This authorization is not granted by any out-of-the-box role, because the wizard generates and executes connector code (the superuser reaches it via the `#all` authorization).
+** Wizard is disabled by default, access to the connector generator wizard is protected by xrefv:/midpoint/reference/master/connector-generator/enable/[separate authorization and deployment configuration].
 
 * New xrefv:/midpoint/reference/master/smart-integration/[**smart integration**] features:
 ** Suggestions of object types (delineation).
