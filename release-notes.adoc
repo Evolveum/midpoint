@@ -372,8 +372,9 @@ This part of midPoint user interface is not finished.
 The only supported parts of this user interface are those that are used to process requests, approvals, and manual correlation.
 Other parts of case management user interface are considered to be experimental, especially the parts dealing with manual provisioning cases.
 
-* Smart integration features which leverages LLMs, requires an external "smart integration" microservice to work properly (publicly available at our https://github.com/Evolveum/midpilot-smart-integration/tree/main[GitHub]).
-For all such features there is also the requirement of either hosting your own LLM inference service, or use some third party LLM inference provider.
+* Connector generator and smart integration features which leverages LLMs, require an external microservice to work properly (publicly available at our GitHub: https://github.com/Evolveum/midpilot-connector-gen[for connector generator] and https://github.com/Evolveum/midpilot-smart-integration[for smart integration]).
+For these features there is also the requirement of either hosting your own LLM inference service, or use some third party LLM inference provider.
+Evolveum is going to provide such microservices as well.
 
 This list is just an overview, it may not be complete.
 Please see the documentation regarding detailed limitations of individual features.
