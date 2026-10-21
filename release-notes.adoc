@@ -9,8 +9,8 @@ visibility: hidden
 :page-liquid:
 :page-toc: top
 
-Release {release-version} is a eighty-sixth midPoint release, code-named _Čapek_.
-The {release-version} release brings accessibility improvements, compliance features as well as many incremental improvements and bugfixes.
+Release {release-version} is an eighty-sixth midPoint release, code-named _Čapek_.
+The {release-version} release brings AI-assisted rapid application onboarding, major security improvements, and numerous improvements for end users, engineers, and administrators.
 
 ++++
 {% include release-data.html %}
@@ -37,7 +37,13 @@ Moreover, midPoint 4.11.0 made a significant leap towards secure-by-default conf
 
 === New Features and Major Improvements
 
-* xrefv:/midpoint/reference/master/expressions/expressions/script/mel/[**MidPoint expression language**] (MEL): secure expression language for use in mappings and customization.
+* **Connector generator wizard**: an AI-assisted wizard that guides the user through the creation of a new no-code/low-code connector (or the further development of an existing low-code connector) helping user integrate an external application without writing the connector code from scratch.
+** The wizard has guided workflow, that  discovers the target application documentation, generates the connector's definitions / scripts based on that documentation
+** Supports SCIM, REST, and SQL protocols.
+** Primary support for read-only operation, but also  limited support for relationships and create, update, and delete operations.
+** The wizard can be used  in a limited offline mode (withour AI,
+** Connectors under construction are  listed under *Connectors* > *In-progress connectors* in the GUI.
+** Wizard is disabled by default, access to the connector generator wizard is protected by xrefv:/midpoint/reference/master/connector-generator/enable/[separate authorization and deployment configuration].
 
 * New xrefv:/midpoint/reference/master/smart-integration/[**smart integration**] features:
 ** Suggestions of object types (delineation).
@@ -49,123 +55,78 @@ Moreover, midPoint 4.11.0 made a significant leap towards secure-by-default conf
 ** Correlators simulation.
 ** Inbound mappings simulation.
 ** Dedicated `#smartIntegration` authorization for suggestion operations.
-    See xrefv:/midpoint/reference/master/smart-integration/security/authorization/[].
-* **Connector generator wizard**: an AI-assisted low-code wizard that generates a working manifest-based connector JAR helping you integrate an external application without writing the connector code from scratch.
-    See xref:/midpoint/get-started/try-ai-in-midpoint/[].
-** Supports SCIM, REST, and SQL protocols.
-** Connector creation workflow guided by the wizard:
-*** Start from scratch or import an existing low-code connector.
-*** Provide basic information about the target application and its connectivity.
-*** Review the application documentation sources discovered by the AI and select the most fitting ones.
-    The connector generator uses the documentation to analyze how the application communicates and suggest appropriate connector scripts.
-*** Set up connection to the target application (base URL, authentication methods, AI-generated authentication scripts, credentials, endpoint for connectivity test).
-*** Review the discovered object classes and AI-generated schema scripts for the classes you choose to integrate.
-*** Review suggested endpoints for operations on the object classes (REST).
-** The connector generator wizard supports per-operation scripts (search all, search by ID, search filter).
-*** It has limited support for relationships and create, update, and delete operations.
-** The wizard can run in a limited offline mode (skeleton scripts, no documentation processing, no relationships) when the xref:/midpoint/get-started/install/midpilot-setup/[connector generator microservice] is not configured or available.
-** Connectors under construction are tracked in the `ConnectorDevelopmentType` object and listed under *Connectors* > *In-progress connectors* in the GUI.
-** Access to the connector generator wizard is protected by the `#connectorWizard` authorization.
-    This authorization is not granted by any out-of-the-box role, because the wizard generates and executes connector code (the superuser reaches it via the `#all` authorization).
+See xrefv:/midpoint/reference/master/smart-integration/security/authorization/[].
+** Related UI/UX improvements in object type wizard, mappings and correlation screen.
 
-* **UI/UX improvements**:
-** Improved object type wizard.
-** Improved mappings screen.
-** Improved correlation screen.
+* **Significantly improved expression security**:
+** New xrefv:/midpoint/reference/master/expressions/expressions/script/mel/[MidPoint expression language] (MEL), a restricted expression language designed for safe use even by untrusted users.
+** New xrefv:/midpoint/reference/master/misc/notifications/velocity/[Safe Velocity] scripting language, a restricted variant of Velocity designed for safe use even by untrusted users.
+** Ability to completely turn off powerful but unsafe general-purpose scripting languages (Groovy, JavaScript, Python, original Velocity) by the platform (OS) administrator via `config.xml` and Java system property.
+*** This is the default setting from 4.11.0 onwards.
+*** All built-in initial objects (reports, dashboards, collections, task archetypes, object templates, value policy) were migrated from Groovy to MEL.
+*** MEL replaced Groovy as the default scripting language for expressions.
+** xrefv:/midpoint/reference/master/expressions/expressions/profiles/[Expression profiles] are now enforced throughout the system.
+*** The initial system configuration provides default `safe`, `reporting` and `configuration` expression profiles, assigned to individual object types according to their expected needs, like
+`safe` for roles, `reporting` for reports, and `configuration` for resources.
 
-* **Multi-tab browser support**: you can now open midPoint in multiple browser tabs or windows while maintaining consistent experience across the views.
-See xrefv:/midpoint/reference/master/admin-gui/multi-tab-browser-support/[].
-See also bug:MID-11050[].
-
-* xref:/midpoint/guides/updating-native-db/updating-to-pg18[Support for PostgreSQL 18]. See bug:MID-10986[].
-
-* Added connector signature verification for production environments without an active subscription,
-including an ability to import a signed list of allowed connectors for subscription compliance enforcement.
-See xref:/connectors/integration-catalog/share-connectors/validate-connector/[] and xref:/connectors/integration-catalog/[].
-See also bug:MID-11358[].
-
-* xrefv:/midpoint/reference/master/resources/manual/ticketing/[**ITSM ticketing**]: the built-in manual connector can now manage provisioning tickets on a real ITSM system, using a dedicated ticketing resource.
-The tickets are managed as projections (shadows of the `work` kind) of the respective midPoint cases.
-** A new `work` shadow kind for work items (issues, tickets, cases, work packages).
-** Cases can now hold projections: the new `ProjectionHolderType` schema type is a common parent of `FocusType` and `CaseType`.
-
-* xrefv:/midpoint/reference/master/security/authentication/flexible-authentication/modules/totp/[**TOTP support**]: the new `totp` authentication module brings multi-factor authentication based on time-based one-time passwords to xrefv:/midpoint/reference/master/security/authentication/flexible-authentication/[flexible authentication].
-Users can set up and reset their authenticator application in the self-service user interface.
-See bug:MID-11049[].
+* xrefv:/midpoint/reference/master/resources/manual/ticketing/[**ITSM ticketing**]: Ability to manage target applications via external ITSM systems, without the need to write Java code in midPoint overlays.
+Instead, tickets are created in ITSM systems via standard ConnId connectors, managed as projections (shadows of the new `work` kind) of the respective midPoint `CaseType` objects.
 
 * xrefv:/midpoint/reference/master/tasks/focus-policies-in-activities/[**Focus policies in activities**]: focus-based policy rules can now be configured and evaluated per task activity, not only for the whole task.
 This allows for separate focus-based thresholds for individual activities of composite tasks, including the `restartActivity` and `skipActivity` policy actions.
-See bug:MID-11051[].
 
-* **Secure-by-default expression configuration**: midPoint can now run without any unsafe scripting language (such as Groovy) enabled.
-** xrefv:/midpoint/reference/master/expressions/expressions/profiles/[Expression profiles] are now enforced throughout the system.
-The initial system configuration provides default `safe`, `reporting` and `configuration` expression profiles, assigned to object types (e.g., roles, orgs, archetypes, policies, dashboards and collections use `safe`, reports and message templates use `reporting`, resources and object templates use `configuration`).
-See bug:MID-10948[].
-** New `#safe-velocity` scripting language, a restricted variant of Velocity that is safe to be used by ordinary users (e.g., in notification templates).
-See xrefv:/midpoint/reference/master/misc/notifications/velocity/[] and bug:MID-12389[].
-** The `config.xml` shipped with midPoint sets `safeScriptingLanguagesOnly` to `true`, so unsafe scripting languages are disabled in deployments using it.
-See xrefv:/midpoint/reference/master/expressions/expressions/configuration/[].
-** Scripting languages that are not accessible (because of expression profiles or the `safeScriptingLanguagesOnly` switch) are hidden in the GUI script editor.
-See bug:MID-12472[].
-** All built-in initial objects (reports, dashboards, collections, task archetypes, object templates, value policy) were migrated from Groovy and `javaMethodReference` to MEL and other safe expressions.
-See bug:MID-12424[].
-** MEL is the default script language (`expressions/defaultScriptLanguage` in the initial system configuration).
+* xrefv:/midpoint/reference/master/security/authentication/flexible-authentication/modules/totp/[**TOTP support**]: the new `totp` authentication module brings multi-factor authentication based on time-based one-time passwords to xrefv:/midpoint/reference/master/security/authentication/flexible-authentication/[flexible authentication].
+Users can set up and reset their authenticator application in the self-service user interface.
+
+* xrefv:/midpoint/reference/master/admin-gui/multi-tab-browser-support/[**Multi-tab browser support**]: you can now open midPoint in multiple browser tabs or windows while maintaining consistent experience across the views.
+
+* Supporting sharing of open-source connectors by requiring that all connectors used by midPoint in production must be xref:/connectors/integration-catalog/share-connectors/validate-connector/[open-sourced] and listed in the xref:/connectors/integration-catalog/[Integration Catalog], except for customers supporting midPoint development via subscription.
+// TODO link public announcement here
+
+* Support for xref:/midpoint/guides/updating-native-db/updating-to-pg18[PostgreSQL 18] and bug:MID-10867[Java 25].
 
 === Other Improvements
 
-* Added support for Slovenian (sl), Latvian (lv) language.
-* Multiple libraries updated, including spring boot.
-* Many improvements in accessibility of the self-service, approval process and identity recovery user interface (WCAG 2.2 compliance).
-* bug:MID-10997[] Added support for additional footer.
+* Improved patch management of docker images, updated tagging of docker images.
+See xref:/midpoint/get-started/install/containers/container-image-naming/[].
+* Multiple libraries updated, including Spring Boot, AdminLTE (bug:MID-11538[]), and Apache CXF (bug:MID-11948[]).
+* Added support for Slovenian (sl), Latvian (lv) language and English (Europe) locale (bug:MID-10286[]).
+* Many improvements in accessibility of the self-service, approval process and identity recovery user interface (WCAG 2.2 AA compliance).
 * bug:MID-11036[] Implemented support for exporting reports and tables to XLSX.
 * bug:MID-11229[] Implemented streaming export for XLSX format.
+* bug:MID-10997[] Added support for additional (custom) footer.
 * bug:MID-10918[] Improved audit record for skipped approval stage.
-* bug:MID-9476[] Improved Search Box in Object Collection View.
-* bug:MID-10867[] Added support for java 25.
+* bug:MID-9476[] Improved search box in Object Collection view.
 * bug:MID-10875[] Added Order constraints tab for Assignments panel.
-* bug:MID-10335[] Fixed inconsistency in the connector loading process.
-* bug:MID-10936[] Changed the logger for SQL functional tracing from `org.hibernate.SQL` to `com.evolveum.midpoint.repo.sqlbase.querydsl.SqlLogger`.
-* Improved handling of clockwork collisions in multi-thread setup, problem was reflected in duplication of assignments. See bug:MID-10714[].
-* Improved patch management of docker images, updated tagging of docker images.
-    See xref:/midpoint/get-started/install/containers/container-image-naming/[].
+* bug:MID-10714[] Improved handling of operation execution collisions in multi-thread setup - a problem that was reflected in duplication of assignments.
 * Implemented new configuration options for processing uploaded images.
 * bug:MID-8802[] Added displayName and preferredName to UserType.
-* Upgraded AdminLTE to 4.1. See bug:MID-11538[].
-* Added support for "null" expression. See bug:MID-11867[].
-* Fixed handling of admin assign/unassign governance/member authorization. See bug:MID-11850[].
-* Upgraded Apache CXF to 4.2.2. See bug:MID-11948[]
+* bug:MID-11867[], bug:MID-11768[] Added support for "null" expression.
+
 * Added configurable validation and processing of uploaded files, including content type verification, image conversion, and metadata stripping. See bug:MID-11849[].
-* Custom deployment colors (header color or skin) or a custom logo are now taken as an indication that midPoint runs in a production environment. See bug:MID-11977[].
+//* Custom deployment colors (header color or skin) or a custom logo are now taken as an indication that midPoint runs in a production environment. See bug:MID-11977[].
 * Added lifecycle state configuration for construction inducement. See bug:MID-11922[].
-* Added English (Europe) locale. See bug:MID-10286[].
-* Added auditing of smart integration service calls, including request payload recording and full-text payload search. See bug:MID-11325[].
 * Form multipart limit (adminGuiConfiguration/formMaxMultiparts) now defaults to the Tomcat server.tomcat.max-part-count value instead of a fixed 100.
 * Improved security filtering of transient pending objects before GUI rendering. See bug:MID-12062[]
 * Changed password hints to be stored as ProtectedStringType instead of plain strings. See bug:MID-12111[] and xref:/midpoint/guides/migrating-plaintext-password-hints/[migration guide].
+* Password hint is now hidden by default in the self-service user interface.
 * Account activation now uses a dedicated authentication sequence and a one-time link.
 This is mainly used when password hashing is enabled.
 See xref:/midpoint/guides/account-activation-sequence/[Account Activation Authentication Sequence] for the required configuration.
-* Fixed object marks not being removed immediately after unassigning the policy that induces them. See bug:MID-10641[].
 * Registration confirmation notifier doesn't send cleartext username and password by default.
-* Password hint is now hidden by default in the self-service user interface.
 * Added option to relax email address validation when sending notifications (`mail.mime.address.strict` JVM property). See bug:MID-11048[].
 * Added mapping authoritativeness indicators based on mapping strength and range to mapping tables and previews. See bug:MID-12021[].
 * Added quick actions to apply Correlate later, Do not touch, and Invalid data marks directly from simulation results. See bug:MID-11583[].
-* Improved correlation configuration with selection and creation of inbound mappings directly from correlation items. See bug:MID-12036[] and bug:MID-11920[].
-* Improved reporting of smart integration suggestion errors, including access to operation details and the related task. See bug:MID-11393[].
 * Added GUI support for configuring mapping iteration settings and reviewing iteration settings in mapping suggestions. See bug:MID-11712[] and bug:MID-11753[].
-* Added a configurable smart integration service response timeout using smartIntegration/serviceResponseTimeout. See bug:MID-11902[].
-* Improved object class search in smart integration to support case-insensitive matching and searching object class documentation. See bug:MID-11394[].
 * Improved default mapping range initialization based on target cardinality while preserving custom ranges. See bug:MID-12404[].
 * Added GUI editor for role auto-assignment, including the condition. See bug:MID-4684[].
 * Added support for range in mappings in GUI. See bug:MID-11767[].
 * Added support for filter expressions and conditions in GUI. See bug:MID-11865[].
 * Improved handling of conditions in GUI. See bug:MID-11864[].
-* Added support for value expression returning null in GUI. See bug:MID-11768[].
 * The `notifyChange` REST operation can address the shadow by its attributes (identifiers), the shadow OID is no longer required. See bug:MID-11230[].
 * Shadow details can be displayed directly in the resource wizard. See bug:MID-8617[].
 
-=== Other Bug Fixes
+=== Bug Fixes
 
 * Fixed unassignment with relation specification from Governance members. See bug:MID-10955[].
 * Fixed object types configuration usage on the members panel. See bug:MID-10896[].
@@ -330,6 +291,10 @@ See xref:/midpoint/guides/account-activation-sequence/[Account Activation Authen
 * Fixed SAML authentication failure caused by OpenSAML and Spring Security dependency incompatibility. See bug:MID-11626[].
 * Fixed wrapping of values with long labels in object detail panels. See bug:MID-11628[].
 * Fixed read-only text attributes overflowing their container. See bug:MID-11868[].
+* Fixed inconsistency in the connector loading process related to how the directory with connectors is scanned. See bug:MID-10335[].
+* SQL functional tracing now correctly work for the native (PostgreSQL) repository. See bug:MID-10936[].
+* Fixed handling of admin assign/unassign governance/member authorization. See bug:MID-11850[].
+* Fixed object marks not being removed immediately after unassigning the policy that induces them. See bug:MID-10641[].
 
 === Releases Of Other Components
 
