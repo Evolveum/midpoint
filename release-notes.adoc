@@ -389,12 +389,11 @@ But only the versions specified below are supported as part of midPoint subscrip
 === Operating System
 
 MidPoint is likely to work on any operating system that supports the Java platform.
-However, for *production deployment*, only some operating systems are supported:
+However, for *production deployment*, only the following operating system is supported:
 
 * Linux (x86_64)
-* Windows Server (2022)
 
-We are positive that midPoint can be successfully installed on other operating systems, especially macOS and Microsoft Windows desktop.
+We are positive that midPoint can be successfully installed on other operating systems, especially macOS and Microsoft Windows.
 Such installations can be used to for evaluation, demonstration or development purposes.
 However, we do not support these operating systems for production environments.
 The tooling for production use is not maintained, such as various run control (start/stop) scripts, low-level administration and migration tools, backup and recovery support and so on.
@@ -519,7 +518,8 @@ Be sure to be on the latest maintenance version for 4.10, otherwise you will not
 Note that:
 
 * There are database schema changes (see xrefv:/midpoint/reference/master/upgrade/database-schema-upgrade/[Database schema upgrade]).
-** New tables for `ApplicationType`, `ConnectorDevelopmentType`, `AllowedConnectorsListType`, `SmartIntegrationArtifactType` and `ProjectionHolderType` were added.
+** New tables for `ConnectorDevelopmentType`, `AllowedConnectorsListType`, `SmartIntegrationArtifactType` and `ProjectionHolderType` were added.
+(`ApplicationType` was added as well, but it is not used in 4.11.0 yet.)
 ** New columns for `displayName` and `preferredName` of `UserType` were added.
 ** New `WORK` value of shadow kind was added.
 ** Few other smaller changes.
@@ -540,11 +540,11 @@ NOTE: This section is relevant to the majority of midPoint deployments.
 It refers to the most significant functionality removals and changes in this version.
 
 * The _PolyStringType.orig_ value is no longer treated as a translation key.
-Previously, due to the old PolyStringType structure, there were situations where the orig value of a polystring was interpreted as a translation key.
-For example, this occurred when a polystring was defined within a DisplayType object as a label for an object collection view.
-In such cases, if no explicit translation key was provided, midPoint attempted to translate the orig value.
-Starting from 4.11.0 version, the orig value will never be translated.
-Please ensure that all PolyStringType values in your environment are defined correctly.
+Previously, due to the old `PolyStringType` structure, there were situations where the `orig` value of a polystring was interpreted as a translation key.
+For example, this occurred when a polystring was defined within a `DisplayType` object as a label for an object collection view.
+In such cases, if no explicit translation key was provided, midPoint attempted to translate the `orig` value.
+Starting from 4.11.0 version, the `orig` value will never be translated.
+Please ensure that all `PolyStringType` values in your environment are defined correctly.
 If localization is required, explicitly define translation keys or language-specific values within the polystring.
 
 * Iteration specification (e.g., in object template or focus mapping) has a new boolean property `useTokenOnlyOnConflict` and changed default value for `start`.
@@ -576,6 +576,12 @@ Check further details about the new https://docs.evolveum.com/midpoint/get-start
 and also the document describing the https://docs.evolveum.com/midpoint/get-started/install/containers/container-image-2026-change/[container image changes],
 including the https://docs.evolveum.com/midpoint/get-started/install/containers/container-image-2026-change/#default-container-user[container user change].
 
+* General-purpose scripting languages (Groovy, JavaScript, Python, full Velocity) are now disabled by default via new default `config.xml`.
+This should NOT influence the deployments that are upgrading from previous versions of midPoint, as the `config.xml` is typically preserved in these situations.
+However, if you use midPoint in container deployment, the `config.xml` MAY get rewritten by the 4.11.0 version - depending on specifics of your deployment.
+Please check if that is the case and if so, make sure that `expressions.safeScriptingLanguagesOnly` parameter is set to `false` until you migrate all your scripts to MEL and Safe Velocity, and thus you are ready to disable all general-purpose scripting languages.
+See xrefv:/midpoint/reference/master/expressions/expressions/security/[] for more information.
+
 * xrefv:/midpoint/reference/master/expressions/expressions/profiles/[Expression profiles] are now enforced throughout the system.
 The expression profile of an expression stored in the repository is derived from the type (archetype, subtype) of the object containing it.
 Expressions that were previously not checked against the declared expression profiles may now fail.
@@ -584,12 +590,13 @@ Review and test your expressions according to the expression profiles declared i
 See bug:MID-10948[].
 
 * Default expression profiles for midPoint actions (bulk actions) were changed, and the `bulkActions` and `privilegedBulkActions` default settings were deprecated (see _Schema Changes_ below).
-It is strongly recommended to set explicit expression profiles (via archetypes) on all objects that contain midPoint actions, and to migrate the deprecated default settings to the new ones.
+It is strongly recommended to set explicit expression profiles (via object types and archetypes) on all objects that contain midPoint actions, and to migrate the deprecated default settings to the new ones.
 See xrefv:/midpoint/reference/master/expressions/expressions/profiles/configuration/[].
 
-* Because of the new `#safe-velocity` language, `#parse` and `#include` directives and inline macro definitions are no longer allowed in regular `#velocity` scripts.
-If you need them, set `legacyVelocityEngine` to `true` in `config.xml` (the `#safe-velocity` language is not available then), or migrate your templates.
-It is recommended to gradually migrate your scripts to `#safe-velocity` and then disable the full `#velocity` language via expression profiles.
+* Because of the introduction of the new `#safe-velocity` language, `#parse` and `#include` directives and inline macro definitions are no longer allowed, even in legacy `#velocity` scripts.
+(This is a limitation of the Velocity engine.)
+If you need them, set `legacyVelocityEngine` to `true` in `config.xml` (the `#safe-velocity` language is not available then), or migrate your templates so that they won't use these features.
+It is recommended to gradually migrate your scripts to `#safe-velocity` and then disable the full `#velocity` language via expression profiles or via `config.xml`.
 See bug:MID-12389[].
 
 * Script evaluation in reports was unified with the evaluation of other expressions.
@@ -599,9 +606,6 @@ See bug:MID-10948[].
 * Classes related to script execution were renamed (`ScriptExpression` to `Script`, `ScriptExpressionFactory` to `ScriptFactory`, `ScriptExpressionEvaluationContext` to `ScriptExecutionContext`, `ScriptEvaluator` to `ScriptExecutor`).
 This affects only scripts or overlays that use these classes directly, and logging configuration referring to them.
 Use `midpoint.isEvaluateNew()` instead of `ScriptExpressionEvaluationContext.getThreadLocal().isEvaluateNew()`.
-
-* The temporary `DefaultJavaMethodReferenceLibrary` methods (used by `javaMethodReference` expressions in built-in reports and collections) were removed and replaced by MEL functions.
-Custom objects that call these methods need to be migrated to MEL.
 
 * Internal caching APIs were cleaned up (`repo.api.Cache` and `repo.api.CacheListener` were removed, `repo.api.CacheDispatcher` was renamed to `repo.api.ClusterwideCacheInvalidationDispatcher`).
 This affects only custom code (overlays) that implemented custom caches or dispatched cache invalidations.
@@ -637,6 +641,7 @@ New initial objects:
 * 100-archetype-smart-integration-resource-object-type-statistics.xml
 * 100-archetype-smart-integration-schema-match.xml
 * 539-archetype-task-user-submitted.xml
+* 540-archetype-task-system-submitted.xml
 * 602-origin-artificial-intelligence.xml
 * 603-origin-system-intelligence.xml
 * 739-mark-shadow-correlation-owner-found.xml
@@ -896,14 +901,14 @@ See also bug:MID-11250[].
 Existing users may not have `displayName` populated immediately after upgrade. Most user-facing places use fallback display logic, but places that display the raw `displayName` value may remain empty until the value is materialized.
 To populate `displayName` for existing person users, set `preferredName` where needed and recompute the users so the person object-template mapping is applied. See also bug:MID-8802[].
 
-* New deployments are secure by default.
+* Unsafe scripting languages are disabled by default for new deployments.
 +
 The `config.xml` shipped with midPoint sets `expressions/safeScriptingLanguagesOnly` to `true`.
 The connector generator is disabled unless `connectors/developmentToolsEnabled` is explicitly set to `true` in `config.xml`.
 These settings prevent executing arbitrary code on the underlying operating system (e.g., via Groovy scripts or the connector generator).
 The initial system configuration assigns the `safe`, `reporting` and `configuration` expression profiles to object types, and sets MEL as the default script language.
 Existing deployments keep their `config.xml` and system configuration, but it is recommended to adapt them in a similar way.
-See xrefv:/midpoint/reference/master/expressions/expressions/configuration/[], xrefv:/midpoint/reference/master/expressions/expressions/profiles/[] and xrefv:/midpoint/reference/master/connector-generator/enable/[].
+See xrefv:/midpoint/reference/master/expressions/expressions/configuration/[], xrefv:/midpoint/reference/master/expressions/expressions/profiles/[], xrefv:/midpoint/reference/master/expressions/expressions/security/[], and xrefv:/midpoint/reference/master/connector-generator/enable/[].
 
 
 ++++
