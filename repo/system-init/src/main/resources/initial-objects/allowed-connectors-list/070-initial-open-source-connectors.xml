@@ -630,4 +630,14 @@
             <value>x+EgiCqZkuHms107kpL8IXXI1M7rIi/SIhQuPMeuBzTqvi88Dg3BKCxd25owczf3GucWx1bLyKLSF9u6XQ62Ag==</value>
         </signature>
     </signedConnector>
+    <signedConnector>
+        <connector>
+            <className>com.exclamationlabs.connid.base.scim2.Scim2Connector</className>
+            <bundle>connector-scim2</bundle>
+        </connector>
+        <signature>
+            <keyId>key-2026-01</keyId>
+            <value>wRS1wQi0jhQtSq4JGZYf020JHyg5SXa0hzlQtufd0rA2lkMhGFAI2BYKYsaYqaE4urHPS6fZ35QGj9LxFOa4Ag==</value>
+        </signature>
+    </signedConnector>
 </allowedConnectorsList>
