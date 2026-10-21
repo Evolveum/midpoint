@@ -3,6 +3,7 @@
 :page-since: "4.11.0"
 :page-upkeep-status: green
 :page-toc: top
+:page-display-order: 100
 
 The connector generator (the low-code connector development tool) is disabled by default.
 The switch is the `developmentToolsEnabled` flag in the `connectors` section of the `config.xml` file;

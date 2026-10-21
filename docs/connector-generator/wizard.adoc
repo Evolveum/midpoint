@@ -1,0 +1,99 @@
+= Connector Generator Wizard
+:page-nav-title: Wizard Overview
+:page-toc: top
+:page-since: "4.11.0"
+:page-upkeep-status: green
+:page-display-order: 300
+
+This page gives an overview of the screens and capabilities of the connector generator wizard.
+It is deliberately not a screen-by-screen manual - for a walkthrough on a concrete demo application, see xref:/midpoint/get-started/try-ai-in-midpoint/midpilot-connector-generator-wizard/[Create connector with AI].
+How the generated low-code connectors work is documented separately, see xref:/connectors/scimrest-framework/[SCIMREST framework] and xref:/connectors/sql-framework/[SQL framework].
+
+The wizard is organized as a set of sections in the left sidebar; each section contains a sequence of screens.
+Screens that run an AI operation in the background show its progress while it runs.
+The wizard can be saved at any time and reopened later - connectors under construction are listed under *Connectors* > *In-progress connectors*.
+
+== Entry points
+
+* Start from scratch - the left menu *Connectors* > *Connector generator*.
+* Import an existing low-code connector - the *Develop Connector* action in the row menu of a low-code (manifest-based) connector on the *Connectors* page.
+The source connector bundle is copied under a new version and the wizard starts with its values pre-filled.
+* Continue an in-progress connector - open it from *Connectors* > *In-progress connectors*; the wizard resumes at the in-progress step.
+The only row action on that page is *Delete*.
+
+The *Develop Connector* action and the wizard itself are hidden unless the connector generator is enabled, see xref:/midpoint/reference/connector-generator/enable/[Enabling the Connector Generator].
+
+== Basic information
+
+The first section identifies the target application and the connector:
+
+* *Application identification* - name, version and description of the target application, and its *integration type*: SCIM, REST, or SQL.
+The integration type determines the rest of the wizard flow.
+* *Documentation sources* (online mode only) - the AI discovers candidate documentation of the application; you review the suggested sources (URLs and files) and can add further URLs or upload files.
+The generator uses the documentation to analyze how the application communicates and to suggest appropriate connector scripts.
+* *Connector identification* - the connector coordinates (group ID, artifact ID, version) and the display name; the coordinates are checked against the already installed connectors.
+
+When you proceed, midPoint downloads the xref:/midpoint/reference/connector-generator/configuration/#_framework_template[framework template] for the chosen integration type (or copies the imported bundle), installs the new connector bundle, and creates a *testing resource* that the following screens use to connect to the application.
+
+== Connection
+
+The second section establishes a working connection to the application, ending with a connectivity test:
+
+* *REST / SCIM* - base URL, then the authentication method (none, HTTP basic, bearer token, JWT bearer, OAuth 2.0 client-credentials / password / JWT / SAML), then the AI-generated authentication scripts, then the credentials, and finally a connectivity test endpoint.
+The *Test connection* screen verifies the whole setup; if the test fails, a *Fix connection* screen lets you correct the base URL, the authentication, the scripts, or the endpoint and retest.
+* *SQL* - the JDBC connection parameters (URL, user, password, plus optional pool size, timeouts, and test query), followed by the *Test connection* screen.
+
+Once the connection is verified, the AI starts discovering the object classes of the application.
+
+== Object classes
+
+After a successful connection, the wizard works through the object classes one by one:
+
+* *Select object class* - pick one of the discovered classes (ranked by the AI's confidence; lower-confidence candidates can be revealed) or create a new class by name.
+* *Schema* - review, edit and confirm the schema script of the class; the resulting object class schema is then displayed.
+* *Per-operation scripts* - *search all*, *get by ID*, and *search filter* are the primary supported operations.
+For REST and SCIM, you first pick the HTTP endpoint for the operation; the AI then generates the script, which you can review, regenerate, or edit, and verify against the live application on the result screens.
+The *create*, *update*, and *delete* operations are supported as well, with more limited AI assistance.
+
+Every script screen offers a *Fix scripts* action that validates all the scripts of the class at once and shows per-script errors.
+The *Object classes* screen lists all the classes as tiles with capability tags and lets you configure or delete capabilities per class.
+
+== Relationships
+
+In online mode, the wizard can also work with relationships between object classes: pick a relationship from the *Relationships* screen, and the AI generates the relationship script.
+Relationships are not supported in offline mode.
+
+== Script editing
+
+The generated scripts are plain Groovy (or YAML for the declarative parts) and can be edited on the spot:
+
+* switch the format between Groovy and YAML,
+* *Regenerate* a script with the AI,
+* *Discard* a suggested script,
+* *Confirm* - saves the script after validation.
+
+== Summary and next steps
+
+The *Summary* screen (always available from the wizard header) shows the overall progress, the status of the basic information, the connection, and the documentation (each with an *Edit* shortcut), and counters of the object classes and relationships.
+
+From the *Next steps* screen you can:
+
+* work on the next object class or operation (schema, search all, get by ID, search filter, create, update, delete),
+* add a relationship,
+* create a real midPoint *Resource* from the testing resource,
+* export the finished connector as a JAR or a library-less ZIP bundle.
+
+After exporting the connector, the integration continues the traditional way: create the xref:/midpoint/reference/admin-gui/resource-wizard/create-resource-using-wizard/[resource], define the object types, mappings, correlation and synchronization rules, and verify the setup with xref:/midpoint/reference/admin-gui/simulations/[simulations].
+
+== Offline mode
+
+When the code generation microservice is not configured (see xref:/midpoint/reference/connector-generator/configuration/#_connection_to_the_microservice[`connectorGenerationUrl`]) or is not reachable, the wizard runs in a limited offline mode: it generates skeleton scripts, does not process documentation, does not discover object classes, and does not offer relationships.
+A persistent warning banner indicates that the microservice is not available.
+
+== See also
+
+* xref:/midpoint/reference/connector-generator/enable/[Enabling the Connector Generator]
+* xref:/midpoint/reference/connector-generator/configuration/[Connector Generator Configuration]
+* xref:/midpoint/get-started/try-ai-in-midpoint/midpilot-connector-generator-wizard/[Create connector with AI] - a step-by-step walkthrough on a demo application
+* xref:/connectors/scimrest-framework/[SCIMREST framework] - how the generated SCIM/REST connectors work
+* xref:/connectors/sql-framework/[SQL framework] - how the generated SQL connectors work
