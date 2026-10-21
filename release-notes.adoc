@@ -37,7 +37,7 @@ Moreover, midPoint 4.11.0 made a significant leap towards secure-by-default conf
 
 === New Features and Major Improvements
 
-* **Connector generator wizard**: an AI-assisted no-code/low-code wizard that generates a working manifest-based connector JAR helping you integrate an external application without writing the connector code from scratch.
+* **Connector generator wizard**: an AI-assisted  wizard that generates a working no-code/low-code connector helping you integrate an external application without writing the connector code from scratch.
     See xref:/midpoint/get-started/try-ai-in-midpoint/[].
 ** Supports SCIM, REST, and SQL protocols.
 ** Connector creation workflow guided by the wizard:
@@ -50,9 +50,9 @@ Moreover, midPoint 4.11.0 made a significant leap towards secure-by-default conf
 *** Review suggested endpoints for operations on the object classes (REST).
 ** The connector generator wizard supports per-operation scripts (search all, search by ID, search filter).
 *** It has limited support for relationships and create, update, and delete operations.
-** The wizard can run in a limited offline mode (skeleton scripts, no documentation processing, no relationships) when the xref:/midpoint/get-started/install/midpilot-setup/[connector generator microservice] is not configured or available.
-** Connectors under construction are tracked in the `ConnectorDevelopmentType` object and listed under *Connectors* > *In-progress connectors* in the GUI.
-** Access to the connector generator wizard is protected by the `#connectorWizard` authorization.
+** The wizard can run in a limited offline mode (skeleton scripts, no documentation processing, no relationships) when the connector generator microservice is not configured or available.
+** Connectors under construction are  listed under *Connectors* > *In-progress connectors* in the GUI.
+** Access to the connector generator wizard is protected by separate authorization.
     This authorization is not granted by any out-of-the-box role, because the wizard generates and executes connector code (the superuser reaches it via the `#all` authorization).
 
 * New xrefv:/midpoint/reference/master/smart-integration/[**smart integration**] features:
