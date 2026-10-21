@@ -135,7 +135,7 @@ Following examples assume that midPoint _user_ is provided in variable `focus`, 
 
 [source,mel]
 ----
-focus.activation.effectiveStatus == `enabled`            // true if focus is active
+focus.activation.effectiveStatus == 'ENABLED'            // true if focus is active
 has(focus.emailAddress) || has(focus.telephoneNumber)    // true if either one is set
 size(focus.assignment) > 0                               // true if there is at least one assignment
 matches(focus.telephoneNumber, '^[0-9]+$')               // true if number matches regexp
