@@ -46,17 +46,18 @@ Moreover, midPoint 4.11.0 made a significant leap towards secure-by-default conf
 ** Wizard is disabled by default, access to the connector generator wizard is protected by xrefv:/midpoint/reference/master/connector-generator/enable/[separate authorization and deployment configuration].
 
 * New xrefv:/midpoint/reference/master/smart-integration/[**smart integration**] features:
-** Suggestions of object types (delineation).
-** Suggestions of focus type.
-** Suggestions of correlators.
-** Suggestions of mappings.
-** Suggestions of simple associations.
-** Object type and object class statistics.
-** Correlators simulation.
-** Inbound mappings simulation.
-** Dedicated `#smartIntegration` authorization for suggestion operations.
+** AI and local heuristics powered recommending of various resource configuration, such as:
+*** object types (delineation) - categorize the resource data.
+*** focus type - maps the object types (categories) to specific type of midPoint object.
+*** correlators - correlate data on resource with existing data in midPoint (and vice versa).
+*** mappings - maps resource data from/to midPoint objects.
+*** simple associations - associate accounts with entitlements.
+** Object type and object class statistics for better understanding of your resource and midPoint data.
+** Simulation of proposed and/or already active correlators to better evaluate their coverage and to help you catch potential misses.
+** Simulation of inbound mappings to verify the validity of your expressions.
+** New dedicated authorization action for recommending suggestions, which allows you to fine tune access to the above-mentioned recommending features.
 See xrefv:/midpoint/reference/master/smart-integration/security/authorization/[].
-** Related UI/UX improvements in object type wizard, mappings and correlation screen.
+** Related UI/UX improvements in object type wizard, mappings and correlation screen to guide you through, simplify and make the resource configuration more understandable.
 
 * **Significantly improved expression security**:
 ** New xrefv:/midpoint/reference/master/expressions/expressions/script/mel/[MidPoint expression language] (MEL), a restricted expression language designed for safe use even by untrusted users.
@@ -295,6 +296,10 @@ See xref:/midpoint/guides/account-activation-sequence/[Account Activation Authen
 * SQL functional tracing now correctly work for the native (PostgreSQL) repository. See bug:MID-10936[].
 * Fixed handling of admin assign/unassign governance/member authorization. See bug:MID-11850[].
 * Fixed object marks not being removed immediately after unassigning the policy that induces them. See bug:MID-10641[].
+
+=== Other changes
+
+* The Let's Encrypt root CA certificate is now imported to the trust store on first start to unlock the full potential of our new midPilot features.
 
 === Releases Of Other Components
 
