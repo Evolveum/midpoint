@@ -44,9 +44,9 @@ Moreover, midPoint 4.11.0 made a significant leap towards secure-by-default conf
 ** Relationships between objects are partially supported.
 ** The wizard can be used in a limited offline mode, i.e. without AI.
 ** Note that the wizard is disabled by default for security reasons.
-Access to the wizard is protected by xrefv:/midpoint/reference/master/connector-generator/enable/[separate authorization and deployment configuration].
+Access to the wizard is protected by xrefv:/midpoint/reference/support-4.11/connector-generator/enable/[separate authorization and deployment configuration].
 
-* New xrefv:/midpoint/reference/master/smart-integration/[**smart integration**] features:
+* New xrefv:/midpoint/reference/support-4.11/smart-integration/[**smart integration**] features:
 ** AI and local heuristics powered recommending of various resource configuration, such as:
 *** object types (delineation) - categorize the resource objects into object types,
 *** focus type - maps the resource object types to specific types of midPoint object (like LDAP accounts to midPoint users),
@@ -59,26 +59,26 @@ Access to the wizard is protected by xrefv:/midpoint/reference/master/connector-
 ** Related UI/UX improvements in object type wizard, mappings and correlation screen to guide you through, simplify and make the resource configuration more understandable.
 
 * Significantly improved **expression security**:
-** New xrefv:/midpoint/reference/master/expressions/expressions/script/mel/[MidPoint expression language] (MEL), a restricted expression language designed for safe use even by untrusted users.
-** New xrefv:/midpoint/reference/master/misc/notifications/velocity/[Safe Velocity] scripting language, a restricted variant of Velocity designed for safe use even by untrusted users.
+** New xrefv:/midpoint/reference/support-4.11/expressions/expressions/script/mel/[MidPoint expression language] (MEL), a restricted expression language designed for safe use even by untrusted users.
+** New xrefv:/midpoint/reference/support-4.11/misc/notifications/velocity/[Safe Velocity] scripting language, a restricted variant of Velocity designed for safe use even by untrusted users.
 ** Ability to completely turn off powerful but unsafe general-purpose scripting languages (Groovy, JavaScript, Python, original Velocity) by the platform (OS) administrator via `config.xml` and Java system property.
 *** This is the default setting from 4.11.0 onwards: only MEL and Safe Velocity are enabled in fresh 4.11.0 installations of midPoint.
 *** MEL replaced Groovy as the default scripting language for expressions.
 *** All built-in initial objects (reports, dashboards, collections, task archetypes, object templates, value policy) were migrated from Groovy to MEL.
-** xrefv:/midpoint/reference/master/expressions/expressions/profiles/[Expression profiles] are now enforced throughout the system.
+** xrefv:/midpoint/reference/support-4.11/expressions/expressions/profiles/[Expression profiles] are now enforced throughout the system.
 *** The initial system configuration provides default `safe`, `reporting` and `configuration` expression profiles, assigned to individual object types according to their expected needs, like `safe` for roles, `reporting` for reports, and `configuration` for resources.
 
-* xrefv:/midpoint/reference/master/resources/manual/ticketing/[**ITSM ticketing**]: Ability to manage target applications via external ITSM systems, without the need to write Java code in midPoint overlays.
+* xrefv:/midpoint/reference/support-4.11/resources/manual/ticketing/[**ITSM ticketing**]: Ability to manage target applications via external ITSM systems, without the need to write Java code in midPoint overlays.
 Instead, tickets are created in ITSM systems via standard ConnId connectors, managed as projections (shadows of the new `work` kind) of the respective midPoint `CaseType` objects.
 
-* xrefv:/midpoint/reference/master/tasks/focus-policies-in-activities/[**Focus policies in activities**]: Focus-oriented policy rules (like "don't allow more than 15 user objects being deleted") can now be configured and evaluated per task activity, not only for the whole task.
+* xrefv:/midpoint/reference/support-4.11/tasks/focus-policies-in-activities/[**Focus policies in activities**]: Focus-oriented policy rules (like "don't allow more than 15 user objects being deleted") can now be configured and evaluated per task activity, not only for the whole task.
 This allows for separate thresholds for individual activities of composite tasks.
 Also, this brings the ability to use activity-specific policy actions that were introduced in midPoint 4.10 (like "restart activity" or "skip activity") to be used within focus-oriented policy rules.
 
-* xrefv:/midpoint/reference/master/security/authentication/flexible-authentication/modules/totp/[**TOTP support**]: The new `totp` authentication module brings multi-factor authentication based on time-based one-time passwords to xrefv:/midpoint/reference/master/security/authentication/flexible-authentication/[flexible authentication].
+* xrefv:/midpoint/reference/support-4.11/security/authentication/flexible-authentication/modules/totp/[**TOTP support**]: The new `totp` authentication module brings multi-factor authentication based on time-based one-time passwords to xrefv:/midpoint/reference/support-4.11/security/authentication/flexible-authentication/[flexible authentication].
 Users can set up and reset their authenticator application in the self-service user interface.
 
-* xrefv:/midpoint/reference/master/admin-gui/multi-tab-browser-support/[**Multi-tab browser support**]: You can now open midPoint in multiple browser tabs or windows while maintaining consistent experience across the views.
+* xrefv:/midpoint/reference/support-4.11/admin-gui/multi-tab-browser-support/[**Multi-tab browser support**]: You can now open midPoint in multiple browser tabs or windows while maintaining consistent experience across the views.
 
 * Since this version, as part of our commitment to open source, we encourage our community to share their connectors with others through the xref:/connectors/integration-catalog/[Integration Catalog], helping everyone benefit from shared contributions.
 If you prefer to keep your custom connector private, you can continue using it with a MidPoint Support Subscription.
@@ -362,7 +362,7 @@ Even though midPoint may work well on mobile devices, the support for small scre
 Partial support for small screens (e.g. only for self-service purposes) may be provided, but it has to be explicitly negotiated in a subscription contract.
 
 * There are several add-ons and extensions for midPoint that are not explicitly distributed with midPoint.
-This includes xrefv:/midpoint/reference/master/interfaces/midpoint-client-java/[Java client library],
+This includes xrefv:/midpoint/reference/support-4.11/interfaces/midpoint-client-java/[Java client library],
 various https://github.com/Evolveum/midpoint-samples[samples], scripts, connectors and other non-bundled items.
 Support for these non-bundled items is limited.
 Generally speaking, those non-bundled items are supported only for platform subscribers and those that explicitly negotiated the support in their contract.
@@ -425,12 +425,12 @@ Use of open source OpenJDK builds with public support is recommended instead of 
 *PostgreSQL is the only supported database* for midPoint deployments since 4.10.
 
 Although in previous versions of midPoint other databases were supported using object-relational mapping abstraction (Hibernate), it is no longer the case now.
-xrefv:/midpoint/reference/master/repository/native-postgresql/[Native PostgreSQL repository implementation] was developed and tuned specially for PostgreSQL database, taking advantage of native database features, providing improved performance and scalability.
+xrefv:/midpoint/reference/support-4.11/repository/native-postgresql/[Native PostgreSQL repository implementation] was developed and tuned specially for PostgreSQL database, taking advantage of native database features, providing improved performance and scalability.
 It is currently the only option.
 
 Our strategy is to officially support the latest stable version of PostgreSQL database (to the practically possible extent).
 We make no commitments for future support of any other database engines.
-See xrefv:/midpoint/reference/master/repository/repository-database-support/[] page for the details.
+See xrefv:/midpoint/reference/support-4.11/repository/repository-database-support/[] page for the details.
 
 Only a direct connection from midPoint to the database engine is supported.
 Database and/or SQL proxies, database load balancers or any other devices (e.g. firewalls) that alter the communication are not supported.
@@ -505,21 +505,21 @@ Although we try to our best, it is not possible to foresee all possible uses of 
 Therefore, the information provided in this section are for information purposes only without any guarantees of completeness.
 In case of any doubts about upgrade or behavior changes please use services associated with xref:/support/subscription-sponsoring/[midPoint subscription programs].
 
-Please refer to the xrefv:/midpoint/reference/master/upgrade/upgrade-guide/[] for general instructions and description of the upgrade process.
+Please refer to the xrefv:/midpoint/reference/support-4.11/upgrade/upgrade-guide/[] for general instructions and description of the upgrade process.
 The guide describes the steps applicable for upgrades of all midPoint releases.
 Following sections provide details regarding release {release-version}.
 
 === Upgrade From MidPoint 4.10
 
 MidPoint {release-version} data model is backwards compatible with previous midPoint version.
-Please follow our xrefv:/midpoint/reference/master/upgrade/upgrade-guide/[Upgrade guide] carefully.
+Please follow our xrefv:/midpoint/reference/support-4.11/upgrade/upgrade-guide/[Upgrade guide] carefully.
 
 [IMPORTANT]
 Be sure to be on the latest maintenance version for 4.10, otherwise you will not be warned about all the necessary schema changes and other possible incompatibilities.
 
 Note that:
 
-* There are database schema changes (see xrefv:/midpoint/reference/master/upgrade/database-schema-upgrade/[Database schema upgrade]).
+* There are database schema changes (see xrefv:/midpoint/reference/support-4.11/upgrade/database-schema-upgrade/[Database schema upgrade]).
 ** New tables for `ConnectorDevelopmentType`, `AllowedConnectorsListType`, `SmartIntegrationArtifactType` and `ProjectionHolderType` were added.
 (`ApplicationType` was added as well, but it is not used in 4.11.0 yet.)
 ** New columns for `displayName` and `preferredName` of `UserType` were added.
@@ -582,9 +582,9 @@ including the https://docs.evolveum.com/midpoint/get-started/install/containers/
 This should NOT influence the deployments that are upgrading from previous versions of midPoint, as the `config.xml` is typically preserved in these situations.
 However, if you use midPoint in container deployment, the `config.xml` MAY get rewritten by the 4.11.0 version - depending on specifics of your deployment.
 Please check if that is the case and if so, make sure that `expressions.safeScriptingLanguagesOnly` parameter is set to `false` until you migrate all your scripts to MEL and Safe Velocity, and thus you are ready to disable all general-purpose scripting languages.
-See xrefv:/midpoint/reference/master/expressions/expressions/security/[] for more information.
+See xrefv:/midpoint/reference/support-4.11/expressions/expressions/security/[] for more information.
 
-* xrefv:/midpoint/reference/master/expressions/expressions/profiles/[Expression profiles] are now enforced throughout the system.
+* xrefv:/midpoint/reference/support-4.11/expressions/expressions/profiles/[Expression profiles] are now enforced throughout the system.
 The expression profile of an expression stored in the repository is derived from the type (archetype, subtype) of the object containing it.
 Expressions that were previously not checked against the declared expression profiles may now fail.
 In rare cases when midPoint cannot determine the expression profile, it reports a "TrustDescriptor is required but not set" error; please report such cases as bugs.
@@ -593,7 +593,7 @@ See bug:MID-10948[].
 
 * Default expression profiles for midPoint actions (bulk actions) were changed, and the `bulkActions` and `privilegedBulkActions` default settings were deprecated (see _Schema Changes_ below).
 It is strongly recommended to set explicit expression profiles (via object types and archetypes) on all objects that contain midPoint actions, and to migrate the deprecated default settings to the new ones.
-See xrefv:/midpoint/reference/master/expressions/expressions/profiles/configuration/[].
+See xrefv:/midpoint/reference/support-4.11/expressions/expressions/profiles/configuration/[].
 
 * Because of the introduction of the new `#safe-velocity` language, `#parse` and `#include` directives and inline macro definitions are no longer allowed, even in legacy `#velocity` scripts.
 (This is a limitation of the Velocity engine.)
@@ -632,7 +632,7 @@ The following list contains a description of changes to the initial objects in t
 The complete new set of initial objects is in the `repo/system-init/src/main/resources/initial-objects` directory in the source distribution and in the `doc/config/initial-objects` directory in the binary distribution.
 
 _Actions required:_ Please review the changes and apply them appropriately to your configuration. Ninja can help with updating existing initial objects during upgrade procedure using `initial-objects` command.
-For more information see xrefv:/midpoint/reference/master/upgrade/upgrade-with-ninja/#initial-objects-update[].
+For more information see xrefv:/midpoint/reference/support-4.11/upgrade/upgrade-with-ninja/#initial-objects-update[].
 
 New initial objects:
 
@@ -910,7 +910,7 @@ The connector generator is disabled unless `connectors/developmentToolsEnabled` 
 These settings prevent executing arbitrary code on the underlying operating system (e.g., via Groovy scripts or the connector generator).
 The initial system configuration assigns the `safe`, `reporting` and `configuration` expression profiles to object types, and sets MEL as the default script language.
 Existing deployments keep their `config.xml` and system configuration, but it is recommended to adapt them in a similar way.
-See xrefv:/midpoint/reference/master/expressions/expressions/configuration/[], xrefv:/midpoint/reference/master/expressions/expressions/profiles/[], xrefv:/midpoint/reference/master/expressions/expressions/security/[], and xrefv:/midpoint/reference/master/connector-generator/enable/[].
+See xrefv:/midpoint/reference/support-4.11/expressions/expressions/configuration/[], xrefv:/midpoint/reference/support-4.11/expressions/expressions/profiles/[], xrefv:/midpoint/reference/support-4.11/expressions/expressions/security/[], and xrefv:/midpoint/reference/support-4.11/connector-generator/enable/[].
 
 
 ++++
