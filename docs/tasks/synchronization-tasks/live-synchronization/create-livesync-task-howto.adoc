@@ -171,7 +171,7 @@ The counters for processed objects should have advanced.
 
 == See also
 
-* link:https://docs.evolveum.com/midpoint/reference/support-4.11/synchronization/introduction/[Introduction to synchronization]
-* link:https://docs.evolveum.com/midpoint/reference/support-4.11/tasks/specific-tasks/livesync/[Live synchronization task]
-* link:https://docs.evolveum.com/midpoint/reference/support-4.11/synchronization/reactions/[Synchronization reactions]
-* link:https://docs.evolveum.com/midpoint/reference/support-4.11/tasks/specific-tasks/reconciliation/[Reconciliation task]
+* link:https://docs.evolveum.com/midpoint/reference/master/synchronization/introduction/[Introduction to synchronization]
+* link:https://docs.evolveum.com/midpoint/reference/master/tasks/specific-tasks/livesync/[Live synchronization task]
+* link:https://docs.evolveum.com/midpoint/reference/master/synchronization/reactions/[Synchronization reactions]
+* link:https://docs.evolveum.com/midpoint/reference/master/tasks/specific-tasks/reconciliation/[Reconciliation task]
