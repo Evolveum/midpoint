@@ -5,6 +5,6 @@
 
 == Topics
 
-* xref:data-access-permissions.adoc[Data access permissions] - (TODO)
+* xref:data-access-permissions.adoc[Data access permissions] - Schema, statistics and raw data permissions that limit the data sent to the AI microservice, their effect on each recommendation, and how they are granted in the GUI.
 * xref:authorization.adoc[Smart Integration authorization] - Dedicated `#smartIntegration` authorization for recommendation operations, REST API and GUI; statistics protected by object-scoped authorizations.
-* xref:auditing-logging.adoc[Auditing and logging] - (TODO)
+* xref:auditing-logging.adoc[Auditing and logging]
