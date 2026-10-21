@@ -60,8 +60,8 @@ See xref:../schema-match.adoc[Schema match].
 * xref:object-types/object-types-recommendation.adoc[Smart object types recommendation] - How midPoint recommends object types (kind, intent, delineation, focus type) for an object class from its statistics, filter validation, retry and regeneration.
 * xref:focus-type/focus-type-recommendation.adoc[Smart focus type recommendation] - How midPoint recommends the focus type (for example `UserType` or `RoleType`) for an object type from the object class schema with the help of the AI microservice.
 * xref:correlation/correlation-recommendation.adoc[Smart correlation recommendation] - How midPoint recommends single-item correlators for known identifying properties from the schema match and existing inbound mappings, and how their quality is evaluated on sampled data.
-** xref:correlation/correlators-simulation.adoc[Correlators simulation] - (TODO)
+** xref:correlation/correlators-simulation.adoc[Correlators simulation]
 * xref:mappings/mappings-recommendation.adoc[Smart mappings recommendation] - How midPoint recommends inbound and outbound attribute mappings (as-is, heuristic, AI-generated and categorical scripts), quality assessment and result structure.
-** xref:mappings/mappings-simulation.adoc[Mappings simulation] - (TODO)
+** xref:mappings/mappings-simulation.adoc[Mappings simulation]
 * xref:associations/associations-recommendation.adoc[Smart associations recommendation] - How midPoint recommends associations between configured object types from references in the resource schema without the AI microservice, including the generated inbound and outbound mappings, membership correlation and synchronization.
 * xref:synchronization/synchronization-recommendation.adoc[Smart synchronization recommendation] - How midPoint builds synchronization reactions for an object type from the synchronization direction (source or target).
