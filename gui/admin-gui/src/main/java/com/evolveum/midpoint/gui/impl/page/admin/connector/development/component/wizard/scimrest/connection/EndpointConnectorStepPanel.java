@@ -85,6 +85,7 @@ public class EndpointConnectorStepPanel extends AbstractWizardStepPanel<Connecto
     private static final String ID_CONNECTED_BADGE = "connectedBadge";
     private static final String ID_MANUAL_ITEM = "manualItem";
     private static final String ID_MANUAL_RADIO = "manualRadio";
+    private static final String ID_MANUAL_URL_WRAPPER = "manualUrlWrapper";
     private static final String ID_MANUAL_URL = "manualUrl";
     private static final String ID_FEEDBACK = "feedback";
     private static final String ID_MANUAL_BADGE = "manualBadge";
@@ -211,34 +212,43 @@ public class EndpointConnectorStepPanel extends AbstractWizardStepPanel<Connecto
         manualRadio.setOutputMarkupId(true);
         manualItem.add(manualRadio);
 
+        WebMarkupContainer manualUrlWrapper = new WebMarkupContainer(ID_MANUAL_URL_WRAPPER);
+        manualUrlWrapper.add(new VisibleBehaviour(() ->
+                MANUAL_OPTION.equals(selectedModel.getObject())
+                        || StringUtils.isNotEmpty(manualUrlModel.getObject())));
+        manualItem.add(manualUrlWrapper);
+
+        WebMarkupContainer manualBadge = new WebMarkupContainer(ID_MANUAL_BADGE);
+        manualBadge.setOutputMarkupPlaceholderTag(true);
+        manualBadge.add(new VisibleBehaviour(() ->
+                StringUtils.isNotEmpty(connectedUrl.getObject())
+                        && connectedUrl.getObject().equals(manualUrlModel.getObject())));
+        manualItem.add(manualBadge);
+
         TextField<String> manualUrl = new TextField<>(ID_MANUAL_URL, manualUrlModel);
         NotNullValidator<String> validator = new NotNullValidator<>("EndpointConnectorStepPanel.manual.fail.required");
         validator.setUseModel(true);
         manualUrl.add(validator);
         manualUrl.setOutputMarkupId(true);
-        manualUrl.setOutputMarkupPlaceholderTag(true);
         manualUrl.add(AttributeAppender.append("onclick", "event.stopPropagation()"));
-        manualUrl.add(new VisibleBehaviour(() -> MANUAL_OPTION.equals(selectedModel.getObject())));
         manualUrl.add(new AjaxFormComponentUpdatingBehavior("change") {
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
                 target.add(getManualInputFeedback());
             }
         });
-        manualItem.add(manualUrl);
+        manualUrl.add(new AjaxFormComponentUpdatingBehavior("input") {
+            @Override
+            protected void onUpdate(AjaxRequestTarget target) {
+                target.add(manualBadge);
+            }
+        });
+        manualUrlWrapper.add(manualUrl);
 
         FeedbackLabels feedback = new FeedbackLabels(ID_FEEDBACK);
         feedback.setOutputMarkupId(true);
         feedback.setFilter(new ComponentFeedbackMessageFilter(manualUrl));
-        manualItem.add(feedback);
-
-        WebMarkupContainer manualBadge = new WebMarkupContainer(ID_MANUAL_BADGE);
-        manualBadge.setOutputMarkupPlaceholderTag(true);
-        manualBadge.add(new VisibleBehaviour(() ->
-                MANUAL_OPTION.equals(selectedModel.getObject())
-                        && StringUtils.isNotEmpty(connectedUrl.getObject())
-                        && connectedUrl.getObject().equals(manualUrlModel.getObject())));
-        manualItem.add(manualBadge);
+        manualUrlWrapper.add(feedback);
 
         radioGroup.add(new AjaxFormChoiceComponentUpdatingBehavior() {
             @Override
@@ -333,11 +343,11 @@ public class EndpointConnectorStepPanel extends AbstractWizardStepPanel<Connecto
     }
 
     private TextField<String> getManualInput() {
-        return (TextField<String>) get(createComponentPath(ID_RADIO_GROUP, ID_MANUAL_ITEM, ID_MANUAL_URL));
+        return (TextField<String>) get(createComponentPath(ID_RADIO_GROUP, ID_MANUAL_ITEM, ID_MANUAL_URL_WRAPPER, ID_MANUAL_URL));
     }
 
     private FeedbackLabels getManualInputFeedback() {
-        return (FeedbackLabels) get(createComponentPath(ID_RADIO_GROUP, ID_MANUAL_ITEM, ID_FEEDBACK));
+        return (FeedbackLabels) get(createComponentPath(ID_RADIO_GROUP, ID_MANUAL_ITEM, ID_MANUAL_URL_WRAPPER, ID_FEEDBACK));
     }
 
     @Override
