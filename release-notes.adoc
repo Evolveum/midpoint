@@ -1,10 +1,10 @@
 ---
 layout: release
-release-version: '4.11.0'
+release-version: '4.11.1'
 visibility: hidden
 ---
-= MidPoint 4.11.0
-:release-version: 4.11.0
+= MidPoint 4.11.1
+:release-version: 4.11.1
 :page-visibility: hidden
 :page-liquid:
 :page-toc: top
@@ -33,8 +33,9 @@ Moreover, midPoint 4.11.0 made a significant leap towards secure-by-default conf
 {% include release-dedication.html content=dedicationContent %}
 ++++
 
-== Changes With Respect to Version 4.11
+== Changes With Respect to Version 4.11.0
 
+* Requests for unknown paths outside the REST API (for example under /actuator or /static) now return HTTP 404 instead of 500 with a stack trace. See bug:MID-12566[].
 
 == Changes With Respect to Version 4.10
 
