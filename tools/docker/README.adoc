@@ -60,6 +60,19 @@ MP_VER=4.8 docker-compose up -d
 docker-compose logs -f midpoint_server
 ----
 
+Another included compose file `docker-compose-microservices.yml` provides a complete stack with PostgreSQL and three additional services needed for Smart integration (MidPilot). Smart integration is supported only in MidPoint 4.11. In order to use these services and Smart integration, additional infromation on the LLM communicating with the ervices is needed. For more information on configuration of the LLM, see the instructions in the `docker-compose-microservices.yml`.
+
+[source,bash]
+----
+# Start complete stack
+docker-compose -f docker-compose-microservices.yml up -d
+
+# View logs
+docker-compose -f docker-compose-microservices.yml logs -f midpilot-smart-integration
+docker-compose -f docker-compose-microservices.yml logs -f midpilot-connector-gen
+docker-compose -f docker-compose-microservices.yml logs -f midpilot-connector-gen-db
+----
+
 == Security
 
 This Docker configuration implements security best practices:
@@ -85,6 +98,7 @@ MidPoint configuration uses `MP_SET_*` environment variables:
 
 * `Dockerfile`: Multi-stage build with pinned base image versions
 * `docker-compose.yml`: Complete stack with PostgreSQL
+* `docker-compose-microservices.yml`: Complete stack with PostgreSQL and two microservices needed for Smart integration (midPilot)
 * `container_files/usr-local-bin/`: Container scripts
   ** `midpoint.sh`: MidPoint startup script for containers
   ** `healthcheck.sh`: Health check endpoint

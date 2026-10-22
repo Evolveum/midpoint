@@ -1,0 +1,142 @@
+# This compose file is used to run midPoint with all its necessary dependencies, including the midPilot services.
+# The midPilot services are used to provide additional functionality to midPoint, such as smart integration and connector generation.
+# If you want to run midPoint without either one or both midPilot microservices using this compose file, you can comment out the corresponding service(s) in the compose file.
+# The MidPilot Smart Integration is in its own independent service called midpilot-smart-integration.
+# The MidPilot Connector Generator is in its own independent service called midpilot-connector-gen, however this microservice also depends on its own dedicated database called midpilot-connector-gen-db service.
+#  In order for these midPilot services to work, you need to provide your own LLM API key (e.g. "ey..."), the LLM endpoint base URL (e.g. "https://api.llm-example-provider.com/gpt/v1") and the model name (e.g. "gpt-oss-120b") in the environment variables of the corresponding service(s) in this compose file. Each of the midPilot services needs these environment variables to be set separately.
+# On top of these evironment variables that are used for both midPilot services, the midPilot Connector Generator also uses a search method. The default method is pre-set to "ddgs" (DuckDuckGo Search), but you can change it to "brave" (Brave Search) if you have a Brave Search API key and endpoint. If you want to use Brave Search, you need to provide your own Brave Search API key and endpoint in the environment variables of the midpilot-connector-gen service in this compose file.
+# All of these environment variables are already configured in this compose file, but you need to replace the placeholder values with your own valid values.
+# For more information on midPilot and how to obtain an LLM API key, please refer to the documentation of the LLM provider you are using and the official Evolveum documentation.
+
+services:
+  midpoint_data:
+    image: postgres:17-alpine
+    environment:
+      - POSTGRES_PASSWORD=db.secret.pw.007
+      - POSTGRES_USER=midpoint
+      - POSTGRES_INITDB_ARGS=--lc-collate=en_US.utf8 --lc-ctype=en_US.utf8
+    networks:
+      - net
+    volumes:
+      - midpoint_data:/var/lib/postgresql/data
+
+  data_init:
+    image: evolveum/midpoint:alpine-latest
+    command: >
+      bash -c "
+      cd /opt/midpoint ;
+      bin/midpoint.sh init-native ;
+      echo ' - - - - - - ' ;
+      bin/ninja.sh -B info >/dev/null 2>/tmp/ninja.log ;
+      grep -q \"ERROR\" /tmp/ninja.log && (
+      bin/ninja.sh run-sql --create --mode REPOSITORY  ;
+      bin/ninja.sh run-sql --create --mode AUDIT
+      ) ||
+      echo -e '\\n Repository init is not needed...' ;
+      "
+    depends_on:
+      - midpoint_data
+    environment:
+      - MP_SET_midpoint_repository_jdbcUsername=midpoint
+      - MP_SET_midpoint_repository_jdbcPassword=db.secret.pw.007
+      - MP_SET_midpoint_repository_jdbcUrl=jdbc:postgresql://midpoint_data:5432/midpoint
+      - MP_SET_midpoint_repository_database=postgresql
+      - MP_INIT_CFG=/opt/midpoint/var
+    networks:
+      - net
+    volumes:
+      - ./midpoint-home:/opt/midpoint/var
+
+  midpoint_server:
+    image: evolveum/midpoint:alpine-latest
+    depends_on:
+      data_init:
+        condition: service_completed_successfully
+      midpoint_data:
+        condition: service_started
+    command: [ "/opt/midpoint/bin/midpoint.sh", "container" ]
+    ports:
+      - 8080:8080
+    environment:
+      - MP_SET_midpoint_repository_jdbcUsername=midpoint
+      - MP_SET_midpoint_repository_jdbcPassword=db.secret.pw.007
+      - MP_SET_midpoint_repository_jdbcUrl=jdbc:postgresql://midpoint_data:5432/midpoint
+      - MP_SET_midpoint_repository_database=postgresql
+      - MP_SET_midpoint_administrator_initialPassword=Test5ecr3t
+      - MP_UNSET_midpoint_repository_hibernateHbm2ddl=1
+      - MP_NO_ENV_COMPAT=1
+    networks:
+      - net
+    volumes:
+      - ./midpoint-home:/opt/midpoint/var
+
+  midpilot-smart-integration:
+    image: registry.evolveum.com/public/midpilot-smart-integration:1.0.1
+    environment:
+      LOGGING__LEVEL: info
+      LLM__OPENAI_API_BASE: "<LLM-endpoint-base-URL>"
+      LLM__MODEL_NAME: "<LLM-model-name>"
+      LLM__OPENAI_API_KEY: "<LLM-API-key>"
+      LANGFUSE__TRACING_ENABLED: false
+    networks:
+      - net
+    ports:
+      - 8090:8090
+
+  midpilot-connector-gen:
+    image: registry.evolveum.com/public/midpilot-connector-gen:1.0.1
+    container_name: midpilot-connector-gen-api
+    depends_on:
+      midpilot-connector-gen-db:
+        condition: service_healthy
+    environment:
+      LOGGING__LEVEL: info
+      DATABASE__HOST: midpilot-connector-gen-db
+      DATABASE__PORT: 5432
+      DATABASE__URL: postgresql+asyncpg://midpilot-connector-gen-user:conngen.secret.pw.007@midpilot-connector-gen-db:5432/connector_generator_db
+      AUTH__MODE: dev
+      LLM__OPENAI_API_KEY: "<LLM-API-key>"
+      LLM__OPENAI_API_BASE: "<LLM-endpoint-base-URL>"
+      LLM__MODEL_NAME: "<LLM-model-name>"
+      SEARCH__METHOD_NAME: ddgs
+      BRAVE__API_KEY: ""
+      BRAVE__ENDPOINT: ""
+    ports:
+      - 8091:8090
+    networks:
+      - net
+    command:
+        - /bin/sh
+        - -c
+        - |
+            uv run alembic upgrade head &&
+            python server.py
+
+  midpilot-connector-gen-db:
+    image: postgres:17-alpine
+    container_name: midpilot-connector-gen-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: connector_generator_db
+      POSTGRES_USER: midpilot-connector-gen-user
+      POSTGRES_PASSWORD: conngen.secret.pw.007
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U midpilot-connector-gen-user -d connector_generator_db"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+      start_period: 5s
+    ports:
+      - 5433:5432
+    networks:
+      - net
+
+networks:
+  net:
+    driver: bridge
+
+volumes:
+  midpoint_data:
+  postgres_data:
