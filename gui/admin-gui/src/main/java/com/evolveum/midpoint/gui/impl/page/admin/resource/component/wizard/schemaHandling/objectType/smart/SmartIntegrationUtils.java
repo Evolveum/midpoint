@@ -324,7 +324,7 @@ public class SmartIntegrationUtils {
             OperationResultStatusType status = s.getStatus();
             boolean executing = s.isExecuting();
             boolean isFatalError = status == OperationResultStatusType.FATAL_ERROR;
-            boolean isSuccess = status == OperationResultStatusType.SUCCESS;
+            boolean isSuccess = status == OperationResultStatusType.SUCCESS || status == OperationResultStatusType.PARTIAL_ERROR;
             if (isSuccess) {
                 return DEFAULT_AI;
             } else if (executing) {
