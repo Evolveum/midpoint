@@ -35,7 +35,7 @@ Moreover, midPoint 4.11.0 made a significant leap towards secure-by-default conf
 
 === New Features and Major Improvements
 
-* **MidPilot connector generator wizard**: an AI-assisted wizard that guides the you through the creation of a new or further development of an existing no-code/low-code connector helping user integrate an external application without writing the connector code from scratch.
+* **MidPilot connector generator wizard**: an AI-assisted wizard that guides you through the creation of a new or further development of an existing no-code/low-code connector helping user integrate an external application without writing the connector code from scratch.
 ** The wizard guides users through a workflow in which the connector generator discovers the target application documentation and generates connector definitions and scripts based on the documentation.
 ** The connector generator supports SCIM, REST, and SQL protocols.
 ** It primarily supports read-only operations, but there is also limited support for create, update, and delete operations.
