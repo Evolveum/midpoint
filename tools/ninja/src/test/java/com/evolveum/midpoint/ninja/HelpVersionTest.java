@@ -74,4 +74,30 @@ public class HelpVersionTest implements NinjaTestMixin {
 
         executeTest(outValidator, EMPTY_STREAM_VALIDATOR, "-V");
     }
+
+    @Test
+    public void test250ExportHelpSplitFiles() throws Exception {
+
+        String exportHelp = getHelpOutput("export");
+        Assertions.assertThat(exportHelp)
+                .doesNotContain("-sf")
+                .doesNotContain("--split-files");
+
+
+        String configHelp = getHelpOutput("export-configuration");
+        Assertions.assertThat(configHelp)
+                .contains("-sf")
+                .contains("--split-files");
+    }
+
+    private String getHelpOutput(String command) throws Exception {
+        List<String> result = new ArrayList<>();
+        executeTest(
+                list -> result.addAll(list),
+                EMPTY_STREAM_VALIDATOR,
+                "-h", command
+        );
+        return String.join("\n", result);
+    }
+
 }
