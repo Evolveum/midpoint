@@ -118,6 +118,9 @@ public abstract class IterativeActivityRun<
      */
     private BucketingSituation bucketingSituation;
 
+    /** Why the coordinator stopped this worker run, if it did. Latched to survive a rapid coordinator state change. */
+    @Nullable private TaskExecutionStateType coordinatorStopReason;
+
     /**
      * Schedules individual items for processing by worker threads (if running in multiple threads).
      * Re-created for each individual bucket.
@@ -226,6 +229,7 @@ public abstract class IterativeActivityRun<
         boolean initialRun = true;
 
         bucketingSituation = determineBucketingSituation();
+        coordinatorStopReason = null;
 
         setExpectedTotal(result);
 
@@ -365,18 +369,31 @@ public abstract class IterativeActivityRun<
     }
 
     /**
-     * A distributed worker should stop taking new buckets when its coordinator/root task is suspended. Normally, suspension
-     * of the task tree stops the worker task itself. This extra check handles the case where only the coordinator was
-     * suspended, or where the worker observes the coordinator state before its own stop request is delivered.
+     * Stops a worker when its coordinator is suspended or closed, even if the worker itself is still runnable.
+     * Once observed, the coordinator's stop reason is retained for the rest of this run.
      */
     private boolean canRunConsideringCoordinator(RunningTask task, OperationResult result) {
-        return task.canRun() && (!isWorker() || isCoordinatorRunnable(result));
+        if (!task.canRun()) {
+            return false;
+        }
+        if (!isWorker()) {
+            return true;
+        }
+        return coordinatorStopReason == null && isCoordinatorRunnable(result);
     }
 
     private boolean isCoordinatorRunnable(OperationResult result) {
         try {
             Task coordinatorTask = beans.taskManager.getTaskPlain(bucketingSituation.coordinatorTaskOid, result);
-            return !coordinatorTask.isSuspended() && !coordinatorTask.isClosed();
+            if (coordinatorTask.isSuspended()) {
+                coordinatorStopReason = TaskExecutionStateType.SUSPENDED;
+                return false;
+            } else if (coordinatorTask.isClosed()) {
+                coordinatorStopReason = TaskExecutionStateType.CLOSED;
+                return false;
+            } else {
+                return true;
+            }
         } catch (CommonException e) {
             LoggingUtils.logUnexpectedException(LOGGER,
                     "Couldn't determine coordinator task state for {}, continuing the worker for now", e,
@@ -527,7 +544,8 @@ public abstract class IterativeActivityRun<
             throws ActivityRunException, CommonException;
 
     private ActivityRunResult createRunResult() {
-        if (!canRun()) {
+        // A suspended coordinator interrupts the worker, while a closed one allows it to finish.
+        if (!canRun() || coordinatorStopReason == TaskExecutionStateType.SUSPENDED) {
             return ActivityRunResult.interrupted();
         }
 
