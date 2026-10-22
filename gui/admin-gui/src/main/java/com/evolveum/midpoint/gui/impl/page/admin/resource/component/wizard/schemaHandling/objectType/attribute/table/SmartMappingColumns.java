@@ -94,7 +94,7 @@ final class SmartMappingColumns<P extends Containerable> implements Serializable
 
             @Override
             public @NotNull String getCssClass() {
-                return "col-2 header-border-end";
+                return "col-2 header-border-end px-2";
             }
 
             @Override
@@ -126,7 +126,7 @@ final class SmartMappingColumns<P extends Containerable> implements Serializable
 
             @Override
             public @NotNull String getCssClass() {
-                return "col-2 header-border-end";
+                return "col-2 header-border-end px-2";
             }
         };
     }
@@ -140,7 +140,7 @@ final class SmartMappingColumns<P extends Containerable> implements Serializable
 
             @Override
             public @NotNull String getCssClass() {
-                return "col-2 header-border-end";
+                return "col-2 header-border-end px-2";
             }
 
             @SuppressWarnings("rawtypes")
@@ -234,7 +234,7 @@ final class SmartMappingColumns<P extends Containerable> implements Serializable
 
             @Override
             public String getCssClass() {
-                return "col-2 header-border-end";
+                return "col-2 header-border-end px-2";
             }
         };
     }
@@ -262,7 +262,7 @@ final class SmartMappingColumns<P extends Containerable> implements Serializable
 
             @Override
             public String getCssClass() {
-                return "col-2 header-border-end";
+                return "col-2 header-border-end px-2";
             }
         };
     }
