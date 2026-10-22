@@ -3,6 +3,7 @@ package com.evolveum.midpoint.smart.impl.conndev;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.smart.impl.conndev.activity.ConnDevBeans;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnDevDocumentationSourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorDevelopmentType;
 
@@ -21,7 +22,7 @@ public class RestTestBackend extends RestBackend {
     }
 
     @Override
-    public List<ConnDevDocumentationSourceType> discoverDocumentation(boolean skipCache) {
+    public List<ConnDevDocumentationSourceType> discoverDocumentation(boolean skipCache) throws CommunicationException {
         var ret = new ArrayList<>(super.discoverDocumentation(skipCache));
         ret.add(OPENAPI);
         return ret;

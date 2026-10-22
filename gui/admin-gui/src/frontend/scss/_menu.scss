@@ -139,8 +139,9 @@ ul.details-menu {
   }
 }
 
-//Fix when hovering collapsed sidemenu to use bigger default logo
-.sidebar-mini-xs.sidebar-collapse .app-sidebar:hover {
+//Fix when hovering collapsed sidemenu to use bigger default logo and to show the user name again.
+//Same condition as AdminLTE uses to expand the hovered sidebar.
+.sidebar-mini.sidebar-collapse:not(.sidebar-without-hover) .app-sidebar:hover {
   & .sidebar-brand > a.logo > span {
     &:before {
       opacity: 1;
@@ -305,6 +306,15 @@ $menu-toggle-width: 3rem;
 
 .app-menu-toggle ~ .app-header > .container-fluid {
   padding-left: calc(#{$container-padding-x * .5} + #{$menu-toggle-width});
+}
+
+// On narrow screens AdminLTE hides the whole sidebar, even the collapsed icon-only one.
+// Keep the icon-only sidebar visible, the expanded one stays an overlay (it works like this in older versions)
+@media (max-width: 991.98px) {
+  .sidebar-expand-lg.sidebar-mini.sidebar-collapse .app-sidebar {
+    position: sticky;
+    margin-left: 0;
+  }
 }
 
 // AdminLTE does not give the sidebar any background. When it is shown as an overlay (below the

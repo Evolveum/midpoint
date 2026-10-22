@@ -19,7 +19,7 @@ import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.util.exception.*;
 
 /**
- * Expression evaluator that is using Apache Velocity engine in the original way (before midPoint 4.11).
+ * Expression evaluator that is using Apache Velocity engine in the original way (before midPoint 4.11.0).
  */
 public class VelocityScriptExecutor extends AbstractVelocityScriptExecutor {
 

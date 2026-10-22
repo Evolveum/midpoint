@@ -1,0 +1,32 @@
+= Connector Generator
+:page-nav-title: Connector Generator
+:page-toc: top
+:page-since: "4.11.0"
+:page-upkeep-status: green
+:page-description: The connector generator is an AI-assisted wizard for developing low-code connectors for SCIM, REST, and SQL applications.
+
+The connector generator is the AI-assisted wizard for developing low-code/no-code connectors - it guides you through the creation of a new connector (or the further development of an existing low-code connector):
+
+** Supports SCIM, REST, and SQL protocols.
+** Connector creation workflow guided by the wizard:
+*** Start from scratch or import an existing low-code connector.
+*** Provide basic information about the target application and its connectivity.
+*** Review the application documentation sources discovered by the AI and select the most fitting ones - the generator uses the documentation to analyze how the application communicates and to suggest appropriate connector scripts.
+*** Set up connection to the target application (base URL, authentication methods, AI-generated authentication scripts, credentials, endpoint for connectivity test).
+*** Review the discovered object classes and AI-generated schema scripts for the classes you choose to integrate.
+*** Review suggested endpoints for operations on the object classes (REST).
+** The connector generator wizard supports per-operation scripts (search all, search by ID, search filter).
+*** It has limited support for relationships and create, update, and delete operations.
+** The wizard can run in a limited offline mode (skeleton scripts, no documentation processing, no relationships) when the connector generator microservice is not configured or available.
+** Connectors under construction are listed under *Connectors* > *In-progress connectors* in the GUI.
+
+IMPORTANT: Because the generator allows editing connectors with executable (Groovy) scripts, the connector generator is disabled by default and must be explicitly enabled in the deployment configuration.
+
+
+
+++++
+{% children %}
+++++
+
+
+include::../_reference-disclaimer.adoc[]

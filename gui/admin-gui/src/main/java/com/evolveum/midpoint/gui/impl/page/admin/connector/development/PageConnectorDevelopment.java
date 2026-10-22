@@ -10,6 +10,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.connector.development;
 import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.impl.component.wizard.withnavigation.WizardWithNavigationPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.PageAssignmentHolderDetails;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.ConnectorDevelopmentController;
@@ -18,12 +19,15 @@ import com.evolveum.midpoint.gui.impl.page.admin.DetailsFragment;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 
+import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorDevelopmentType;
 
+import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 @PageDescriptor(
@@ -37,6 +41,9 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
                         description = "PageAdminConnectorDevelopments.auth.connectorGenerator.description")
         })
 public class PageConnectorDevelopment extends PageAssignmentHolderDetails<ConnectorDevelopmentType, ConnectorDevelopmentDetailsModel> {
+
+    protected static final String ID_DEVELOPMENT_DISABLED_FRAGMENT = "developmentDisabledFragment";
+    protected static final String ID_BACK_BUTTON = "backButton";
 
     public PageConnectorDevelopment() {
         super();
@@ -54,17 +61,42 @@ public class PageConnectorDevelopment extends PageAssignmentHolderDetails<Connec
     @Override
     protected DetailsFragment createWizardFragment() {
         getObjectDetailsModels().reset();
+
+        boolean isConnDevEnabled = getMidpointConfiguration().isConnectorDevelopmentToolsEnabled();
+        if (!isConnDevEnabled) {
+            return new DetailsFragment(ID_DETAILS_VIEW, ID_DEVELOPMENT_DISABLED_FRAGMENT, this){
+                @Override
+                protected void initFragmentLayout() {
+                    AjaxIconButton back = new AjaxIconButton(ID_BACK_BUTTON, Model.of(GuiStyleConstants.ARROW_LEFT),
+                            createStringResource("pageAdminFocus.button.back")) {
+                        @Override
+                        public void onClick(AjaxRequestTarget ajaxRequestTarget) {
+                            redirectBack();
+                        }
+                    };
+                    add(back);
+                }
+            };
+        }
+
         DetailsFragment fragment = new DetailsFragment(ID_DETAILS_VIEW, ID_WIZARD_FRAGMENT, PageConnectorDevelopment.this) {
 
             @Override
             protected void initFragmentLayout() {
+                ConnectorDevelopmentController controller = new ConnectorDevelopmentController(createObjectWizardPanelHelper());
                 WizardWithNavigationPanel<ConnectorDevelopmentType, ConnectorDevelopmentDetailsModel> wizardPanel =
-                        new WizardWithNavigationPanel<>(
-                                ID_WIZARD,
-                                new ConnectorDevelopmentController(createObjectWizardPanelHelper())) {
+                        new WizardWithNavigationPanel<>(ID_WIZARD, controller) {
                             @Override
-                            protected void onBackRedirect() {
-                                redirectBack();
+                            protected void onBackRedirect(AjaxRequestTarget target) {
+                                if (canRedirectBack()) {
+                                    redirectBack();
+                                } else {
+                                    // No breadcrumb history (e.g. entered from the left menu) - stay in
+                                    // the wizard and show the summary instead of redirecting to home.
+                                    controller.showSummaryPanel();
+                                    controller.fireActiveStepChanged(controller.getActiveStep());
+                                    target.add(controller.getPanel());
+                                }
                             }
 
                             @Override

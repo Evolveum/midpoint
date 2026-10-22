@@ -12,8 +12,8 @@ This page documents schema changes applied to existing databases by `config/sql/
 | MidPoint version
 | Changes range
 
-| xref:postgres-upgrade/4.11.adoc[midPoint 4.11]
-| 52-65
+| xref:postgres-upgrade/4.11.0.adoc[midPoint 4.11.0]
+| 52-67
 
 | xref:postgres-upgrade/4.10.adoc[midPoint 4.10]
 | 51
@@ -38,7 +38,7 @@ This page documents schema changes applied to existing databases by `config/sql/
 
 |===
 
-== postgres-upgrade.sql - midPoint 4.11
+== postgres-upgrade.sql - midPoint 4.11.0
 
 === Changes
 
@@ -47,46 +47,52 @@ This page documents schema changes applied to existing databases by `config/sql/
 | Change
 | Description
 
-| xref:postgres-upgrade/4.11.adoc#change-65[Change 65]
+| xref:postgres-upgrade/4.11.0.adoc#change-67[Change 67]
+| Adds smart integration artifact object table, triggers, and indexes.
+
+| xref:postgres-upgrade/4.11.0.adoc#change-66[Change 66]
+| Adds `SMART_INTEGRATION_ARTIFACT` object type value.
+
+| xref:postgres-upgrade/4.11.0.adoc#change-65[Change 65]
 | Adds `WORK` shadow kind value.
 
-| xref:postgres-upgrade/4.11.adoc#change-64[Change 64]
+| xref:postgres-upgrade/4.11.0.adoc#change-64[Change 64]
 | Moves case table under the projection holder table.
 
-| xref:postgres-upgrade/4.11.adoc#change-63[Change 63]
+| xref:postgres-upgrade/4.11.0.adoc#change-63[Change 63]
 | Moves focus table under the projection holder table.
 
-| xref:postgres-upgrade/4.11.adoc#change-62[Change 62]
+| xref:postgres-upgrade/4.11.0.adoc#change-62[Change 62]
 | Adds abstract projection holder table, the base of foci and cases.
 
-| xref:postgres-upgrade/4.11.adoc#change-61[Change 61]
+| xref:postgres-upgrade/4.11.0.adoc#change-61[Change 61]
 | Adds `PROJECTION_HOLDER` object type value.
 
-| xref:postgres-upgrade/4.11.adoc#change-60[Change 60]
+| xref:postgres-upgrade/4.11.0.adoc#change-60[Change 60]
 | Adds allowed connectors list object table and triggers.
 
-| xref:postgres-upgrade/4.11.adoc#change-59[Change 59]
+| xref:postgres-upgrade/4.11.0.adoc#change-59[Change 59]
 | Adds `ALLOWED_CONNECTORS_LIST` object type value.
 
-| xref:postgres-upgrade/4.11.adoc#change-58[Change 58]
+| xref:postgres-upgrade/4.11.0.adoc#change-58[Change 58]
 | Adds display and preferred name columns and indexes to users.
 
-| xref:postgres-upgrade/4.11.adoc#change-57[Change 57]
+| xref:postgres-upgrade/4.11.0.adoc#change-57[Change 57]
 | Recreates connector type/version uniqueness indexes with connector-host specific predicates.
 
-| xref:postgres-upgrade/4.11.adoc#change-56[Change 56]
+| xref:postgres-upgrade/4.11.0.adoc#change-56[Change 56]
 | Drops old connector type/version uniqueness indexes before recreating them.
 
-| xref:postgres-upgrade/4.11.adoc#change-55[Change 55]
+| xref:postgres-upgrade/4.11.0.adoc#change-55[Change 55]
 | Adds connector development object table and triggers.
 
-| xref:postgres-upgrade/4.11.adoc#change-54[Change 54]
+| xref:postgres-upgrade/4.11.0.adoc#change-54[Change 54]
 | Adds `CONNECTOR_DEVELOPMENT` object type value.
 
-| xref:postgres-upgrade/4.11.adoc#change-53[Change 53]
+| xref:postgres-upgrade/4.11.0.adoc#change-53[Change 53]
 | Adds application object table, triggers, and indexes.
 
-| xref:postgres-upgrade/4.11.adoc#change-52[Change 52]
+| xref:postgres-upgrade/4.11.0.adoc#change-52[Change 52]
 | Adds `APPLICATION` object type value.
 
 |===

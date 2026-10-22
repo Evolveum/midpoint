@@ -79,7 +79,7 @@ public abstract class BaseSearchDataProvider<C extends Serializable, T extends S
                 expVariables.put(entry.getKey(), entry.getValue(), entry.getValue().getClass());
             }
         }
-        return expVariables.isEmpty() ? null : expVariables;
+        return expVariables;
     }
 
     protected ObjectQuery getCustomizeContentQuery() {

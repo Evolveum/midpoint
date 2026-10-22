@@ -135,7 +135,6 @@ public class PageAction extends PageAdminConfiguration {
         if (typed != null) {
             if (bulkActionDto.isAsync()) {
                 try {
-                    // FIXME what about the expression profile?
                     getModelInteractionService().submitScriptingExpression(typed, task, result);
                     result.recordStatus(
                             OperationResultStatus.IN_PROGRESS,

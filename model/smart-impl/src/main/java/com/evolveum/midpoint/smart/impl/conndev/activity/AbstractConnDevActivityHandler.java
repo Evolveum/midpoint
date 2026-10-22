@@ -14,9 +14,11 @@ import com.evolveum.midpoint.repo.common.activity.run.LocalActivityRun;
 import com.evolveum.midpoint.repo.common.activity.run.state.ActivityStateDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.smart.impl.conndev.ConnectorDevelopmentServiceImpl;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.exception.AuthorizationException;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -79,6 +81,20 @@ public abstract class AbstractConnDevActivityHandler<T extends AbstractConnDevAc
     @Override
     public String getDefaultArchetypeOid() {
         return ARCHETYPE_OID;
+    }
+
+    /**
+     * Fails the activity when the connector development tools are disabled by the deployment
+     * configuration ({@code midpoint.connectors/developmentToolsEnabled} in {@code config.xml}).
+     *
+     * <p>Every connector development task must call this at the beginning of its execution, so
+     * that it fails with the "Connector development is disabled by deployment configuration"
+     * message (see
+     * {@link com.evolveum.midpoint.smart.api.conndev.ConnectorDevelopmentService#ERROR_CONNECTOR_DEVELOPMENT_DISABLED})
+     * even when it was submitted (or is resumed) after the flag was turned off.
+     */
+    protected final void checkDevelopmentToolsEnabled() throws AuthorizationException {
+        ConnectorDevelopmentServiceImpl.checkDevelopmentToolsEnabled();
     }
 
     /**

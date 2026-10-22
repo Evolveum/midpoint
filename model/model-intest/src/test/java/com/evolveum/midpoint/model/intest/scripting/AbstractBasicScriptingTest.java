@@ -25,6 +25,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.model.api.ActivitySubmissionOptions;
 import com.evolveum.midpoint.model.api.BulkActionExecutionOptions;
 import com.evolveum.midpoint.model.intest.CommonArchetypes;
+import com.evolveum.midpoint.model.test.CommonInitialObjects;
 import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
 import com.evolveum.midpoint.schema.config.ExecuteScriptConfigItem;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
@@ -182,6 +183,7 @@ public abstract class AbstractBasicScriptingTest extends AbstractInitializedMode
         initTestObjects(initTask, initResult,
                 CommonArchetypes.ARCHETYPE_TASK_SINGLE_BULK_ACTION,
                 CommonArchetypes.ARCHETYPE_TASK_ITERATIVE_BULK_ACTION,
+                CommonInitialObjects.ARCHETYPE_USER_SUBMITTED_TASK,
                 FUNCTION_LIBRARY_TEST);
         initTestObjects(initTask, initResult, USER_TEMPLATE_MID_4812);
         setDefaultObjectTemplate(UserType.COMPLEX_TYPE, SUBTYPE_MID_4812, USER_TEMPLATE_MID_4812.oid, initResult);

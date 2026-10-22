@@ -11,6 +11,7 @@ doc-type: config
 :page-wiki-metadata-modify-date: 2021-03-02T17:24:07.458+01:00
 :page-upkeep-status: orange
 :page-toc: top
+:experimental:
 
 Auditing is a mechanism that records the most important interactions in the system in a computer-processable forms.
 The goal of the auditing is to record the interactions on "business" level, essentially recording who does what, who changed what, etc.
@@ -749,6 +750,41 @@ If you need, you can disable auditing of resource object changes in SystemConfig
     ...
 </systemConfiguration>
 ----
+
+== Auditing external service calls
+
+MidPoint records external service calls (such as AI calls) in the audit log.
+These records are displayed in the [.nowrap]#icon:magnifying-glass-chart[] btn:[Audit Log Viewer]# and are labeled [.nowrap]#icon:database[] btn:[External Service call]#.
+
+image::ai-service-audit-trail.webp["External Service call in the Audit Log Viewer"]
+
+Each communication with the external service produces two audit records, distinguished by their *Event Stage*:
+
+* *Request* - Records the requests sent to the service, i.e., the requests and the data payload sent in the requests.
+* *Execution* - Records the information about the execution.
+This includes the following non-searchable parameters: the service provider, the used model, and the execution duration.
+
+=== Configuration
+
+By default, midPoint records both the requests and the data payloads that are sent with the requests.
+You can configure what is recorded in the audit log by adding the following in the system configuration:
+
+.Default configuration for auditing external service calls
+[source,xml]
+----
+<audit>
+    <externalServices>
+        <smartIntegration>
+            <recordEvents>true</recordEvents> <1>
+            <recordData>true</recordData> <2>
+        </smartIntegration>
+    </externalServices>
+</audit>
+----
+<1> Set to `false` to disable recording the external service altogether, including the data payloads.
+<2> Set to `false` to disable recording the data payloads sent with the requests.
+The actual requests will still be recorded, but the data payloads will not be included in the audit records.
+
 
 == Audit Trail Retention
 

@@ -68,6 +68,7 @@ import com.evolveum.midpoint.web.component.AjaxCompositedIconSubmitButton;
 import com.evolveum.midpoint.web.component.AjaxDownloadBehaviorFromStream;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
+import com.evolveum.midpoint.web.component.input.SplitButtonWithDropdownMenu;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
@@ -89,6 +90,7 @@ public class TaskOperationalButtonsPanel extends AssignmentHolderOperationalButt
     private static final String ID_REFRESHING_BUTTONS = "refreshingButtons";
     private static final String ID_REFRESHING_BUTTONS_CONTAINER = "refreshingButtonsContainer";
     private static final String ID_ACTIVITY_POLICIES_DROPDOWN = "activityPoliciesDropdown";
+    private static final String ID_RESUME_BUTTON = "resumeButton";
 
     private static final int REFRESH_INTERVAL = 4000;
     private Boolean refreshEnabled;
@@ -172,7 +174,7 @@ public class TaskOperationalButtonsPanel extends AssignmentHolderOperationalButt
         taskButtonsContainer.add(taskButtons);
 
         createSuspendButton(taskButtons);
-        createResumeButton(taskButtons);
+        createResumeButton(taskButtonsContainer);
         createRunNowButton(taskButtons);
 
         createManageLivesyncTokenButton(taskButtons);
@@ -257,17 +259,77 @@ public class TaskOperationalButtonsPanel extends AssignmentHolderOperationalButt
         afterOperation(target, result);
     }
 
-    private void createResumeButton(RepeatingView repeatingView) {
-        AjaxIconButton resume = new AjaxIconButton(repeatingView.newChildId(), Model.of(GuiStyleConstants.CLASS_RESUME_MENU_ITEM), createStringResource("pageTaskEdit.button.resume")) {
+    protected void restartPerformed(AjaxRequestTarget target, PrismObject<TaskType> task) {
+        if (task == null) {
+            return;
+        }
+        refreshEnabled = Boolean.TRUE;
+        OperationResult result = TaskOperationUtils.restartTasks(singletonList(task.asObjectable()), getPageBase());
+        afterOperation(target, result);
+    }
+
+    /** Resume as the primary action; restart (suspend, delete work state and result, resume) in the dropdown. */
+    private void createResumeButton(WebMarkupContainer parent) {
+        List<InlineMenuItem> items = new ArrayList<>();
+        items.add(new InlineMenuItem(createStringResource("pageTaskEdit.button.restart")) {
+
+            @Serial
+            private static final long serialVersionUID = 1L;
+
             @Override
-            public void onClick(AjaxRequestTarget target) {
+            public InlineMenuItemAction initAction() {
+                return new InlineMenuItemAction() {
+
+                    @Serial
+                    private static final long serialVersionUID = 1L;
+
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        restartConfirmationPerformed(target);
+                    }
+                };
+            }
+        });
+        DropdownButtonDto dto = new DropdownButtonDto(
+                null, GuiStyleConstants.CLASS_RESUME_MENU_ITEM, createStringResource("pageTaskEdit.button.resume").getString(), items);
+        SplitButtonWithDropdownMenu resume = new SplitButtonWithDropdownMenu(ID_RESUME_BUTTON, () -> dto) {
+
+            @Serial
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected void performPrimaryButtonAction(AjaxRequestTarget target) {
                 resumePerformed(target, getPrismObject());
             }
+
+            @Override
+            protected boolean isDropdownVisible() {
+                return WebComponentUtil.canRestartTask(getObjectType(), getPageBase());
+            }
+
+            @Override
+            protected String getAdditionalComponentCssClass() {
+                return "btn-group-sm me-2";
+            }
         };
-        resume.showTitleAsLabel(true);
-        resume.add(AttributeAppender.append("class", "btn-primary"));
+        resume.setOutputMarkupId(true);
         resume.add(new VisibleBehaviour(() -> WebComponentUtil.canResumeTask(getObjectType(), getPageBase())));
-        repeatingView.add(resume);
+        parent.add(resume);
+    }
+
+    private void restartConfirmationPerformed(AjaxRequestTarget target) {
+        ConfirmationPanel dialog = new ConfirmationPanel(getPageBase().getMainPopupBodyId(),
+                createStringResource("pageTaskEdit.restart.confirmation")) {
+
+            @Serial
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public void yesPerformed(AjaxRequestTarget target) {
+                restartPerformed(target, getPrismObject());
+            }
+        };
+        getPageBase().showMainPopup(dialog, target);
     }
 
     private void createRunNowButton(RepeatingView repeatingView) {

@@ -4,9 +4,8 @@ doc-type: config
 ---
 = ITSM Ticketing
 :page-nav-title: ITSM Ticketing
-:page-since: "4.11"
+:page-since: "4.11.0"
 :page-upkeep-status: green
-:page-experimental: true
 :page-toc: top
 
 == Introduction
@@ -18,7 +17,7 @@ As an alternative, midPoint can manage the tickets in a real ITSM system (e.g. J
 The ITSM system is accessed through a regular midPoint xref:/midpoint/reference/resources/[resource] (with a connector to the ITSM system) that is used exclusively for the tickets.
 Such a resource is called a _ticketing resource_.
 
-This feature was introduced in midPoint 4.11.
+This feature was introduced in midPoint 4.11.0.
 It is built on the regular midPoint synchronization machinery:
 
 * A midPoint _case_ (`CaseType`) is now a xref:/midpoint/reference/schema/focus-and-projections/[projection holder].

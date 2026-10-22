@@ -647,7 +647,9 @@ public class LeftMenuPanel extends BasePanel<Void> {
             }
         };
 
-        menu.addMainMenuItem(createApplicationsIntegrationItems());
+        if (experimentalFeaturesEnabled) {
+            menu.addMainMenuItem(createApplicationsIntegrationItems());
+        }
         menu.addMainMenuItem(createResourcesItems());
         menu.addMainMenuItem(createConnectorsItems());
         return menu;

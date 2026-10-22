@@ -1,0 +1,236 @@
+= Schema match
+:page-toc: top
+:page-since: "4.11.0"
+:page-upkeep-status: green
+
+== Overview
+
+A *schema match* is a list of pairs that say which resource attribute corresponds to which midPoint focus property, for example `ri:mail` -> `emailAddress`.
+It is computed for one resource object type and its focus type, and it only says *what* belongs together, not *how* the values are transformed.
+
+The schema match is not a recommendation itself, but it is the starting point for smart recommendations, see xref:recommendations/index.adoc[Smart recommendations]:
+
+* xref:recommendations/mappings/mappings-recommendation.adoc[Smart mappings recommendation] evaluates every pair and proposes a mapping for it.
+* xref:recommendations/correlation/correlation-recommendation.adoc[Smart correlation recommendation] uses the pairs whose focus property is a known correlation property (for example `emailAddress` or `personalNumber`).
+
+The pairs come from two sources:
+
+* **Well-known schemas** - predefined pairs prepared by Evolveum engineers for widely used schemas such as LDAP, Active Directory or SCIM.
+* **AI microservice** - the resource schema and the focus schema are sent to the Smart Integration microservice, which proposes the pairs.
+
+Because computing a schema match with AI takes time, the result is stored in the repository and reused by later recommendation operations.
+
+== Inputs
+
+[cols="25%,15%,60%",options="header"]
+|===
+| Input | Required | Description
+
+| Resource and object type
+| yes
+| The resource OID and the object type identification (kind and intent).
+The object class and the focus type are taken from the object type definition.
+
+| Use AI service
+| yes
+| Whether the AI microservice is called.
+Recommendation activities set it to `true` only if the `SCHEMA_ACCESS` permission is granted.
+Without it, only well-known schema pairs are used.
+
+| Object type statistics
+| no
+| Used by the uniqueness filter (see <<Post-processing heuristics>>).
+The latest stored statistics are used; if there are none, they are computed synchronously.
+The statistics are evaluated locally and are not sent to the microservice.
+|===
+
+Computing the schema match requires the `#smartIntegration` authorization, see xref:security/authorization.adoc[].
+
+== Processing flow
+
+.Schema match computation
+----
+Resource object class + focus type
+    ↓
+Well-known schema detected? ──YES→ Predefined pairs (isSystemProvided = true)
+    ↓
+SCHEMA_ACCESS granted? ──YES→ AI pairs from MATCH_SCHEMA (isSystemProvided = false)
+    ↓
+Merge (predefined pairs take precedence)
+    ↓
+Remove pairs with unknown items (hallucinations)
+    ↓
+Keep only simple attributes with known definitions
+    ↓
+Post-processing heuristics (name expansion, uniqueness filter)
+    ↓
+SchemaMatchResultType
+----
+
+=== 1. Well-known schema detection
+
+midPoint first checks whether the object class belongs to one of the well-known schemas:
+
+[cols="35%,65%",options="header"]
+|===
+| Schema type | Detected when
+
+| `SCIM_2_0_USER` | object class `User` with SCIM user attributes (`userName`, `displayName`, `givenName`, `familyName`, ...)
+| `LDAP_INETORGPERSON` | object class `inetOrgPerson` with typical LDAP attributes (`uid`, `cn`, `sn`, `givenName`, `mail`, ...)
+| `LDAP_GROUP_OF_NAMES` | LDAP `groupOfNames` / `groupOfUniqueNames` object class
+| `LDAP_ORGANIZATIONAL_UNIT` | LDAP `organizationalUnit` object class
+| `AD_USER` | object class `user` with Active Directory attributes (`sAMAccountName`, `userPrincipalName`, `cn`, ...)
+| `AD_GROUP` | Active Directory group
+| `AD_ORGANIZATIONAL_UNIT` | Active Directory organizational unit
+|===
+
+Detection is based on the name of the object class and on the presence of characteristic attributes.
+
+If a schema type is detected, midPoint adds its predefined pairs and marks them with `isSystemProvided = true`.
+The detected type is stored in `wellKnownSchemaType` of the result, so that mappings recommendation can later add the corresponding well-known mappings (see xref:recommendations/mappings/mappings-recommendation.adoc#_well_known_mappings[Well-known mappings]).
+
+Well-known pairs are used even without `SCHEMA_ACCESS`, because no data is sent to the microservice.
+
+=== 2. AI-assisted matching
+
+If `SCHEMA_ACCESS` is granted, midPoint calls the `MATCH_SCHEMA` method of the microservice.
+The request contains only schema information, no attribute values:
+
+* **Resource schema** - the name and description of the object class and, for every attribute, its name, type, description and cardinality.
+If the resource supports them, the password and the activation items (administrative status, valid from, valid to) are added too.
+* **Focus schema** - the items of the focus type with their names, types, documentation and cardinality.
+Operational and deprecated items are left out, and so are items that make no sense as a mapping target, such as assignments, inducements, authorizations, links or most of the credentials.
+Multivalued containers are skipped, except for `extension`.
+
+The paths in the request use a simplified format, see xref:service-item-paths.adoc[].
+The microservice returns pairs of these paths, and midPoint marks them with `isSystemProvided = false`.
+
+If the call fails with a communication or schema error, midPoint logs a warning and continues with the well-known pairs only.
+
+=== 3. Merging
+
+If both sources returned pairs, they are merged:
+
+* all well-known pairs are kept,
+* an AI pair is added only if the same pair is not already among the well-known pairs.
+
+Two pairs are considered the same if they have the same attribute name and the same focus property.
+This way, predefined pairs always take precedence over AI pairs.
+
+=== 4. Validation of pairs
+
+An LLM may return names that do not exist in the schema ("hallucinations").
+midPoint therefore checks every pair and removes it if:
+
+* the resource attribute or the focus property was not in the schema sent to the microservice,
+* the resource item is not a simple attribute (for example, activation or credentials items),
+* the definition of the attribute or of the focus property cannot be found.
+
+For every remaining pair, midPoint stores the definitions of both items (name, type and cardinality).
+
+=== 5. Post-processing heuristics
+
+Finally, two heuristics adjust the pairs that target the focus `name`.
+
+**Name expansion.**
+`name` is the main human-readable identifier in midPoint.
+If a resource attribute is paired with a property that is typically used for correlation, it is often a good source for `name` as well.
+So for every such attribute, midPoint adds an extra pair with the focus `name`, unless the attribute is already paired with `name`.
+The correlation properties are:
+
+* `emailAddress` - for all focus types,
+* `personalNumber` - for users,
+* `identifier` - for abstract roles (for example roles, organizations and services).
+
+**Uniqueness filter.**
+`name` must be unique, so it makes sense only for attributes that are almost always filled in and almost always unique.
+Using the object type statistics, midPoint removes every pair with the focus `name` whose attribute:
+
+* has a value in fewer than 90 % of the objects, or
+* has fewer than 90 % unique values among the objects where it is filled in.
+
+The filter applies to all pairs with `name`, not only those added by name expansion.
+If there are no statistics, or the attribute has no statistics, the pair is kept.
+
+== Result
+
+The result is a `SchemaMatchResultType` with:
+
+* `schemaMatchResult` - the list of pairs (`SchemaMatchOneResultType`), each with:
+** `shadowAttributePath` - the path of the resource attribute, for example `c:attributes/ri:mail`,
+** `focusPropertyPath` - the path of the focus property, for example `c:emailAddress`,
+** `shadowAttribute` and `focusProperty` - the definitions of both items,
+** `isSystemProvided` - `true` for well-known pairs (and pairs derived from them), `false` for AI pairs,
+* `wellKnownSchemaType` - the detected well-known schema, if any,
+* `timestamp` - when the match was computed.
+
+== Storage and reuse
+
+=== Storage
+
+The result is stored as a `SmartIntegrationArtifactType` object. Only one schema match is kept per object type.
+Before a new one is saved, all existing schema matches for the same resource, kind and intent are deleted.
+
+=== Reuse
+
+The schema matching step of mappings and correlation recommendations works as follows:
+
+. If `SCHEMA_ACCESS` is granted and recomputation is not forced, midPoint looks for the latest stored schema match of the object type.
+If it exists and has not expired, it is reused, and nothing is computed.
+. Otherwise, a new schema match is computed and stored, replacing the previous one.
+
+A stored schema match expires after the time configured in `schemaMatchTtl` (default `P1D`), counted from its `timestamp`.
+Expired schema matches are deleted when they are looked up.
+
+Recomputation is forced when the user explicitly asks to regenerate the recommendations in the GUI.
+
+NOTE: Without `SCHEMA_ACCESS`, the schema match is always computed again, only from well-known schemas, and it replaces the stored one.
+A previously stored AI-assisted schema match is therefore lost.
+
+=== Preloading after object types recommendation
+
+To make later recommendations faster, midPoint computes schema matches in advance right after object types are recommended (see xref:recommendations/object-types/object-types-recommendation.adoc[Smart object types recommendation]).
+A separate utility task runs once the object types recommendation has finished:
+
+. The task is skipped if `SCHEMA_ACCESS` is not granted.
+. The recommended object types are grouped by their focus type.
+Object types without a focus type are skipped.
+. For each focus type, one schema match is computed (with AI) for the object class, and it is stored for each recommended object type with that focus type.
+
+Because the object types may not be saved on the resource yet, the preload works with the object class and the focus type directly.
+No object type statistics are used, so the uniqueness filter is skipped.
+If the preload fails, the error is logged, and the schema match is computed later when it is needed.
+
+== Configuration
+
+These settings in the `<smartIntegration>` container of the system configuration affect the schema match:
+
+[cols="35%,15%,50%",options="header"]
+|===
+| Setting | Default | Description
+
+| `serviceUrl`
+| -
+| URL of the Smart Integration microservice used for AI-assisted matching.
+
+| `serviceResponseTimeout`
+| 120 seconds
+| Maximum time to wait for a response from the microservice.
+
+| `schemaMatchTtl`
+| `P1D`
+| How long a stored schema match is reused before it expires.
+
+| `statisticsTtl`
+| `P1D`
+| How long stored object type statistics, used by the uniqueness filter, are reused.
+|===
+
+== Limitations
+
+* **Simple attributes only.** Activation, credentials and associations never appear in the result, even if they are sent to the microservice.
+* **One-to-one pairs.** Every pair links one attribute to one focus property.
+A single attribute can appear in several pairs, but a pair cannot combine several attributes.
+* **No values.** The AI matching uses only schema information (names, types, descriptions), not attribute values.
+Attributes with unclear names and no description may be matched incorrectly or not at all.
+* **Fixed set of well-known schemas.** Only the schema types listed in <<1. Well-known schema detection>> are recognized.

@@ -244,7 +244,7 @@ public abstract class ReferenceNameResolver {
                 QAbstractRole<MAbstractRole> qRole = new QAbstractRole<>(MAbstractRole.class, "ar");
 
                 List<Tuple> rows = session.newQuery()
-                        .select(qObj.oid, qObj.nameOrig, qUser.fullNameOrig, qRole.displayNameOrig)
+                        .select(qObj.oid, qObj.nameOrig, qUser.displayNameOrig, qUser.fullNameOrig, qRole.displayNameOrig)
                         .from(qObj)
                         .leftJoin(qUser).on(qObj.oid.eq(qUser.oid))
                         .leftJoin(qRole).on(qObj.oid.eq(qRole.oid))
@@ -253,13 +253,15 @@ public abstract class ReferenceNameResolver {
 
                 for (Tuple row : rows) {
                     UUID oid = row.get(qObj.oid);
+                    String userDisplayName = row.get(qUser.displayNameOrig);
                     String fullName = row.get(qUser.fullNameOrig);
                     String roleDisplayName = row.get(qRole.displayNameOrig);
                     String name = row.get(qObj.nameOrig);
 
-                    // fullName for Users, displayName for AbstractRoles, null otherwise
-                    // GUI components decide whether to fallback to name
-                    String displayName = fullName != null ? fullName : roleDisplayName;
+                    // Same preference as ObjectTypeUtil.getDisplayName: displayName, then fullName for users;
+                    // displayName for abstract roles; null otherwise (GUI components fall back to name)
+                    String displayName = userDisplayName != null ? userDisplayName
+                            : fullName != null ? fullName : roleDisplayName;
 
                     resolvedNamesCache.put(oid, new ResolvedNames(name, displayName));
                 }

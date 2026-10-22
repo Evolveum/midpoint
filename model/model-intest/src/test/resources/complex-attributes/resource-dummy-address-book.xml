@@ -50,7 +50,7 @@
                 <inbound>
                     <name>inbound-email</name>
                     <target>
-                        <path>email</path> <!-- complex -->
+                        <path>extension/email</path> <!-- complex -->
                     </target>
                 </inbound>
             </attribute>
@@ -59,7 +59,7 @@
                 <inbound>
                     <name>inbound-address</name>
                     <target>
-                        <path>physicalAddress</path> <!-- complex -->
+                        <path>extension/physicalAddress</path> <!-- complex -->
                     </target>
                 </inbound>
             </attribute>

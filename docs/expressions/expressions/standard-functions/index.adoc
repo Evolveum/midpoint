@@ -5,10 +5,12 @@
 :page-keywords: function, midpoint functions, function library, script, script function, groovy,
 :page-description: The built-in midPoint functions expose all core operations, such as object creation, retrieval, or invitation link generation to expression scripts.
 
-The `MidpointFunctions` interface defines the built‑in midPoint functions that you can use in scripts.
+The `MidpointFunctions` interface defines the built‑in midPoint functions that you can use in Groovy and legacy Velocity scripts.
 These functions expose the core model operations (object creation, retrieval, modification, search, workflow, cryptography, etc.) as a concise, script‑friendly API.
 All functions are public members of the interface;
 they can be invoked directly from an expression code (e.g., Groovy, JavaScript, etc.) without importing any additional classes.
+
+NOTE: For functions available in MidPoint Expression Language (MEL), please see its xref:../mel/index.adoc[specification].
 
 *The functions are available in link:https://github.com/Evolveum/midpoint/blob/master/model/model-api/src/main/java/com/evolveum/midpoint/model/api/expr/MidpointFunctions.java[MidpointFunctions.java]*. +
 The link leads to the `master` branch.

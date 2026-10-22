@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.gui.impl.component.tile;
 
 import java.io.Serializable;
+import java.util.function.Supplier;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxEventBehavior;
@@ -34,8 +35,10 @@ public class HorizontalSTilePanel<T extends Tile<O>, O extends Serializable> ext
 
     protected void initLayout() {
         add(AttributeAppender.append("class", () -> "tile-panel d-flex flex-row vertical align-items-center rounded justify-content-start selectable"));
+        add(AttributeAppender.append("class", () -> isDisabled() ? "disabled" : null));
         add(AttributeAppender.append("class", () -> getModelObject().isSelected() ? "active" : null));
-        add(AttributeAppender.append("aria-checked", () -> getModelObject().isSelected() ? "true" : "false"));
+        add(AttributeAppender.append("aria-checked", () -> Boolean.toString(getModelObject().isSelected())));
+        add(AttributeAppender.append("aria-disabled", () -> Boolean.toString(isDisabled())));
         setOutputMarkupId(true);
 
         Component icon = createIconPanel(ID_ICON);
@@ -57,8 +60,20 @@ public class HorizontalSTilePanel<T extends Tile<O>, O extends Serializable> ext
 
             @Override
             protected void onEvent(AjaxRequestTarget target) {
+                if (isDisabled()) {
+                    return;
+                }
                 HorizontalSTilePanel.this.onClick(target);
             }
         });
+    }
+
+    /**
+     * Dynamic predicate deciding whether this tile is disabled (greyed out and non-clickable).
+     * Evaluated on every render and on every click, so a cached tile panel reflects the current
+     * state. Defaults to "never disabled".
+     */
+    protected boolean isDisabled() {
+        return false;
     }
 }

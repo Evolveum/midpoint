@@ -65,18 +65,18 @@ oid="00000000-0000-0000-0000-000000000380">
             <script>
                 <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                 <code>
-                    cel.bind(tmpGivenName, trim(norm(stringify(givenName))),
-                    cel.bind(tmpFamilyName, trim(norm(stringify(familyName))),
-                    cel.bind(tmpGivenNameInitial, tmpGivenName.size() == 0
-                        ? '' : tmpGivenName.substring(0, 1),
-                    cel.bind(baseName, tmpGivenNameInitial + tmpFamilyName.replace(' ', ''),
-                    (baseName.size() > 8 ? baseName.substring(0, 8) : baseName)
-                    + iterationToken))))
+                    '%s%s'.format([
+                        stringify(givenName.norm).replace(' ','').substring(0,1),
+                        stringify(familyName.norm).replace(' ','')
+                    ]).substring(0,8) + iterationToken
                 </code>
             </script>
         </expression>
         <target>
             <path>name</path>
+            <set>
+                <predefined>all</predefined>
+            </set>
         </target>
     </mapping>
     <mapping id="2">
@@ -99,6 +99,9 @@ oid="00000000-0000-0000-0000-000000000380">
         </expression>
         <target>
             <path>fullName</path>
+            <set>
+                <predefined>all</predefined>
+            </set>
         </target>
     </mapping>
     <mapping id="3">
@@ -122,6 +125,9 @@ oid="00000000-0000-0000-0000-000000000380">
         </expression>
         <target>
             <path>displayName</path>
+            <set>
+                <predefined>all</predefined>
+            </set>
         </target>
     </mapping>
 </objectTemplate>

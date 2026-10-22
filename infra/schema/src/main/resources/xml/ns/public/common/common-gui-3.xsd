@@ -379,7 +379,7 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:displayName>AdminGuiConfigurationType.fileUploadConfiguration</a:displayName>
-                        <a:since>4.11</a:since>
+                        <a:since>4.11.0</a:since>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -1673,7 +1673,7 @@
                         Only label is used now. Other properties are ignored.
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <a:since>4.11</a:since>
+                        <a:since>4.11.0</a:since>
                         <a:displayName>VirtualContainerItemSpecificationType.display</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
@@ -4118,7 +4118,7 @@
                                 collection or from the containing configuration.
                             </xsd:documentation>
                             <xsd:appinfo>
-                                <a:since>4.11</a:since>
+                                <a:since>4.11.0</a:since>
                                 <a:displayName>CollectionSpecificationType.type</a:displayName>
                                 <a:displayOrder>5</a:displayOrder>
                             </xsd:appinfo>
@@ -5184,7 +5184,7 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container>true</a:container>
-                <a:since>4.11</a:since>
+                <a:since>4.11.0</a:since>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -5205,7 +5205,7 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container>true</a:container>
-                <a:since>4.11</a:since>
+                <a:since>4.11.0</a:since>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>

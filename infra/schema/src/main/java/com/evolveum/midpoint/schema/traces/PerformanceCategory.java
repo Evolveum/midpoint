@@ -95,7 +95,7 @@ public enum PerformanceCategory {
     REPOSITORY_CACHE_OTHER("RCache:O", "Repository cache (other)", singletonList(REPOSITORY_CACHE), Arrays.asList(REPOSITORY_CACHE_READ, REPOSITORY_CACHE_WRITE, INVALIDATE_CACHE_ENTRIES)),
     MAPPING_EVALUATION("Map", "Mapping evaluation", "com.evolveum.midpoint.model.common.mapping.MappingImpl.evaluate"),
     SCRIPT_EXECUTION("Script", "Script execution",
-            "com.evolveum.midpoint.model.common.expression.script.ScriptExpression.evaluate", // before 4.11
+            "com.evolveum.midpoint.model.common.expression.script.ScriptExpression.evaluate", // before 4.11.0
             "com.evolveum.midpoint.model.common.expression.script.Script.execute"),
     NOTIFICATIONS("Notify", "Notifications", "com.evolveum.midpoint.notifications.impl.NotificationHook.invoke",
             "com.evolveum.midpoint.notifications.impl.AccountOperationListener.notify*"),

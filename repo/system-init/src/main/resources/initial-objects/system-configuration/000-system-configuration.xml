@@ -14,41 +14,12 @@
 
     <name>SystemConfiguration</name>
     <indestructible>true</indestructible>
-    <!--         <globalAccountSynchronizationSettings> -->
-    <!--         <assignmentPolicyEnforcement>relative</assignmentPolicyEnforcement> -->
-    <!--         </globalAccountSynchronizationSettings> -->
     <globalSecurityPolicyRef oid="00000000-0000-0000-0000-000000000120"/>
     <logging>
         <classLogger id="1">
             <!-- disabled because INFO log during of creating new authentication filter chain -->
             <level>OFF</level>
             <package>org.springframework.security.web.DefaultSecurityFilterChain</package>
-        </classLogger>
-        <classLogger id="2">
-            <!-- disabled because of MID-744, helper insert messages on ERROR
-            level which should not be there (probably should be on TRACE) -->
-            <level>OFF</level>
-            <package>org.hibernate.engine.jdbc.spi.SqlExceptionHelper</package>
-        </classLogger>
-        <!-- Disabled because we treat locking-related exceptions in the repository.
-             Otherwise the log is filled-in with (innocent but ugly-looking) messages like
-             "ERROR (o.h.engine.jdbc.batch.internal.BatchingBatch): HHH000315: Exception executing batch [Deadlock detected.
-             The current transaction was rolled back." -->
-        <classLogger id="3">
-            <level>OFF</level>
-            <package>org.hibernate.engine.jdbc.batch.internal.BatchingBatch</package>
-        </classLogger>
-        <!-- Disabled because of the same reason; this time concerning messages like
-             "INFO (org.hibernate.engine.jdbc.batch.internal.AbstractBatchImpl):
-             HHH000010: On release of batch it still contained JDBC statements" -->
-        <classLogger id="4">
-            <level>WARN</level>
-            <package>org.hibernate.engine.jdbc.batch.internal.AbstractBatchImpl</package>
-        </classLogger>
-        <!-- Disabled because of MID-4636 -->
-        <classLogger id="5">
-            <level>OFF</level>
-            <package>org.hibernate.internal.ExceptionMapperStandardImpl</package>
         </classLogger>
         <classLogger id="6">
             <!-- disabled because we don't need to see every property file
@@ -61,6 +32,12 @@
             when resource bundle doesn't exist for specific locale (unnecessary log pollution) -->
             <level>ERROR</level>
             <package>org.springframework.context.support.ResourceBundleMessageSource</package>
+        </classLogger>
+        <classLogger id="12">
+            <!-- disabled because we don't need to see every log message for every key
+            when resource bundle doesn't exist for specific locale (unnecessary log pollution) -->
+            <level>ERROR</level>
+            <package>com.evolveum.midpoint.common.CachedResourceBundleMessageSource</package>
         </classLogger>
         <classLogger id="8">
             <!-- Standard useful logger -->
@@ -185,8 +162,8 @@
         <statisticsTtl>P1D</statisticsTtl>
         <schemaMatchTtl>P1D</schemaMatchTtl>
         <mappingSuggestionRetryCount>1</mappingSuggestionRetryCount>
-        <connectorFrameworkUrl>https://nexus.evolveum.com/nexus/service/rest/v1/search/assets/download?repository=snapshots&amp;maven.groupId=com.evolveum.polygon.scimrest&amp;maven.artifactId=connector-scimrest-template&amp;maven.extension=jar&amp;maven.classifier=&amp;sort=version&amp;direction=desc</connectorFrameworkUrl>
-        <connectorSqlFrameworkUrl>https://nexus.evolveum.com/nexus/service/rest/v1/search/assets/download?repository=snapshots&amp;maven.groupId=com.evolveum.polygon.sql&amp;maven.artifactId=connector-sql-template&amp;maven.extension=jar&amp;maven.classifier=&amp;sort=version&amp;direction=desc</connectorSqlFrameworkUrl>
+        <connectorFrameworkUrl>https://nexus.evolveum.com/nexus/repository/releases/com/evolveum/polygon/scimrest/connector-scimrest-template/0.2.0/connector-scimrest-template-0.2.0.jar</connectorFrameworkUrl>
+        <connectorSqlFrameworkUrl>https://nexus.evolveum.com/nexus/repository/releases/com/evolveum/polygon/sql/connector-sql-template/0.2.0/connector-sql-template-0.2.0.jar</connectorSqlFrameworkUrl>
     </smartIntegration>
     <adminGuiConfiguration>
         <homePage id="21">
@@ -1084,7 +1061,7 @@
                                 <q:text>
                                     linkRef/@ matches (
                                     . type ShadowType
-                                    and resourceRef/@/name = `resourceParameter?.getName()?.getOrig()`
+                                    and resourceRef/@/name = mel`resourceParameter.name.orig`
                                     and kind = "account" )
                                 </q:text>
                             </filter>
@@ -1112,7 +1089,7 @@
                                 <q:text>
                                     linkRef/@ not matches (
                                     . type ShadowType
-                                    and resourceRef/@/name = `resourceParameter?.getName()?.getOrig()`
+                                    and resourceRef/@/name = mel`resourceParameter.name.orig`
                                     and kind = "account" )
                                 </q:text>
                             </filter>
@@ -2200,24 +2177,40 @@
         <expressionProfile id="218">
             <identifier>safe</identifier>
             <description>
-                "Safe" expression profile. It is supposed to contain only operations that are "safe",
-                i.e. operations that have very little risk to harm the system, circumvent midPoint security
-                and so on. Use of those operations should be reasonably safe in all expressions.
-                However, there are limitations. This profile may incomplete or it may even be not completely secure.
-                Proper security testing of this profile was not yet conducted. It is provided here "AS IS",
-                without any guarantees. Use at your own risk.
+                "Safe" expression profile. It is supposed to contain only operations that have very little risk
+                to harm the system, circumvent midPoint security and so on. Use of those operations should be
+                reasonably safe in all expressions.
+
+                Use for:
+
+                - admin GUI configuration
+                - role management
+                - policy management
+                - archetypes
+
+                Expressions executed under this profile will not have any observable side effects on the state of midPoint system.
+                But there is still some harm that can be done, like revealing parts of the system configuration or state via
+                "path" expression.
+
+                Please see the documentation for more information:
+
+                https://docs.evolveum.com/midpoint/reference/expressions/expressions/profiles/
             </description>
             <decision>deny</decision> <!-- default decision of those evaluators that are not explicitly enumerated. -->
+            <evaluator id="221">
+                <type>value</type>
+                <decision>allow</decision>
+            </evaluator>
+            <evaluator id="309">
+                <type>null</type>
+                <decision>allow</decision>
+            </evaluator>
             <evaluator id="219">
                 <type>asIs</type>
                 <decision>allow</decision>
             </evaluator>
             <evaluator id="220">
                 <type>path</type>
-                <decision>allow</decision>
-            </evaluator>
-            <evaluator id="221">
-                <type>value</type>
                 <decision>allow</decision>
             </evaluator>
             <evaluator id="222">
@@ -2228,10 +2221,6 @@
                 <type>filter</type>
                 <decision>allow</decision>
             </evaluator>
-            <evaluator id="274">
-                <type>function</type>
-                <decision>allow</decision>
-            </evaluator>
             <evaluator id="278">
                 <type>generate</type>
                 <decision>allow</decision>
@@ -2240,17 +2229,188 @@
                 <type>proportional</type>
                 <decision>allow</decision>
             </evaluator>
-            <evaluator id="309">
+            <evaluator id="310">
+                <type>script</type>
+                <decision>deny</decision> <!-- default decision of those script languages that are not explicitly enumerated. -->
+                <script>
+                    <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
+                    <decision>allow</decision>
+                    <permissionProfile>mel-safe</permissionProfile>
+                </script>
+            </evaluator>
+            <evaluator id="274">
+                <type>function</type>
+                <decision>deny</decision> <!-- allow only after reviewing your callable functions and (optionally) specifying the profile for them -->
+            </evaluator>
+            <bulkActionsProfile>prohibitive</bulkActionsProfile> <!-- allow as needed -->
+            <privilegeElevation>deny</privilegeElevation>
+        </expressionProfile>
+        <expressionProfile>
+            <identifier>reporting</identifier>
+            <description>
+                Use for:
+
+                - reports
+                - message templates
+
+                Limitation: Review and adapt to your particular situation.
+            </description>
+            <decision>deny</decision> <!-- default decision of those evaluators that are not explicitly enumerated. -->
+            <evaluator>
+                <type>value</type>
+                <decision>allow</decision>
+            </evaluator>
+            <evaluator>
                 <type>null</type>
                 <decision>allow</decision>
             </evaluator>
-            <bulkActionsProfile>prohibitive</bulkActionsProfile>
+            <evaluator>
+                <type>asIs</type>
+                <decision>allow</decision>
+            </evaluator>
+            <evaluator>
+                <type>path</type>
+                <decision>allow</decision>
+            </evaluator>
+            <evaluator>
+                <type>const</type>
+                <decision>allow</decision>
+            </evaluator>
+            <evaluator>
+                <type>filter</type>
+                <decision>allow</decision>
+            </evaluator>
+            <evaluator>
+                <type>generate</type>
+                <decision>allow</decision>
+            </evaluator>
+            <evaluator>
+                <type>proportional</type>
+                <decision>allow</decision>
+            </evaluator>
+            <evaluator>
+                <type>script</type>
+                <decision>deny</decision> <!-- default decision of those script languages that are not explicitly enumerated. -->
+                <script> <!-- specific to this profile -->
+                    <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
+                    <decision>allow</decision>
+                    <permissionProfile>mel-reporting</permissionProfile>
+                </script>
+                <script> <!-- specific to this profile -->
+                    <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#safe-velocity</language>
+                    <decision>allow</decision>
+                </script>
+            </evaluator>
+            <evaluator>
+                <type>function</type>
+                <decision>deny</decision> <!-- allow only after reviewing your callable functions and (optionally) specifying the profile for them -->
+            </evaluator>
+            <bulkActionsProfile>prohibitive</bulkActionsProfile> <!-- allow as needed -->
             <privilegeElevation>deny</privilegeElevation>
+        </expressionProfile>
+        <expressionProfile>
+            <identifier>configuration</identifier>
+            <description>
+                Use for:
+
+                 - defining resources
+                 - object templates
+                 - function libraries
+
+                Limitation: Review and adapt to your particular situation.
+            </description>
+            <decision>deny</decision> <!-- default decision of those evaluators that are not explicitly enumerated. -->
+            <!-- inherited from "template" -->
+            <evaluator>
+                <type>value</type>
+                <decision>allow</decision>
+            </evaluator>
+            <evaluator>
+                <type>null</type>
+                <decision>allow</decision>
+            </evaluator>
+            <evaluator>
+                <type>asIs</type>
+                <decision>allow</decision>
+            </evaluator>
+            <evaluator>
+                <type>path</type>
+                <decision>allow</decision>
+            </evaluator>
+            <evaluator>
+                <type>const</type>
+                <decision>allow</decision>
+            </evaluator>
+            <evaluator>
+                <type>filter</type>
+                <decision>allow</decision>
+            </evaluator>
+            <evaluator>
+                <type>generate</type>
+                <decision>allow</decision>
+            </evaluator>
+            <evaluator>
+                <type>proportional</type>
+                <decision>allow</decision>
+            </evaluator>
+            <!-- specific for this one -->
+            <evaluator>
+                <type>const</type>
+                <decision>allow</decision>
+            </evaluator>
+            <evaluator>
+                <type>script</type>
+                <decision>deny</decision> <!-- default decision of those script languages that are not explicitly enumerated. -->
+                <script>
+                    <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
+                    <decision>allow</decision>
+                    <!-- all MEL functions -->
+                </script>
+                <script> <!-- inherited from "reporting" profile -->
+                    <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#safe-velocity</language>
+                    <decision>allow</decision>
+                </script>
+            </evaluator>
+            <evaluator>
+                <type>assignmentTargetSearch</type>
+                <decision>allow</decision>
+            </evaluator>
+            <evaluator>
+                <type>associationTargetSearch</type>
+                <decision>allow</decision>
+            </evaluator>
+            <evaluator>
+                <type>referenceSearch</type>
+                <decision>allow</decision>
+            </evaluator>
+            <evaluator>
+                <type>shadowOwnerReferenceSearch</type>
+                <decision>allow</decision>
+            </evaluator>
+            <evaluator>
+                <type>associationFromLink</type>
+                <decision>allow</decision>
+            </evaluator>
+            <evaluator>
+                <type>sequentialValue</type>
+                <decision>allow</decision>
+            </evaluator>
+            <evaluator>
+                <type>associationConstruction</type>
+                <decision>allow</decision>
+            </evaluator>
+            <evaluator>
+                <type>associationSynchronization</type>
+                <decision>allow</decision>
+            </evaluator>
+            <bulkActionsProfile>permissive</bulkActionsProfile>
+            <privilegeElevation>allow</privilegeElevation>
         </expressionProfile>
         <expressionProfile id="275">
             <identifier>permissive</identifier>
             <description>Unlimited access to all expressions</description>
             <decision>allow</decision>
+            <bulkActionsProfile>permissive</bulkActionsProfile>
             <privilegeElevation>allow</privilegeElevation>
         </expressionProfile>
         <expressionProfile id="276">
@@ -2260,191 +2420,208 @@
             <bulkActionsProfile>prohibitive</bulkActionsProfile>
             <privilegeElevation>deny</privilegeElevation>
         </expressionProfile>
+
+        <!-- bulk actions -->
+
         <bulkActionsProfile id="277">
             <identifier>prohibitive</identifier>
             <decision>deny</decision>
         </bulkActionsProfile>
-        <permissionProfile id="225">
-            <identifier>script-limited</identifier>
-            <description>
-                "Limited" script permission profile. It is supposed to contain operations that are mostly "safe",
-                i.e. operations that have very little risk to harm the system, circumvent midPoint security
-                and so on.
-                However, this profile may incomplete, and it is likely it is not completely secure.
-                The very nature of script permission checks (a.k.a. sandbox) does not guarantee complete safety.
-                This profile is meant as a means to limit (mostly unintentional) harm done by the scripts,
-                it is not meant as a strict security measure.
-                It is provided here "AS IS", without any guarantees. Use at your own risk.
-            </description>
-            <decision>deny</decision> <!-- Default decision for those classes that are not explicitly enumerated. -->
-            <package id="226">
-                <name>com.evolveum.midpoint.xml.ns._public.common.common_3</name>
-                <description>MidPoint common schema - generated bean classes</description>
-                <decision>allow</decision>
-            </package>
-            <package id="227">
-                <name>com.evolveum.prism.xml.ns._public.types_3</name>
-                <description>Prism schema - bean classes</description>
-                <decision>allow</decision>
-            </package>
-            <class id="228">
-                <name>java.lang.Integer</name>
-                <decision>allow</decision>
-            </class>
-            <class id="229">
-                <name>java.lang.Object</name>
-                <description>Basic Java operations.</description>
-                <decision>deny</decision>
-                <method id="247">
-                    <name>equals</name>
-                    <decision>allow</decision>
-                </method>
-                <method id="248">
-                    <name>hashCode</name>
-                    <decision>allow</decision>
-                </method>
-            </class>
-            <class id="230">
-                <name>java.lang.String</name>
-                <description>String operations are generally safe. But Groovy is adding execute() method which is very dangerous.</description>
-                <decision>allow</decision> <!-- Default decision for those methods that are not explicitly enumerated. -->
-                <method id="249">
-                    <name>execute</name>
-                    <decision>deny</decision>
-                </method>
-            </class>
-            <class id="231">
-                <name>java.lang.CharSequence</name>
-                <decision>allow</decision>
-            </class>
-            <class id="232">
-                <name>java.lang.Enum</name>
-                <decision>allow</decision>
-            </class>
-            <class id="233">
-                <name>java.util.List</name>
-                <description>List operations are generally safe. But Groovy is adding execute() method which is very dangerous.</description>
-                <decision>allow</decision>
-                <method id="250">
-                    <name>execute</name>
-                    <decision>deny</decision>
-                </method>
-            </class>
-            <class id="234">
-                <name>java.util.ArrayList</name>
-                <description>List operations are generally safe. But Groovy is adding execute() method which is very dangerous.</description>
-                <decision>allow</decision>
-                <method id="251">
-                    <name>execute</name>
-                    <decision>deny</decision>
-                </method>
-            </class>
-            <class id="235">
-                <name>java.util.Map</name>
-                <decision>allow</decision>
-            </class>
-            <class id="236">
-                <name>java.util.HashMap</name>
-                <decision>allow</decision>
-            </class>
-            <class id="237">
-                <name>java.util.Date</name>
-                <decision>allow</decision>
-            </class>
-            <class id="238">
-                <name>javax.xml.namespace.QName</name>
-                <decision>allow</decision>
-            </class>
-            <class id="239">
-                <name>javax.xml.datatype.XMLGregorianCalendar</name>
-                <decision>allow</decision>
-            </class>
-            <class id="240">
-                <name>java.lang.System</name>
-                <description>Just a few methods of System are safe enough.</description>
-                <decision>deny</decision>
-                <method id="252">
-                    <name>currentTimeMillis</name>
-                    <decision>allow</decision>
-                </method>
-            </class>
-            <class id="241">
-                <name>java.lang.IllegalStateException</name>
-                <description>Basic Java exception. Also used in test.</description>
-                <decision>allow</decision>
-            </class>
-            <class id="242">
-                <name>java.lang.IllegalArgumentException</name>
-                <description>Basic Java exception.</description>
-                <decision>allow</decision>
-            </class>
-            <class id="243">
-                <name>com.evolveum.midpoint.model.common.expression.functions.BasicExpressionFunctions</name>
-                <description>MidPoint basic functions library</description>
-                <decision>allow</decision>
-            </class>
-            <class id="244">
-                <name>com.evolveum.midpoint.model.common.expression.functions.LogExpressionFunctions</name>
-                <description>MidPoint logging functions library</description>
-                <decision>allow</decision>
-            </class>
-            <class id="245">
-                <name>com.evolveum.midpoint.report.impl.ReportFunctions</name>
-                <description>MidPoint report functions library</description>
-                <decision>allow</decision>
-            </class>
-            <class id="246">
-                <name>org.apache.commons.lang3.StringUtils</name>
-                <description>Apache Commons: Strings</description>
-                <decision>allow</decision>
-            </class>
+        <bulkActionsProfile>
+            <identifier>permissive</identifier>
+            <decision>allow</decision>
+        </bulkActionsProfile>
 
-            <!-- Following may be needed for audit reports. But they may not be completely safe.
-                 Therefore the following section is commented out. Please closely evaluate those rules
-                 before using them. -->
-            <!--  <class>
-                <name>com.evolveum.midpoint.schema.expression.VariablesMap</name>
-                <description>Expression variables map.</description>
-                <decision>deny</decision>
-                <method>
-                    <name>get</name>
-                    <decision>allow</decision>
-                </method>
-                <method>
-                    <name>remove</name>
-                    <decision>allow</decision>
-                </method>
-            </class>
-            <class>
-                <name>com.evolveum.midpoint.schema.expression.TypedValue</name>
-                <description>Typed values, holding expression variables. Read-only access.</description>
-                <decision>deny</decision>
-                <method>
-                    <name>getValue</name>
-                    <decision>allow</decision>
-                </method>
-            </class>
-            <class>
-                <name>com.evolveum.midpoint.report.impl.ReportUtils</name>
-                <decision>deny</decision>
-                <method>
-                    <name>convertDateTime</name>
-                    <decision>allow</decision>
-                </method>
-                <method>
-                    <name>getPropertyString</name>
-                    <decision>allow</decision>
-                </method>
-                <method>
-                    <name>printDelta</name>
-                    <decision>allow</decision>
-                </method>
-            </class>
-            <class>
-                <name>com.evolveum.midpoint.prism.PrismReferenceValue</name>
+        <!-- permissions for MEL -->
+
+        <permissionProfile>
+            <identifier>mel-safe</identifier>
+            <decision>deny</decision>
+            <package>
+                <name>bindings</name>
                 <decision>allow</decision>
-            </class> -->
+            </package>
+            <package>
+                <name>math</name>
+                <decision>allow</decision>
+            </package>
+            <package>
+                <name>sets</name>
+                <decision>allow</decision>
+            </package>
+            <package>
+                <name>encoders</name>
+                <decision>allow</decision>
+            </package>
+            <package>
+                <name>lists</name>
+                <decision>allow</decision>
+            </package>
+            <package>
+                <name>regex</name>
+                <decision>allow</decision>
+            </package>
+            <package>
+                <name>comprehensions</name>
+                <decision>allow</decision>
+            </package>
+            <package>
+                <name>mel</name>
+                <decision>allow</decision>
+            </package>
+            <package>
+                <name>format</name>
+                <decision>allow</decision>
+            </package>
+            <package>
+                <name>ldap</name>
+                <decision>allow</decision>
+            </package>
+            <package>
+                <name>object</name>
+                <decision>allow</decision>
+            </package>
+            <package>
+                <name>log</name>
+                <decision>allow</decision>
+            </package>
+            <!-- disallowed: simulation, midpoint, secret -->
         </permissionProfile>
+        <permissionProfile>
+            <identifier>mel-reporting</identifier>
+            <decision>deny</decision>
+            <package>
+                <name>bindings</name>
+                <decision>allow</decision>
+            </package>
+            <package>
+                <name>math</name>
+                <decision>allow</decision>
+            </package>
+            <package>
+                <name>sets</name>
+                <decision>allow</decision>
+            </package>
+            <package>
+                <name>encoders</name>
+                <decision>allow</decision>
+            </package>
+            <package>
+                <name>lists</name>
+                <decision>allow</decision>
+            </package>
+            <package>
+                <name>regex</name>
+                <decision>allow</decision>
+            </package>
+            <package>
+                <name>comprehensions</name>
+                <decision>allow</decision>
+            </package>
+            <package>
+                <name>mel</name>
+                <decision>allow</decision>
+            </package>
+            <package>
+                <name>format</name>
+                <decision>allow</decision>
+            </package>
+            <package>
+                <name>ldap</name>
+                <decision>allow</decision>
+            </package>
+            <package>
+                <name>object</name>
+                <decision>allow</decision>
+            </package>
+            <package>
+                <name>log</name>
+                <decision>allow</decision>
+            </package>
+            <!-- needed for built-in reports -->
+            <package>
+                <name>simulation</name>
+                <decision>allow</decision>
+            </package>
+            <package>
+                <name>midpoint</name>
+                <decision>allow</decision>
+            </package>
+            <!-- disallowed: secret -->
+        </permissionProfile>
+        <defaults>
+            <authorizedObjects>prohibitive</authorizedObjects>
+            <principal>prohibitive</principal>
+            <privilegedPrincipal>configuration</privilegedPrincipal>
+        </defaults>
     </expressions>
 
+    <defaultObjectPolicyConfiguration>
+        <type>ObjectCollectionType</type>
+        <expressionProfile>safe</expressionProfile>
+    </defaultObjectPolicyConfiguration>
+    <defaultObjectPolicyConfiguration>
+        <type>DashboardType</type>
+        <expressionProfile>safe</expressionProfile>
+    </defaultObjectPolicyConfiguration>
+    <defaultObjectPolicyConfiguration>
+        <type>AccessCertificationDefinitionType</type>
+        <expressionProfile>safe</expressionProfile>
+    </defaultObjectPolicyConfiguration>
+    <defaultObjectPolicyConfiguration>
+        <type>AccessCertificationCampaignType</type>
+        <expressionProfile>safe</expressionProfile>
+    </defaultObjectPolicyConfiguration>
+    <defaultObjectPolicyConfiguration>
+        <type>RoleType</type>
+        <expressionProfile>safe</expressionProfile>
+    </defaultObjectPolicyConfiguration>
+    <defaultObjectPolicyConfiguration>
+        <type>ServiceType</type>
+        <expressionProfile>safe</expressionProfile>
+    </defaultObjectPolicyConfiguration>
+    <defaultObjectPolicyConfiguration>
+        <type>OrgType</type>
+        <expressionProfile>safe</expressionProfile>
+    </defaultObjectPolicyConfiguration>
+    <defaultObjectPolicyConfiguration>
+        <type>PolicyType</type>
+        <expressionProfile>safe</expressionProfile>
+    </defaultObjectPolicyConfiguration>
+    <defaultObjectPolicyConfiguration>
+        <type>ArchetypeType</type>
+        <expressionProfile>safe</expressionProfile>
+    </defaultObjectPolicyConfiguration>
+    <defaultObjectPolicyConfiguration>
+        <type>ValuePolicyType</type>
+        <expressionProfile>safe</expressionProfile>
+    </defaultObjectPolicyConfiguration>
+    <defaultObjectPolicyConfiguration>
+        <type>ReportType</type>
+        <expressionProfile>reporting</expressionProfile>
+    </defaultObjectPolicyConfiguration>
+    <defaultObjectPolicyConfiguration>
+        <type>MessageTemplateType</type>
+        <expressionProfile>reporting</expressionProfile>
+    </defaultObjectPolicyConfiguration>
+    <defaultObjectPolicyConfiguration>
+        <type>ResourceType</type>
+        <expressionProfile>configuration</expressionProfile>
+    </defaultObjectPolicyConfiguration>
+    <defaultObjectPolicyConfiguration>
+        <type>ObjectTemplateType</type>
+        <expressionProfile>configuration</expressionProfile>
+    </defaultObjectPolicyConfiguration>
+    <defaultObjectPolicyConfiguration>
+        <type>FunctionLibraryType</type>
+        <expressionProfile>configuration</expressionProfile>
+    </defaultObjectPolicyConfiguration>
+    <defaultObjectPolicyConfiguration>
+        <type>MarkType</type>
+        <expressionProfile>configuration</expressionProfile>
+    </defaultObjectPolicyConfiguration>
+    <defaultObjectPolicyConfiguration>
+        <type>SystemConfigurationType</type>
+        <expressionProfile>configuration</expressionProfile>
+    </defaultObjectPolicyConfiguration>
 </systemConfiguration>

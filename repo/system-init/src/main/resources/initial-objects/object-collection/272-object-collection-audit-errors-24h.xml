@@ -15,7 +15,7 @@
         <q:text>
             eventStage = 'execution'
             and outcome = 'fatal_error'
-            and timestamp > `basic.addDuration(basic.currentDateTime(), "-P1D")`
+            and timestamp > mel`now - duration('24h')`
         </q:text>
     </filter>
     <domain>

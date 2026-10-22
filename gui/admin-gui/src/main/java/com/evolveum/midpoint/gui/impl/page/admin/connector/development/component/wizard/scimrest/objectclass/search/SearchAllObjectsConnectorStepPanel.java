@@ -23,6 +23,7 @@ import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismReferenceWrapper;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 import com.evolveum.midpoint.gui.impl.component.wizard.withnavigation.WizardModelWithParentSteps;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
@@ -41,6 +42,8 @@ import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.session.PageStorage;
+import com.evolveum.midpoint.web.session.ResourceContentStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnDevObjectClassInfoType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnDevTestingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorDevelopmentType;
@@ -60,6 +63,8 @@ public class SearchAllObjectsConnectorStepPanel extends ScriptConfirmationPanel 
     private static final String PANEL_TYPE = "cdw-show-search-result";
 
     private static final String ID_PANEL = "panel";
+
+    private final PageStorage pageStorage = new ResourceContentStorage(null);
 
     public SearchAllObjectsConnectorStepPanel(WizardPanelHelper<? extends Containerable,
             ConnectorDevelopmentDetailsModel> helper, IModel<PrismContainerValueWrapper<ConnDevObjectClassInfoType>> valueModel) {
@@ -116,6 +121,11 @@ public class SearchAllObjectsConnectorStepPanel extends ScriptConfirmationPanel 
             }
 
             @Override
+            protected PageStorage getPageStorage() {
+                return pageStorage;
+            }
+
+            @Override
             protected Behavior getStatisticsButtonVisibleBehaviour() {
                 return VisibleBehaviour.ALWAYS_INVISIBLE;
             }
@@ -127,7 +137,9 @@ public class SearchAllObjectsConnectorStepPanel extends ScriptConfirmationPanel 
 
             @Override
             protected Consumer<Task> createProviderSearchTaskCustomizer() {
-                return (Consumer<Task> & Serializable) ConnectorDevelopmentWizardUtil::enableConnectorLogCapture;
+                boolean logCaptureEnabled = WebModelServiceUtils.isEnableExperimentalFeature(getPageBase());
+                return (Consumer<Task> & Serializable) (task) ->
+                        ConnectorDevelopmentWizardUtil.configureConnectorDevelopmentTask(task, logCaptureEnabled);
             }
 
             @Override
@@ -154,9 +166,9 @@ public class SearchAllObjectsConnectorStepPanel extends ScriptConfirmationPanel 
             protected void processResult(OperationResult result) {
                 if (getWizard() instanceof WizardModelWithParentSteps wizardModel) {
                     ConnectorDevelopmentWizardUtil.collectConnectorResults(result, (connIdResult) -> {
-                        ConnectorDevelopmentWizardUtil.appendLogsAsContext(connIdResult);
-                        wizardModel.addOperationResult(getStepId(), "cdw-search-all-script", connIdResult);
-
+                        wizardModel.addOperationResult(getStepId(), "cdw-search-all-script", connIdResult,
+                                ConnectorDevelopmentWizardUtil.fixScriptAction(
+                                        SearchAllObjectsConnectorStepPanel.this, "cdw-search-all-script"));
                     });
                     ConnectorDevelopmentWizardUtil.reportConnectorLogs(SearchAllObjectsConnectorStepPanel.this, getStepId(), result, null);
                 }

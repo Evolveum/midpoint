@@ -39,6 +39,8 @@ import com.evolveum.midpoint.authentication.impl.MidpointProviderManager;
 import com.evolveum.midpoint.authentication.impl.factory.channel.AuthChannelRegistryImpl;
 import com.evolveum.midpoint.authentication.impl.factory.module.AuthModuleRegistryImpl;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
+import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
+import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipalManager;
 import com.evolveum.midpoint.model.test.AbstractModelIntegrationTest;
 import com.evolveum.midpoint.repo.api.RepoAddOptions;
 import com.evolveum.midpoint.repo.common.SystemObjectCache;
@@ -102,6 +104,7 @@ public class TestArchetypeSecurityPolicySequence extends AbstractModelIntegratio
     @Autowired private RemoveUnusedSecurityFilterPublisher removeUnusedSecurityFilterPublisher;
     @Autowired private SystemObjectCache systemObjectCache;
     @Autowired private ModelInteractionService modelInteractionService;
+    @Autowired private GuiProfiledPrincipalManager principalManager;
     @Autowired private ApplicationContext applicationContext;
 
     @Override
@@ -221,6 +224,44 @@ public class TestArchetypeSecurityPolicySequence extends AbstractModelIntegratio
     }
 
     /**
+     * Global policy is replaced while the user is logged in. The sequence keeps its identifier, but the module
+     * used for the login is not defined in the new policy at all.
+     * The principal learns about the new policy when its profile is refreshed (e.g. after change of system configuration).
+     *
+     * Modules built during the login are kept in the authentication stored in the session, {@link MidpointAuthFilter}
+     * takes the filters for each request of the user from them, not from the policy.
+     * They must not be replaced by the modules of the new policy, the module used for the login would be missing.
+     */
+    @Test
+    public void test200PolicyChangedForAuthenticatedUser() throws Exception {
+        given("user logged in via sequence with single login form module");
+        OperationResult result = getTestOperationResult();
+        overwrite(loginFormPolicy(MODULE_LOGIN_FORM), result);
+        try {
+            MockHttpSession session = new MockHttpSession();
+            MockHttpServletRequest loginRequest = request("/login", session);
+            prepareAuthentication(null, loginRequest).buildMidPointAuthentication(loginRequest);
+            MidpointAuthentication authentication = AuthUtil.getMidpointAuthentication();
+            verifyPassword(authentication, USER_EXTERNAL);
+            ModuleAuthentication loginForm = authentication.getAuthentications().get(0);
+            assertThat(authentication.isAuthenticated()).as("authenticated after password").isTrue();
+
+            when("module of the sequence is replaced, profile of the user is refreshed and next request comes");
+            overwrite(loginFormPolicy("internalLoginForm"), result);
+            principalManager.refreshCompiledProfile((GuiProfiledPrincipal) authentication.getPrincipal());
+            prepareAuthentication(authentication, request("/self/dashboard", session));
+
+            then("user is still authenticated, module used for the login is available");
+            assertThat(authentication.isAuthenticated()).as("authenticated after policy change").isTrue();
+            assertThat(authentication.getIndexOfModule(loginForm))
+                    .as("index of module used for the login")
+                    .isNotEqualTo(MidpointAuthentication.NO_MODULE_FOUND_INDEX);
+        } finally {
+            overwrite(globalPolicy(true), result);
+        }
+    }
+
+    /**
      * Two requests of the login, as {@link MidpointAuthFilter} processes them:
      *
      * . request of unknown user, authentication is started with the sequence of the global policy
@@ -309,6 +350,26 @@ public class TestArchetypeSecurityPolicySequence extends AbstractModelIntegratio
                                 .loginForm(new LoginFormAuthenticationModuleType().identifier(MODULE_LOGIN_FORM))
                                 .totp(totpModule()))
                         .sequence(guiSequence(GLOBAL_SEQUENCE, GLOBAL_SUFFIX, totpAcceptEmpty)));
+    }
+
+    /** Global policy with password only. */
+    private SecurityPolicyType loginFormPolicy(String moduleIdentifier) {
+        return new SecurityPolicyType()
+                .oid(GLOBAL_POLICY_OID)
+                .name("global-12478")
+                .authentication(new AuthenticationsPolicyType()
+                        .modules(new AuthenticationModulesType()
+                                .loginForm(new LoginFormAuthenticationModuleType().identifier(moduleIdentifier)))
+                        .sequence(new AuthenticationSequenceType()
+                                .identifier(GLOBAL_SEQUENCE)
+                                .channel(new AuthenticationSequenceChannelType()
+                                        ._default(true)
+                                        .channelId(SchemaConstants.CHANNEL_USER_URI)
+                                        .urlSuffix(GLOBAL_SUFFIX))
+                                .module(new AuthenticationSequenceModuleType()
+                                        .identifier(moduleIdentifier)
+                                        .order(1)
+                                        .necessity(AuthenticationSequenceModuleNecessityType.SUFFICIENT))));
     }
 
     private SecurityPolicyType archetypePolicy(String sequenceIdentifier, String urlSuffix) {

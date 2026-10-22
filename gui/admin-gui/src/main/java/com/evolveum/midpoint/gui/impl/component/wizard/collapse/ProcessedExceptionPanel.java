@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -198,6 +199,8 @@ public class ProcessedExceptionPanel extends BasePanel<OperationResultWrapper> {
     }
 
     private @NotNull AjaxButton createIgnoreButton() {
+        String panelId = getModelObject().getPanelId();
+
         AjaxButton ignoreButton = new AjaxButton(ID_IGNORE_BUTTON,
                 createStringResource("ProcessedExceptionPanel.ignoreButton")) {
 
@@ -205,7 +208,14 @@ public class ProcessedExceptionPanel extends BasePanel<OperationResultWrapper> {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                // Ignoring a problem is not decided yet, see MID-11804.
+                wizardModel.removeOperationResult(panelId);
+                if (!wizardModel.hasOperationResults()) {
+                    wizardModel.clearSelection();
+                }
+                Component drawerInfoPanel = wizardModel.getPanel().get("mainForm:drawerInfoPanel");
+                if (drawerInfoPanel != null) {
+                    target.add(drawerInfoPanel);
+                }
             }
         };
         ignoreButton.setOutputMarkupId(true);

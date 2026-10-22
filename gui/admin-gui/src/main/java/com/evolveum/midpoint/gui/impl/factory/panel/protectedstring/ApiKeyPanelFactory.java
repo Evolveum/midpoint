@@ -34,7 +34,8 @@ public class ApiKeyPanelFactory extends ProtectedStringPanelFactory {
         }
 
         return wrapper instanceof PrismPropertyWrapper
-                && QNameUtil.match(wrapper.getItemName(), SmartIntegrationConfigurationType.F_CONNECTOR_GENERATOR_API_KEY);
+                && (QNameUtil.match(wrapper.getItemName(), SmartIntegrationConfigurationType.F_CONNECTOR_GENERATOR_API_KEY)
+                || QNameUtil.match(wrapper.getItemName(), SmartIntegrationConfigurationType.F_SERVICE_API_KEY));
     }
 
     @Override

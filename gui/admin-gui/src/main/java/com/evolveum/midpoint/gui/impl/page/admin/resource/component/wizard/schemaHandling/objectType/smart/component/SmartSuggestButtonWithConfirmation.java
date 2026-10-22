@@ -18,6 +18,7 @@ import org.apache.wicket.model.Model;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationWithOptionsDto;
 import com.evolveum.midpoint.web.component.dialog.privacy.DataAccessPermission;
 import com.evolveum.midpoint.web.component.input.ActivityIndicationInteractionsPair;
@@ -86,7 +87,7 @@ public class SmartSuggestButtonWithConfirmation<T extends Describable>
                     return pageBase.getSmartIntegrationService()
                             .getAiInfo(task, task.getResult())
                             .orElse(null);
-                } catch (CommonException e) {
+                } catch (CommonException | SystemException e) {
                     return null;
                 }
             }

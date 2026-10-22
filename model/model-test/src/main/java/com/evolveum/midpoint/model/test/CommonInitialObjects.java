@@ -52,7 +52,7 @@ public interface CommonInitialObjects {
             ARCHETYPES, "700-archetype-event-mark.xml", SystemObjectsType.ARCHETYPE_EVENT_MARK.value());
 
     TestObject<ArchetypeType> ARCHETYPE_OBJECT_MARK = TestObject.classPath(
-            ARCHETYPES, "701-archetype-object-mark.xml", SystemObjectsType.ARCHETYPE_OBJECT_MARK.value());
+            ARCHETYPES, "016-archetype-object-mark.xml", SystemObjectsType.ARCHETYPE_OBJECT_MARK.value());
 
     TestObject<ArchetypeType> ARCHETYPE_SHADOW_POLICY_MARK = TestObject.classPath(
             ARCHETYPES, "705-archetype-shadow-policy-mark.xml", SystemObjectsType.ARCHETYPE_SHADOW_POLICY_MARK.value());
@@ -81,8 +81,12 @@ public interface CommonInitialObjects {
             ARCHETYPES, "528-archetype-task-util.xml",
             SystemObjectsType.ARCHETYPE_UTILITY_TASK.value());
 
+    TestObject<ArchetypeType> ARCHETYPE_USER_SUBMITTED_TASK = TestObject.classPath(
+            ARCHETYPES, "539-archetype-task-user-submitted.xml",
+            SystemObjectsType.ARCHETYPE_USER_SUBMITTED_TASK.value());
+
     TestObject<ArchetypeType> ARCHETYPE_CLASSIFICATION = TestObject.classPath(
-            ARCHETYPES, "062-archetype-classification.xml",
+            ARCHETYPES, "018-archetype-classification.xml",
             SystemObjectsType.ARCHETYPE_CLASSIFICATION.value());
 
     TestObject<ArchetypeType> ARCHETYPE_BUSINESS_ROLE = TestObject.classPath(
@@ -381,12 +385,12 @@ public interface CommonInitialObjects {
 
     TestObject<ObjectCollectionType> OBJECT_COLLECTION_CERTIFICATION_CAMPAIGNS_ALL = TestObject.classPath(
             OBJECT_COLLECTION,
-            "280-object-collection-certification-campaign-all.xml",
+            "016-object-collection-certification-campaign-all.xml",
             "00000000-0000-0000-0001-000000000280");
 
     TestObject<ObjectCollectionType> OBJECT_COLLECTION_SHADOW_ALL = TestObject.classPath(
             OBJECT_COLLECTION,
-            "290-object-collection-shadow-all.xml",
+            "016-object-collection-shadow-all.xml",
             "00000000-0000-0000-0001-000000000008");
 
     TestObject<ObjectCollectionType> OBJECT_COLLECTION_MY_CASES = TestObject.classPath(

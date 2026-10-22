@@ -6,14 +6,13 @@
   -->
 
 <resource oid="10000000-0000-0000-0000-000000000004"
-          xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-          xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
-          xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
-          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
-          xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
-          xmlns:piracy="http://midpoint.evolveum.com/xml/ns/samples/piracy"
-          xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+        xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+        xmlns:piracy="http://midpoint.evolveum.com/xml/ns/samples/piracy"
+>
 
     <name>Dummy Resource</name>
     <connectorRef type="ConnectorType">
@@ -31,7 +30,7 @@
         </filter>
     </connectorRef>
     <connectorConfiguration xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector"
-                   xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
+            xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
 
         <icfc:configurationProperties>
             <icfi:instanceId></icfi:instanceId> <!-- Default instance. -->
@@ -99,13 +98,9 @@
                     <expression>
                         <allowEmptyValues>true</allowEmptyValues>
                         <script>
-                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                             <code>
-                                if (input?.contains('#')) {
-                                    return null
-                                } else {
-                                    return input
-                                }
+                                input.contains('#') ? nil : input
                             </code>
                         </script>
                     </expression>
@@ -134,8 +129,8 @@
                     <expression>
                         <allowEmptyValues>false</allowEmptyValues>
                         <script>
-                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
-                            <code>'Came from ' + input</code>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
+                            <code>'Came from %s'.format(input)</code>
                         </script>
                     </expression>
                     <target>
@@ -150,8 +145,8 @@
                     <expression>
                         <allowEmptyValues>false</allowEmptyValues>
                         <script>
-                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
-                            <code>'The crew of ' + input</code>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
+                            <code>'The crew of %s'.format(input)</code>
                         </script>
                     </expression>
                     <target>
@@ -159,8 +154,8 @@
                     </target>
                     <condition>
                         <script>
-                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
-                            <code>input != null</code>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
+                            <code>isPresent(input)</code>
                         </script>
                     </condition>
                 </inbound>
@@ -173,7 +168,7 @@
                     <channel>http://pirates.net/avast</channel>
                     <expression>
                         <script>
-                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                             <code>9999 + 1</code>
                         </script>
                     </expression>
@@ -304,8 +299,8 @@
                         <strength>weak</strength>
                         <condition>
                             <script>
-                                <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
-                                <code>focus?.getActivation()?.getValidFrom() == null &amp;&amp; focus?.getActivation()?.getValidTo() == null</code>
+                                <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
+                                <code>focus.activation.validFrom == null &amp;&amp; focus.activation.validTo == null</code>
                             </script>
                         </condition>
                     </inbound>
@@ -346,7 +341,7 @@
                     </source>
                     <expression>
                         <script>
-                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                             <code>
                                 'T' + name + iterationToken
                             </code>
@@ -358,9 +353,9 @@
                     <strength>weak</strength>
                     <expression>
                         <script>
-                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                             <code>
-                                input?.substring(1)
+                                input.substring(1)
                             </code>
                         </script>
                     </expression>
@@ -377,7 +372,7 @@
                     </source>
                     <expression>
                         <script>
-                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                             <code>fullName + ' (test)'</code>
                         </script>
                     </expression>
@@ -406,7 +401,7 @@
                 <inbound>
                     <expression>
                         <script>
-                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                             <code>'The crew of Titanicum ' + input + 'icum'</code>
                         </script>
                     </expression>
@@ -415,8 +410,8 @@
                     </target>
                     <condition>
                         <script>
-                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
-                            <code>input != null</code>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
+                            <code>isPresent(input)</code>
                         </script>
                     </condition>
                 </inbound>
@@ -470,7 +465,6 @@
         </objectType>
 
 
-
         <objectType>
             <kind>entitlement</kind>
             <intent>group</intent>
@@ -486,7 +480,8 @@
                     </source>
                     <expression>
                         <path>declare namespace t="http://prism.evolveum.com/xml/ns/public/types-3";
-                            t:norm</path>
+                            t:norm
+                        </path>
                     </expression>
                 </outbound>
             </attribute>
@@ -512,7 +507,8 @@
                 <inbound>
                     <target>
                         <path>declare namespace piracy = "http://midpoint.evolveum.com/xml/ns/samples/piracy";
-                            $focus/extension/piracy:costCenter</path>
+                            $focus/extension/piracy:costCenter
+                        </path>
                     </target>
                 </inbound>
             </attribute>
@@ -537,9 +533,9 @@
             <language>Logo</language>
             <argument>
                 <script>
-                    <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
+                    <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                     <code>
-                    'user: ' + user?.getName()
+                        'user: ' + default( focus.name, 'null' )
                     </code>
                 </script>
                 <name>usr</name>
@@ -547,32 +543,32 @@
             <argument>
                 <script>
                     <!-- Note: We cannot test for account name as name is only assigned in provisioning -->
-                    <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
+                    <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                     <code>
-                    'account: ' + account?.getActivation()?.getAdministrativeStatus()
+                        'account: ' + default( projection.activation.administrativeStatus, 'null' )
                     </code>
                 </script>
                 <name>acc</name>
             </argument>
             <argument>
                 <script>
-                    <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
+                    <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                     <code>
-                    'resource: ' + resource?.getName()
+                        'resource: %s'.format(resource.name)
                     </code>
                 </script>
                 <name>res</name>
             </argument>
             <argument>
-                 <value>3</value>
+                <value>3</value>
                 <name>size</name>
             </argument>
             <code>
-to spiral :size
-   if  :size > 30 [stop]
-   fd :size rt 15
-   spiral :size *1.02
-end
+                to spiral :size
+                if :size > 30 [stop]
+                fd :size rt 15
+                spiral :size *1.02
+                end
             </code>
             <operation>add</operation>
             <kind>account</kind>
@@ -649,8 +645,8 @@ end
             <enabled>true</enabled>
             <condition>
                 <script>
-                    <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
-                    <code>!basic.getAttributeValue(shadow, 'http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3', 'name').startsWith("T")</code>
+                    <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
+                    <code>!projection.attributes.name.startsWith('T')</code>
                 </script>
             </condition>
             <correlation>
@@ -658,7 +654,8 @@ end
                     <q:path>name</q:path>
                     <expression>
                         <path>declare namespace icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3";
-                            $account/attributes/icfs:name</path>
+                            $account/attributes/icfs:name
+                        </path>
                     </expression>
                 </q:equal>
             </correlation>
@@ -696,8 +693,8 @@ end
             <enabled>true</enabled>
             <condition>
                 <script>
-                    <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
-                    <code>basic.getAttributeValue(shadow, 'http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3', 'name').startsWith("T")</code>
+                    <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
+                    <code>projection.attributes.name.startsWith('T')</code>
                 </script>
             </condition>
             <correlation>
@@ -705,8 +702,8 @@ end
                     <q:path>name</q:path>
                     <expression>
                         <script>
-                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
-                            <code>basic.getAttributeValue(shadow, 'http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3', 'name').substring(1)</code>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
+                            <code>projection.attributes.name.substring(1)</code>
                         </script>
                     </expression>
                 </q:equal>

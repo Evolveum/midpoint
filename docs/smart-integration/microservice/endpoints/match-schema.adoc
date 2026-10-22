@@ -1,0 +1,100 @@
+= Match schema endpoint
+:page-toc: top
+:page-since: "4.11.0"
+:page-upkeep-status: green
+
+== Overview
+
+`POST /api/v1/matching/matchSchema`
+
+The endpoint pairs the attributes of a resource object class with the properties of a midPoint focus type.
+MidPoint calls it with the `MATCH_SCHEMA` method, see xref:../../schema-match.adoc[].
+
+== Request
+
+[cols="25%,15%,60%",options="header"]
+|===
+| Field | Required | Description
+
+| `applicationSchema`
+| yes
+| Schema of the resource object class.
+
+| `midPointSchema`
+| yes
+| Schema of the focus type.
+Its `name` is the focus type: `UserType`, `RoleType`, `OrgType` or `ServiceType`.
+Its attributes are the focus properties, for example `name` or `emailAddress`.
+|===
+
+== Response
+
+[cols="25%,75%",options="header"]
+|===
+| Field | Description
+
+| `attributeMatch`
+a| Matched pairs.
+Each pair contains:
+
+* `midPointAttribute` - item path of the focus property.
+* `applicationAttribute` - item path of the resource attribute.
+
+A focus property can be matched with more than one resource attribute.
+
+| `metadata`
+| AI provider name and model, see xref:index.adoc#_response_metadata[Response metadata].
+|===
+
+== Processing
+
+The microservice sends the LLM the names, types and descriptions of the attributes of both schemas.
+The schema names and cardinalities are not sent.
+
+The LLM returns, for each focus property, a list of matching resource attributes.
+The microservice keeps only the pairs where both the focus property and the resource attribute are present in the request, and removes duplicates.
+
+== Errors
+
+If the answer of the LLM cannot be parsed, the status is `550`.
+
+== Example
+
+.Request
+[source,json]
+----
+{
+    "applicationSchema": {
+        "name": "ri:account",
+        "attribute": [
+            { "name": "attributes/icfs:name", "type": "xsd:string", "minOccurs": 1, "maxOccurs": 1 },
+            { "name": "attributes/ri:email", "type": "xsd:string", "minOccurs": 1, "maxOccurs": 1 },
+            { "name": "attributes/ri:phone", "type": "xsd:string", "minOccurs": 0, "maxOccurs": 1 }
+        ]
+    },
+    "midPointSchema": {
+        "name": "UserType",
+        "attribute": [
+            { "name": "name", "type": "xsd:string", "minOccurs": 0, "maxOccurs": 1 },
+            { "name": "emailAddress", "type": "xsd:string", "minOccurs": 0, "maxOccurs": 1 },
+            { "name": "telephoneNumber", "type": "xsd:string", "minOccurs": 0, "maxOccurs": 1 }
+        ]
+    }
+}
+----
+
+.Response
+[source,json]
+----
+{
+    "attributeMatch": [
+        { "midPointAttribute": "name", "applicationAttribute": "attributes/icfs:name" },
+        { "midPointAttribute": "emailAddress", "applicationAttribute": "attributes/ri:email" },
+        { "midPointAttribute": "telephoneNumber", "applicationAttribute": "attributes/ri:phone" }
+    ],
+    "metadata": {
+        "provider": "openrouter",
+        "model": "openai/gpt-oss-20b"
+    }
+}
+----

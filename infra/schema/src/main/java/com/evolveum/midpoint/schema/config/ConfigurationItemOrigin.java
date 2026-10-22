@@ -26,7 +26,7 @@ import java.util.Objects;
 /**
  * Description of an origin of a configuration item (expression, mapping, and so on).
  *
- * Before 4.11, it was used to derive {@link ExpressionProfile}. But now this is done by {@link MidPointTrustDescriptor}.
+ * Before 4.11.0, it was used to derive {@link ExpressionProfile}. But now this is done by {@link MidPointTrustDescriptor}.
  *
  * TODO make this class a kind-of immutable (currently, we do have full objects here)
  */

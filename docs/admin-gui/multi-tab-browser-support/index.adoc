@@ -3,7 +3,7 @@ midpoint-feature: multi-tab-browser-support
 doc-type: intro
 ---
 = Multi-tab browser support
-:page-since: "4.11"
+:page-since: "4.11.0"
 :page-toc: top
 :page-upkeep-status: green
 

@@ -84,6 +84,9 @@ public class WaitingForDocumentationConnectorStepPanel extends WaitingConnectorS
 
     @Override
     public boolean isCompleted() {
+        if (ConnectorDevelopmentWizardUtil.isBasicSettingsComplete(getDetailsModel().getObjectWrapper())) {
+            return true;
+        }
         if (ConnectorDevelopmentWizardUtil.existContainerValue(
                 getDetailsModel().getObjectWrapper(), ConnectorDevelopmentType.F_DOCUMENTATION_SOURCE)) {
             return true;

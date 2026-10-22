@@ -6,11 +6,13 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.relation;
 
+import java.io.Serial;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Strings;
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormChoiceComponentUpdatingBehavior;
@@ -22,6 +24,8 @@ import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.model.StringResourceModel;
+import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
@@ -36,6 +40,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
+import com.evolveum.midpoint.web.component.dialog.HelpInfoPanel;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.gui.impl.component.wizard.collapse.HelpTab;
@@ -234,6 +239,11 @@ public class RelationshipSelectConnectorStepPanel extends AbstractWizardStepPane
     public boolean onNextPerformed(AjaxRequestTarget object) {
         AtomicReference<String> relationshipName = new AtomicReference<>();
 
+        if (valuesModel.getObject().stream().noneMatch(PrismContainerValueWrapper::isSelected)) {
+            showNoSelectedRelationshipPopup(object);
+            return false;
+        }
+
         try {
             PrismContainerWrapper<ConnDevRelationInfoType> parentWrapper =
                     getDetailsModel().getObjectWrapper().findContainer(
@@ -288,6 +298,32 @@ public class RelationshipSelectConnectorStepPanel extends AbstractWizardStepPane
             object.add(getFeedback());
         }
         return false;
+    }
+
+    private void showNoSelectedRelationshipPopup(AjaxRequestTarget target) {
+        HelpInfoPanel popup = new HelpInfoPanel(
+                getPageBase().getMainPopupBodyId(),
+                createStringResource("RelationshipSelectConnectorStepPanel.select.required")) {
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            public StringResourceModel getTitle() {
+                return createStringResource("RelationshipSelectConnectorStepPanel.select.title");
+            }
+
+            @Override
+            protected @NotNull Label initLabel(IModel<String> messageModel) {
+                Label label = super.initLabel(messageModel);
+                label.add(AttributeModifier.append("class", "alert alert-warning"));
+                return label;
+            }
+
+            @Override
+            public int getHeight() {
+                return 180;
+            }
+        };
+        getPageBase().showMainPopup(popup, target);
     }
 
     @Override
