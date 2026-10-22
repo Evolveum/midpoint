@@ -35,41 +35,42 @@ Moreover, midPoint 4.11.0 made a significant leap towards secure-by-default conf
 
 === New Features and Major Improvements
 
-* **Connector generator wizard**: an AI-assisted wizard that guides the user through the creation of a new no-code/low-code connector (or the further development of an existing low-code connector) helping user integrate an external application without writing the connector code from scratch.
-** The wizard has guided workflow, that discovers the target application documentation and generates the connector's definitions / scripts based on that documentation.
-** Supports SCIM, REST, and SQL protocols.
-** Primary support is for read-only operations, but there's also limited support for create, update, and delete operations.
+* **MidPilot connector generator wizard**: an AI-assisted wizard that guides the you through the creation of a new or further development of an existing no-code/low-code connector helping user integrate an external application without writing the connector code from scratch.
+** The wizard guides users through a workflow in which the connector generator discovers the target application documentation and generates connector definitions and scripts based on the documentation.
+** The connector generator supports SCIM, REST, and SQL protocols.
+** It primarily supports read-only operations, but there is also limited support for create, update, and delete operations.
 ** Relationships between objects are partially supported.
-** The wizard can be used in a limited offline mode, i.e. without AI.
-** Note that the wizard is disabled by default for security reasons.
+** The wizard can be used in a limited offline mode, i.e., without AI.
+** The wizard is disabled by default for security reasons.
 Access to the wizard is protected by xrefv:/midpoint/reference/support-4.11/connector-generator/enable/[separate authorization and deployment configuration].
 
-* New xrefv:/midpoint/reference/support-4.11/smart-integration/[**smart integration**] features:
-** AI and local heuristics powered recommending of various resource configuration, such as:
-*** object types (delineation) - categorize the resource objects into object types,
-*** focus type - maps the resource object types to specific types of midPoint object (like LDAP accounts to midPoint users),
-*** correlators - correlate objects on resource to existing objects in midPoint,
-*** mappings - maps resource object attributes from/to midPoint object properties,
-*** simple associations - associate accounts with entitlements.
+* New xrefv:/midpoint/reference/support-4.11/smart-integration/[**midPilot smart integration**] features:
+** Use of AI and local heuristics for recommending various resource configurations, such as:
+*** Object types (delineation) — categorize the resource objects into object types.
+*** Focus types — map the resource object types to specific types of midPoint object (like LDAP accounts to midPoint users).
+*** Correlators — correlate objects on resource to existing objects in midPoint.
+*** Mappings — map resource object attributes from/to midPoint object properties.
+*** Simple associations — associate accounts with entitlements.
 ** Object type and object class statistics for better understanding of your resource and midPoint data.
-** Simulation of proposed and/or already active correlators to better evaluate their coverage and to help you catch potential misses.
+** Simulation of proposed or already active correlators to better evaluate their coverage and help you catch potential misses.
 ** Simulation of individual mappings to verify the validity of your expressions.
-** Related UI/UX improvements in object type wizard, mappings and correlation screen to guide you through, simplify and make the resource configuration more understandable.
+** Related UI/UX improvements in the object type wizard and mappings and correlation screens to guide you through the resource configuration in a simpler and more understandable manner.
 
 * Significantly improved **expression security**:
-** New xrefv:/midpoint/reference/support-4.11/expressions/expressions/script/mel/[MidPoint expression language] (MEL), a restricted expression language designed for safe use even by untrusted users.
-** New xrefv:/midpoint/reference/support-4.11/misc/notifications/velocity/[Safe Velocity] scripting language, a restricted variant of Velocity designed for safe use even by untrusted users.
-** Ability to completely turn off powerful but unsafe general-purpose scripting languages (Groovy, JavaScript, Python, original Velocity) by the platform (OS) administrator via `config.xml` and Java system property.
-*** This is the default setting from 4.11.0 onwards: only MEL and Safe Velocity are enabled in fresh 4.11.0 installations of midPoint.
+** New xrefv:/midpoint/reference/support-4.11/expressions/expressions/script/mel/[MidPoint expression language] (MEL): a restricted expression language designed for safe use even by untrusted users.
+** New xrefv:/midpoint/reference/support-4.11/misc/notifications/velocity/[Safe Velocity] scripting language: a restricted variant of Velocity designed for safe use even by untrusted users.
+** Ability to completely turn off powerful but unsafe general-purpose scripting languages (Groovy, JavaScript, Python, original Velocity) by the platform (OS) administrator via `config.xml` or Java system property.
+*** This is the default setting from 4.11.0 onwards — only MEL and Safe Velocity are enabled in fresh 4.11.0 installations of midPoint.
 *** MEL replaced Groovy as the default scripting language for expressions.
 *** All built-in initial objects (reports, dashboards, collections, task archetypes, object templates, value policy) were migrated from Groovy to MEL.
 ** xrefv:/midpoint/reference/support-4.11/expressions/expressions/profiles/[Expression profiles] are now enforced throughout the system.
-*** The initial system configuration provides default `safe`, `reporting` and `configuration` expression profiles, assigned to individual object types according to their expected needs, like `safe` for roles, `reporting` for reports, and `configuration` for resources.
+*** The initial system configuration provides default `safe`, `reporting` and `configuration` expression profiles, which are assigned to individual object types according to their expected needs;
+e.g., `safe` for roles, `reporting` for reports, and `configuration` for resources.
 
 * xrefv:/midpoint/reference/support-4.11/resources/manual/ticketing/[**ITSM ticketing**]: Ability to manage target applications via external ITSM systems, without the need to write Java code in midPoint overlays.
 Instead, tickets are created in ITSM systems via standard ConnId connectors, managed as projections (shadows of the new `work` kind) of the respective midPoint `CaseType` objects.
 
-* xrefv:/midpoint/reference/support-4.11/tasks/focus-policies-in-activities/[**Focus policies in activities**]: Focus-oriented policy rules (like "don't allow more than 15 user objects being deleted") can now be configured and evaluated per task activity, not only for the whole task.
+* xrefv:/midpoint/reference/support-4.11/tasks/focus-policies-in-activities/[**Focus policies in activities**]: Focus-oriented policy rules can now be configured and evaluated per task activity, not only per whole task — e.g., "Prohibit deleting more than 15 user objects in one batch."
 This allows for separate thresholds for individual activities of composite tasks.
 Also, this brings the ability to use activity-specific policy actions that were introduced in midPoint 4.10 (like "restart activity" or "skip activity") to be used within focus-oriented policy rules.
 
@@ -78,9 +79,9 @@ Users can set up and reset their authenticator application in the self-service u
 
 * xrefv:/midpoint/reference/support-4.11/admin-gui/multi-tab-browser-support/[**Multi-tab browser support**]: You can now open midPoint in multiple browser tabs or windows while maintaining consistent experience across the views.
 
-* Since this version, as part of our commitment to open source, we encourage our community to share their connectors with others through the xref:/connectors/integration-catalog/[Integration Catalog], helping everyone benefit from shared contributions.
-If you prefer to keep your custom connector private, you can continue using it with a MidPoint Support Subscription.
-// TODO link public announcement here
+* Since this version, as part of our commitment to open source, we encourage our community to share their connectors with others through the xref:/connectors/integration-catalog/[midPoint integration catalog], helping everyone benefit from shared contributions.
+If you prefer to keep your custom connector private even on production, you can continue using it with a link:https://evolveum.com/services/support-subscriptions/[midPoint support subscription].
+See also: link:https://evolveum.com/services/support-subscriptions/subscription-features/[Subscription features - Evolveum].
 
 * Support for xref:/midpoint/guides/updating-native-db/updating-to-pg18[PostgreSQL 18] and bug:MID-10867[Java 25].
 
