@@ -1,10 +1,10 @@
 ---
 layout: release
-release-version: '4.11.0'
+release-version: '4.12.0'
 visibility: hidden
 ---
-= MidPoint 4.11.0
-:release-version: 4.11.0
+= MidPoint 4.12.0
+:release-version: 4.12.0
 :page-visibility: hidden
 :page-liquid:
 :page-toc: top
@@ -33,282 +33,33 @@ Moreover, midPoint 4.11.0 made a significant leap towards secure-by-default conf
 {% include release-dedication.html content=dedicationContent %}
 ++++
 
-== Changes With Respect to Version 4.10
+== Changes With Respect to Version 4.11
 
 === New Features and Major Improvements
 
-* **Connector generator wizard**: an AI-assisted wizard that guides the user through the creation of a new no-code/low-code connector (or the further development of an existing low-code connector) helping user integrate an external application without writing the connector code from scratch.
-** The wizard has guided workflow, that discovers the target application documentation and generates the connector's definitions / scripts based on that documentation.
-** Supports SCIM, REST, and SQL protocols.
-** Primary support is for read-only operations, but there's also limited support for create, update, and delete operations.
-** Relationships between objects are partially supported.
-** The wizard can be used in a limited offline mode, i.e. without AI.
-** Note that the wizard is disabled by default for security reasons.
-Access to the wizard is protected by xrefv:/midpoint/reference/master/connector-generator/enable/[separate authorization and deployment configuration].
-
-* New xrefv:/midpoint/reference/master/smart-integration/[**smart integration**] features:
-** AI and local heuristics powered recommending of various resource configuration, such as:
-*** object types (delineation) - categorize the resource objects into object types,
-*** focus type - maps the resource object types to specific types of midPoint object (like LDAP accounts to midPoint users),
-*** correlators - correlate objects on resource to existing objects in midPoint,
-*** mappings - maps resource object attributes from/to midPoint object properties,
-*** simple associations - associate accounts with entitlements.
-** Object type and object class statistics for better understanding of your resource and midPoint data.
-** Simulation of proposed and/or already active correlators to better evaluate their coverage and to help you catch potential misses.
-** Simulation of individual mappings to verify the validity of your expressions.
-** Related UI/UX improvements in object type wizard, mappings and correlation screen to guide you through, simplify and make the resource configuration more understandable.
-
-* Significantly improved **expression security**:
-** New xrefv:/midpoint/reference/master/expressions/expressions/script/mel/[MidPoint expression language] (MEL), a restricted expression language designed for safe use even by untrusted users.
-** New xrefv:/midpoint/reference/master/misc/notifications/velocity/[Safe Velocity] scripting language, a restricted variant of Velocity designed for safe use even by untrusted users.
-** Ability to completely turn off powerful but unsafe general-purpose scripting languages (Groovy, JavaScript, Python, original Velocity) by the platform (OS) administrator via `config.xml` and Java system property.
-*** This is the default setting from 4.11.0 onwards: only MEL and Safe Velocity are enabled in fresh 4.11.0 installations of midPoint.
-*** MEL replaced Groovy as the default scripting language for expressions.
-*** All built-in initial objects (reports, dashboards, collections, task archetypes, object templates, value policy) were migrated from Groovy to MEL.
-** xrefv:/midpoint/reference/master/expressions/expressions/profiles/[Expression profiles] are now enforced throughout the system.
-*** The initial system configuration provides default `safe`, `reporting` and `configuration` expression profiles, assigned to individual object types according to their expected needs, like `safe` for roles, `reporting` for reports, and `configuration` for resources.
-
-* xrefv:/midpoint/reference/master/resources/manual/ticketing/[**ITSM ticketing**]: Ability to manage target applications via external ITSM systems, without the need to write Java code in midPoint overlays.
-Instead, tickets are created in ITSM systems via standard ConnId connectors, managed as projections (shadows of the new `work` kind) of the respective midPoint `CaseType` objects.
-
-* xrefv:/midpoint/reference/master/tasks/focus-policies-in-activities/[**Focus policies in activities**]: Focus-oriented policy rules (like "don't allow more than 15 user objects being deleted") can now be configured and evaluated per task activity, not only for the whole task.
-This allows for separate thresholds for individual activities of composite tasks.
-Also, this brings the ability to use activity-specific policy actions that were introduced in midPoint 4.10 (like "restart activity" or "skip activity") to be used within focus-oriented policy rules.
-
-* xrefv:/midpoint/reference/master/security/authentication/flexible-authentication/modules/totp/[**TOTP support**]: The new `totp` authentication module brings multi-factor authentication based on time-based one-time passwords to xrefv:/midpoint/reference/master/security/authentication/flexible-authentication/[flexible authentication].
-Users can set up and reset their authenticator application in the self-service user interface.
-
-* xrefv:/midpoint/reference/master/admin-gui/multi-tab-browser-support/[**Multi-tab browser support**]: You can now open midPoint in multiple browser tabs or windows while maintaining consistent experience across the views.
-
-* Since this version, as part of our commitment to open source, we encourage our community to share their connectors with others through the xref:/connectors/integration-catalog/[Integration Catalog], helping everyone benefit from shared contributions.
-If you prefer to keep your custom connector private, you can continue using it with a MidPoint Support Subscription.
-// TODO link public announcement here
-
-* Support for xref:/midpoint/guides/updating-native-db/updating-to-pg18[PostgreSQL 18] and bug:MID-10867[Java 25].
+// TODO
 
 === Other Improvements
 
 ==== Security
 
-* Multiple libraries were updated, including major ones like Spring Boot and Apache CXF. See bug:MID-11948[].
-* Improved patch management of midPoint container (Docker) images, updated tagging of these images, and security improvements (using non-root user by default).
-See xref:/midpoint/get-started/install/containers/container-image-naming/[].
-* Improved security filtering of transient pending objects before GUI rendering. See bug:MID-12062[].
-* Changed password hints to be stored as protected strings (`ProtectedStringType`) instead of plain strings. See bug:MID-12111[] and xref:/midpoint/guides/migrating-plaintext-password-hints/[migration guide].
-* Password hint is now hidden by default in the self-service user interface.
-* Registration confirmation notifier doesn't send cleartext username and password by default.
-* Improved audit record for skipped approval stage. See bug:MID-10918[].
-* Added configurable validation and processing of uploaded files, including content type verification, image conversion, and metadata stripping.
-This lowers the risk of malicious files being processed by midPoint.
-See bug:MID-11849[].
-* Account activation (used mainly when password hashing is enabled) now uses a dedicated authentication sequence and a one-time link.
-This is to improve midPoint security.
-See xref:/midpoint/guides/account-activation-sequence/[Account Activation Authentication Sequence] for the required configuration.
+// TODO
 
 ==== User Interface
 
-* Implemented support for exporting reports and tables to XLSX (see bug:MID-11036[]), including streaming export (see bug:MID-11229[]).
-* Improving user experience, accessibility, and midPoint security by upgrading AdminLTE to 4.1. See bug:MID-11538[].
-* Many improvements in accessibility of the self-service, approval process and identity recovery user interface (WCAG 2.2 AA compliance).
-* Added support for additional (custom) footer in GUI. See bug:MID-10997[].
-* Improved search box in Object Collection view. See bug:MID-9476[].
-* Added ability to set order constraints for assignments via GUI. See bug:MID-10875[].
-* Added ability to set lifecycle state when creating inducement for a role via GUI. See bug:MID-11922[].
-* Added ability to define filter-based expressions and conditions in GUI. See bug:MID-11865[].
-* Added ability to define role auto-assignment expressions and conditions. See bug:MID-4684[].
-* Generally, improved handling of all expression conditions in GUI. See bug:MID-11864[].
-* Added ability to define mapping ranges via GUI. See bug:MID-11767[].
-* Added mapping authoritativeness indicators based on mapping strength and range to mapping tables and previews. See bug:MID-12021[].
-* Added quick actions to apply Correlate later, Do not touch, and Invalid data marks directly from simulation results. See bug:MID-11583[].
-* Added GUI support for configuring mapping iteration settings and reviewing iteration settings in mapping suggestions. See bug:MID-11712[] and bug:MID-11753[].
-* Added support for Slovenian (sl), Latvian (lv) language and English (Europe) locale (for the last one, see bug:MID-10286[]).
-* Shadow details can be displayed directly in the resource wizard. See bug:MID-8617[].
+// TODO
 
 === Other Areas
 
-* Added `displayName` and `preferredName` to `UserType` (see bug:MID-8802[]).
-* Added support for "null" expression, simplifying writing data mappings (see bug:MID-11867[], bug:MID-11768[]).
-* Improved handling of operation execution collisions in multi-thread setup - a problem that was reflected in duplication of assignments (see bug:MID-10714[]).
-* Form multipart limit (adminGuiConfiguration/formMaxMultiparts) now defaults to the Tomcat server.tomcat.max-part-count value instead of a fixed 100.
-* Added option to relax email address validation when sending notifications (`mail.mime.address.strict` JVM property). See bug:MID-11048[].
-* The `notifyChange` REST operation can address the shadow by its attributes (identifiers).
-The shadow OID is no longer required.
-This significantly simplifies informing midPoint about changes of objects on resources.
-See bug:MID-11230[].
+// TODO
 
 === Bug Fixes
 
-* Fixed unassignment with relation specification from Governance members. See bug:MID-10955[].
-* Fixed object types configuration usage on the members panel. See bug:MID-10896[].
-* Fixed Comment column behavior on the certification work items panel. See bug:MID-10912[].
-* Fixed session storage for Task Errors panel. See bug:MID-10975[].
-* Fixed expression filter usage for configured search items. See bug:MID-10977[].
-* Fixed 'Duplicate' action for certification definition. See bug:MID-10456[].
-* Fixed exporting of the 'Display name' columns on the certification items page. See bug:MID-10873[].
-* Fixed required comment validation while approving certification item. See bug:MID-10974[].
-* Fixed translation of the left menu items for collection views. See bug:MID-10998[].
-* Fixed polystring translation. From now, orig value of the polystring is never translated. See bug:MID-10996[].
-* Fixed attempt to modify immutable definition. See bug:MID-11001[].
-* Fixed schema type object updates and prism context schema registry reload. See bug:MID-10983[].
-* Fixed ConcurrentModificationException in RelationUtil. See bug:MID-10940[]
-* Fixed correlation case closing on resolution error. See bug:MID-11094[]
-
-* Fixed the execution of the 'Delete all closed tasks' action. See bug:MID-11069[]
-* Fixed the usage of the multiple ProtectedStringType fields in the same panel. See bug:MID-11072[]
-* Fixed misleading information in audit log during password reset. See bug:MID-11077[]
-* Fixed authentication exception handling while user login. See bug:MID-10953[]
-* Fixed progress bar colors in the Certification items dashboard panel. See bug:MID-10930[]
-* Extended the list of the searchable items for UserType. See bug:MID-11012[]
-* Fixed report data type name and exported file name to be unique. See bug:MID-10978[]
-* Fixed the mapping for stage deadline column in certification cases table. See bug:MID-11023[]
-* Fixed the path traversal vulnerability in the report import. See bug:MID-11014[]
-* Fixed certification case stage outcome information. See bug:MID-11026[]
-* Fixed admin gui configuration merging. See bug:MID-11045[]
-* Fixed correlation work item panel. See bug:MID-10993[]
-* Fixed recipient converter while sending notification. See bug:MID-11038[]
-* Fixed page storage for dashboard widget collection. See bug:MID-11055[]
-* Fixed oversized IN queries in fetchChildren causing PostgreSQL parameter limit errors. See bug:MID-11089[]
-
-* Fixed getOptions conversion to avoid overriding default retrieval when <retrieve> is omitted. See bug:MID-11088[]
-* Fixed missing estimatedOldValues in raw audit (EXECUTE_CHANGES_RAW). See bug:MID-10027[]
-* Fixed modification of query of report fails when the query is defined using midPoint query language. See bug:MID-11093[]
-* Fixed access request shows unrelated conflicts. See bug:MID-10994[]
-* Fixed false replace updates in admin GUI dateTime comparison (seconds normalization issue). See bug:MID-11078[]
-* Improved login and self-dashboard performance. See bug:MID-10972[]
-* Fixed hide export button in the popup. See bug:MID-11160[]
-* Delineation suggestions: filter parsing broken after recent GUI change. See bug:MID-11175[]
-* Fixed work item search by name causing repository mapping error. See bug:MID-8834[]
-* Fixed translation of archetype display labels in assignment picker and summary panel. See bug:MID-11177[]
-* Fix 10k limit in certification queries using iterative search. See bug:MID-11043[]
-* Fixed generic "Fatal error" message in object tables to show available list/search error details. See bug:MID-10911[]
-* Improved user list performance with orgRelation authorization for users managing many organizations. See bug:MID-11179[]
-* Fixed extension schema containers displaying. See bug:MID-10954[]
-* Fixed duplicated "No response" option for campaign. See bug:MID-11166[]
-* Fixed Campaigns scheduling menu item visibility. See bug:MID-11176[]
-* Fixed axiom query parsing for saved filters. See bug:MID-11183[]
-* Updated saved filters merging strategy. See bug:MID-11181[]
-* Improved CSV export to use streaming data loading and export. See bug:MID-10990[]
-* Fixed text formatting in disabled text area. See bug:MID-11216[]
-* Fixed Privileged access initial object. See bug:MID-11004[]
-* Fixed assignment name for policy rule. See bug:MID-11005[]
-* Fixed object list view columns while report creation. See bug:MID-10967[]
-* Fixed role analysis attribute queries for enum-based attributes such as effective status. See bug:MID-10504[]
-* Fixed skipped approval processing for role ADD operations that could leave empty ADD deltas. See bug:MID-11101[]
-* Fixed loss of unsaved resource detail changes after running Test connection. See bug:MID-10966[]
-* Fixed dashboard widget collections with inline filters by allowing explicit object type specification. See bug:MID-9879[]
-* Fixed missing .zip extension when downloading tracing report files. See bug:MID-11096[]
-* Fixed resource wizard mapping property autocomplete to find partial matches regardless of letter case. See bug:MID-10415[]
-* Fixed missing input variable in resource activation existence mappings. See bug:MID-10905[]
-* Fixed stale page recovery after viewing page source causing internal server error. See bug:MID-9998[]
-* Hided conflict warning on Shopping cart panel of the Request Access wizard in case of prune action. See bug:MID-11250[] and xref:#_behavior_changes_since_4_10[behavior changes since 4.10].
-* Fixed NPE when selecting deprecated action in resource object type editor. See bug:MID-10957[]
-* Fixed tooltip lifecycle in search popovers to prevent blinking, stuck, and duplicate tooltips. See bug:MID-10908[]
-* Fixed detailed resource lifecycle changes to use the proper confirmation and save flow. See bug:MID-10700[]
-* Fixed multithreaded Ninja export race causing rare ArrayIndexOutOfBoundsException. See bug:MID-10910[]
-* Fixed reference matches queries failing when the target filter is wrapped in parentheses. See bug:MID-10903[]
-* Updated spring boot to 4.0. See bug:MID-11002[]
-* Fixed serialization of focus preview changes page by avoiding retained live model context. See bug:MID-11082[]
-* Fixed bucketed task workers continuing after root task suspension. See bug:MID-11217[].
-* Improved debug logging for OIDC opaque-token issuer discovery failures. See bug:MID-11292[].
-* Fixed structured-copy handling of reference values in asynchronous script execution. See bug:MID-10587[].
-* Fixed default login redirect to home page. See bug:MID-10269[]
-* Updated spring boot to 4.1. See bug:MID-11547[]
-* Fixed Wicket Ajax login redirects to preserve the servlet context path. See bug:MID-11687[]
-* Fixed merging of the resource capabilities without id. See bug:MID-11218[]
-* Fixed download report file extension. See bug:MID-11312[]
-* Fixed reference value update in search panel. See bug:MID-11400[]
-* Fixed Role catalog query for Roles of teammates. See bug:MID-11221[]
-* Fixed defaultOperationPolicy merging in objectType of the resource. See bug:MID-11412[]
-* Fixed encoding handling issues in csv report import and export. See bug:MID-11413[]
-* Fixed custom relation translation. See bug:MID-11523[]
-* Fixed CSV export for Tasks table. See bug:MID-11652[]
-* Fixed breaking too long labels into lines. See bug:MID-11711[]
-* Fixed breaking too long labels into lines. See bug:MID-11714[]
-* Fixed empty recipient filter expressions bypassing notification redirection to file. See bug:MID-11828[]
-* Fixed saving dynamic extension attributes. See bug:MID-11716[]
-* Enabled recursive processing of post-initial objects in midpoint.sh and ninja.sh scripts; symlinks are not followed anymore. See bug:MID-11201[]
-* Improved handling of unavailable OIDC issuers during GUI authentication. See bug:MID-11293[]
-* Fixed resolver errors caused by unnecessary JAXB namespace imports in serialized enum schemas. See bug:MID-10558[]
-* Fixed suspension of iterative scripting tasks when a threshold policy action is triggered. See bug:MID-11073[]
-* Fixed obsolete property references in default authorization roles. See bug:MID-10570[]
-* Fixed intermittent freezing of composition activities with subtasks in clustered deployments. See bug:MID-11928[].
-* Fixed search authorization denial for queries with type filters when read access is item-limited. See bug:MID-11221[].
-* Fixed standalone audit database schema upgrades missing the `ROLE_ANALYSIS_OUTLIER` object type. See bug:MID-11884[]
-* Fixed visibility of sort icon for empty header cell. See bug:MID-11860[]
-* Fixed multiple times clicking on Submit request button in Role catalog. See bug:MID-11939[]
-* Fixed GUI handling of business role duplication when role creation requires approval. See bug:MID-11784[]
-* Fixed worker progress reporting for distributed bucketed tasks. See bug:MID-11186[]
-* Fixed authentication flow reuse across shared HTTP sessions. See bug:MID-10821[]
-* Fixed stale resource reference in duplicated reconciliation tasks. See bug:MID-12053[]
-* Fixed simulated reference attributes being requested from connectors. See bug:MID-11807[]
-* Fixed automatic setting of `archetypeRef` when creating a new object from an archetyped collection view. See bug:MID-11914[].
-* Fixed GUI visualization failure for dynamic Prism containers without a compile-time class. See bug:MID-11550[]
-* Fixed Velocity expressions rendering schema enum values in upper case. See bug:MID-11086[]
-* Fixed self-registration confirmation not invalidating the used email nonce, which blocked subsequent password reset requests. See bug:MID-12082[].
-* Fixed stale effective marks remaining on focus objects when one of several marking policy rules stops matching. See bug:MID-12154[].
-* Fixed endless discovery loop causing stalled tasks and OOM when resource repeatedly reported "Already exists" on modification issue. See bug:MID-11979[].
-* Fixed transient `effectiveOperationPolicy` being persisted and displayed in audited shadow ADD deltas. See bug:MID-11951[].
-* Fixed unbounded growth of task operation results during iterative item processing. See bug:MID-12197[]
-* Fixed persisted ItemPath values losing dynamic schema extension namespace declarations. See bug:MID-11241[]
-* Fixed additional connector failure when connectorRef is specified using a filter. See bug:MID-9537[]
-* Fixed Name and Display Name columns to honor configured display styles in object tables. See bug:MID-11787[]
-* Fixed activation support detection for object-type configured capabilities in the projection details header. See bug:MID-11954[]
-* Fixed unlock user action from users list table. See bug:MID-12184[]
-* Fixed Approve/Reject action buttons visibility for correlation case. See bug:MID-12358[]
-* Fixed extremely long input to subtype throws error. See bug:MID-12169[]
-* Fixed Can't hide query playground for superuser (with #all authorization). See bug:MID-10848[]
-* Fixed visualization item descriptiveness handling for added and deleted containers. See bug:MID-10620[]
-* Fixed displaying of the error while adding a delegation. See bug:MID-12364[]
-* Fixed extra reviewer reference labels in certification campaign stage definitions. See bug:MID-6647[]
-* Fixed access certification ignoring overridden system clock in deadlines, reminders, notifications and campaign cleanup. See bug:MID-11008[]
-* Replaced Groovy usage in repository factory reset with a dedicated initial import activity and safe default password policy expression. See bug:MID-12370[]
-* Fixed reviewer being able to submit a certification decision after the stage deadline has passed. See bug:MID-11028[].
-* Fixed unstable display order of certification work items. See bug:MID-11047[].
-* Fixed rendering of deltas of container items in audit report delta columns. See bug:MID-10984[].
-* Fixed page crash when searching audit records by delta changed item path. See bug:MID-10985[].
-* Fixed read-only fields being rendered as plain text without any visual container; they are now shown as greyed-out fields. See bug:MID-11853[].
-* Fixed activation outbound mappings being applied to unmanaged shadows. See bug:MID-11029[].
-* Fixed concurrency issue when parsing queries. See bug:MID-11058[].
-* Fixed dashboard widget showing "Unknown" for shadow collections. See bug:MID-11102[].
-* Fixed parsing of shadow attributes and identifiers in JSON format. See bug:MID-10944[].
-* Fixed handling of modification provenance metadata for phantom assignment additions. See bug:MID-10979[].
-* Reduced memory consumption when storing very large strings (e.g. traces) in the repository. See bug:MID-11015[].
-* Fixed duplicate trigger on task unpause that could leave task trees suspended or frozen. See bug:MID-10496[].
-* Fixed model loading for unassign action popup. See bug:MID-11584[].
-* Fixed report import for big data file. Report import uses streaming processing and has a maximal file size limit. See bug:MID-11009[].
-* Fixed operational-only shadow changes being incorrectly reported as affecting resource objects in simulations. See bug:MID-11912[].
-* Fixed viewing historical simulation results when referenced shadows have been deleted, and correlation simulation results when naming attributes are unavailable. See bug:MID-11980[] and bug:MID-12273[].
-* Fixed mapping suggestion actions failing after page deserialization. See bug:MID-11627[].
-* Fixed returning from a task to an empty resource page during resource creation. See bug:MID-12073[].
-* Fixed JavaScript escaping of operation result messages and localized date/time picker messages. See bug:MID-12262[].
-* Fixed incompatible discovered connector configuration value types that prevented returning to the Discovery step. See bug:MID-11459[].
-* Fixed script expression description updates and preservation when editing scripts or changing their language. See bug:MID-11779[] and bug:MID-11988[].
-* Fixed autocomplete filtering in numeric input fields when suggested values are provided as strings. See bug:MID-12237[].
-* Fixed correlation rule validation to require at least one correlation item before saving. See bug:MID-12421[].
-* Fixed "variables is null" error logged when opening an object list from a dashboard widget with a script expression in the collection filter. See bug:MID-12803[].
-* Fixed memory leak caused by authentication filters when calling the public health check endpoint. See bug:MID-9794[].
-* Fixed empty popup when opening a compressed role in the role mining operation panel. See bug:MID-10895[].
-* Fixed filtering of certification campaigns by "Created at", campaigns now have creation metadata. See bug:MID-10901[].
-* Fixed authorization problems when a role is assigned both directly and as an inducement of an archetype. See bug:MID-10970[].
-* Fixed Task Errors tab content not visible to non-administrator users with appropriate read authorizations. See bug:MID-10976[].
-* Fixed shadows becoming unreadable after upgrade. See bug:MID-11016[] and bug:MID-11034[].
-* Fixed audit log crash when rendering `ObjectReferenceType` extension attribute with custom `defaultPrefix`. See bug:MID-11040[].
-* Fixed missing `.csv` extension of exported files. See bug:MID-11046[].
-* Fixed GUI error in Subtasks tab of reconciliation task with tailoring. See bug:MID-11107[].
-* Fixed loss of task error history, previous errors are retained in the task error log. See bug:MID-11113[].
-* Fixed localization keys rendered verbatim in several GUI areas (e.g., value policy labels in self-service password change). See bug:MID-11269[].
-* Fixed object filter not being saved in reports without extra click. See bug:MID-11542[].
-* Fixed SAML authentication failure caused by OpenSAML and Spring Security dependency incompatibility. See bug:MID-11626[].
-* Fixed wrapping of values with long labels in object detail panels. See bug:MID-11628[].
-* Fixed read-only text attributes overflowing their container. See bug:MID-11868[].
-* Fixed inconsistency in the connector loading process related to how the directory with connectors is scanned. See bug:MID-10335[].
-* SQL functional tracing now correctly work for the native (PostgreSQL) repository. See bug:MID-10936[].
-* Fixed handling of admin assign/unassign governance/member authorization. See bug:MID-11850[].
-* Fixed object marks not being removed immediately after unassigning the policy that induces them. See bug:MID-10641[].
+// TODO
 
 === Other changes
 
-* The Let's Encrypt root CA certificate is now imported to the trust store on first start to unlock the full potential of our new midPilot features.
+// TODO
 
 === Releases Of Other Components
 
