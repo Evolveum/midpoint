@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.smart.api;
 
+import java.util.Set;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.PrismObject;
@@ -16,6 +17,7 @@ import com.evolveum.midpoint.repo.common.activity.ActivityInterruptedException;
 import com.evolveum.midpoint.repo.common.activity.run.state.CurrentActivityState;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
+import com.evolveum.midpoint.schema.processor.AssociationPair;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.smart.api.info.AiInfo;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
@@ -348,6 +350,15 @@ public interface SmartIntegrationService {
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
             ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException;
 
+    /** Uses only the supplied pair snapshot for exclusions; null means no exclusions. */
+    AssociationsSuggestionType suggestAssociations(
+            String resourceOid,
+            @Nullable Set<AssociationPair> configuredAssociations,
+            Task task,
+            OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
+            ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException;
+
     /**
      * Submits "suggest associations" request. Returns a token used to query the status.
      */
@@ -356,6 +367,13 @@ public interface SmartIntegrationService {
             Task task,
             OperationResult result)
             throws CommonException;
+
+    /** Submits a request with a snapshot of current association pairs, without saving GUI edits. */
+    String submitSuggestAssociationsOperation(
+            String resourceOid,
+            @Nullable Set<AssociationPair> configuredAssociations,
+            Task task,
+            OperationResult result) throws CommonException;
 
     /**
      * Lists statuses of all relevant "suggest associations" requests (for the given resource OID).

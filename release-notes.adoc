@@ -55,6 +55,8 @@ Moreover, midPoint 4.11.0 made a significant leap towards secure-by-default conf
 
 === Bug Fixes
 
+* bug:MID-11658[] Fixed inconsistency in help  for ninja export command
+
 // TODO
 
 === Other changes
@@ -277,10 +279,10 @@ Note that:
 ** New `WORK` value of shadow kind was added.
 ** Few other smaller changes.
 
- * Version numbers of some bundled connectors have changed.
- Connector references from the resource definitions that are using the bundled connectors need to be updated.
+* Version numbers of some bundled connectors have changed.
+Connector references from the resource definitions that are using the bundled connectors need to be updated.
 
- * See also the _Actions required_ information below.
+* See also the _Actions required_ information below.
 
 === Upgrade From Other MidPoint Versions
 
