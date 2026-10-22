@@ -50,9 +50,10 @@
             <previousColumn>messageColumn</previousColumn>
             <export>
                 <expression>
-                    <javaMethodReference>
-                        <methodName>formatAuditDelta</methodName>
-                    </javaMethodReference>
+                    <script>
+                        <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
+                        <code>format.formatAuditDelta(list(input))</code>
+                    </script>
                 </expression>
             </export>
         </column>

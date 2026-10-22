@@ -14,6 +14,7 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
@@ -72,5 +73,13 @@ public abstract class ContainerSecretsProvider<T extends ContainerSecretsProvide
         }
 
         return value;
+    }
+    @Override
+    protected <ST> ST mapValue(byte[] value, Class<ST> type) {
+        ST result = super.mapValue(value, type);
+        if (type == String.class && result instanceof String) {
+            return (ST) StringUtils.chomp((String) result);
+        }
+        return result;
     }
 }

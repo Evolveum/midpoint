@@ -1,10 +1,10 @@
-= Smart Integration Security
+= Smart Integration security
 :page-toc: top
-:page-since: "4.11"
+:page-since: "4.11.0"
 :page-upkeep-status: green
 
 == Topics
 
-* xref:data-access-permissions.adoc[Data Access Permissions] - (TODO)
-* xref:authorization.adoc[Smart Integration Authorization] - Dedicated `#smartIntegration` authorization for recommendation operations, REST API and GUI; statistics protected by object-scoped authorizations.
-* xref:auditing-logging.adoc[Auditing and Logging] - (TODO)
+* xref:data-access-permissions.adoc[Data access permissions] - Schema, statistics and raw data permissions that limit the data sent to the AI microservice, their effect on each recommendation, and how they are granted in the GUI.
+* xref:authorization.adoc[Smart Integration authorization] - Dedicated `#smartIntegration` authorization for recommendation operations, REST API and GUI; statistics protected by object-scoped authorizations.
+* xref:auditing-logging.adoc[Auditing and logging]

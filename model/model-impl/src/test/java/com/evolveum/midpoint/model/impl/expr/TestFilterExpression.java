@@ -305,6 +305,34 @@ public class TestFilterExpression extends AbstractInternalModelIntegrationTest {
         executeFilter(filter, 2, task, result);
     }
 
+    /**
+     * Issue 12803: GUI passes null variables map when there are no query variables.
+     * Script expression in a filter must still evaluate.
+     */
+    @Test
+    public void test400EvaluateScriptFilterWithNullVariables() throws Exception {
+        // GIVEN
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        SearchFilterType filterBean =
+                PrismTestUtil.parseAtomicValue(new File(TEST_DIR, "expression-aql-name-value-filter.xml"), SearchFilterType.COMPLEX_TYPE);
+        filterBean.setTrustDescriptor(IntegrationTestTools.trustedForTests());
+        ObjectFilter filter = prismContext.getQueryConverter().createObjectFilter(UserType.class, filterBean);
+
+        // WHEN
+        ObjectFilter evaluatedFilter = ExpressionUtil.evaluateFilterExpressions(
+                filter, null, expressionFactory, "evaluating filter with null variables", task, result);
+
+        // THEN
+        displayDumpable("Evaluated filter", evaluatedFilter);
+        //noinspection unchecked
+        var equalFilter = (EqualFilter<PolyString>) evaluatedFilter;
+        PrismAsserts.assertValues("Wrong values in filter", equalFilter.getValues(), new PolyString("barbossa", "barbossa"));
+
+        executeFilter(evaluatedFilter, 1, task, result);
+    }
+
     private ObjectFilter evaluateExpressionAssertFilter(String filename,
             String input, Class<? extends ObjectFilter> expectedType,
             Task task, OperationResult result) throws CommonException, IOException, PrismQuerySerialization.NotSupportedException {

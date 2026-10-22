@@ -60,6 +60,7 @@ public final class DocumentationContentTypes {
             "application/csv",
             "application/sql",
             "application/x-sql",
+            "application/graphql",
             "application/pdf",
             "application/vnd.openxmlformats-officedocument.wordprocessingml.document");
 
@@ -74,11 +75,27 @@ public final class DocumentationContentTypes {
      * @return true for a known suffix, a known content type or a text content type
      */
     public static boolean isSupported(String declaredContentType, String fileName) {
-        var declared = normalize(declaredContentType);
-        if (declared.startsWith("text/") || SUPPORTED_CONTENT_TYPES.contains(declared)) {
-            return true;
-        }
-        return detect(fileName) != null;
+        return isSupportedContentType(declaredContentType) || detect(fileName) != null;
+    }
+
+    /**
+     * Checks whether the generation service can parse documentation of the content type.
+     *
+     * @param contentType content type entered by the user or reported by the upload source
+     * @return true for a known content type or a text content type
+     */
+    public static boolean isSupportedContentType(String contentType) {
+        var normalized = normalize(contentType);
+        return normalized.startsWith("text/") || SUPPORTED_CONTENT_TYPES.contains(normalized);
+    }
+
+    /**
+     * Returns content types the generation service can parse.
+     *
+     * @return supported content types
+     */
+    public static Set<String> getSupportedContentTypes() {
+        return SUPPORTED_CONTENT_TYPES;
     }
 
     /**

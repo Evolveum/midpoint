@@ -1,6 +1,223 @@
-= Smart Synchronization Recommendation
+= Smart synchronization recommendation
 :page-toc: top
-:page-since: "4.11"
+:page-since: "4.11.0"
 :page-upkeep-status: green
 
-// TODO: Describe synchronization rules generation.
+== Overview
+
+The *smart synchronization recommendation* operation proposes synchronization reactions for a single resource object type.
+A synchronization reaction tells midPoint which actions to run when a resource object is in a particular xref:../../../synchronization/situations.adoc[synchronization situation], for example to create a new user (`addFocus`) for an `unmatched` account.
+
+The reactions are derived from two kinds of input given by the user:
+
+* **synchronization direction** - whether the resource is a *source* (it provides data to midPoint) or a *target* (midPoint sends data to it),
+* **answers** - what should happen in selected situations, for example when a new or a deleted resource object is detected.
+
+The recommendation is a system (non-AI) recommendation.
+The reactions are built by fixed rules from the direction and the answers.
+midPoint does not read resource objects, statistics or the existing configuration, and nothing is sent to the AI microservice.
+
+The result is a `SynchronizationReactionsType` structure with a list of synchronization reactions (`SynchronizationReactionType`).
+The recommendations are not applied to the resource automatically.
+The GUI adds them to the synchronization configuration of the object type, and the user can review, edit and save them.
+
+=== Execution
+
+The operation runs synchronously, without a background task.
+In the GUI, the operation is started by the *Generate reactions* button in the synchronization step of the object type wizard, see xref:../../../admin-gui/resource-wizard/object-type/synchronization/index.adoc#generate-reactions[Resource wizard: object type synchronization].
+The button is displayed only if the object type has no synchronization reactions yet.
+
+== Inputs
+
+The operation takes these inputs:
+
+[cols="25%,15%,60%",options="header"]
+|===
+| Input | Required | Description
+
+| Direction
+| yes
+| `SOURCE` or `TARGET`.
+It decides which situations get a reaction, see <<Source direction>> and <<Target direction>>.
+
+| Answers
+| yes
+| One answer for every situation of the selected direction.
+|===
+
+== Processing flow
+
+.Synchronization recommendation flow
+----
+Direction
+    ↓
+SOURCE ──→ 4 reactions: unlinked, linked, unmatched, deleted
+TARGET ──→ 5 reactions: unlinked, linked, unmatched, deleted, disputed
+    ↓
+SynchronizationReactionsType
+----
+
+The direction decides which situations get a reaction.
+For every situation, the answer is translated into exactly one reaction with at most one action.
+An answer that means "do nothing" produces a reaction with no action.
+
+=== Source direction
+
+The source direction is intended for authoritative resources, for example an HR system, from which midPoint creates and updates its objects.
+It produces four reactions:
+
+[cols="15%,45%,25%,15%",options="header"]
+|===
+| Situation | Answer | Action | Default
+
+| `unlinked`
+| Link the resource object to the owner found by correlation
+| `link`
+| yes
+
+| `linked`
+| Synchronize the resource object with its owner
+| `synchronize`
+| yes
+
+.2+| `unmatched`
+| Import the resource object to midPoint
+| `addFocus`
+| yes
+
+| Do nothing
+| no action
+|
+
+.4+| `deleted`
+| Delete the midPoint object owning the resource object
+| `deleteFocus`
+|
+
+| Disable the midPoint object owning the resource object
+| `inactivateFocus`
+|
+
+| Remove the broken link and synchronize
+| `synchronize`
+| yes
+
+| Just remove the broken link
+| no action
+|
+|===
+
+=== Target direction
+
+The target direction is intended for resources that midPoint manages, for example an LDAP directory or an application.
+It produces five reactions:
+
+[cols="15%,45%,25%,15%",options="header"]
+|===
+| Situation | Answer | Action | Default
+
+| `unlinked`
+| Link the resource object to the owner found by correlation
+| `link`
+| yes
+
+| `linked`
+| Synchronize the resource object with its owner
+| `synchronize`
+| yes
+
+.3+| `unmatched`
+| Disable the resource object
+| `inactivateResourceObject`
+|
+
+| Delete the resource object
+| `deleteResourceObject`
+|
+
+| Do nothing
+| no action
+| yes
+
+.2+| `deleted`
+| Remove the broken link and synchronize
+| `synchronize`
+| yes
+
+| Just remove the broken link
+| no action
+|
+
+.2+| `disputed`
+| Create a correlation case for the human operator to decide
+| `createCorrelationCase`
+| yes
+
+| Do nothing
+| no action
+|
+|===
+
+== Result structure
+
+The result (`SynchronizationReactionsType`) contains a list of `reaction` items.
+Each of them is a synchronization reaction (`SynchronizationReactionType`) with:
+
+* `name` - `<Situation> - <Action>`, for example `Unmatched - Add-focus`, or `<Situation> - Do nothing` for a reaction with no action,
+* `situation` - the synchronization situation,
+* `actions` - at most one action, with `name` (for example `Add-focus`) and `order` set to `1`.
+
+.Example of recommended reactions (source direction, default answers)
+[source,xml]
+----
+<synchronization>
+    <reaction>
+        <name>Unmatched - Add-focus</name>
+        <situation>unmatched</situation>
+        <actions>
+            <addFocus>
+                <name>Add-focus</name>
+                <order>1</order>
+            </addFocus>
+        </actions>
+    </reaction>
+    <reaction>
+        <name>Deleted - Synchronize</name>
+        <situation>deleted</situation>
+        <actions>
+            <synchronize>
+                <name>Synchronize</name>
+                <order>1</order>
+            </synchronize>
+        </actions>
+    </reaction>
+    <reaction>
+        <name>Unlinked - Link</name>
+        <situation>unlinked</situation>
+        <actions>
+            <link>
+                <name>Link</name>
+                <order>1</order>
+            </link>
+        </actions>
+    </reaction>
+    <reaction>
+        <name>Linked - Synchronize</name>
+        <situation>linked</situation>
+        <actions>
+            <synchronize>
+                <name>Synchronize</name>
+                <order>1</order>
+            </synchronize>
+        </actions>
+    </reaction>
+</synchronization>
+----
+
+See xref:../../../resources/resource-configuration/schema-handling/synchronization.adoc[] for the description of the synchronization configuration.
+
+== Limitations
+
+* **Empty configuration only.** In the GUI, the operation is offered only for object types without synchronization reactions.
+It does not extend or update existing reactions.
+* **One action per reaction.** Every generated reaction has at most one action.

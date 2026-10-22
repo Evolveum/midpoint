@@ -1363,14 +1363,14 @@ $aa$);
 --- Schema Type
 
 -- @change: Adds `APPLICATION` object type value.
--- @since: 4.11
+-- @since: 4.11.0
 -- @affects: enum ObjectType | Modified enum type | Adds `APPLICATION`.
 call apply_change(52, $aa$
    ALTER TYPE ObjectType ADD VALUE IF NOT EXISTS 'APPLICATION' AFTER 'ACCESS_CERTIFICATION_DEFINITION';
 $aa$);
 
 -- @change: Adds application object table, triggers, and indexes.
--- @since: 4.11
+-- @since: 4.11.0
 -- @affects: table m_application | New table | Stores application objects.
 -- @affects: trigger m_application_oid_insert_tr | New trigger | Reserves OID rows for inserted applications.
 -- @affects: trigger m_application_update_tr | New trigger | Maintains update metadata for applications.
@@ -1412,14 +1412,14 @@ CREATE INDEX m_application_modifyTimestamp_idx ON m_application (modifyTimestamp
 $aa$);
 
 -- @change: Adds `CONNECTOR_DEVELOPMENT` object type value.
--- @since: 4.11
+-- @since: 4.11.0
 -- @affects: enum ObjectType | Modified enum type | Adds `CONNECTOR_DEVELOPMENT`.
 call apply_change(54, $aa$
    ALTER TYPE ObjectType ADD VALUE IF NOT EXISTS 'CONNECTOR_DEVELOPMENT' AFTER 'CONNECTOR';
 $aa$);
 
 -- @change: Adds connector development object table and triggers.
--- @since: 4.11
+-- @since: 4.11.0
 -- @affects: table m_connector_development | New table | Stores connector development objects.
 -- @affects: trigger m_connector_development_oid_insert_tr | New trigger | Reserves OID rows for inserted connector development objects.
 -- @affects: trigger m_connector_development_update_tr | New trigger | Maintains update metadata for connector development objects.
@@ -1441,7 +1441,7 @@ CREATE TRIGGER m_connector_development_oid_delete_tr AFTER DELETE ON m_connector
 $aa$);
 
 -- @change: Drops old connector type/version uniqueness indexes before recreating them.
--- @since: 4.11
+-- @since: 4.11.0
 -- @affects: index m_connector_typeVersion_key | Removed index | Drops old connector type/version uniqueness index.
 -- @affects: index m_connector_typeversionhost_key | Removed index | Drops old connector type/version/host uniqueness index.
 call apply_change(56, $aa$
@@ -1450,7 +1450,7 @@ call apply_change(56, $aa$
 $aa$);
 
 -- @change: Recreates connector type/version uniqueness indexes with connector-host specific predicates.
--- @since: 4.11
+-- @since: 4.11.0
 -- @affects: index m_connector_typeVersion_key | New index | Enforces connector type/version uniqueness when connector host is not set.
 -- @affects: index m_connector_typeVersionHost_key | New index | Enforces connector type/version/host uniqueness when connector host is set.
 call apply_change(57, $aa$
@@ -1463,7 +1463,7 @@ CREATE INDEX m_connector_typeVersionHost_key
 $aa$);
 
 -- @change: Adds display and preferred name columns and indexes to users.
--- @since: 4.11
+-- @since: 4.11.0
 -- @affects: table m_user | Modified table | Adds display and preferred name columns.
 -- @affects: index m_user_displayNameOrig_idx | New index | Supports lookup by original display name.
 -- @affects: index m_user_preferredNameOrig_idx | New index | Supports lookup by original preferred name.
@@ -1479,14 +1479,14 @@ CREATE INDEX m_user_preferredNameOrig_idx ON m_user (preferredNameOrig);
 $aa$);
 
 -- @change: Adds `ALLOWED_CONNECTORS_LIST` object type value.
--- @since: 4.11
+-- @since: 4.11.0
 -- @affects: enum ObjectType | Modified enum type | Adds `ALLOWED_CONNECTORS_LIST`.
 call apply_change(59, $aa$
    ALTER TYPE ObjectType ADD VALUE IF NOT EXISTS 'ALLOWED_CONNECTORS_LIST' AFTER 'ACCESS_CERTIFICATION_DEFINITION';
 $aa$);
 
 -- @change: Adds allowed connectors list object table and triggers.
--- @since: 4.11
+-- @since: 4.11.0
 -- @affects: table m_allowed_connectors_list | New table | Stores allowed connectors list objects.
 -- @affects: trigger m_allowed_connectors_list_oid_insert_tr | New trigger | Reserves OID rows for inserted allowed connectors list objects.
 -- @affects: trigger m_allowed_connectors_list_update_tr | New trigger | Maintains update metadata for allowed connectors list objects.
@@ -1508,14 +1508,14 @@ CREATE TRIGGER m_allowed_connectors_list_oid_delete_tr AFTER DELETE ON m_allowed
 $aa$);
 
 -- @change: Adds `PROJECTION_HOLDER` object type value.
--- @since: 4.11
+-- @since: 4.11.0
 -- @affects: enum ObjectType | Modified enum type | Adds `PROJECTION_HOLDER`.
 call apply_change(61, $aa$
    ALTER TYPE ObjectType ADD VALUE IF NOT EXISTS 'PROJECTION_HOLDER' AFTER 'POLICY';
 $aa$);
 
 -- @change: Adds abstract projection holder table, the base of foci and cases.
--- @since: 4.11
+-- @since: 4.11.0
 -- @affects: table m_projection_holder | New table | Abstract base table for projection holders, all objects that can hold projections (foci and cases).
 call apply_change(62, $aa$
 CREATE TABLE m_projection_holder (
@@ -1526,7 +1526,7 @@ CREATE TABLE m_projection_holder (
 $aa$);
 
 -- @change: Moves focus table under the projection holder table.
--- @since: 4.11
+-- @since: 4.11.0
 -- @affects: table m_focus | Modified table | Changes parent table from `m_assignment_holder` to `m_projection_holder`.
 call apply_change(63, $aa$
 ALTER TABLE m_focus NO INHERIT m_assignment_holder;
@@ -1534,7 +1534,7 @@ ALTER TABLE m_focus INHERIT m_projection_holder;
 $aa$);
 
 -- @change: Moves case table under the projection holder table.
--- @since: 4.11
+-- @since: 4.11.0
 -- @affects: table m_case | Modified table | Changes parent table from `m_assignment_holder` to `m_projection_holder`.
 call apply_change(64, $aa$
 ALTER TABLE m_case NO INHERIT m_assignment_holder;
@@ -1542,21 +1542,21 @@ ALTER TABLE m_case INHERIT m_projection_holder;
 $aa$);
 
 -- @change: Adds `WORK` shadow kind value.
--- @since: 4.11
+-- @since: 4.11.0
 -- @affects: enum ShadowKindType | Modified enum type | Adds `WORK` shadow kind value.
 call apply_change(65, $aa$
     ALTER TYPE ShadowKindType ADD VALUE IF NOT EXISTS 'WORK' AFTER 'ASSOCIATION';
 $aa$);
 
 -- @change: Adds `SMART_INTEGRATION_ARTIFACT` object type value.
--- @since: 4.11
+-- @since: 4.11.0
 -- @affects: enum ObjectType | Modified enum type | Adds `SMART_INTEGRATION_ARTIFACT`.
 call apply_change(66, $aa$
    ALTER TYPE ObjectType ADD VALUE IF NOT EXISTS 'SMART_INTEGRATION_ARTIFACT' AFTER 'SIMULATION_RESULT';
 $aa$);
 
 -- @change: Adds smart integration artifact object table, triggers, and indexes.
--- @since: 4.11
+-- @since: 4.11.0
 -- @affects: table m_smart_integration_artifact | New table | Stores smart integration artifact objects.
 -- @affects: trigger m_smart_integration_artifact_oid_insert_tr | New trigger | Reserves OID rows for inserted smart integration artifacts.
 -- @affects: trigger m_smart_integration_artifact_update_tr | New trigger | Maintains update metadata for smart integration artifacts.

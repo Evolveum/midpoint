@@ -23,6 +23,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractActivityWork
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssociationSuggestionWorkDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.BasicResourceObjectSetType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import com.evolveum.midpoint.schema.processor.AssociationPair;
 
 /**
  * For suggesting associations (for multiple subject/object types).
@@ -30,14 +34,21 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 public class AssociationSuggestionWorkDefinition extends AbstractWorkDefinition {
 
     private final String resourceOid;
+    private final Set<AssociationPair> configuredAssociations;
 
     AssociationSuggestionWorkDefinition(@NotNull WorkDefinitionInfo info) throws ConfigurationException {
         super(info);
         var typedDefinition = (AssociationSuggestionWorkDefinitionType) info.getBean();
+        configuredAssociations = typedDefinition.getConfiguredAssociationPair().stream().map(AssociationPair::fromBean)
+                .collect(Collectors.toUnmodifiableSet());
 
         resourceOid = configNonNull(
                 Referencable.getOid(typedDefinition.getResourceRef()),
                 "No resource OID specified");
+    }
+
+    public @NotNull Set<AssociationPair> getConfiguredAssociations() {
+        return configuredAssociations;
     }
 
     public String getResourceOid() {
@@ -56,5 +67,6 @@ public class AssociationSuggestionWorkDefinition extends AbstractWorkDefinition 
     @Override
     protected void debugDumpContent(StringBuilder sb, int indent) {
         DebugUtil.debugDumpWithLabelLn(sb, "resourceOid", resourceOid, indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "configuredAssociations", configuredAssociations, indent + 1);
     }
 }

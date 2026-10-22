@@ -272,13 +272,11 @@ public abstract class WaitingConnectorStepPanel extends AbstractWizardStepPanel<
         getButtonContainer().add(AttributeAppender.append("class", isOnlyChildCentered() ? " only-child-centered" : ""));
         getFeedback().add(AttributeAppender.replace("class", "col-12 feedbackContainer"));
 
-        SmartGeneratingPanel waitingPanel = createWaitingPanel();
-        waitingPanel.setOutputMarkupId(true);
-        addOrReplace(waitingPanel);
+        addOrReplace(createWaitingPanel());
     }
 
     protected final @NotNull SmartGeneratingPanel createWaitingPanel() {
-        return new SmartGeneratingPanel(ID_PANEL, statusModel, true) {
+        SmartGeneratingPanel waitingPanel = new SmartGeneratingPanel(ID_PANEL, statusModel, true) {
             @Override
             protected void onFinishActionPerform(AjaxRequestTarget target) {
                 onNextPerformed(target);
@@ -301,6 +299,12 @@ public abstract class WaitingConnectorStepPanel extends AbstractWizardStepPanel<
 
             @Override
             public void onReRunPerform(AjaxRequestTarget target) {
+                if (getModelObject().isFailed() && getModelObject().getTaskObject() != null) {
+                    getModelObject().removeExistingSuggestionTask(getPageBase());
+                    restartTask();
+                    target.add(WaitingConnectorStepPanel.this.getPanel());
+                    return;
+                }
                 if (getModelObject().getTaskObject() != null) {
                     super.onReRunPerform(target);
                     return;
@@ -337,6 +341,8 @@ public abstract class WaitingConnectorStepPanel extends AbstractWizardStepPanel<
                         AttributeAppender.replace("class", "text-center text-secondary mb-2 col-6 lh-2"));
             }
         };
+        waitingPanel.setOutputMarkupId(true);
+        return waitingPanel;
     }
 
     @Override
@@ -370,7 +376,11 @@ public abstract class WaitingConnectorStepPanel extends AbstractWizardStepPanel<
             if (statusModel == null || !statusModel.isLoaded()) {
                 return !isCompleted();
             }
-            return !statusModel.getObject().isFinished();
+            if (!statusModel.getObject().isFinished()) {
+                return true;
+            }
+
+            return statusModel.getObject().isFailed();
         };
     }
 

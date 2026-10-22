@@ -62,7 +62,7 @@ public class TestBuiltInReports extends TestCsvReport {
 
     private static final TestObject<ObjectCollectionType> OBJECT_COLLECTION_AUDIT = TestObject.classPath(
             OBJECT_COLLECTION,
-            "270-object-collection-audit.xml",
+            "016-object-collection-audit.xml",
             "00000000-0000-0000-0001-000000000284");
     private static final TestReport REPORT_AUDIT = TestReport.classPath(
             REPORTS,

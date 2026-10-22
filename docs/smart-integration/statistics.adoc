@@ -1,6 +1,179 @@
 = Statistics
 :page-toc: top
-:page-since: "4.11"
+:page-since: "4.11.0"
 :page-upkeep-status: green
 
-// TODO (Tadek/Michal): Describe object class, object type and focus statistics - what they contain, how they are computed, stored and reused, and which recommendations use them.
+== Overview
+
+*Statistics* are aggregated data about a set of objects: for each attribute, how many objects miss a value, how many distinct values there are, how often each value occurs, and which value patterns occur.
+They let recommendations work with a summary of the real data instead of the objects themselves.
+
+There are three kinds of statistics:
+
+[cols="25%,35%,40%",options="header"]
+|===
+| Kind | Computed from | Used by
+
+| Object class statistics
+| All resource objects of one object class.
+| xref:recommendations/object-types/object-types-recommendation.adoc[Smart object types recommendation].
+
+| Object type statistics
+| All resource objects of one object type (kind and intent).
+| xref:recommendations/mappings/mappings-recommendation.adoc[Smart mappings recommendation] and the uniqueness filter of the xref:schema-match.adoc[schema match].
+
+| Focus statistics
+| midPoint focus objects (for example users) that own or are correlated with the objects of one object type.
+| GUI only (statistics popup in the mappings table).
+No recommendation uses them.
+|===
+
+All three kinds share the same data structure (`ObjectSetStatisticsType`), the same computation algorithm, and the same storage and reuse rules.
+
+== Content
+
+=== Statistics structure
+
+The statistics are stored as `ObjectSetStatisticsType`:
+
+[cols="30%,70%",options="header"]
+|===
+| Item | Description
+
+| `size`
+| Number of processed objects.
+
+| `coverage`
+| Estimated share of all objects covered by the statistics (0 to 1).
+
+| `timestamp`
+| When the statistics were computed.
+Used for expiration, see <<Reuse and expiration>>.
+
+| `attribute`
+| Statistics of individual attributes (`ShadowAttributeStatisticsType`), see below.
+|===
+
+Each `attribute` entry contains:
+
+[cols="30%,70%",options="header"]
+|===
+| Item | Description
+
+| `ref`
+| Path of the item, for example `c:attributes/ri:employeeType` for resource attributes or `c:emailAddress` for focus properties.
+
+| `missingValueCount`
+| Number of objects with no value (or a blank value).
+
+| `uniqueValueCount`
+| Number of distinct values.
+
+| `valueCount`
+| Each distinct value with the number of its occurrences, sorted by count (descending).
+
+| `valuePatternCount`
+| Each detected value pattern with its type and the number of its occurrences, see <<Value patterns>>.
+|===
+
+NOTE: The stored statistics contain *all* distinct values, without any top-N limit.
+Limits are applied only when the statistics are sent to the microservice (see xref:recommendations/object-types/object-types-recommendation.adoc#_object_class_statistics[Object class statistics trimming]).
+
+=== Value processing
+
+For every object and every registered item:
+
+* no value, a `null` value or a blank string counts as a missing value,
+* exactly one value is trimmed, converted to a string and counted,
+* *more than one value is ignored* - the object is counted neither as missing nor in the value counts.
+
+=== Value patterns
+
+Besides exact values, midPoint counts patterns that often reveal the meaning of an object (for example an `adm-` prefix of administrator accounts, or an organizational unit in a DN).
+
+[cols="20%,80%",options="header"]
+|===
+| Pattern type | Description
+
+| `firstToken`
+| The part of the value up to and including the first delimiter, for example `adm-` for `adm-jsmith`.
+
+| `lastToken`
+| The part of the value from the last delimiter to the end, for example `-jsmith` for `adm-jsmith`.
+For e-mail addresses, the domain including `@`, for example `@example.com`.
+
+| `DNsuffix`
+| For DN attributes only: the part of the DN starting with the leftmost `ou` or `o` RDN, for example `ou=people,dc=example,dc=com` for `uid=jsmith,ou=people,dc=example,dc=com`.
+|===
+
+Rules for token patterns:
+
+* The delimiters are `-`, `_`, `:`, `*`, `#`, `+`, `.`, `(`, `)`, `[` and `]`.
+* Delimiters at the beginning and the end of the value are ignored when looking for token boundaries.
+* Values without an inner delimiter produce no token patterns.
+* Values that look like URLs or phone numbers produce no token patterns.
+* E-mail addresses produce only the `lastToken` pattern (the domain).
+
+An attribute is treated as a DN attribute if its local name is `dn` or `distinguishedName` (case-insensitive).
+For DN attributes, only `DNsuffix` patterns are computed, and token patterns are not.
+
+== Storage
+
+Statistics are stored as `SmartIntegrationArtifactType` objects with:
+
+* `scope` - the resource reference, and, depending on the kind, the object class, the object type (kind and intent) and the focus type,
+* `statistics` - the `ObjectSetStatisticsType` data,
+* an archetype identifying the kind of statistics.
+
+Statistics objects are read, created and deleted through the model layer, so regular object-scoped authorizations apply.
+The `#smartIntegration` authorization is not required, see xref:security/authorization.adoc#_statistics_and_smart_integration_artifacts[Statistics and Smart Integration artifacts].
+
+WARNING: Statistics contain real attribute values (all distinct values of each attribute) and are stored in the midPoint repository.
+Restrict access to `SmartIntegrationArtifactType` objects accordingly.
+
+=== Reuse and expiration
+
+When midPoint looks up statistics, it takes the latest statistics object of the scope (by `timestamp`).
+If the statistics are older than `statisticsTtl` (default `P1D`), they are deleted and treated as missing, so new statistics are computed when they are needed.
+
+Expired statistics are deleted only when they are looked up; there is no periodic cleanup.
+
+== GUI
+
+Statistics can be displayed in the resource wizard in a statistics popup:
+
+[cols="25%,75%",options="header"]
+|===
+| Statistics | Available in
+
+| Object class statistics
+| Object class table of the object types recommendation.
+
+| Object type statistics
+| Object types table of the schema handling and the mappings table.
+
+| Focus statistics
+| Mappings table.
+|===
+
+If valid statistics exist, they are shown immediately.
+Otherwise, or when the user asks for regeneration, a computation task is started and its progress is shown; the statistics are displayed when the task finishes.
+
+== Configuration
+
+These settings in the `<smartIntegration>` container of the system configuration affect statistics:
+
+[cols="35%,15%,50%",options="header"]
+|===
+| Setting | Default | Description
+
+| `statisticsTtl`
+| `P1D`
+| How long stored statistics are reused before they expire.
+Applies to all kinds of statistics.
+|===
+
+== Limitations
+
+* **Single-valued data only.** Objects with more than one value of an attribute are ignored for that attribute.
+* **No sampling.** All objects in the scope are processed, which may take long for large resources.

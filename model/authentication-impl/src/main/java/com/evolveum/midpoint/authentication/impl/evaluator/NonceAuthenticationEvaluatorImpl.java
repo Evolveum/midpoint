@@ -70,7 +70,7 @@ public class NonceAuthenticationEvaluatorImpl extends CredentialsAuthenticationE
 
     /**
      * A nonce issued for one sequence (e.g. account activation) must not open another one (e.g. password reset).
-     * Nonces without the sequence identifier (issued before 4.11) are accepted by any sequence.
+     * Nonces without the sequence identifier (issued before 4.11.0) are accepted by any sequence.
      */
     private boolean isIssuedForSequence(ConnectionEnvironment connEnv, MidPointPrincipal principal, NonceType nonce) {
         String issuedFor = nonce.getSequenceIdentifier();

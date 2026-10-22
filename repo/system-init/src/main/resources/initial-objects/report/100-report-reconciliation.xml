@@ -30,8 +30,9 @@
                             path: "$situation"
                     ``` and objectClass = yaml```
                             queryInterpretationOfNoValue: filterAll
-                            javaMethodReference:
-                                methodName: qualifyObjectClassName
+                            script:
+                                language: mel
+                                code: "isPresent(objectClass) ? qname('http://midpoint.evolveum.com/xml/ns/public/resource/instance-3', objectClass) : nil"
                     ``` and kind = yaml```
                             queryInterpretationOfNoValue: filterAll
                             path: "$kind"

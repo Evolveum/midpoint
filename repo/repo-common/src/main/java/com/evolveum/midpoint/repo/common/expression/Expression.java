@@ -365,7 +365,7 @@ public class Expression<V extends PrismValue, D extends ItemDefinition<?>> {
         }
 
         // Intentionally before "runAs" is executed.
-        VariablesMap newVariables = variables.shallowClone();
+        VariablesMap newVariables = variables != null ? variables.shallowClone() : new VariablesMap();
         ExpressionUtil.addActorVariableIfNeeded(newVariables, securityContextManager);
 
         // Inner variables

@@ -102,16 +102,16 @@ Score.prototype = {
         },
         number: /[0-9]+/,
         numberOnly: /^[0-9]+$/,
-        punctuation: /[\^°!"§\$%&\/\(\)=\?\\\.:,;\-_#'\+~\*<>\|\[\]\{\}`´]+/, // 34
-        punctuationOnly: /^[\^°!"§\$%&\/\(\)=\?\\\.:,;\-_#'\+~\*<>\|\[\]\{\}`´]+$/,
+        punctuation: /[\^°!"§\$%&\/\(\)=\?\\\.:,;\-_#@'\+~\*<>\|\[\]\{\}`´]+/, // 34
+        punctuationOnly: /^[\^°!"§\$%&\/\(\)=\?\\\.:,;\-_#@'\+~\*<>\|\[\]\{\}`´]+$/,
         lower: /[a-z]+/,
         lowerOnly: /^[a-z]+$/,
         upper: /[A-Z]+/,
         upperOnly: /^[A-Z]+$/,
         upperFirst: /^[A-Z]+[A-Za_z]*$/,
         upperFirstOnly: /^[A-Z]{1}[a-z]+$/,
-        other: /[^\^°!"§\$%&\/\(\)=\?\\\.:,;\-_#'\+~\*<>\|\[\]\{\}`´0-9a-zA-Z]+/,
-        otherOnly: /^[^\^°!"§\$%&\/\(\)=\?\\\.:,;\-_#'\+~\*<>\|\[\]\{\}`´0-9a-zA-Z]+$/,
+        other: /[^\^°!"§\$%&\/\(\)=\?\\\.:,;\-_#@'\+~\*<>\|\[\]\{\}`´0-9a-zA-Z]+/,
+        otherOnly: /^[^\^°!"§\$%&\/\(\)=\?\\\.:,;\-_#@'\+~\*<>\|\[\]\{\}`´0-9a-zA-Z]+$/,
     },
 
     keyboards: {
@@ -522,7 +522,13 @@ Score.prototype = {
 
         var entropies = [];
         var entropyMatches = [];
-        var currentEntropy = this.calculateBruteForceEntropy(this.password);
+
+        // Entropy of a single character not covered by any pattern, i.e. brute force
+        // over the character classes used in the whole password. (Previously the brute
+        // force entropy of the whole password was used for every single character,
+        // which made the score jump up with every unmatched character and drop
+        // whenever a new pattern match was found, see #12480.)
+        var characterEntropy = this.calculateBruteForceEntropy() / this.password.length;
 
         // Minimize entropy as far as possible. This approach assumes the attacker
         // to know as much as possible about the form of the password.
@@ -532,7 +538,7 @@ Score.prototype = {
             // If the character is not found within a pattern this will be taken.
             matches[matches.length] = {
                 pattern: this.password[i],
-                entropy: this.calculateBruteForceEntropy(this.password[i]),
+                entropy: characterEntropy,
                 start: i,
                 end: i,
                 type: 'letter'
@@ -877,6 +883,9 @@ Score.prototype = {
         }
         else if (this.regex['punctuation'].test(original[0])) {
             possiblities = this.PUNCTUATION;
+        }
+        else if (this.regex['other'].test(original[0])) {
+            possiblities = this.OTHER;
         }
 
         return this.lg(possiblities) + turns*this.lg(keyboard.averageNeighbours);

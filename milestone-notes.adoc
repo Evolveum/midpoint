@@ -8,6 +8,52 @@ This page contains the upgrade instructions and incompatibility changes that cou
 
 The upgrade instructions between releases are in the https://docs.evolveum.com/midpoint/release/[release notes].
 
+== 4.11.0
+
+=== 2026-10-15 Default expression profiles and "Groovy-free" configuration
+
+Task: https://support.evolveum.com/wp/10946[10946]
+
+Description:
+
+Default expression profiles (`safe`, `templating`, `configuration`) are now provided in the initial system configuration.
+
+Also, the initial `config.xml` now contains `safeScriptingLanguagesOnly` set to `true` and `connectors/developmentToolsEnabled` set to `false`.
+These two settings ensure that the system does not allow executing arbitrary code on the underlying OS.
+
+Required upgrade steps:
+
+- None are strictly required.
+But you can adapt your existing configuration to make it more secure using the changes presented in this commit.
+
+Notes & References:
+
+* Related commits: <this one>
+* Docs: To be specified
+
+=== 2026-10-15 Initial objects were changed (javaMethodReference -> MEL)
+
+Task: https://support.evolveum.com/wp/10946[10946]
+
+Description:
+
+Expressions in:
+
+* `016-object-collection-audit.xml`
+* `100-report-reconciliation.xml`
+* `140-report-certification-campaigns.xml`
+
+were changed from `javaMethodReference` to use MEL.
+
+Require upgrade steps:
+
+- Reimport these initial objects (if you use them as-is), or merge the selected changes into your existing objects.
+
+Notes & References:
+
+* Related commits: <this one>
+* Docs: To be specified
+
 == 4.11-RC2
 
 === 2026-09-30 Smart Integration: dedicated authorization added

@@ -28,10 +28,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 public record ActivitySubmissionOptions(
         @Nullable TaskType taskTemplate,
         @NotNull String[] archetypes,
+        boolean systemSubmitted,
         @Nullable FocusType owner) {
 
     public static ActivitySubmissionOptions create() {
-        return new ActivitySubmissionOptions(null, new String[0], null);
+        return new ActivitySubmissionOptions(null, new String[0], false, null);
     }
 
     /**
@@ -41,7 +42,7 @@ public record ActivitySubmissionOptions(
      * implementation for the details.
      */
     public ActivitySubmissionOptions withTaskTemplate(@Nullable TaskType task) {
-        return new ActivitySubmissionOptions(task, archetypes, owner);
+        return new ActivitySubmissionOptions(task, archetypes, systemSubmitted, owner);
     }
 
     /**
@@ -50,11 +51,16 @@ public record ActivitySubmissionOptions(
     public ActivitySubmissionOptions withArchetypes(@NotNull String... oids) {
         Arrays.stream(oids)
                 .forEach(Objects::requireNonNull);
-        return new ActivitySubmissionOptions(taskTemplate, oids, owner);
+        return new ActivitySubmissionOptions(taskTemplate, oids, systemSubmitted, owner);
     }
 
     public ActivitySubmissionOptions withOwner(@Nullable FocusType owner) {
-        return new ActivitySubmissionOptions(taskTemplate, archetypes, owner);
+        return new ActivitySubmissionOptions(taskTemplate, archetypes, systemSubmitted, owner);
+    }
+
+    /** Will add "system-submitted task" auxiliary archetype. */
+    public ActivitySubmissionOptions withSystemSubmitted(boolean systemSubmitted) {
+        return new ActivitySubmissionOptions(taskTemplate, archetypes, systemSubmitted, owner);
     }
 
     /** Creates or updates {@link #taskTemplate} with specified updater. */

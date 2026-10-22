@@ -1,6 +1,133 @@
-= Data Access Permissions
+= Data access permissions
 :page-toc: top
-:page-since: "4.11"
+:page-since: "4.11.0"
 :page-upkeep-status: green
 
-// TODO (Andrej): Describe data access permissions.
+== Overview
+
+Some smart recommendations send data to the xref:../microservice/index.adoc[Smart Integration microservice], which passes them to an LLM provider.
+*Data access permissions* decide which kinds of data midPoint may send for a particular recommendation run.
+
+The permissions are not stored in roles or in the system configuration.
+They are given by the user each time a recommendation is started, and they apply only to that run.
+In the GUI, the user selects them in a confirmation dialog, see <<GUI>>.
+
+Data access permissions do not replace authorizations.
+The user also needs the `#smartIntegration` authorization to run recommendations, see xref:authorization.adoc[Smart Integration authorization].
+
+== Permissions
+
+The permissions are values of `DataAccessPermissionType`:
+
+[cols="20%,20%,60%",options="header"]
+|===
+| Permission | GUI label | Data that may be sent to the microservice
+
+| `SCHEMA_ACCESS`
+| Schema
+| Schema information without attribute values: names, types, descriptions and cardinality of the attributes of the object class, the focus type schema, and the kind and intent of the object type.
+
+| `STATISTICS_ACCESS`
+| Statistical data
+| Object class statistics: number of objects, numbers of unique and missing values, the most frequent values and the most frequent value patterns of the attributes.
+
+| `RAW_DATA_ACCESS`
+| Raw data
+| A small sample of real values: pairs of resource attribute values and focus property values, and for categorical mappings all distinct values of the resource attribute from the object type statistics together with the allowed midPoint values.
+|===
+
+WARNING: Statistics contain real attribute values, for example the most frequent values of an attribute.
+Grant `STATISTICS_ACCESS` only if such values may be sent to the LLM provider.
+
+== Permissions used by recommendations
+
+Each recommendation checks only the permissions it needs.
+Without a permission, the recommendation either uses only local (system) processing, or it does not produce a result.
+
+[cols="20%,25%,55%",options="header"]
+|===
+| Recommendation | Permission | Effect
+
+.2+| xref:../recommendations/object-types/object-types-recommendation.adoc[Object types]
+| `STATISTICS_ACCESS`
+| Object class statistics are computed and sent with the schema to the microservice.
+Without it, no object types are recommended.
+
+| `SCHEMA_ACCESS`
+| A focus type is recommended for every recommended object type, and schema matches are preloaded.
+Without it, both steps are skipped.
+
+| xref:../recommendations/focus-type/focus-type-recommendation.adoc[Focus type]
+| `SCHEMA_ACCESS`
+| The object class schema is sent to the microservice.
+Without it, the synchronous call fails with an insufficient permissions error, and the background task ends without a result.
+
+| xref:../recommendations/correlation/correlation-recommendation.adoc[Correlation]
+| `SCHEMA_ACCESS`
+| The schema match is AI-assisted, and a stored schema match can be reused.
+Without it, only well-known schema pairs are used.
+
+.2+| xref:../recommendations/mappings/mappings-recommendation.adoc[Mappings]
+| `SCHEMA_ACCESS`
+| The schema match is AI-assisted, and a stored schema match can be reused.
+Without it, only well-known schema pairs are used.
+
+| `RAW_DATA_ACCESS`
+| Object type statistics are computed, and sample values are sent to the microservice for AI-generated and categorical mappings.
+Without it, only as-is, heuristic and well-known mappings are recommended.
+
+| xref:../recommendations/associations/associations-recommendation.adoc[Associations]
+| none
+| Nothing is sent to the microservice.
+
+| xref:../recommendations/synchronization/synchronization-recommendation.adoc[Synchronization]
+| none
+| Nothing is sent to the microservice.
+|===
+
+Without `SCHEMA_ACCESS`, the schema match is always computed again from well-known schemas and replaces the stored one, see xref:../schema-match.adoc#_reuse[Schema match].
+
+=== Local processing
+
+Data access permissions limit only the data sent to the microservice.
+MidPoint still reads resource objects and focus objects locally when a recommendation needs them, regardless of the permissions, for example:
+
+* to evaluate the quality of correlation candidates,
+* to validate mapping candidates on sample objects, see xref:../shadow-sampling.adoc[],
+* to compute object type statistics used by the schema match, see xref:../schema-match.adoc#_post_processing_heuristics[Post-processing heuristics].
+
+Such data stay in midPoint.
+
+== GUI
+
+When the user starts a recommendation in the resource wizard, midPoint shows a confirmation dialog *Allow AI to analyze your resource data?*.
+The dialog shows the AI provider and model reported by the microservice, and a checkbox for each permission the recommendation can use.
+All checkboxes are selected by default.
+The user can clear any of them and confirm with *Allow and continue*.
+
+[cols="30%,70%",options="header"]
+|===
+| Recommendation | Offered permissions
+
+| Object types
+| Schema, Statistical data
+
+| Focus type
+| Schema
+
+| Correlation
+| Schema
+
+| Mappings
+| Schema, Raw data
+|===
+
+For object types, the GUI requires both permissions.
+If either of them is cleared, the recommendation is not started and an error is shown.
+
+The behavior when the microservice is not available depends on the recommendation:
+
+* **Object types and focus type** need the microservice.
+The dialog shows an error and the recommendation cannot be started.
+* **Correlation and mappings** can run with system recommendations only.
+The dialog shows a warning, no permissions are offered, and the recommendation runs without any permission.

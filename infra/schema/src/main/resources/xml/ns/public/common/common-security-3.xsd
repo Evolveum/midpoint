@@ -255,7 +255,7 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
-                <a:since>4.11</a:since>
+                <a:since>4.11.0</a:since>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
@@ -282,7 +282,7 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
-                <a:since>4.11</a:since>
+                <a:since>4.11.0</a:since>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
@@ -1371,49 +1371,49 @@
                 <a:since>4.5</a:since>
                 <a:schemaMigration>
                     <a:element>tns:realm</a:element>
-                    <a:version>4.11</a:version>
+                    <a:version>4.11.0</a:version>
                     <a:operation>removed</a:operation>
                     <a:comment>Use attribute in token definition instead.</a:comment>
                 </a:schemaMigration>
                 <a:schemaMigration>
                     <a:element>tns:issuerUri</a:element>
-                    <a:version>4.11</a:version>
+                    <a:version>4.11.0</a:version>
                     <a:operation>removed</a:operation>
                     <a:comment>Use attribute in token definition instead.</a:comment>
                 </a:schemaMigration>
                 <a:schemaMigration>
                     <a:element>tns:jwkSetUri</a:element>
-                    <a:version>4.11</a:version>
+                    <a:version>4.11.0</a:version>
                     <a:operation>removed</a:operation>
                     <a:comment>Use attribute in token definition instead.</a:comment>
                 </a:schemaMigration>
                 <a:schemaMigration>
                     <a:element>tns:nameOfUsernameClaim</a:element>
-                    <a:version>4.11</a:version>
+                    <a:version>4.11.0</a:version>
                     <a:operation>removed</a:operation>
                     <a:comment>Use attribute in token definition instead.</a:comment>
                 </a:schemaMigration>
                 <a:schemaMigration>
                     <a:element>tns:singleSymmetricKey</a:element>
-                    <a:version>4.11</a:version>
+                    <a:version>4.11.0</a:version>
                     <a:operation>removed</a:operation>
                     <a:comment>Use attribute in token definition instead.</a:comment>
                 </a:schemaMigration>
                 <a:schemaMigration>
                     <a:element>tns:trustedAlgorithm</a:element>
-                    <a:version>4.11</a:version>
+                    <a:version>4.11.0</a:version>
                     <a:operation>removed</a:operation>
                     <a:comment>Use attribute in token definition instead.</a:comment>
                 </a:schemaMigration>
                 <a:schemaMigration>
                     <a:element>tns:trustingAsymmetricCertificate</a:element>
-                    <a:version>4.11</a:version>
+                    <a:version>4.11.0</a:version>
                     <a:operation>removed</a:operation>
                     <a:comment>Use attribute in token definition instead.</a:comment>
                 </a:schemaMigration>
                 <a:schemaMigration>
                     <a:element>tns:keyStoreTrustingAsymmetricKey</a:element>
-                    <a:version>4.11</a:version>
+                    <a:version>4.11.0</a:version>
                     <a:operation>removed</a:operation>
                     <a:comment>Use attribute in token definition instead.</a:comment>
                 </a:schemaMigration>

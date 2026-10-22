@@ -1,11 +1,16 @@
 ---
 midpoint-feature: expression-mel
-doc-type: config
+doc-type: guide
 ---
 = MidPoint Expression Language Troubleshooting
 :page-nav-title: Troubleshooting
 :page-upkeep-status: green
 :page-toc: top
+:page-display-order: 800
+:page-keywords: mel, midpoint expression language, secure, expression, scripting
+:page-description: This article lists possible solutions to common errors you may encounter and mistakes you may make when working with MEL.
+
+This article lists possible solutions to common errors you may encounter and mistakes you may make when working with MEL.
 
 == Common Errors
 

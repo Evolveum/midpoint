@@ -141,7 +141,7 @@ public enum OpType {
     SCRIPT_EXECUTION(OperationKindType.SCRIPT_EVALUATION, "Script evaluation",
             null,
             List.of(
-                    "com.evolveum.midpoint.model.common.expression.script.ScriptExpression.evaluate", // before 4.11
+                    "com.evolveum.midpoint.model.common.expression.script.ScriptExpression.evaluate", // before 4.11.0
                     "com.evolveum.midpoint.model.common.expression.script.Script.execute"),
             null),
 

@@ -1,4 +1,4 @@
-= postgres-upgrade.sql - midPoint 4.11
+= postgres-upgrade.sql - midPoint 4.11.0
 :page-toc: top
 
 == Changes
@@ -7,6 +7,12 @@
 |===
 | Change
 | Description
+
+| <<change-67,Change 67>>
+| Adds smart integration artifact object table, triggers, and indexes.
+
+| <<change-66,Change 66>>
+| Adds `SMART_INTEGRATION_ARTIFACT` object type value.
 
 | <<change-65,Change 65>>
 | Adds `WORK` shadow kind value.
@@ -52,10 +58,92 @@
 
 |===
 
+[[change-67]]
+== Change 67
+
+Since version: 4.11.0
+
+Adds smart integration artifact object table, triggers, and indexes.
+
+[cols="1,1,3", options="header"]
+|===
+| Object
+| Change type
+| Description
+
+| `m_smart_integration_artifact`
+| New table
+| Stores smart integration artifact objects.
+
+| `m_smart_integration_artifact_oid_insert_tr`
+| New trigger
+| Reserves OID rows for inserted smart integration artifacts.
+
+| `m_smart_integration_artifact_update_tr`
+| New trigger
+| Maintains update metadata for smart integration artifacts.
+
+| `m_smart_integration_artifact_oid_delete_tr`
+| New trigger
+| Releases OID rows for deleted smart integration artifacts.
+
+| `m_smart_integration_artifact_nameOrig_idx`
+| New index
+| Speeds up lookup by original object name.
+
+| `m_smart_integration_artifact_nameNorm_idx`
+| New unique index
+| Enforces uniqueness and speeds up lookup by normalized object name.
+
+| `m_smart_integration_artifact_ext_idx`
+| New GIN index
+| Speeds up filtering or searching by extension values.
+
+| `m_smart_integration_artifact_fullTextInfo_idx`
+| New GIN trigram index
+| Speeds up full-text-like object searches.
+
+| `m_smart_integration_artifact_createTimestamp_idx`
+| New index
+| Speeds up filtering or ordering by creation time.
+
+| `m_smart_integration_artifact_modifyTimestamp_idx`
+| New index
+| Speeds up filtering or ordering by modification time.
+
+| `m_smart_integration_artifact_scope_object_type_idx`
+| New composite index
+| Speeds up filtering or ordering by resource reference, kind, intent, and focus type.
+
+| `m_smart_integration_artifact_scope_object_class_idx`
+| New composite index
+| Speeds up filtering or ordering by resource reference and object class.
+
+|===
+
+[[change-66]]
+== Change 66
+
+Since version: 4.11.0
+
+Adds `SMART_INTEGRATION_ARTIFACT` object type value.
+
+[cols="1,1,3", options="header"]
+|===
+| Object
+| Change type
+| Description
+
+| `ObjectType`
+| Modified enum type
+| Adds `SMART_INTEGRATION_ARTIFACT`.
+
+|===
+
 [[change-65]]
 == Change 65
 
-Since version: 4.11
+Since version: 4.11.0
 
 Adds `WORK` shadow kind value.
 
@@ -74,7 +162,7 @@ Adds `WORK` shadow kind value.
 [[change-64]]
 == Change 64
 
-Since version: 4.11
+Since version: 4.11.0
 
 Moves case table under the projection holder table.
 
@@ -93,7 +181,7 @@ Moves case table under the projection holder table.
 [[change-63]]
 == Change 63
 
-Since version: 4.11
+Since version: 4.11.0
 
 Moves focus table under the projection holder table.
 
@@ -112,7 +200,7 @@ Moves focus table under the projection holder table.
 [[change-62]]
 == Change 62
 
-Since version: 4.11
+Since version: 4.11.0
 
 Adds abstract projection holder table, the base of foci and cases.
 
@@ -131,7 +219,7 @@ Adds abstract projection holder table, the base of foci and cases.
 [[change-61]]
 == Change 61
 
-Since version: 4.11
+Since version: 4.11.0
 
 Adds `PROJECTION_HOLDER` object type value.
 
@@ -150,7 +238,7 @@ Adds `PROJECTION_HOLDER` object type value.
 [[change-60]]
 == Change 60
 
-Since version: 4.11
+Since version: 4.11.0
 
 Adds allowed connectors list object table and triggers.
 
@@ -181,7 +269,7 @@ Adds allowed connectors list object table and triggers.
 [[change-59]]
 == Change 59
 
-Since version: 4.11
+Since version: 4.11.0
 
 Adds `ALLOWED_CONNECTORS_LIST` object type value.
 
@@ -200,7 +288,7 @@ Adds `ALLOWED_CONNECTORS_LIST` object type value.
 [[change-58]]
 == Change 58
 
-Since version: 4.11
+Since version: 4.11.0
 
 Adds display and preferred name columns and indexes to users.
 
@@ -227,7 +315,7 @@ Adds display and preferred name columns and indexes to users.
 [[change-57]]
 == Change 57
 
-Since version: 4.11
+Since version: 4.11.0
 
 Recreates connector type/version uniqueness indexes with connector-host specific predicates.
 
@@ -250,7 +338,7 @@ Recreates connector type/version uniqueness indexes with connector-host specific
 [[change-56]]
 == Change 56
 
-Since version: 4.11
+Since version: 4.11.0
 
 Drops old connector type/version uniqueness indexes before recreating them.
 
@@ -273,7 +361,7 @@ Drops old connector type/version uniqueness indexes before recreating them.
 [[change-55]]
 == Change 55
 
-Since version: 4.11
+Since version: 4.11.0
 
 Adds connector development object table and triggers.
 
@@ -304,7 +392,7 @@ Adds connector development object table and triggers.
 [[change-54]]
 == Change 54
 
-Since version: 4.11
+Since version: 4.11.0
 
 Adds `CONNECTOR_DEVELOPMENT` object type value.
 
@@ -323,7 +411,7 @@ Adds `CONNECTOR_DEVELOPMENT` object type value.
 [[change-53]]
 == Change 53
 
-Since version: 4.11
+Since version: 4.11.0
 
 Adds application object table, triggers, and indexes.
 
@@ -390,7 +478,7 @@ Adds application object table, triggers, and indexes.
 [[change-52]]
 == Change 52
 
-Since version: 4.11
+Since version: 4.11.0
 
 Adds `APPLICATION` object type value.
 
