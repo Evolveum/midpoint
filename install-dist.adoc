@@ -1,12 +1,12 @@
 ---
-release-version: '4.10'
+release-version: '4.11.0'
 ---
-= Installing MidPoint 4.10 "Braille" From Binary Distribution
+= Installing MidPoint 4.11.0 "Čapek" From Binary Distribution
 :page-layout: release-install-4-9-and-later
-:release-version: 4.10
+:release-version: 4.11.0
 :page-nav-title: Installation Instructions
 :page-liquid:
 
 ++++
-{% include release-install-prereq-j17-j21.html %}
+{% include release-install-prereq-j21-j25.html %}
 ++++

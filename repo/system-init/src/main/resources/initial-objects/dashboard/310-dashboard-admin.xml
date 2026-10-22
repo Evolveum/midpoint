@@ -52,7 +52,7 @@
                 <expression>
                     <script>
                         <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
-                        <code>midpoint.translateKeyInCurrentLocale("AdminDashboard.dataField.up")</code>
+                        <code>format.translateKeyInCurrentLocale("AdminDashboard.dataField.up")</code>
                     </script>
                 </expression>
             </dataField>
@@ -104,7 +104,7 @@
                 <expression>
                     <script>
                         <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
-                        <code>midpoint.translateKeyInCurrentLocale("AdminDashboard.dataField.failed")</code>
+                        <code>format.translateKeyInCurrentLocale("AdminDashboard.dataField.failed")</code>
                     </script>
                 </expression>
             </dataField>
@@ -156,7 +156,7 @@
                 <expression>
                     <script>
                         <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
-                        <code>midpoint.translateKeyInCurrentLocale("AdminDashboard.dataField.modifications")</code>
+                        <code>format.translateKeyInCurrentLocale("AdminDashboard.dataField.modifications")</code>
                     </script>
                 </expression>
             </dataField>
@@ -196,7 +196,7 @@
                 <expression>
                     <script>
                         <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
-                        <code>midpoint.translateKeyInCurrentLocale("AdminDashboard.dataField.runnable")</code>
+                        <code>format.translateKeyInCurrentLocale("AdminDashboard.dataField.runnable")</code>
                     </script>
                 </expression>
             </dataField>

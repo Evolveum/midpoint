@@ -42,6 +42,8 @@ import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.session.PageStorage;
+import com.evolveum.midpoint.web.session.ResourceContentStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnDevObjectClassInfoType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnDevTestingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorDevelopmentType;
@@ -61,6 +63,8 @@ public class SearchAllObjectsConnectorStepPanel extends ScriptConfirmationPanel 
     private static final String PANEL_TYPE = "cdw-show-search-result";
 
     private static final String ID_PANEL = "panel";
+
+    private final PageStorage pageStorage = new ResourceContentStorage(null);
 
     public SearchAllObjectsConnectorStepPanel(WizardPanelHelper<? extends Containerable,
             ConnectorDevelopmentDetailsModel> helper, IModel<PrismContainerValueWrapper<ConnDevObjectClassInfoType>> valueModel) {
@@ -114,6 +118,11 @@ public class SearchAllObjectsConnectorStepPanel extends ScriptConfirmationPanel 
             @Override
             protected QName getDefaultObjectClass() {
                 return new QName(getValueModel().getObject().getRealValue().getName());
+            }
+
+            @Override
+            protected PageStorage getPageStorage() {
+                return pageStorage;
             }
 
             @Override

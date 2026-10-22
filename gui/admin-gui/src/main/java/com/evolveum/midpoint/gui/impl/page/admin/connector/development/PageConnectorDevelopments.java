@@ -11,17 +11,25 @@ import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.web.application.CollectionInstance;
 import com.evolveum.midpoint.web.application.PanelDisplay;
+import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
+import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorDevelopmentType;
 
-import org.apache.wicket.markup.html.form.Form;
 
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.model.IModel;
+
+import java.io.Serial;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -57,7 +65,7 @@ public class PageConnectorDevelopments extends PageAdmin {
         Form<?> mainForm = new MidpointForm<>(ID_MAIN_FORM);
         add(mainForm);
 
-        MainObjectListPanel<ConnectorDevelopmentType> table = new MainObjectListPanel<>(ID_TABLE, ConnectorDevelopmentType.class) {
+        MainObjectListPanel<ConnectorDevelopmentType> table = new MainObjectListPanel<ConnectorDevelopmentType>(ID_TABLE, ConnectorDevelopmentType.class) {
 
             @Override
             protected UserProfileStorage.TableId getTableId() {
@@ -91,6 +99,51 @@ public class PageConnectorDevelopments extends PageAdmin {
                 return "PageConnectorDevelopments.message.confirmationMessageForSingleObject";
             }
 
+            IModel<String> getDeleteMessageModel(ColumnMenuAction action, String actionName) {
+                return new IModel<String>() {
+                    private static final long serialVersionUID = 1L;
+                    @Override
+                    public String getObject() {
+                        String confirmation;
+                        switch (getSelectedObjectsCount()) {
+                            case 1:
+                                ConnectorDevelopmentType first = getSelectedObjects().get(0).getValue();
+                                String name = WebComponentUtil
+                                        .getName(first);
+                                confirmation = createStringResource("PageConnectorDevelopment.message.deleteSingleConfirm", name).getString();
+                                break;
+                            default:
+                                confirmation = createStringResource("PageConnectorDevelopment.message.deleteMultipleConfirm", getSelectedObjectsCount()).getString();
+                                break;
+                        }
+                        String note = createStringResource("PageConnectors.message.deleteConnectorNote").getString();
+                        return confirmation + " " + note;
+                    }
+                };
+            }
+
+            @Override
+            public InlineMenuItem createDeleteInlineMenu() {
+                return new InlineMenuItem(createStringResource("MainObjectListPanel.menu.delete")) {
+                    @Serial private static final long serialVersionUID = 1L;
+
+                    @Override
+                    public InlineMenuItemAction initAction() {
+                        return new ColumnMenuAction<SelectableBean<ConnectorDevelopmentType>>() {
+                            @Override
+                            public void onClick(AjaxRequestTarget target) {
+                                deleteConfirmedPerformed(target, getRowModel());
+                            }
+                        };
+                    }
+
+                    @Override
+                    public IModel<String> getConfirmationMessageModel() {
+                        String actionName = createStringResource("MainObjectListPanel.message.deleteAction").getString();
+                        return getDeleteMessageModel((ColumnMenuAction) getAction(), actionName);
+                    }
+                };
+            }
         };
         table.setOutputMarkupId(true);
         mainForm.add(table);

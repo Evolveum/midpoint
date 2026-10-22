@@ -11,6 +11,10 @@ public class ConnectorGeneratorConstants {
 
     public static final String RPC_CONTINUE_FROM = "/rpc/continueFrom";
 
+    public static final String RPC_IS_OFFLINE = "/rpc/isOffline";
+
+    public static final String RPC_IS_CONNECTOR_ALREADY_PRESENT = "/rpc/isConnectorAlreadyPresent";
+
     public static final String RPC_IS_MANIFEST_BASED_CONNECTOR = "/rpc/isManifestBasedConnector";
 
     public static final String RPC_COPY_CONNECTOR_SUBMIT_OPERATION = "/rpc/copyConnectorSubmitOperation";

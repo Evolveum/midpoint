@@ -607,7 +607,7 @@
                         TODO
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <a:since>4.11</a:since>
+                        <a:since>4.11.0</a:since>
                         <a:experimental>true</a:experimental>
                     </xsd:appinfo>
                 </xsd:annotation>
@@ -4744,7 +4744,7 @@
                         An alternative to "oldShadowOid" when the shadow is specified by its attributes, not by its OID.
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <a:since>4.11</a:since>
+                        <a:since>4.11.0</a:since>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -4953,7 +4953,7 @@
                                 Specifies the (protected) timestamp when the connector was first discovered.
                             </xsd:documentation>
                             <xsd:appinfo>
-                                <a:since>4.11</a:since>
+                                <a:since>4.11.0</a:since>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -7653,7 +7653,7 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
-                <a:since>4.11</a:since>
+                <a:since>4.11.0</a:since>
                 <a:naturalKey>tns:name</a:naturalKey>
                 <a:experimental>true</a:experimental>
             </xsd:appinfo>
@@ -7705,7 +7705,7 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container>true</a:container>
-                <a:since>4.11</a:since>
+                <a:since>4.11.0</a:since>
                 <a:experimental>true</a:experimental>
             </xsd:appinfo>
         </xsd:annotation>
@@ -7728,7 +7728,7 @@
                 The list contains connector identifiers. Each entry in the list is digitally signed.
             </xsd:documentation>
             <xsd:appinfo>
-                <a:since>4.11</a:since>
+                <a:since>4.11.0</a:since>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
@@ -7757,7 +7757,7 @@
                 to verify authenticity of the entry using a trusted public key.
             </xsd:documentation>
             <xsd:appinfo>
-                <a:since>4.11</a:since>
+                <a:since>4.11.0</a:since>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -7787,7 +7787,7 @@
                 Digital signature of the connector identifier created using a trusted signing key.
             </xsd:documentation>
             <xsd:appinfo>
-                <a:since>4.11</a:since>
+                <a:since>4.11.0</a:since>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -7814,7 +7814,7 @@
                 Uniquely identifies a connector by its implementation class and bundle name.
             </xsd:documentation>
             <xsd:appinfo>
-                <a:since>4.11</a:since>
+                <a:since>4.11.0</a:since>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>

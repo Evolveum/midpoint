@@ -744,7 +744,7 @@
                         Overrides the global setting from system configuration.
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <a:since>4.11</a:since>
+                        <a:since>4.11.0</a:since>
                         <a:container>true</a:container>
                     </xsd:appinfo>
                 </xsd:annotation>
@@ -2009,7 +2009,7 @@
                         roleMembershipRefs may be added to the processed object.
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <a:since>4.11</a:since>
+                        <a:since>4.11.0</a:since>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -2031,7 +2031,7 @@
                 object while it is being processed by the activity; they are not persisted in the object.
             </xsd:documentation>
             <xsd:appinfo>
-                <a:since>4.11</a:since>
+                <a:since>4.11.0</a:since>
                 <a:container>true</a:container>
             </xsd:appinfo>
         </xsd:annotation>
@@ -2083,7 +2083,7 @@
                         Otherwise, configuration exception will be thrown.
 
                         If the reference cannot be resolved, the activity fails at its start and the task is
-                        suspended. (Since 4.11; before that, such reference was skipped with a warning. Note that
+                        suspended. (Since 4.11.0; before that, such reference was skipped with a warning. Note that
                         unresolvable targets of virtual assignments are tolerated - they do not stop the activity.)
                     </xsd:documentation>
                     <xsd:appinfo>
@@ -2101,7 +2101,7 @@
                         of its child activities, regardless of where they are evaluated.
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <a:since>4.11</a:since>
+                        <a:since>4.11.0</a:since>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -2117,7 +2117,7 @@
                 child activities. Rules declared on ancestor activities are NOT affected.
             </xsd:documentation>
             <xsd:appinfo>
-                <a:since>4.11</a:since>
+                <a:since>4.11.0</a:since>
                 <a:container>true</a:container>
             </xsd:appinfo>
         </xsd:annotation>
@@ -2156,7 +2156,7 @@
                 (thresholds observed but not acted upon).
             </xsd:documentation>
             <xsd:appinfo>
-                <a:since>4.11</a:since>
+                <a:since>4.11.0</a:since>
                 <jaxb:typesafeEnumClass/>
             </xsd:appinfo>
         </xsd:annotation>
@@ -2517,7 +2517,7 @@
                             Suggests focus type for a resource object type (smart integration).
                         </xsd:documentation>
                         <xsd:appinfo>
-                            <a:since>4.11</a:since>
+                            <a:since>4.11.0</a:since>
                             <a:displayName>WorkDefinitionsType.focusTypeSuggestion</a:displayName>
                         </xsd:appinfo>
                     </xsd:annotation>
@@ -2529,7 +2529,7 @@
                             Suggests object types for an object class (smart integration).
                         </xsd:documentation>
                         <xsd:appinfo>
-                            <a:since>4.11</a:since>
+                            <a:since>4.11.0</a:since>
                             <a:displayName>WorkDefinitionsType.objectTypesSuggestion</a:displayName>
                         </xsd:appinfo>
                     </xsd:annotation>
@@ -2541,7 +2541,7 @@
                             Pre-loads schema matching cache for object types in the background (smart integration).
                         </xsd:documentation>
                         <xsd:appinfo>
-                            <a:since>4.11</a:since>
+                            <a:since>4.11.0</a:since>
                             <a:displayName>WorkDefinitionsType.schemaMatchPreload</a:displayName>
                         </xsd:appinfo>
                     </xsd:annotation>
@@ -2553,7 +2553,7 @@
                             Suggests correlation rules for an object type (smart integration).
                         </xsd:documentation>
                         <xsd:appinfo>
-                            <a:since>4.11</a:since>
+                            <a:since>4.11.0</a:since>
                             <a:displayName>WorkDefinitionsType.correlationSuggestion</a:displayName>
                         </xsd:appinfo>
                     </xsd:annotation>
@@ -2565,7 +2565,7 @@
                             Correlates Shadows with Focuses using configured correlators. The 'shadows' container must specify a query to select shadows to process.
                         </xsd:documentation>
                         <xsd:appinfo>
-                            <a:since>4.11</a:since>
+                            <a:since>4.11.0</a:since>
                             <a:displayName>WorkDefinitionsType.shadowCorrelation</a:displayName>
                         </xsd:appinfo>
                     </xsd:annotation>
@@ -2577,7 +2577,7 @@
                             Simulates a mapping on a selected sample of shadows.
                         </xsd:documentation>
                         <xsd:appinfo>
-                            <a:since>4.11</a:since>
+                            <a:since>4.11.0</a:since>
                             <a:displayName>WorkDefinitionsType.mapping</a:displayName>
                         </xsd:appinfo>
                     </xsd:annotation>
@@ -2589,7 +2589,7 @@
                             Simulates a mapping on a selected sample of shadows.
                         </xsd:documentation>
                         <xsd:appinfo>
-                            <a:since>4.11</a:since>
+                            <a:since>4.11.0</a:since>
                             <a:displayName>WorkDefinitionsType.mapping</a:displayName>
                         </xsd:appinfo>
                     </xsd:annotation>
@@ -2602,7 +2602,7 @@
                             Suggests mappings for an object class (smart integration).
                         </xsd:documentation>
                         <xsd:appinfo>
-                            <a:since>4.11</a:since>
+                            <a:since>4.11.0</a:since>
                             <a:displayName>WorkDefinitionsType.mappingsSuggestion</a:displayName>
                         </xsd:appinfo>
                     </xsd:annotation>
@@ -2613,7 +2613,7 @@
                             Suggests association type definitions for resource object types (smart integration).
                         </xsd:documentation>
                         <xsd:appinfo>
-                            <a:since>4.11</a:since>
+                            <a:since>4.11.0</a:since>
                             <a:displayName>WorkDefinitionsType.associationsSuggestion</a:displayName>
                         </xsd:appinfo>
                     </xsd:annotation>
@@ -2625,7 +2625,7 @@
                             Computes statistics for object classes on a resource.
                         </xsd:documentation>
                         <xsd:appinfo>
-                            <a:since>4.11</a:since>
+                            <a:since>4.11.0</a:since>
                         </xsd:appinfo>
                     </xsd:annotation>
                 </xsd:element>
@@ -2636,7 +2636,7 @@
                             Computes statistics for object types on a resource.
                         </xsd:documentation>
                         <xsd:appinfo>
-                            <a:since>4.11</a:since>
+                            <a:since>4.11.0</a:since>
                         </xsd:appinfo>
                     </xsd:annotation>
                 </xsd:element>
@@ -2647,7 +2647,7 @@
                             Computes statistics for focus objects of a given type (e.g. UserType, RoleType).
                         </xsd:documentation>
                         <xsd:appinfo>
-                            <a:since>4.11</a:since>
+                            <a:since>4.11.0</a:since>
                         </xsd:appinfo>
                     </xsd:annotation>
                 </xsd:element>
@@ -2655,7 +2655,7 @@
                 <xsd:element name="createConnector" type="tns:ConnDevCreateConnectorWorkDefinitionType">
                     <xsd:annotation>
                         <xsd:appinfo>
-                            <a:since>4.11</a:since>
+                            <a:since>4.11.0</a:since>
                         </xsd:appinfo>
                     </xsd:annotation>
                 </xsd:element>
@@ -2669,7 +2669,7 @@
                             on the development, and installs the copy.
                         </xsd:documentation>
                         <xsd:appinfo>
-                            <a:since>4.11</a:since>
+                            <a:since>4.11.0</a:since>
                         </xsd:appinfo>
                     </xsd:annotation>
                 </xsd:element>
@@ -2677,7 +2677,7 @@
                 <xsd:element name="installConnector" type="tns:ConnDevDownloadConnectorWorkDefinitionType">
                     <xsd:annotation>
                         <xsd:appinfo>
-                            <a:since>4.11</a:since>
+                            <a:since>4.11.0</a:since>
                         </xsd:appinfo>
                     </xsd:annotation>
                 </xsd:element>
@@ -2685,7 +2685,7 @@
                 <xsd:element name="exportConnector" type="tns:ConnDevExportConnectorWorkDefinitionType">
                     <xsd:annotation>
                         <xsd:appinfo>
-                            <a:since>4.11</a:since>
+                            <a:since>4.11.0</a:since>
                         </xsd:appinfo>
                     </xsd:annotation>
                 </xsd:element>
@@ -2693,7 +2693,7 @@
                 <xsd:element name="uploadConnector" type="tns:ConnDevUploadConnectorWorkDefinitionType">
                     <xsd:annotation>
                         <xsd:appinfo>
-                            <a:since>4.11</a:since>
+                            <a:since>4.11.0</a:since>
                         </xsd:appinfo>
                     </xsd:annotation>
                 </xsd:element>
@@ -2701,7 +2701,7 @@
                 <xsd:element name="discoverDocumentation" type="tns:ConnDevDiscoverDocumentationWorkDefinitionType">
                     <xsd:annotation>
                         <xsd:appinfo>
-                            <a:since>4.11</a:since>
+                            <a:since>4.11.0</a:since>
                         </xsd:appinfo>
                     </xsd:annotation>
                 </xsd:element>
@@ -2709,7 +2709,7 @@
                 <xsd:element name="processDocumentation" type="tns:ConnDevProcessDocumentationWorkDefinitionType">
                     <xsd:annotation>
                         <xsd:appinfo>
-                            <a:since>4.11</a:since>
+                            <a:since>4.11.0</a:since>
                         </xsd:appinfo>
                     </xsd:annotation>
                 </xsd:element>
@@ -2717,7 +2717,7 @@
                 <xsd:element name="discoverGlobalInformation" type="tns:ConnDevDiscoverGlobalInformationWorkDefinitionType">
                     <xsd:annotation>
                         <xsd:appinfo>
-                            <a:since>4.11</a:since>
+                            <a:since>4.11.0</a:since>
                         </xsd:appinfo>
                     </xsd:annotation>
                 </xsd:element>
@@ -2725,7 +2725,7 @@
                 <xsd:element name="discoverObjectClassInformation" type="tns:ConnDevDiscoverObjectClassInformationDefinitionType">
                     <xsd:annotation>
                         <xsd:appinfo>
-                            <a:since>4.11</a:since>
+                            <a:since>4.11.0</a:since>
                         </xsd:appinfo>
                     </xsd:annotation>
                 </xsd:element>
@@ -2733,7 +2733,7 @@
                 <xsd:element name="discoverObjectClassAttributes" type="tns:ConnDevDiscoverObjectClassAttributesDefinitionType">
                     <xsd:annotation>
                         <xsd:appinfo>
-                            <a:since>4.11</a:since>
+                            <a:since>4.11.0</a:since>
                         </xsd:appinfo>
                     </xsd:annotation>
                 </xsd:element>
@@ -2741,7 +2741,7 @@
                 <xsd:element name="discoverObjectClassEndpoints" type="tns:ConnDevDiscoverObjectClassEndpointsDefinitionType">
                     <xsd:annotation>
                         <xsd:appinfo>
-                            <a:since>4.11</a:since>
+                            <a:since>4.11.0</a:since>
                         </xsd:appinfo>
                     </xsd:annotation>
                 </xsd:element>
@@ -2749,7 +2749,7 @@
                 <xsd:element name="discoverConnectivityEndpoint" type="tns:ConnDevDiscoverConnectivityEndpointWorkDefinitionType">
                     <xsd:annotation>
                         <xsd:appinfo>
-                            <a:since>4.11</a:since>
+                            <a:since>4.11.0</a:since>
                         </xsd:appinfo>
                     </xsd:annotation>
                 </xsd:element>
@@ -2757,7 +2757,7 @@
                 <xsd:element name="generateConnectorArtifact" type="tns:ConnDevGenerateArtifactDefinitionType">
                     <xsd:annotation>
                         <xsd:appinfo>
-                            <a:since>4.11</a:since>
+                            <a:since>4.11.0</a:since>
                         </xsd:appinfo>
                     </xsd:annotation>
                 </xsd:element>
@@ -2765,7 +2765,7 @@
                 <xsd:element name="fixObjectClass" type="tns:ConnDevFixObjectClassDefinitionType">
                     <xsd:annotation>
                         <xsd:appinfo>
-                            <a:since>4.11</a:since>
+                            <a:since>4.11.0</a:since>
                         </xsd:appinfo>
                     </xsd:annotation>
                 </xsd:element>
@@ -2773,7 +2773,7 @@
                 <xsd:element name="refreshSchema" type="tns:ConnDevRefreshSchemaWorkDefinitionType">
                     <xsd:annotation>
                         <xsd:appinfo>
-                            <a:since>4.11</a:since>
+                            <a:since>4.11.0</a:since>
                         </xsd:appinfo>
                     </xsd:annotation>
                 </xsd:element>
@@ -2781,7 +2781,7 @@
                 <xsd:element name="refreshConnectorSchema" type="tns:ConnDevRefreshConnectorSchemaWorkDefinitionType">
                     <xsd:annotation>
                         <xsd:appinfo>
-                            <a:since>4.11</a:since>
+                            <a:since>4.11.0</a:since>
                         </xsd:appinfo>
                     </xsd:annotation>
                 </xsd:element>
@@ -3622,7 +3622,7 @@
                         Display order of the activity. Optional.
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <a:since>4.11</a:since>
+                        <a:since>4.11.0</a:since>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -3652,7 +3652,7 @@
                         the activity policy states, by a restart of the activity, and by a new realization.
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <a:since>4.11</a:since>
+                        <a:since>4.11.0</a:since>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -3670,7 +3670,7 @@
                         Avoid use for distributed activities.
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <a:since>4.11</a:since>
+                        <a:since>4.11.0</a:since>
                         <a:experimental>true</a:experimental>
                     </xsd:appinfo>
                 </xsd:annotation>
@@ -3839,7 +3839,7 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container>true</a:container>
-                <a:since>4.11</a:since>
+                <a:since>4.11.0</a:since>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -8353,7 +8353,7 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container>true</a:container>
-                <a:since>4.11</a:since>
+                <a:since>4.11.0</a:since>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
@@ -10505,7 +10505,7 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container>true</a:container>
-                <a:since>4.11</a:since>
+                <a:since>4.11.0</a:since>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
@@ -10556,7 +10556,7 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container>true</a:container>
-                <a:since>4.11</a:since>
+                <a:since>4.11.0</a:since>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
@@ -10638,7 +10638,7 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container>true</a:container>
-                <a:since>4.11</a:since>
+                <a:since>4.11.0</a:since>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
@@ -10686,7 +10686,7 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container>true</a:container>
-                <a:since>4.11</a:since>
+                <a:since>4.11.0</a:since>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
@@ -10762,7 +10762,7 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container>true</a:container>
-                <a:since>4.11</a:since>
+                <a:since>4.11.0</a:since>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
@@ -10797,7 +10797,7 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container>true</a:container>
-                <a:since>4.11</a:since>
+                <a:since>4.11.0</a:since>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
@@ -10836,7 +10836,7 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container>true</a:container>
-                <a:since>4.11</a:since>
+                <a:since>4.11.0</a:since>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
@@ -10867,7 +10867,7 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container>true</a:container>
-                <a:since>4.11</a:since>
+                <a:since>4.11.0</a:since>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
@@ -10903,7 +10903,7 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container>true</a:container>
-                <a:since>4.11</a:since>
+                <a:since>4.11.0</a:since>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -10940,7 +10940,7 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container>true</a:container>
-                <a:since>4.11</a:since>
+                <a:since>4.11.0</a:since>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
@@ -10985,7 +10985,7 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container>true</a:container>
-                <a:since>4.11</a:since>
+                <a:since>4.11.0</a:since>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -11020,7 +11020,7 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container>true</a:container>
-                <a:since>4.11</a:since>
+                <a:since>4.11.0</a:since>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -11230,7 +11230,7 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container>true</a:container>
-                <a:since>4.11</a:since>
+                <a:since>4.11.0</a:since>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
@@ -11274,7 +11274,7 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container>true</a:container>
-                <a:since>4.11</a:since>
+                <a:since>4.11.0</a:since>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
@@ -11300,7 +11300,7 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container>true</a:container>
-                <a:since>4.11</a:since>
+                <a:since>4.11.0</a:since>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
@@ -11337,7 +11337,7 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container>true</a:container>
-                <a:since>4.11</a:since>
+                <a:since>4.11.0</a:since>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
@@ -11384,7 +11384,7 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container>true</a:container>
-                <a:since>4.11</a:since>
+                <a:since>4.11.0</a:since>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
@@ -11410,7 +11410,7 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container>true</a:container>
-                <a:since>4.11</a:since>
+                <a:since>4.11.0</a:since>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>

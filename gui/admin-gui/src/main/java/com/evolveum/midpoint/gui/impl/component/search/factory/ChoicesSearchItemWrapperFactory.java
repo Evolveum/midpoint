@@ -30,9 +30,9 @@ public class ChoicesSearchItemWrapperFactory<T extends Serializable> extends Abs
             List<DisplayableValue<Boolean>> list = new ArrayList<>();
             list.add(new SearchValue<>(Boolean.TRUE, "Boolean.TRUE"));
             list.add(new SearchValue<>(Boolean.FALSE, "Boolean.FALSE"));
-            return new ChoicesSearchItemWrapper(ctx.getPath(), list);
+            return new ChoicesSearchItemWrapper(ctx.getPath(), ctx.getItemDef(), list);
         }
-        return new ChoicesSearchItemWrapper(ctx.getPath(), ctx.getAvailableValues());
+        return new ChoicesSearchItemWrapper(ctx.getPath(), ctx.getItemDef(), ctx.getAvailableValues());
     }
 
     @Override

@@ -37,7 +37,7 @@
                 Configuration related to smart integration feature.
             </xsd:documentation>
             <xsd:appinfo>
-                <a:since>4.11</a:since>
+                <a:since>4.11.0</a:since>
                 <a:container>true</a:container>
             </xsd:appinfo>
         </xsd:annotation>
@@ -56,7 +56,8 @@
                         If configured, it is sent with every request made to that service.
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <a:since>4.11</a:since>
+                        <a:since>4.11.0</a:since>
+                        <a:displayName>SmartIntegrationConfigurationType.serviceApiKey</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -99,7 +100,7 @@
                         a value of PT0S disables the tolerance.
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <a:since>4.11</a:since>
+                        <a:since>4.11.0</a:since>
                         <a:displayName>SmartIntegrationConfigurationType.connectorGenerationTransientErrorTimeout</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
@@ -110,7 +111,7 @@
                         Maximum time to wait for a response from the smart integration service.
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <a:since>4.11</a:since>
+                        <a:since>4.11.0</a:since>
                         <a:displayName>SmartIntegrationConfigurationType.serviceResponseTimeout</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
@@ -122,7 +123,7 @@
                         will be automatically deleted when accessed. Default is P1D (1 day).
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <a:since>4.11</a:since>
+                        <a:since>4.11.0</a:since>
                         <a:displayName>SmartIntegrationConfigurationType.statisticsTtl</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
@@ -134,7 +135,7 @@
                         will be automatically deleted when accessed. Default is P1D (1 day).
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <a:since>4.11</a:since>
+                        <a:since>4.11.0</a:since>
                         <a:displayName>SmartIntegrationConfigurationType.schemaMatchTtl</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
@@ -146,7 +147,7 @@
                         Default is 1 (one retry). Set to 0 to disable retries.
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <a:since>4.11</a:since>
+                        <a:since>4.11.0</a:since>
                         <a:displayName>SmartIntegrationConfigurationType.mappingSuggestionRetryCount</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
@@ -157,7 +158,7 @@
                         Configuration of shadow sampling limits used during smart integration operations.
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <a:since>4.11</a:since>
+                        <a:since>4.11.0</a:since>
                         <a:displayName>SmartIntegrationConfigurationType.shadowSampling</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
@@ -172,7 +173,7 @@
                 Configuration of shadow sampling limits used during smart integration operations (correlation, mapping suggestions).
             </xsd:documentation>
             <xsd:appinfo>
-                <a:since>4.11</a:since>
+                <a:since>4.11.0</a:since>
                 <a:container>true</a:container>
             </xsd:appinfo>
         </xsd:annotation>
@@ -183,7 +184,7 @@
                         Sample size for correlation suggestions when shadow caching is enabled (with all required attributes cached).
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <a:since>4.11</a:since>
+                        <a:since>4.11.0</a:since>
                         <a:displayName>SmartIntegrationShadowSamplingConfigurationType.correlationSampleSizeCached</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
@@ -194,7 +195,7 @@
                         Sample size for correlation suggestions when shadow caching is disabled (or not all required attributes are cached).
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <a:since>4.11</a:since>
+                        <a:since>4.11.0</a:since>
                         <a:displayName>SmartIntegrationShadowSamplingConfigurationType.correlationSampleSizeUncached</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
@@ -205,7 +206,7 @@
                         LLM sample size for mapping suggestions when shadow caching is enabled (with all attributes cached).
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <a:since>4.11</a:since>
+                        <a:since>4.11.0</a:since>
                         <a:displayName>SmartIntegrationShadowSamplingConfigurationType.mappingLlmSampleSizeCached</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
@@ -216,7 +217,7 @@
                         Validation sample size for mapping suggestions when shadow caching is enabled (with all attributes cached).
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <a:since>4.11</a:since>
+                        <a:since>4.11.0</a:since>
                         <a:displayName>SmartIntegrationShadowSamplingConfigurationType.mappingValidationSampleSizeCached</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
@@ -227,7 +228,7 @@
                         LLM sample size for mapping suggestions when shadow caching is disabled (or not all attributes are cached).
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <a:since>4.11</a:since>
+                        <a:since>4.11.0</a:since>
                         <a:displayName>SmartIntegrationShadowSamplingConfigurationType.mappingLlmSampleSizeUncached</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
@@ -238,7 +239,7 @@
                         Validation sample size for mapping suggestions when shadow caching is disabled (or not all attributes are cached).
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <a:since>4.11</a:since>
+                        <a:since>4.11.0</a:since>
                         <a:displayName>SmartIntegrationShadowSamplingConfigurationType.mappingValidationSampleSizeUncached</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
@@ -259,7 +260,7 @@
                 How many objects of given object class are on the resource?
             </xsd:documentation>
             <xsd:appinfo>
-                <a:since>4.11</a:since>
+                <a:since>4.11.0</a:since>
                 <a:container>true</a:container>
             </xsd:appinfo>
         </xsd:annotation>
@@ -330,7 +331,7 @@
                 service API method.
             </xsd:documentation>
             <xsd:appinfo>
-                <a:since>4.11</a:since>
+                <a:since>4.11.0</a:since>
                 <a:container>true</a:container>
             </xsd:appinfo>
         </xsd:annotation>
@@ -353,7 +354,7 @@
                 for suggesting object types delineations.
             </xsd:documentation>
             <xsd:appinfo>
-                <a:since>4.11</a:since>
+                <a:since>4.11.0</a:since>
                 <!-- intentionally not a container, because this is used also in Python service API -->
             </xsd:appinfo>
         </xsd:annotation>
@@ -402,7 +403,7 @@
                 Statistical data for particular attribute needed for suggesting delineations.
             </xsd:documentation>
             <xsd:appinfo>
-                <a:since>4.11</a:since>
+                <a:since>4.11.0</a:since>
                 <!-- intentionally not a container, because this is used also in Python service API -->
             </xsd:appinfo>
         </xsd:annotation>
@@ -452,7 +453,7 @@
                 Number of occurrences of a particular value.
             </xsd:documentation>
             <xsd:appinfo>
-                <a:since>4.11</a:since>
+                <a:since>4.11.0</a:since>
                 <!-- intentionally not a container, because this is used also in Python service API -->
             </xsd:appinfo>
         </xsd:annotation>
@@ -550,7 +551,7 @@
                 Number of occurrences of a particular value pattern.
             </xsd:documentation>
             <xsd:appinfo>
-                <a:since>4.11</a:since>
+                <a:since>4.11.0</a:since>
                 <!-- intentionally not a container, because this is used also in Python service API -->
             </xsd:appinfo>
         </xsd:annotation>
@@ -597,7 +598,7 @@
                 Statistical data for particular attribute tuple needed for suggesting delineations.
             </xsd:documentation>
             <xsd:appinfo>
-                <a:since>4.11</a:since>
+                <a:since>4.11.0</a:since>
                 <!-- intentionally not a container, because this is used also in Python service API -->
             </xsd:appinfo>
         </xsd:annotation>
@@ -626,7 +627,7 @@
                 Number of occurrences of a particular value or value pattern.
             </xsd:documentation>
             <xsd:appinfo>
-                <a:since>4.11</a:since>
+                <a:since>4.11.0</a:since>
                 <!-- intentionally not a container, because this is used also in Python service API -->
             </xsd:appinfo>
         </xsd:annotation>
@@ -657,7 +658,7 @@
                 It's a container mainly to be able to flag it as provided by AI.
             </xsd:documentation>
             <xsd:appinfo>
-                <a:since>4.11</a:since>
+                <a:since>4.11.0</a:since>
                 <a:container>true</a:container>
             </xsd:appinfo>
         </xsd:annotation>
@@ -681,7 +682,7 @@
                 Suggestions of correlation rules.
             </xsd:documentation>
             <xsd:appinfo>
-                <a:since>4.11</a:since>
+                <a:since>4.11.0</a:since>
                 <a:container>true</a:container>
             </xsd:appinfo>
         </xsd:annotation>
@@ -703,7 +704,7 @@
                 Suggestions of correlation rules.
             </xsd:documentation>
             <xsd:appinfo>
-                <a:since>4.11</a:since>
+                <a:since>4.11.0</a:since>
                 <a:container>true</a:container>
             </xsd:appinfo>
         </xsd:annotation>
@@ -747,7 +748,7 @@
                 Suggestions of inbound/outbound mappings.
             </xsd:documentation>
             <xsd:appinfo>
-                <a:since>4.11</a:since>
+                <a:since>4.11.0</a:since>
                 <a:container>true</a:container>
             </xsd:appinfo>
         </xsd:annotation>
@@ -785,7 +786,7 @@
                 Filters for the "suggestMappings" method.
             </xsd:documentation>
             <xsd:appinfo>
-                <a:since>4.11</a:since>
+                <a:since>4.11.0</a:since>
                 <a:container>true</a:container>
             </xsd:appinfo>
         </xsd:annotation>
@@ -828,7 +829,7 @@
                 Interaction metadata related to suggestions of inbound/outbound mappings.
             </xsd:documentation>
             <xsd:appinfo>
-                <a:since>4.11</a:since>
+                <a:since>4.11.0</a:since>
                 <a:container>true</a:container>
             </xsd:appinfo>
         </xsd:annotation>
@@ -863,7 +864,7 @@
                 Suggestions of inbound/outbound mappings for a given attribute.
             </xsd:documentation>
             <xsd:appinfo>
-                <a:since>4.11</a:since>
+                <a:since>4.11.0</a:since>
                 <a:container>true</a:container>
             </xsd:appinfo>
         </xsd:annotation>
@@ -902,7 +903,7 @@
                 Suggestion of a new extension item.
             </xsd:documentation>
             <xsd:appinfo>
-                <a:since>4.11</a:since>
+                <a:since>4.11.0</a:since>
                 <a:container>true</a:container>
             </xsd:appinfo>
         </xsd:annotation>
@@ -949,7 +950,7 @@
                 Suggestions of associations.
             </xsd:documentation>
             <xsd:appinfo>
-                <a:since>4.11</a:since>
+                <a:since>4.11.0</a:since>
                 <a:container>true</a:container>
             </xsd:appinfo>
         </xsd:annotation>
@@ -971,7 +972,7 @@
                 Suggestion of an association type definitions.
             </xsd:documentation>
             <xsd:appinfo>
-                <a:since>4.11</a:since>
+                <a:since>4.11.0</a:since>
                 <a:container>true</a:container>
             </xsd:appinfo>
         </xsd:annotation>
@@ -1028,7 +1029,7 @@
                 Provides information about the AI service used by the system, including its provider, the configured model, and the current health status of the service.
             </xsd:documentation>
             <xsd:appinfo>
-                <a:since>4.11</a:since>
+                <a:since>4.11.0</a:since>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -1069,7 +1070,7 @@
                 Metadata about configured AI inference provider and model returned by Smart Integration Microservice.
             </xsd:documentation>
             <xsd:appinfo>
-                <a:since>4.11</a:since>
+                <a:since>4.11.0</a:since>
                 <!-- intentionally not a container -->
             </xsd:appinfo>
         </xsd:annotation>
@@ -1099,7 +1100,7 @@
                 Request for "suggestObjectTypes" method.
             </xsd:documentation>
             <xsd:appinfo>
-                <a:since>4.11</a:since>
+                <a:since>4.11.0</a:since>
                 <!-- intentionally not a container -->
             </xsd:appinfo>
         </xsd:annotation>
@@ -1156,7 +1157,7 @@
                 to their filters. Provide this entry back to the service to guide the next iteration of suggestions.
             </xsd:documentation>
             <xsd:appinfo>
-                <a:since>4.11</a:since>
+                <a:since>4.11.0</a:since>
                 <!-- intentionally not a container -->
             </xsd:appinfo>
         </xsd:annotation>
@@ -1185,7 +1186,7 @@
                 Response for "suggestObjectTypes" method - suggested object types.
             </xsd:documentation>
             <xsd:appinfo>
-                <a:since>4.11</a:since>
+                <a:since>4.11.0</a:since>
                 <!-- intentionally not a container -->
             </xsd:appinfo>
         </xsd:annotation>
@@ -1213,7 +1214,7 @@
                 Single suggested object type.
             </xsd:documentation>
             <xsd:appinfo>
-                <a:since>4.11</a:since>
+                <a:since>4.11.0</a:since>
                 <!-- intentionally not a container -->
             </xsd:appinfo>
         </xsd:annotation>
@@ -1282,7 +1283,7 @@
             </xsd:documentation>
             <!-- TODO what about complex items, like "activation", "credentials", or custom ones? -->
             <xsd:appinfo>
-                <a:since>4.11</a:since>
+                <a:since>4.11.0</a:since>
                 <!-- intentionally not a container -->
             </xsd:appinfo>
         </xsd:annotation>
@@ -1317,7 +1318,7 @@
                 Definition of a particular resource object attribute or midPoint object property.
             </xsd:documentation>
             <xsd:appinfo>
-                <a:since>4.11</a:since>
+                <a:since>4.11.0</a:since>
                 <!-- intentionally not a container -->
             </xsd:appinfo>
         </xsd:annotation>
@@ -1388,7 +1389,7 @@
                 Request for "suggestFocusType" method.
             </xsd:documentation>
             <xsd:appinfo>
-                <a:since>4.11</a:since>
+                <a:since>4.11.0</a:since>
                 <!-- intentionally not a container -->
             </xsd:appinfo>
         </xsd:annotation>
@@ -1450,7 +1451,7 @@
                 Response for "suggestFocusType" method.
             </xsd:documentation>
             <xsd:appinfo>
-                <a:since>4.11</a:since>
+                <a:since>4.11.0</a:since>
                 <!-- intentionally not a container -->
             </xsd:appinfo>
         </xsd:annotation>
@@ -1480,7 +1481,7 @@
                 Request for "matchSchema" method.
             </xsd:documentation>
             <xsd:appinfo>
-                <a:since>4.11</a:since>
+                <a:since>4.11.0</a:since>
                 <!-- intentionally not a container -->
             </xsd:appinfo>
         </xsd:annotation>
@@ -1507,7 +1508,7 @@
                 Request for "matchSchema" method.
             </xsd:documentation>
             <xsd:appinfo>
-                <a:since>4.11</a:since>
+                <a:since>4.11.0</a:since>
                 <!-- intentionally not a container -->
             </xsd:appinfo>
         </xsd:annotation>
@@ -1534,7 +1535,7 @@
                 Request for "matchSchema" method.
             </xsd:documentation>
             <xsd:appinfo>
-                <a:since>4.11</a:since>
+                <a:since>4.11.0</a:since>
                 <!-- intentionally not a container -->
             </xsd:appinfo>
         </xsd:annotation>
@@ -1573,7 +1574,7 @@
                 Request for "matchSchema" method.
             </xsd:documentation>
             <xsd:appinfo>
-                <a:since>4.11</a:since>
+                <a:since>4.11.0</a:since>
                 <!-- intentionally not a container -->
             </xsd:appinfo>
         </xsd:annotation>
@@ -1611,7 +1612,7 @@
                 smart integration implementation, exposing only serializable information.
             </xsd:documentation>
             <xsd:appinfo>
-                <a:since>4.11</a:since>
+                <a:since>4.11.0</a:since>
                 <!-- intentionally not a container -->
             </xsd:appinfo>
         </xsd:annotation>
@@ -1662,7 +1663,7 @@
                 Request for "suggestMapping" method.
             </xsd:documentation>
             <xsd:appinfo>
-                <a:since>4.11</a:since>
+                <a:since>4.11.0</a:since>
                 <!-- intentionally not a container -->
             </xsd:appinfo>
         </xsd:annotation>
@@ -1719,7 +1720,7 @@
                 Example of input/output values pair for mapping suggestion.
             </xsd:documentation>
             <xsd:appinfo>
-                <a:since>4.11</a:since>
+                <a:since>4.11.0</a:since>
                 <!-- intentionally not a container -->
             </xsd:appinfo>
         </xsd:annotation>
@@ -1748,7 +1749,7 @@
                 Example of values (input or output) for a given attribute.
             </xsd:documentation>
             <xsd:appinfo>
-                <a:since>4.11</a:since>
+                <a:since>4.11.0</a:since>
                 <!-- intentionally not a container -->
             </xsd:appinfo>
         </xsd:annotation>
@@ -1778,7 +1779,7 @@
                 (small number of distinct values matching an MP enum attribute like activation/administrativeStatus).
             </xsd:documentation>
             <xsd:appinfo>
-                <a:since>4.11</a:since>
+                <a:since>4.11.0</a:since>
                 <!-- intentionally not a container -->
             </xsd:appinfo>
         </xsd:annotation>
@@ -1827,7 +1828,7 @@
                 Response for "suggestMapping" method.
             </xsd:documentation>
             <xsd:appinfo>
-                <a:since>4.11</a:since>
+                <a:since>4.11.0</a:since>
                 <!-- intentionally not a container -->
             </xsd:appinfo>
         </xsd:annotation>
@@ -1867,7 +1868,7 @@
                 all other elements remain absent.
             </xsd:documentation>
             <xsd:appinfo>
-                <a:since>4.11</a:since>
+                <a:since>4.11.0</a:since>
                 <a:container>true</a:container>
             </xsd:appinfo>
         </xsd:annotation>
@@ -1934,7 +1935,7 @@
                 result data returned by Smart Integration operations.
             </xsd:documentation>
             <xsd:appinfo>
-                <a:since>4.11</a:since>
+                <a:since>4.11.0</a:since>
                 <a:container>true</a:container>
             </xsd:appinfo>
         </xsd:annotation>
@@ -1976,7 +1977,7 @@
                 It has archetypes indicating specific type of the artifact (statistics, schema matching, ...)
             </xsd:documentation>
             <xsd:appinfo>
-                <a:since>4.11</a:since>
+                <a:since>4.11.0</a:since>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
@@ -2019,7 +2020,7 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container>true</a:container>
-                <a:since>4.11</a:since>
+                <a:since>4.11.0</a:since>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>

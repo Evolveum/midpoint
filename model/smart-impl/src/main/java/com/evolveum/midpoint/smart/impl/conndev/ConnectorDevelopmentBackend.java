@@ -1275,7 +1275,8 @@ public abstract class ConnectorDevelopmentBackend {
     }
 
     protected ServiceClient client() {
-        return beans.client(sessionId(), this::restoreSession, this::synchronizeSession, result);
+        return beans.client(sessionId(), this::restoreSession, this::synchronizeSession,
+                task, result, developmentObject().asPrismObject());
     }
 
     protected String apiType() {

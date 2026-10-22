@@ -490,7 +490,7 @@ See xref:/midpoint/reference/roles-policies/policies/metaroles/policy/[] page fo
 [[activity_pr]]
 === Rule Definitions in Task Activities
 
-Since midPoint 4.11, policy rules can also be attached to individual xref:/midpoint/reference/tasks/activities/[task activities].
+Since midPoint 4.11.0, policy rules can also be attached to individual xref:/midpoint/reference/tasks/activities/[task activities].
 Such rules apply only to the objects processed by the given activity - either defined inline, taken from a referenced policy object, or applied through virtual assignments.
 A typical use case is a threshold that suspends an import or reconciliation activity after a certain number of changes.
 

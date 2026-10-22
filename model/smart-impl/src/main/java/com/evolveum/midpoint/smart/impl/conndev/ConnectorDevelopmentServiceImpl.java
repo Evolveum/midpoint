@@ -91,9 +91,22 @@ public class ConnectorDevelopmentServiceImpl implements ConnectorDevelopmentServ
         return new OperationWrapper(type);
     }
 
+    /**
+     * Fails the operation when the connector development tools are disabled by the deployment
+     * configuration ({@code midpoint.connectors/developmentToolsEnabled} in {@code config.xml}).
+     * Treated the same way as the connector-generation wizard authorization - only the reported
+     * message is different (see {@link ConnectorDevelopmentService#ERROR_CONNECTOR_DEVELOPMENT_DISABLED}).
+     */
+    public static void checkDevelopmentToolsEnabled() throws AuthorizationException {
+        if (!ConnDevBeans.get().configuration.isConnectorDevelopmentToolsEnabled()) {
+            throw new AuthorizationException(ConnectorDevelopmentService.ERROR_CONNECTOR_DEVELOPMENT_DISABLED);
+        }
+    }
+
     @Override
     public ConnectorDevelopmentType startFromExisting(ConnectorType sourceConnector, Task task, OperationResult result)
             throws CommonException {
+        checkDevelopmentToolsEnabled();
         securityEnforcer.authorize(AuthorizationConstants.AUTZ_UI_CONNECTOR_WIZARD_URL, task, result);
 
         // Reuse a development that is already linked to this connector - either the connector it
@@ -683,6 +696,7 @@ public class ConnectorDevelopmentServiceImpl implements ConnectorDevelopmentServ
 
     private String submitTask(String name, WorkDefinitionsType work, Task task, OperationResult result) {
         try {
+            checkDevelopmentToolsEnabled();
             securityEnforcer.authorize(AuthorizationConstants.AUTZ_UI_CONNECTOR_WIZARD_URL, task, result);
 
             var oid = modelInteractionService.submit(

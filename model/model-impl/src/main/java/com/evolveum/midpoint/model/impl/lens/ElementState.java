@@ -896,7 +896,7 @@ class ElementState<O extends ObjectType> implements Serializable, Cloneable {
 
     /**
      * Checks that all protected values are encrypted. Legacy clear-text password hints (stored as plain strings
-     * before 4.11) are tolerated in the objects; they get encrypted only when the hint itself is modified.
+     * before 4.11.0) are tolerated in the objects; they get encrypted only when the hint itself is modified.
      * The deltas are checked strictly.
      */
     void checkEncrypted() {

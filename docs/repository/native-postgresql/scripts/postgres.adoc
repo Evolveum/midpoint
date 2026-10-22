@@ -406,6 +406,12 @@ and also https://docs.evolveum.com/midpoint/reference/schema/focus-and-projectio
 | xref:postgres/simulations.adoc[Simulations]
 | Default partition for simulation processed objects.
 
+| xref:postgres/resources-and-shadows.adoc#m_smart_integration_artifact[`m_smart_integration_artifact`]
+| xref:postgres/resources-and-shadows.adoc[Resources and shadows]
+| Stores artifacts related to smart integration.
+
+Represents persistent SmartIntegrationArtifactType.
+
 | xref:postgres/system-objects.adoc#m_system_configuration[`m_system_configuration`]
 | xref:postgres/system-objects.adoc[System objects]
 | Stores the system configuration object.
@@ -1239,6 +1245,21 @@ of isParent/ChildOf searches and they never return parameter OID as a result.
 | xref:postgres/simulations.adoc#trigger_m_simulation_result_update_tr[`m_simulation_result_update_tr`]
 | xref:postgres/simulations.adoc[Simulations]
 | Maintains object update metadata before rows are updated in `m_simulation_result`.
+| trigger
+
+| xref:postgres/resources-and-shadows.adoc#trigger_m_smart_integration_artifact_oid_delete_tr[`m_smart_integration_artifact_oid_delete_tr`]
+| xref:postgres/resources-and-shadows.adoc[Resources and shadows]
+| Removes the object OID registry entry when rows are deleted from `m_smart_integration_artifact`.
+| trigger
+
+| xref:postgres/resources-and-shadows.adoc#trigger_m_smart_integration_artifact_oid_insert_tr[`m_smart_integration_artifact_oid_insert_tr`]
+| xref:postgres/resources-and-shadows.adoc[Resources and shadows]
+| Maintains the object OID registry when rows are inserted into `m_smart_integration_artifact`.
+| trigger
+
+| xref:postgres/resources-and-shadows.adoc#trigger_m_smart_integration_artifact_update_tr[`m_smart_integration_artifact_update_tr`]
+| xref:postgres/resources-and-shadows.adoc[Resources and shadows]
+| Maintains object update metadata before rows are updated in `m_smart_integration_artifact`.
 | trigger
 
 | xref:postgres/system-objects.adoc#trigger_m_system_configuration_oid_delete_tr[`m_system_configuration_oid_delete_tr`]

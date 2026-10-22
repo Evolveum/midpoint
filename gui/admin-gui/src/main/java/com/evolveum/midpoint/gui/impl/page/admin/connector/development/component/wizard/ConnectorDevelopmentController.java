@@ -23,6 +23,7 @@ import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.ObjectClassesConnectorStepPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.WaitingObjectClassInformationStepPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.schema.SchemaScriptConnectorStepPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.relation.RelationshipScriptConnectorStepPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.relation.RelationshipsConnectorStepPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.summary.ConnectorDevelopmentWizardSummaryPanel;
 import com.evolveum.midpoint.prism.Containerable;
@@ -169,6 +170,73 @@ public class ConnectorDevelopmentController extends AbstractWizardController<Con
         target.add(getPanel());
     }
 
+    public void editRelationship(String relationshipName, AjaxRequestTarget target) {
+        setPartItems(createBasicPartItems());
+        refresh();
+        InitRelationshipConnectorDevPartItem partItem = new InitRelationshipConnectorDevPartItem(getHelper());
+        partItem.setParameter(relationshipName);
+        int index = addWizardPartOnEnd(partItem);
+        clearInProgressPart();
+        setActiveWizardPartIndex(index);
+
+        for (WizardStep step : getActiveChildrenSteps()) {
+            if (step instanceof RelationshipScriptConnectorStepPanel scriptPanel) {
+                setActiveStepWithinActivePart(scriptPanel.getStepId());
+                break;
+            }
+        }
+        fireActiveStepChanged();
+        target.add(getPanel());
+    }
+
+    /**
+     * Rebuilds the wizard's part list from the current object state and lands on the object
+     * classes step. Called after an object class is deleted: parts referencing the deleted
+     * item (and their stale step state) are dropped from the step sidebar, and the user
+     * stays on the (updated) object classes list. When no object classes remain, the wizard
+     * stays on the summary.
+     */
+    public void refreshWizardPartsOnObjectClasses(AjaxRequestTarget target) {
+        setPartItems(createBasicPartItems());
+        refresh();
+        List<AbstractWizardPartItem<ConnectorDevelopmentType, ConnectorDevelopmentDetailsModel>> partItems = getPartItems();
+        for (int i = 0; i < partItems.size(); i++) {
+            if (partItems.get(i).setActiveStepById(ObjectClassesConnectorStepPanel.PANEL_TYPE)) {
+                setActiveWizardPartIndex(i);
+                fireActiveStepChanged(getActiveStep());
+                target.add(getPanel());
+                return;
+            }
+        }
+        target.add(getPanel());
+    }
+
+    /**
+     * Rebuilds the wizard's part list from the current object state and lands on the
+     * relationships step. Called after a relationship is deleted: parts referencing the
+     * deleted item (and their stale step state) are dropped from the step sidebar, and the
+     * user stays on the (updated) relationships list.
+     */
+    public void refreshWizardPartsOnRelationships(AjaxRequestTarget target) {
+        setPartItems(createBasicPartItems());
+        refresh();
+        List<AbstractWizardPartItem<ConnectorDevelopmentType, ConnectorDevelopmentDetailsModel>> partItems = getPartItems();
+        int index = -1;
+        for (int i = 0; i < partItems.size(); i++) {
+            if (partItems.get(i) instanceof RelationshipsConnectorDevPartItem) {
+                index = i;
+                break;
+            }
+        }
+        if (index < 0) {
+            index = addWizardPartOnEnd(new RelationshipsConnectorDevPartItem(getHelper()));
+        }
+        clearInProgressPart();
+        setActiveWizardPartIndex(index);
+        fireActiveStepChanged();
+        target.add(getPanel());
+    }
+
     public void editSearchAll(String objectClassName, AjaxRequestTarget target) {
         setPartItem(new SearchAllConnectorDevPartItem(getHelper()), objectClassName, target);
     }
@@ -236,17 +304,7 @@ public class ConnectorDevelopmentController extends AbstractWizardController<Con
     }
 
     public void showRelationshipsPanel(AjaxRequestTarget target) {
-        List<AbstractWizardPartItem<ConnectorDevelopmentType, ConnectorDevelopmentDetailsModel>> partItems = getPartItems();
-        for (int i = 0; i < partItems.size(); i++) {
-            if (partItems.get(i).setActiveStepById(RelationshipsConnectorStepPanel.PANEL_TYPE)) {
-                setActiveWizardPartIndex(i);
-                fireActiveStepChanged(getActiveStep());
-                target.add(getPanel());
-                return;
-            }
-        }
-        // No part has a relationships step yet (no relationships exist) - start a new one.
-        initNewRelationship(target);
+        setPartItem(new RelationshipsConnectorDevPartItem(getHelper()), target);
     }
 
     private void setActiveStepById(String stepId, AjaxRequestTarget target) {

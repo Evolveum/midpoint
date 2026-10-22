@@ -19,7 +19,7 @@ import java.io.File;
 final class ScimRestTemplateJar {
 
     /** Must match the {@code conndev.version} property in the root POM. */
-    static final String VERSION = "0.2.0-RC2";
+    static final String VERSION = "0.2.0";
 
     private static final String FILE_NAME = "connector-scimrest-generic-" + VERSION + ".jar";
 

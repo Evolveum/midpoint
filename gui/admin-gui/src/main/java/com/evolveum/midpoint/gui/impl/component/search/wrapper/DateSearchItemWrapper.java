@@ -12,6 +12,7 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.component.search.SearchValue;
 import com.evolveum.midpoint.gui.impl.component.search.panel.DateSearchItemPanel;
 import com.evolveum.midpoint.gui.impl.component.search.panel.NamedIntervalPreset;
+import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
@@ -39,6 +40,10 @@ public class DateSearchItemWrapper extends PropertySearchItemWrapper<XMLGregoria
 
     public DateSearchItemWrapper(ItemPath path) {
         super(path);
+    }
+
+    public DateSearchItemWrapper(ItemPath path, ItemDefinition<?> itemDef) {
+        super(path, itemDef);
     }
 
     public XMLGregorianCalendar getSingleDate() {
@@ -105,22 +110,23 @@ public class DateSearchItemWrapper extends PropertySearchItemWrapper<XMLGregoria
     public ObjectFilter createFilter(Class type, PageBase pageBase, VariablesMap variables) {
         PrismContext ctx = PrismContext.get();
         ItemPath path = getPath();
+        ItemDefinition<?> itemDef = getItemDef();
         if (singleDate != null && intervalSecondDate != null) {
             return ctx.queryFor(type)
-                    .item(path)
+                    .item(path, itemDef)
                     .ge(singleDate)
                     .and()
-                    .item(path)
+                    .item(path, itemDef)
                     .le(intervalSecondDate)
                     .buildFilter();
         } else if (singleDate != null) {
             return ctx.queryFor(type)
-                    .item(path)
+                    .item(path, itemDef)
                     .ge(singleDate)
                     .buildFilter();
         } else if (intervalSecondDate != null) {
             return ctx.queryFor(type)
-                    .item(path)
+                    .item(path, itemDef)
                     .le(intervalSecondDate)
                     .buildFilter();
         }

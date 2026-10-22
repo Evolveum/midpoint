@@ -1,16 +1,16 @@
 ---
 layout: release
-release-version: '4.11'
+release-version: '4.12.0'
 visibility: hidden
 ---
-= MidPoint 4.11
-:release-version: 4.11
+= MidPoint 4.12.0
+:release-version: 4.12.0
 :page-visibility: hidden
 :page-liquid:
 :page-toc: top
 
-Release {release-version} is a seventy-second midPoint release, code-named _Braille_.
-The {release-version} release brings accessibility improvements, compliance features as well as many incremental improvements and bugfixes.
+Release {release-version} is an eighty-sixth midPoint release, code-named _Čapek_.
+The {release-version} release brings AI-assisted rapid application onboarding, major security improvements, and numerous improvements for end users, engineers, and administrators.
 
 ++++
 {% include release-data.html %}
@@ -19,301 +19,66 @@ The {release-version} release brings accessibility improvements, compliance feat
 ++++
 {% capture dedicationContent %}
 <p>
-<a href="https://en.wikipedia.org/wiki/Karel_%C4%8Capek">Karel Čapek</a> (1890-1938) was a Czech writer, playwright, critic and journalist.
+<a href="https://en.wikipedia.org/wiki/Karel_%C4%8Capek">Karel Čapek</a> (1890–1938) was a Czech writer, playwright, critic, and journalist.
 He is known for his science fiction, including his play R.U.R. (Rossum's Universal Robots), which introduced the word "robot".
 He also wrote many politically charged works, opposing the rise of both fascism and communism.
 </p>
 <p>
-Sci-fi themes of Čapek's works aligns with the innovations brought by midPoint 4.11.
-Practical AI-powered features were introduced in midPoint 4.11 to make application onboarding faster and easier.
-Čapek's opposition of fascism and communism is echoed in digital sovereignty that midPoint brings to identity governance.
-Moreover, midPoint 4.11 made a significant leap towards secure-by-default configuration, which is helpful at keeping malicious actors at bay.
+The sci-fi themes of Čapek's works align with the innovations brought by midPoint 4.11.0.
+Practical AI-powered features were introduced in midPoint 4.11.0 to make application onboarding faster and easier.
+Čapek's opposition to both fascism and communism is echoed in the digital sovereignty that midPoint brings to identity governance.
+Moreover, midPoint 4.11.0 made a significant leap towards secure-by-default configuration, which is helpful in keeping malicious actors at bay.
 </p>
 {% endcapture %}
 {% include release-dedication.html content=dedicationContent %}
 ++++
 
-== Changes With Respect to Version 4.10
+== Changes With Respect to Version 4.11
 
 === New Features and Major Improvements
 
-* xrefv:/midpoint/reference/master/expressions/expressions/script/mel/[MidPoint expression language]: secure expression language for use in mappings and customization.
-
-* New Smart Integration features:
-** Suggestions of object types (delineation).
-** Suggestions of focus type.
-** Suggestions of correlators.
-** Suggestions of mappings.
-** Suggestions of simple associations.
-** Object Type / Object Class statistics.
-** Correlators simulation.
-** Inbound mappings simulation.
-** Dedicated `#smartIntegration` authorization for suggestion operations.
-* **Connector generator wizard**: AI-assisted, low-code wizard that generates a working manifest-based connector JAR for an external application without hand-writing connector code.
-** Supports SCIM, REST and SQL protocols.
-** Guided workflow using wizard:
-*** start from scratch or import an existing low-code connector
-*** basic information (application identification, connector coordinates)
-*** application documentation discovery with AI processing
-*** connection setup (base URL, authentication methods, AI-generated authentication scripts, credentials, connectivity endpoint discovery and testing)
-*** object class discovery, schema generation
-*** Support for per-operation code generation
-scripts (search all, search by ID, search filter)
-*** Limited support for create, update, delete, relationships
-** Runs in a limited offline mode (skeleton scripts, no documentation processing, no relationships) when the Connector Generator microservice is not configured.
-** In-progress connector developments are tracked as `ConnectorDevelopmentType` objects, listed under *Connectors* > *Connector developments*.
-** Protected by the dedicated `#connectorWizard` authorization, not granted by any out-of-the-box role (Superuser reaches it only via `#all`), because the wizard generates and executes connector code.
-
-* UI/UX improvements:
-** Improved Object Type wizard.
-** Improved Mappings page.
-** Improved Correlation page.
-
-* Multi-tab Browser Support. See bug:MID-11050[].
-
-* xref:/midpoint/guides/updating-native-db/updating-to-pg18.adoc[Support for PostgreSQL 18]
-
-* bug:MID-11358[] Added connector signature verification for production environments without an active subscription,
-including import of signed allowed-connectors list and subscription compliance enforcement. See #TODO link to docs#
-
-* xref:/midpoint/reference/resources/manual/ticketing/[ITSM ticketing]: the built-in manual connector can now manage provisioning tickets on a real ITSM system, using a dedicated ticketing resource.
-The ticket is managed as a projection (a shadow of the `work` kind) of the midPoint case.
-
-* New `work` shadow kind for work items (issues, tickets, cases, work packages).
-
-* Cases can now hold projections: the new `ProjectionHolderType` schema type is a common parent of `FocusType` and `CaseType`.
-
-* xref:/midpoint/reference/security/authentication/flexible-authentication/modules/totp/[TOTP support]: new `totp` authentication module brings multi-factor authentication based on time-based one-time passwords to flexible authentication.
-Users can set up and reset their authenticator application in the self-service user interface.
-See bug:MID-11049[].
-
-* xref:/midpoint/reference/tasks/focus-policies-in-activities/[Focus policies in activities]: focus-based policy rules can now be configured and evaluated per task activity, not only for the whole task.
-This allows separate focus-based thresholds for individual activities of composite tasks, including the `restartActivity` and `skipActivity` policy actions.
-See bug:MID-11051[].
-
-#TODO#
+// TODO
 
 === Other Improvements
 
-* Added support for Slovenian (sl), Latvian (lv) language.
-* Multiple libraries updated, including spring boot.
-* Many improvements in accessibility of the self-service, approval process and identity recovery user interface (WCAG 2.2 compliance).
-* bug:MID-10997[] Added support for additional footer.
-* bug:MID-11036[] Implemented support for exporting reports and tables to XLSX.
-* bug:MID-11229[] Implemented streaming export for XLSX format.
-* bug:MID-10918[] Improved audit record for skipped approval stage.
-* bug:MID-9476[] Improved Search Box in Object Collection View.
-* bug:MID-10867[] Added support for java 25.
-* bug:MID-10875[] Added Order constraints tab for Assignments panel.
-* bug:MID-10335[] Fixed inconsistency in the connector loading process.
-* bug:MID-10936[] Changed the logger for SQL functional tracing from `org.hibernate.SQL` to `com.evolveum.midpoint.repo.sqlbase.querydsl.SqlLogger`.
-* Improved handling of clockwork collisions in multi-thread setup, problem was reflected in duplication of assignments. See bug:MID-10714[].
-* Improved patch management of docker images, updated tagging of docker images.
-    See xref:/midpoint/get-started/install/containers/container-image-naming/[].
-* Implemented new configuration options for processing uploaded images.
-* bug:MID-8802[] Added displayName and preferredName to UserType.
-* Upgraded AdminLTE to 4.1. See bug:MID-11538[].
-* Added support for "null" expression. See bug:MID-11867[].
-* Fixed handling of admin assign/unassign governance/member authorization. See bug:MID-11850[].
-* Upgraded Apache CXF to 4.2.2. See bug:MID-11948[]
-* Added configurable validation and processing of uploaded files, including content type verification, image conversion, and metadata stripping. See bug:MID-11849[].
-* Custom deployment colors (header color or skin) or a custom logo are now taken as an indication that midPoint runs in a production environment. See bug:MID-11977[].
-* Added lifecycle state configuration for construction inducement. See bug:MID-11922[].
-* Added English (Europe) locale. See bug:MID-10286[].
-* Added auditing of Smart Integration service calls, including request payload recording and full-text payload search. See bug:MID-11325[].
-* Form multipart limit (adminGuiConfiguration/formMaxMultiparts) now defaults to the Tomcat server.tomcat.max-part-count value instead of a fixed 100.
-* Improved security filtering of transient pending objects before GUI rendering. See bug:MID-12062[]
-* Changed password hints to be stored as ProtectedStringType instead of plain strings. See bug:MID-12111[] and xref:/midpoint/guides/migrating-plaintext-password-hints/[migration guide].
-* Account activation now uses a dedicated authentication sequence and a one-time link.
-This is mainly used when password hashing is enabled.
-See xref:/midpoint/guides/account-activation-sequence/[Account Activation Authentication Sequence] for the required configuration.
-* Fixed object marks not being removed immediately after unassigning the policy that induces them. See bug:MID-10641[].
-* Registration confirmation notifier doesn't send cleartext username and password by default.
-* Password hint is now hidden by default in the self-service user interface.
-* Added option to relax email address validation when sending notifications (`mail.mime.address.strict` JVM property). See bug:MID-11048[].
-* Added mapping authoritativeness indicators based on mapping strength and range to mapping tables and previews. See bug:MID-12021[].
-* Added quick actions to apply Correlate later, Do not touch, and Invalid data marks directly from simulation results. See bug:MID-11583[].
-* Improved correlation configuration with selection and creation of inbound mappings directly from correlation items. See bug:MID-12036[] and bug:MID-11920[].
-* Improved reporting of Smart Integration suggestion errors, including access to operation details and the related task. See bug:MID-11393[].
-* Added GUI support for configuring mapping iteration settings and reviewing iteration settings in mapping suggestions. See bug:MID-11712[] and bug:MID-11753[].
-* Added a configurable Smart Integration service response timeout using smartIntegration/serviceResponseTimeout. See bug:MID-11902[].
-* Improved object class search in Smart Integration to support case-insensitive matching and searching object class documentation. See bug:MID-11394[].
-* Improved default mapping range initialization based on target cardinality while preserving custom ranges. See bug:MID-12404[].
-* Added GUI editor for role auto-assignment, including the condition. See bug:MID-4684[].
-* Added support for range in mappings in GUI. See bug:MID-11767[].
-* Added support for filter expressions and conditions in GUI. See bug:MID-11865[].
-* Improved handling of conditions in GUI. See bug:MID-11864[].
-* Added support for value expression returning null in GUI. See bug:MID-11768[].
+==== Security
 
-#TODO#
+// TODO
 
-=== Other Bug Fixes
+==== User Interface
 
-* Fixed unassignment with relation specification from Governance members. See bug:MID-10955[].
-* Fixed object types configuration usage on the members panel. See bug:MID-10896[].
-* Fixed Comment column behavior on the certification work items panel. See bug:MID-10912[].
-* Fixed session storage for Task Errors panel. See bug:MID-10975[].
-* Fixed expression filter usage for configured search items. See bug:MID-10977[].
-* Fixed 'Duplicate' action for certification definition. See bug:MID-10456[].
-* Fixed exporting of the 'Display name' columns on the certification items page. See bug:MID-10873[].
-* Fixed required comment validation while approving certification item. See bug:MID-10974[].
-* Fixed translation of the left menu items for collection views. See bug:MID-10998[].
-* Fixed polystring translation. From now, orig value of the polystring is never translated. See bug:MID-10996[].
-* Fixed attempt to modify immutable definition. See bug:MID-11001[].
-* Fixed schema type object updates and prism context schema registry reload. See bug:MID-10983[].
-* Fixed ConcurrentModificationException in RelationUtil. See bug:MID-10940[]
-* Fixed correlation case closing on resolution error. See bug:MID-11094[]
+// TODO
 
-* Fixed the execution of the 'Delete all closed tasks' action. See bug:MID-11069[]
-* Fixed the usage of the multiple ProtectedStringType fields in the same panel. See bug:MID-11072[]
-* Fixed misleading information in audit log during password reset. See bug:MID-11077[]
-* Fixed authentication exception handling while user login. See bug:MID-10953[]
-* Fixed progress bar colors in the Certification items dashboard panel. See bug:MID-10930[]
-* Extended the list of the searchable items for UserType. See bug:MID-11012[]
-* Fixed report data type name and exported file name to be unique. See bug:MID-10978[]
-* Fixed the mapping for stage deadline column in certification cases table. See bug:MID-11023[]
-* Fixed the path traversal vulnerability in the report import. See bug:MID-11014[]
-* Fixed certification case stage outcome information. See bug:MID-11026[]
-* Fixed admin gui configuration merging. See bug:MID-11045[]
-* Fixed correlation work item panel. See bug:MID-10993[]
-* Fixed recipient converter while sending notification. See bug:MID-11038[]
-* Fixed page storage for dashboard widget collection. See bug:MID-11055[]
-* Fixed oversized IN queries in fetchChildren causing PostgreSQL parameter limit errors. See bug:MID-11089[]
+=== Other Areas
 
-* Fixed getOptions conversion to avoid overriding default retrieval when <retrieve> is omitted. See bug:MID-11088[]
-* Fixed missing estimatedOldValues in raw audit (EXECUTE_CHANGES_RAW). See bug:MID-10027[]
-* Fixed modification of query of report fails when the query is defined using midPoint query language. See bug:MID-11093[]
-* Fixed access request shows unrelated conflicts. See bug:MID-10994[]
-* Fixed false replace updates in admin GUI dateTime comparison (seconds normalization issue). See bug:MID-11078[]
-* Improved login and self-dashboard performance. See bug:MID-10972[]
-* Fixed hide export button in the popup. See bug:MID-11160[]
-* Delineation suggestions: filter parsing broken after recent GUI change. See bug:MID-11175[]
-* Fixed work item search by name causing repository mapping error. See bug:MID-8834[]
-* Fixed translation of archetype display labels in assignment picker and summary panel. See bug:MID-11177[]
-* Fix 10k limit in certification queries using iterative search. See bug:MID-11043[]
-* Fixed generic "Fatal error" message in object tables to show available list/search error details. See bug:MID-10911[]
-* Improved user list performance with orgRelation authorization for users managing many organizations. See bug:MID-11179[]
-* Fixed extension schema containers displaying. See bug:MID-10954[]
-* Fixed duplicated "No response" option for campaign. See bug:MID-11166[]
-* Fixed Campaigns scheduling menu item visibility. See bug:MID-11176[]
-* Fixed axiom query parsing for saved filters. See bug:MID-11183[]
-* Updated saved filters merging strategy. See bug:MID-11181[]
-* Improved CSV export to use streaming data loading and export. See bug:MID-10990[]
-* Fixed text formatting in disabled text area. See bug:MID-11216[]
-* Fixed Privileged access initial object. See bug:MID-11004[]
-* Fixed assignment name for policy rule. See bug:MID-11005[]
-* Fixed object list view columns while report creation. See bug:MID-10967[]
-* Fixed role analysis attribute queries for enum-based attributes such as effective status. See bug:MID-10504[]
-* Fixed skipped approval processing for role ADD operations that could leave empty ADD deltas. See bug:MID-11101[]
-* Fixed loss of unsaved resource detail changes after running Test connection. See bug:MID-10966[]
-* Fixed dashboard widget collections with inline filters by allowing explicit object type specification. See bug:MID-9879[]
-* Fixed missing .zip extension when downloading tracing report files. See bug:MID-11096[]
-* Fixed resource wizard mapping property autocomplete to find partial matches regardless of letter case. See bug:MID-10415[]
-* Fixed missing input variable in resource activation existence mappings. See bug:MID-10905[]
-* Fixed stale page recovery after viewing page source causing internal server error. See bug:MID-9998[]
-* Hided conflict warning on Shopping cart panel of the Request Access wizard in case of prune action. See bug:MID-11250[] and xref:#_behavior_changes_since_4_10[behavior changes since 4.10].
-* Fixed NPE when selecting deprecated action in resource object type editor. See bug:MID-10957[]
-* Fixed tooltip lifecycle in search popovers to prevent blinking, stuck, and duplicate tooltips. See bug:MID-10908[]
-* Fixed detailed resource lifecycle changes to use the proper confirmation and save flow. See bug:MID-10700[]
-* Fixed multithreaded Ninja export race causing rare ArrayIndexOutOfBoundsException. See bug:MID-10910[]
-* Fixed reference matches queries failing when the target filter is wrapped in parentheses. See bug:MID-10903[]
-* Updated spring boot to 4.0. See bug:MID-11002[]
-* Fixed serialization of focus preview changes page by avoiding retained live model context. See bug:MID-11082[]
-* Fixed bucketed task workers continuing after root task suspension. See bug:MID-11217[].
-* Improved debug logging for OIDC opaque-token issuer discovery failures. See bug:MID-11292[].
-* Fixed structured-copy handling of reference values in asynchronous script execution. See bug:MID-10587[].
-* Fixed default login redirect to home page. See bug:MID-10269[]
-* Updated spring boot to 4.1. See bug:MID-11547[]
-* Fixed Wicket Ajax login redirects to preserve the servlet context path. See bug:MID-11687[]
-* Fixed merging of the resource capabilities without id. See bug:MID-11218[]
-* Fixed download report file extension. See bug:MID-11312[]
-* Fixed reference value update in search panel. See bug:MID-11400[]
-* Fixed Role catalog query for Roles of teammates. See bug:MID-11221[]
-* Fixed defaultOperationPolicy merging in objectType of the resource. See bug:MID-11412[]
-* Fixed encoding handling issues in csv report import and export. See bug:MID-11413[]
-* Fixed custom relation translation. See bug:MID-11523[]
-* Fixed CSV export for Tasks table. See bug:MID-11652[]
-* Fixed breaking too long labels into lines. See bug:MID-11711[]
-* Fixed breaking too long labels into lines. See bug:MID-11714[]
-* Fixed empty recipient filter expressions bypassing notification redirection to file. See bug:MID-11828[]
-* Fixed saving dynamic extension attributes. See bug:MID-11716[]
-* Fixed recursive processing of post-initial objects in midpoint.sh and ninja.sh scripts. See bug:MID-11201[]
-* Improved handling of unavailable OIDC issuers during GUI authentication. See bug:MID-11293[]
-* Fixed resolver errors caused by unnecessary JAXB namespace imports in serialized enum schemas. See bug:MID-10558[]
-* Fixed suspension of iterative scripting tasks when a threshold policy action is triggered. See bug:MID-11073[]
-* Fixed obsolete property references in default authorization roles. See bug:MID-10570[]
-* Fixed intermittent freezing of composition activities with subtasks in clustered deployments. See bug:MID-11928[].
-* Fixed search authorization denial for queries with type filters when read access is item-limited. See bug:MID-11221[].
-* Fixed standalone audit database schema upgrades missing the `ROLE_ANALYSIS_OUTLIER` object type. See bug:MID-11884[]
-* Fixed visibility of sort icon for empty header cell. See bug:MID-11860[]
-* Fixed multiple times clicking on Submit request button in Role catalog. See bug:MID-11939[]
-* Fixed GUI handling of business role duplication when role creation requires approval. See bug:MID-11784[]
-* Fixed worker progress reporting for distributed bucketed tasks. See bug:MID-11186[]
-* Fixed authentication flow reuse across shared HTTP sessions. See bug:MID-10821[]
-* Fixed stale resource reference in duplicated reconciliation tasks. See bug:MID-12053[]
-* Fixed simulated reference attributes being requested from connectors. See bug:MID-11807[]
-* Fixed automatic setting of `archetypeRef` when creating a new object from an archetyped collection view. See bug:MID-11914[].
-* Fixed GUI visualization failure for dynamic Prism containers without a compile-time class. See bug:MID-11550[]
-* Fixed Velocity expressions rendering schema enum values in upper case. See bug:MID-11086[]
-* Fixed self-registration confirmation not invalidating the used email nonce, which blocked subsequent password reset requests. See bug:MID-12082[].
-* Fixed stale effective marks remaining on focus objects when one of several marking policy rules stops matching. See bug:MID-12154[].
-* Fixed endless discovery loop causing stalled tasks and OOM when resource repeatedly reported "Already exists" on modification issue. See bug:MID-11979[].
-* Fixed transient `effectiveOperationPolicy` being persisted and displayed in audited shadow ADD deltas. See bug:MID-11951[].
-* Fixed unbounded growth of task operation results during iterative item processing. See bug:MID-12197[]
-* Fixed persisted ItemPath values losing dynamic schema extension namespace declarations. See bug:MID-11241[]
-* Fixed additional connector failure when connectorRef is specified using a filter. See bug:MID-9537[]
-* Fixed Name and Display Name columns to honor configured display styles in object tables. See bug:MID-11787[]
-* Fixed activation support detection for object-type configured capabilities in the projection details header. See bug:MID-11954[]
-* Fixed unlock user action from users list table. See bug:MID-12184[]
-* Fixed Approve/Reject action buttons visibility for correlation case. See bug:MID-12358[]
-* Fixed extremely long input to subtype throws error. See bug:MID-12169[]
-* Fixed Can't hide query playground for superuser (with #all authorization). See bug:MID-10848[]
-* Fixed visualization item descriptiveness handling for added and deleted containers. See bug:MID-10620[]
-* Fixed displaying of the error while adding a delegation. See bug:MID-12364[]
-* Fixed extra reviewer reference labels in certification campaign stage definitions. See bug:MID-6647[]
-* Fixed access certification ignoring overridden system clock in deadlines, reminders, notifications and campaign cleanup. See bug:MID-11008[]
-* Replaced Groovy usage in repository factory reset with a dedicated initial import activity and safe default password policy expression. See bug:MID-12370[]
-* Fixed reviewer being able to submit a certification decision after the stage deadline has passed. See bug:MID-11028[].
-* Fixed unstable display order of certification work items. See bug:MID-11047[].
-* Fixed rendering of deltas of container items in audit report delta columns. See bug:MID-10984[].
-* Fixed page crash when searching audit records by delta changed item path. See bug:MID-10985[].
-* Fixed read-only fields being rendered as plain text without any visual container; they are now shown as greyed-out fields. See bug:MID-11853[].
-* Fixed activation outbound mappings being applied to unmanaged shadows. See bug:MID-11029[].
-* Fixed concurrency issue when parsing queries. See bug:MID-11058[].
-* Fixed dashboard widget showing "Unknown" for shadow collections. See bug:MID-11102[].
-* Fixed parsing of shadow attributes and identifiers in JSON format. See bug:MID-10944[].
-* Fixed handling of modification provenance metadata for phantom assignment additions. See bug:MID-10979[].
-* Reduced memory consumption when storing very large strings (e.g. traces) in the repository. See bug:MID-11015[].
-* Fixed duplicate trigger on task unpause that could leave task trees suspended or frozen. See bug:MID-10496[].
-* Fixed model loading for unassign action popup. See bug:MID-11584[].
-* Fixed report import for big data file. Report import uses streaming processing and has a maximal file size limit. See bug:MID-11009[].
-* Fixed operational-only shadow changes being incorrectly reported as affecting resource objects in simulations. See bug:MID-11912[].
-* Fixed viewing historical simulation results when referenced shadows have been deleted, and correlation simulation results when naming attributes are unavailable. See bug:MID-11980[] and bug:MID-12273[].
-* Fixed mapping suggestion actions failing after page deserialization. See bug:MID-11627[].
-* Fixed returning from a task to an empty resource page during resource creation. See bug:MID-12073[].
-* Fixed JavaScript escaping of operation result messages and localized date/time picker messages. See bug:MID-12262[].
-* Fixed incompatible discovered connector configuration value types that prevented returning to the Discovery step. See bug:MID-11459[].
-* Fixed script expression description updates and preservation when editing scripts or changing their language. See bug:MID-11779[] and bug:MID-11988[].
-* Fixed autocomplete filtering in numeric input fields when suggested values are provided as strings. See bug:MID-12237[].
-* Fixed correlation rule validation to require at least one correlation item before saving. See bug:MID-12421[].
+// TODO
+
+=== Bug Fixes
+
+* bug:MID-11658[] Fixed inconsistency in help  for ninja export command
+
+// TODO
+
+=== Other changes
+
+// TODO
 
 === Releases Of Other Components
 
-#TODO UDPATE#
+* New version (3.10) of xref:/connectors/connectors/com.evolveum.polygon.connector.ldap.LdapConnector/[AD/LDAP Connector] was released and bundled with midPoint.
+** Object class descriptions are provided in the schema.
+** Improved configuration suggestions for OpenLDAP (e.g., `placeholderMember` attribute).
+** Managed association pairs are ordered by relevancy and the default member attribute is suggested. See bug:MID-11447[].
+** Fixed handling of the "exists" filter.
+** Active Directory security descriptor is handled as binary attribute.
+** Recognition of additional Active Directory `X_BIND_REQUIRED` error.
+** Updated dependencies.
 
-* New version (1.5.2.0) of xref:/connectors/connectors/org.identityconnectors.databasetable.DatabaseTableConnector/[DatabaseTable Connector] was released and bundled with midPoint. The connector suggest all names of columns for configuration properties related with name of column.
-
-* New version (2.8) of xref:/connectors/connectors/com.evolveum.polygon.connector.csv.CsvConnector/[CSV Connector] was released and bundled with midPoint. The connector suggest all names of columns for configuration properties related with name of column.
-** Fixed NPE with multivalue attributes when delimiter is not defined. (bug:MID-8609[]).
-** Fix UTF-8 BOM character in csv file during of discovery functions. (bug:MID-9497[] and bug:MID-9498[]).
-
-* New version (3.8) of xref:/connectors/connectors/com.evolveum.polygon.connector.ldap.LdapConnector/[AD/LDAP Connector] was released and bundled with midPoint. The connector suggest all names of columns for configuration properties related with name of column.
-** Native association support.
-** Possibility to choose attributes that should not be returned by default.
-** Possibility to choose to encode string values in case of the presence of non standard ASCII characters.
-** Workaround for open-ldap mandatory member attribute.
-** Possibility to specify used auxiliary object classes in connector configuration.
-** Allow to send the LDAP_DIRSYNC_OBJECT_SECURITY flag in Active Directory sync request control.
+* New version (2.10) of xref:/connectors/connectors/com.evolveum.polygon.connector.csv.CsvConnector/[CSV Connector] was released and bundled with midPoint.
+** Support for native associations (object references).
+** Improved configuration and discovery.
+** Fixed error handling for empty unique attribute value. See bug:MID-10911[].
+** Fixed false comment marker detection. See bug:MID-10956[].
 
 ++++
 {% include release-quality.html %}
@@ -350,7 +115,7 @@ Even though midPoint may work well on mobile devices, the support for small scre
 Partial support for small screens (e.g. only for self-service purposes) may be provided, but it has to be explicitly negotiated in a subscription contract.
 
 * There are several add-ons and extensions for midPoint that are not explicitly distributed with midPoint.
-This includes xrefv:/midpoint/reference/support-4.9/interfaces/midpoint-client-java/[Java client library],
+This includes xrefv:/midpoint/reference/master/interfaces/midpoint-client-java/[Java client library],
 various https://github.com/Evolveum/midpoint-samples[samples], scripts, connectors and other non-bundled items.
 Support for these non-bundled items is limited.
 Generally speaking, those non-bundled items are supported only for platform subscribers and those that explicitly negotiated the support in their contract.
@@ -360,8 +125,9 @@ This part of midPoint user interface is not finished.
 The only supported parts of this user interface are those that are used to process requests, approvals, and manual correlation.
 Other parts of case management user interface are considered to be experimental, especially the parts dealing with manual provisioning cases.
 
-* Smart Integration features which leverages LLMs, requires an external "Smart Integration" microservice to work properly (publicly available at our https://github.com/Evolveum/midpilot-smart-integration/tree/main[GitHub]).
-For all such features there is also the requirement of either hosting your own LLM inference service, or use some third party LLM inference provider.
+* Connector generator and smart integration features which leverages LLMs, require an external microservice to work properly (publicly available at our GitHub: https://github.com/Evolveum/midpilot-connector-gen[for connector generator] and https://github.com/Evolveum/midpilot-smart-integration[for smart integration]).
+For these features there is also the requirement of either hosting your own LLM inference service, or use some third party LLM inference provider.
+Evolveum is going to provide such microservices as well.
 
 This list is just an overview, it may not be complete.
 Please see the documentation regarding detailed limitations of individual features.
@@ -378,12 +144,11 @@ But only the versions specified below are supported as part of midPoint subscrip
 === Operating System
 
 MidPoint is likely to work on any operating system that supports the Java platform.
-However, for *production deployment*, only some operating systems are supported:
+However, for *production deployment*, only the following operating system is supported:
 
 * Linux (x86_64)
-* Windows Server (2022)
 
-We are positive that midPoint can be successfully installed on other operating systems, especially macOS and Microsoft Windows desktop.
+We are positive that midPoint can be successfully installed on other operating systems, especially macOS and Microsoft Windows.
 Such installations can be used to for evaluation, demonstration or development purposes.
 However, we do not support these operating systems for production environments.
 The tooling for production use is not maintained, such as various run control (start/stop) scripts, low-level administration and migration tools, backup and recovery support and so on.
@@ -413,12 +178,12 @@ Use of open source OpenJDK builds with public support is recommended instead of 
 *PostgreSQL is the only supported database* for midPoint deployments since 4.10.
 
 Although in previous versions of midPoint other databases were supported using object-relational mapping abstraction (Hibernate), it is no longer the case now.
-xrefv:/midpoint/reference/support-4.9/repository/native-postgresql/[Native PostgreSQL repository implementation] was developed and tuned specially for PostgreSQL database, taking advantage of native database features, providing improved performance and scalability.
+xrefv:/midpoint/reference/master/repository/native-postgresql/[Native PostgreSQL repository implementation] was developed and tuned specially for PostgreSQL database, taking advantage of native database features, providing improved performance and scalability.
 It is currently the only option.
 
 Our strategy is to officially support the latest stable version of PostgreSQL database (to the practically possible extent).
 We make no commitments for future support of any other database engines.
-See xrefv:/midpoint/reference/support-4.9/repository/repository-database-support/[] page for the details.
+See xrefv:/midpoint/reference/master/repository/repository-database-support/[] page for the details.
 
 Only a direct connection from midPoint to the database engine is supported.
 Database and/or SQL proxies, database load balancers or any other devices (e.g. firewalls) that alter the communication are not supported.
@@ -453,19 +218,19 @@ We reserve the right not to support customized web browsers.
 | Component | Version | Description
 
 | Tomcat
-| 10.1.55
+| 11.0.25
 | Web container
 
 | ConnId
-| 1.7.0.0-SNAPSHOT #TODO#
+| 1.7.0.0-M0
 | ConnId Connector Framework
 
 | xref:/connectors/connectors/com.evolveum.polygon.connector.ldap.LdapConnector/[LDAP connector bundle]
-| 3.10-SNAPSHOT  #TODO#
+| 3.10
 | LDAP and Active Directory
 
 | xref:/connectors/connectors/com.evolveum.polygon.connector.csv.CsvConnector/[CSV connector]
-| 2.10-SNAPSHOT #TODO#
+| 2.10
 | Connector for CSV files
 
 | xref:/connectors/connectors/org.identityconnectors.databasetable.DatabaseTableConnector/[DatabaseTable connector]
@@ -493,28 +258,31 @@ Although we try to our best, it is not possible to foresee all possible uses of 
 Therefore, the information provided in this section are for information purposes only without any guarantees of completeness.
 In case of any doubts about upgrade or behavior changes please use services associated with xref:/support/subscription-sponsoring/[midPoint subscription programs].
 
-Please refer to the xrefv:/midpoint/reference/support-4.9/upgrade/upgrade-guide/[] for general instructions and description of the upgrade process.
+Please refer to the xrefv:/midpoint/reference/master/upgrade/upgrade-guide/[] for general instructions and description of the upgrade process.
 The guide describes the steps applicable for upgrades of all midPoint releases.
 Following sections provide details regarding release {release-version}.
 
 === Upgrade From MidPoint 4.10
 
 MidPoint {release-version} data model is backwards compatible with previous midPoint version.
-Please follow our xrefv:/midpoint/reference/support-4.10/upgrade/upgrade-guide/[Upgrade guide] carefully.
+Please follow our xrefv:/midpoint/reference/master/upgrade/upgrade-guide/[Upgrade guide] carefully.
 
 [IMPORTANT]
 Be sure to be on the latest maintenance version for 4.10, otherwise you will not be warned about all the necessary schema changes and other possible incompatibilities.
 
 Note that:
 
-* There are database schema changes (see xrefv:/midpoint/reference/support-4.10/upgrade/database-schema-upgrade/[Database schema upgrade]).
-** New tables for `ApplicationType`, `ConnectorDevelopmentType` were added.
+* There are database schema changes (see xrefv:/midpoint/reference/master/upgrade/database-schema-upgrade/[Database schema upgrade]).
+** New tables for `ConnectorDevelopmentType`, `AllowedConnectorsListType`, `SmartIntegrationArtifactType` and `ProjectionHolderType` were added.
+(`ApplicationType` was added as well, but it is not used in 4.11.0 yet.)
+** New columns for `displayName` and `preferredName` of `UserType` were added.
+** New `WORK` value of shadow kind was added.
 ** Few other smaller changes.
 
- * Version numbers of some bundled connectors have changed.
- Connector references from the resource definitions that are using the bundled connectors need to be updated.
+* Version numbers of some bundled connectors have changed.
+Connector references from the resource definitions that are using the bundled connectors need to be updated.
 
- * See also the _Actions required_ information below.
+* See also the _Actions required_ information below.
 
 === Upgrade From Other MidPoint Versions
 
@@ -527,11 +295,11 @@ NOTE: This section is relevant to the majority of midPoint deployments.
 It refers to the most significant functionality removals and changes in this version.
 
 * The _PolyStringType.orig_ value is no longer treated as a translation key.
-Previously, due to the old PolyStringType structure, there were situations where the orig value of a polystring was interpreted as a translation key.
-For example, this occurred when a polystring was defined within a DisplayType object as a label for an object collection view.
-In such cases, if no explicit translation key was provided, midPoint attempted to translate the orig value.
-Starting from 4.11 version, the orig value will never be translated.
-Please ensure that all PolyStringType values in your environment are defined correctly.
+Previously, due to the old `PolyStringType` structure, there were situations where the `orig` value of a polystring was interpreted as a translation key.
+For example, this occurred when a polystring was defined within a `DisplayType` object as a label for an object collection view.
+In such cases, if no explicit translation key was provided, midPoint attempted to translate the `orig` value.
+Starting from 4.11.0 version, the `orig` value will never be translated.
+Please ensure that all `PolyStringType` values in your environment are defined correctly.
 If localization is required, explicitly define translation keys or language-specific values within the polystring.
 
 * Iteration specification (e.g., in object template or focus mapping) has a new boolean property `useTokenOnlyOnConflict` and changed default value for `start`.
@@ -563,6 +331,45 @@ Check further details about the new https://docs.evolveum.com/midpoint/get-start
 and also the document describing the https://docs.evolveum.com/midpoint/get-started/install/containers/container-image-2026-change/[container image changes],
 including the https://docs.evolveum.com/midpoint/get-started/install/containers/container-image-2026-change/#default-container-user[container user change].
 
+* General-purpose scripting languages (Groovy, JavaScript, Python, full Velocity) are now disabled by default via new default `config.xml`.
+This should NOT influence the deployments that are upgrading from previous versions of midPoint, as the `config.xml` is typically preserved in these situations.
+However, if you use midPoint in container deployment, the `config.xml` MAY get rewritten by the 4.11.0 version - depending on specifics of your deployment.
+Please check if that is the case and if so, make sure that `expressions.safeScriptingLanguagesOnly` parameter is set to `false` until you migrate all your scripts to MEL and Safe Velocity, and thus you are ready to disable all general-purpose scripting languages.
+See xrefv:/midpoint/reference/master/expressions/expressions/security/[] for more information.
+
+* xrefv:/midpoint/reference/master/expressions/expressions/profiles/[Expression profiles] are now enforced throughout the system.
+The expression profile of an expression stored in the repository is derived from the type (archetype, subtype) of the object containing it.
+Expressions that were previously not checked against the declared expression profiles may now fail.
+In rare cases when midPoint cannot determine the expression profile, it reports a "TrustDescriptor is required but not set" error; please report such cases as bugs.
+Review and test your expressions according to the expression profiles declared in your deployment.
+See bug:MID-10948[].
+
+* Default expression profiles for midPoint actions (bulk actions) were changed, and the `bulkActions` and `privilegedBulkActions` default settings were deprecated (see _Schema Changes_ below).
+It is strongly recommended to set explicit expression profiles (via object types and archetypes) on all objects that contain midPoint actions, and to migrate the deprecated default settings to the new ones.
+See xrefv:/midpoint/reference/master/expressions/expressions/profiles/configuration/[].
+
+* Because of the introduction of the new `#safe-velocity` language, `#parse` and `#include` directives and inline macro definitions are no longer allowed, even in legacy `#velocity` scripts.
+(This is a limitation of the Velocity engine.)
+If you need them, set `legacyVelocityEngine` to `true` in `config.xml` (the `#safe-velocity` language is not available then), or migrate your templates so that they won't use these features.
+It is recommended to gradually migrate your scripts to `#safe-velocity` and then disable the full `#velocity` language via expression profiles or via `config.xml`.
+See bug:MID-12389[].
+
+* Script evaluation in reports was unified with the evaluation of other expressions.
+Reports that depend on the ordering of values returned by scripts may behave differently, as the ordering is not guaranteed anymore.
+See bug:MID-10948[].
+
+* Classes related to script execution were renamed (`ScriptExpression` to `Script`, `ScriptExpressionFactory` to `ScriptFactory`, `ScriptExpressionEvaluationContext` to `ScriptExecutionContext`, `ScriptEvaluator` to `ScriptExecutor`).
+This affects only scripts or overlays that use these classes directly, and logging configuration referring to them.
+Use `midpoint.isEvaluateNew()` instead of `ScriptExpressionEvaluationContext.getThreadLocal().isEvaluateNew()`.
+
+* Internal caching APIs were cleaned up (`repo.api.Cache` and `repo.api.CacheListener` were removed, `repo.api.CacheDispatcher` was renamed to `repo.api.ClusterwideCacheInvalidationDispatcher`).
+This affects only custom code (overlays) that implemented custom caches or dispatched cache invalidations.
+See bug:MID-11992[].
+
+* The obsolete `xercesImpl` library was removed.
+Custom Groovy or overlay code that used it needs to be adapted.
+See bug:MID-12034[].
+
 === Changes In Initial Objects Since 4.10
 
 NOTE: This section is relevant to the majority of midPoint deployments.
@@ -578,15 +385,20 @@ The following list contains a description of changes to the initial objects in t
 The complete new set of initial objects is in the `repo/system-init/src/main/resources/initial-objects` directory in the source distribution and in the `doc/config/initial-objects` directory in the binary distribution.
 
 _Actions required:_ Please review the changes and apply them appropriately to your configuration. Ninja can help with updating existing initial objects during upgrade procedure using `initial-objects` command.
-For more information see xrefv:/midpoint/reference/support-4.10/upgrade/upgrade-with-ninja/#initial-objects-update[here].
+For more information see xrefv:/midpoint/reference/master/upgrade/upgrade-with-ninja/#initial-objects-update[].
 
 New initial objects:
 
 * 064-archetype-governance-policy.xml
+* 070-initial-open-source-connectors.xml
 * 100-archetype-smart-integration-focus-object-type-statistics.xml
 * 100-archetype-smart-integration-resource-object-class-statistics.xml
 * 100-archetype-smart-integration-resource-object-type-statistics.xml
 * 100-archetype-smart-integration-schema-match.xml
+* 539-archetype-task-user-submitted.xml
+* 540-archetype-task-system-submitted.xml
+* 602-origin-artificial-intelligence.xml
+* 603-origin-system-intelligence.xml
 * 739-mark-shadow-correlation-owner-found.xml
 * 740-mark-shadow-correlation-owner-not-found.xml
 * 741-mark-shadow-correlation-owner-not-certain.xml
@@ -597,49 +409,60 @@ New initial objects:
 * 746-mark-item-value-change-not-applied.xml
 * 747-mark-item-value-failed.xml
 * 748-mark-projection-operational-changes-only.xml
-* 602-origin-artificial-intelligence.xml
-* 603-origin-system-intelligence.xml
+
+Renamed (the file name prefix was changed to fix the import order, the content and OIDs are unchanged unless stated otherwise in the _Modified_ section):
+
+* 701-archetype-object-mark.xml -> 016-archetype-object-mark.xml
+* 252-object-collection-application-role.xml -> 016-object-collection-application-role.xml
+* 253-object-collection-application.xml -> 016-object-collection-application.xml
+* 270-object-collection-audit.xml -> 016-object-collection-audit.xml
+* 280-object-collection-certification-campaign-all.xml -> 016-object-collection-certification-campaign-all.xml
+* 290-object-collection-shadow-all.xml -> 016-object-collection-shadow-all.xml
+* 250-mark-no-classification.xml -> 017-mark-no-classification.xml
+* 250-mark-privileged-access.xml -> 017-mark-privileged-access.xml
+* 250-mark-unowned.xml -> 017-mark-unowned.xml
+* 062-archetype-classification.xml -> 018-archetype-classification.xml
+* 300-classification-privileged-access.xml -> 019-classification-privileged-access.xml
+* 350-object-collection-role-all.xml -> 349-object-collection-role-all.xml
 
 Modified:
 
-* 062-archetype-classification.xml - Change display icon.
+* 000-system-configuration.xml
+** Poly-string translation keys added.
+** Added `smartIntegration` configuration.
+** Added `rw-type-delineation` panel to resource wizard configuration.
+** Added search items for Persons view.
+** SQL logger in `functional-sql-logging` tracing profile changed to `com.evolveum.midpoint.repo.sqlbase.querydsl.SqlLogger`.
+** Removed obsolete Hibernate loggers.
+** Expression profiles were reworked: the `safe` profile was revised (allows MEL with the `mel-safe` permission profile, `null` expression evaluator allowed), new `reporting` and `configuration` expression profiles, new `mel-safe` and `mel-reporting` permission profiles, the `script-limited` permission profile was removed.
+** Added default expression profiles for object types (`defaultObjectPolicyConfiguration/expressionProfile`) and for principals and authorized objects (`expressions/defaults`).
+** MEL set as the default script language (`expressions/defaultScriptLanguage`).
+** Search item expressions in resource-related views migrated to MEL.
+** Added new logger `com.evolveum.midpoint.common.CachedResourceBundleMessageSource` with level `ERROR` to avoid log pollution.
+* 010-value-policy.xml - Replaced the default Groovy password policy expression with MEL for safe-expression compatibility.
+* 015-security-policy.xml - Added `otp` credentials policy for TOTP. Password hint is hidden by default (`passwordHintConfigurability` set to `neverConfigure`).
+* 016-object-collection-audit.xml (former 270-object-collection-audit.xml) - Delta formatting expression migrated from Groovy to MEL.
+* 017-mark-privileged-access.xml (former 250-mark-privileged-access.xml) - Added archetype.
+* 018-archetype-classification.xml (former 062-archetype-classification.xml) - Changed display icon.
 * 029-archetype-application.xml - Poly-string translation keys added.
-* 501-archetype-task-reconciliation.xml - Poly-string translation keys added.
-* 502-archetype-task-recomputation.xml - Poly-string translation keys added.
-* 503-archetype-task-import.xml - Poly-string translation keys added.
-* 504-archetype-task-live-sync.xml - Poly-string translation keys added.
-* 505-archetype-task-async-update.xml - Poly-string translation keys added.
-* 506-archetype-task-cleanup.xml - Poly-string translation keys added.
-* 507-archetype-task-report.xml - Poly-string translation keys added.
-* 508-archetype-task-single-bulk-action.xml - Poly-string translation keys added.
-* 509-archetype-task-iterative-bulk-action.xml - Poly-string translation keys added.
-* 536-archetype-task-certification-start-campaign.xml - Poly-string translation keys added.
-* 537-archetype-task-certification-close-current-stage.xml - Poly-string translation keys added.
-* 538-archetype-task-certification-reiterate-campaign.xml - Poly-string translation keys added.
-* 702-archetype-person.xml - Poly-string translation keys added.
-* 705-archetype-shadow-policy-mark.xml - Poly-string translation keys added.
+* 041-role-approver.xml, 042-role-reviewer.xml - Removed obsolete authorization item references (`employeeType`, `roleType`, `orgType`, `serviceType`) and added `personalNumber` alongside deprecated `employeeNumber`.
+* 050-user-administrator.xml - Added displayName.
+* 100-report-reconciliation.xml, 110-report-user-list.xml, 130-report-certification-definitions.xml, 140-report-certification-campaigns.xml, 150-report-certification-cases.xml, 160-report-certification-work-items.xml, 170-report-simulation-objects.xml, 171-report-simulation-objects-with-metrics.xml, 172-report-simulation-items-changed.xml, 173-report-simulation-values-changed.xml, 180-report-simulation-results.xml, 200-report-indirect-assignments.xml - Expressions migrated from Groovy (and `javaMethodReference`) to MEL.
+* 110-report-user-list.xml - Added displayName column.
 * 200-lookup-languages.xml - Added Slovenian (sl) and Latvian (lv) languages.
 * 210-lookup-locales.xml - Added Slovenian (sl) and Latvian (lv) locales.
-* 250-mark-privileged-access.xml - Added archetype.
-* 710-mark-focus-activated.xml to 716-mark-focus-role-membership-changed.xml - Added display label and help with translation keys.
-* 730-mark-projection-activated.xml to 738-mark-projection-resource-object-affected.xml - Added display label and help with translation keys.
-* 899-dashboard-compliance.xml - Widget colors updated to `--bs-*` CSS variables.
-* 015-security-policy.xml - Added `otp` credentials policy for TOTP. Password hint is hidden by default (`passwordHintConfigurability` set to `neverConfigure`).
-* 380-object-template-person.xml - Fixed max. iterations for the "Full name" construction. Added displayName mapping from preferredName, falling back to fullName. Added `range=all` to the mappings for `name`, `fullName`, and `displayName`.
-* 110-report-user-list.xml - Added displayName column.
-* 050-user-administrator.xml - Added displayName.
+* 271-object-collection-audit-24h.xml, 272-object-collection-audit-errors-24h.xml, 273-object-collection-audit-modifications-24h.xml, 330-object-collection-my-cases.xml - Filter expressions migrated from Groovy to MEL.
 * 300-policy-require-classification.xml - Added archetype.
 * 300-policy-require-owner.xml - Added archetype.
-* 000-system-configuration.xml - Poly-string translation keys added.
-Added `smartIntegration` configuration.
-Added `rw-type-delineation` panel to resource wizard configuration.
-Added search items for Persons view.
-Allowed `null` expression evaluator in `safe` expression profile.
-SQL logger in `functional-sql-logging` tracing profile changed to `com.evolveum.midpoint.repo.sqlbase.querydsl.SqlLogger`.
-Added new logger `com.evolveum.midpoint.common.CachedResourceBundleMessageSource` with level `ERROR` to avoid log pollution.
-* 041-role-approver.xml - Removed obsolete authorization item references and added `personalNumber` alongside deprecated `employeeNumber`.
-* 042-role-reviewer.xml - Removed obsolete authorization item references and added `personalNumber` alongside deprecated `employeeNumber`.
-* 010-value-policy.xml - Replaced the default Groovy password policy expression with MEL for safe-expression compatibility.
+* 310-dashboard-admin.xml - Expressions migrated from Groovy to MEL.
+* 380-object-template-person.xml - Fixed max. iterations for the "Full name" construction. Added displayName mapping from preferredName, falling back to fullName. Added `range=all` to the mappings for `name`, `fullName`, and `displayName`. Expressions migrated from Groovy to MEL.
+* 501-archetype-task-reconciliation.xml to 509-archetype-task-iterative-bulk-action.xml, 536-archetype-task-certification-start-campaign.xml to 538-archetype-task-certification-reiterate-campaign.xml - Poly-string translation keys added.
+* 501-archetype-task-reconciliation.xml to 533-archetype-task-multi-propagation.xml (except 507-archetype-task-report.xml) - Task naming expressions migrated from Groovy to MEL (or to plain path sources).
+* 702-archetype-person.xml - Poly-string translation keys added.
+* 705-archetype-shadow-policy-mark.xml - Poly-string translation keys added.
+* 710-mark-focus-activated.xml to 716-mark-focus-role-membership-changed.xml - Added display label and help with translation keys.
+* 730-mark-projection-activated.xml to 738-mark-projection-resource-object-affected.xml - Added display label and help with translation keys.
+* 899-dashboard-compliance.xml - Widget colors updated to `--bs-*` CSS variables. Expressions migrated to MEL.
 
 Please review link:https://github.com/Evolveum/midpoint/commits/master/repo/system-init/src/main/resources/initial-objects[source code history] for detailed list of changes.
 
@@ -702,9 +525,9 @@ You should at least scan through it - or use the `ninja` tool to check the depre
 | `displayName`, `preferredName`
 | New properties, see behavior changes below.
 
-| `FocusType`
-| `email`, `phoneNumber`, `physicalAddress`
-| Multi-value containers for contact information.
+| `EmailAddressType`, `PhoneNumberType`, `PhysicalMailingAddressType`
+| (new types)
+| Experimental types for contact information, usable in extensions.
 
 | `CredentialsType`
 | `otps`
@@ -832,6 +655,15 @@ See also bug:MID-11250[].
 +
 Existing users may not have `displayName` populated immediately after upgrade. Most user-facing places use fallback display logic, but places that display the raw `displayName` value may remain empty until the value is materialized.
 To populate `displayName` for existing person users, set `preferredName` where needed and recompute the users so the person object-template mapping is applied. See also bug:MID-8802[].
+
+* Unsafe scripting languages are disabled by default for new deployments.
++
+The `config.xml` shipped with midPoint sets `expressions/safeScriptingLanguagesOnly` to `true`.
+The connector generator is disabled unless `connectors/developmentToolsEnabled` is explicitly set to `true` in `config.xml`.
+These settings prevent executing arbitrary code on the underlying operating system (e.g., via Groovy scripts or the connector generator).
+The initial system configuration assigns the `safe`, `reporting` and `configuration` expression profiles to object types, and sets MEL as the default script language.
+Existing deployments keep their `config.xml` and system configuration, but it is recommended to adapt them in a similar way.
+See xrefv:/midpoint/reference/master/expressions/expressions/configuration/[], xrefv:/midpoint/reference/master/expressions/expressions/profiles/[], xrefv:/midpoint/reference/master/expressions/expressions/security/[], and xrefv:/midpoint/reference/master/connector-generator/enable/[].
 
 
 ++++

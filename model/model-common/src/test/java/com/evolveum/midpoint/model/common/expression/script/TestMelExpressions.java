@@ -12,11 +12,7 @@ import java.lang.reflect.Proxy;
 import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
+import java.util.*;
 import java.util.function.Function;
 
 import com.evolveum.midpoint.common.Clock;
@@ -76,6 +72,7 @@ import static com.evolveum.midpoint.prism.util.PrismTestUtil.createPolyStringTyp
 
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.NS_C;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
 
 /**
@@ -276,6 +273,10 @@ public class TestMelExpressions extends AbstractScriptTest {
         var definition = prismContext.getSchemaRegistry()
                 .findObjectDefinitionByCompileTimeClass(UserType.class)
                 .findReferenceDefinition(UserType.F_ROLE_MEMBERSHIP_REF);
+        var referenceWithoutMetadata = new ObjectReferenceType()
+                .oid("00000000-0000-0000-0000-000000000000")
+                .type(RoleType.COMPLEX_TYPE)
+                .asReferenceValue();
         var referenceValue = new ObjectReferenceType()
                 .oid("00000000-0000-0000-0000-000000000001")
                 .type(RoleType.COMPLEX_TYPE)
@@ -293,6 +294,12 @@ public class TestMelExpressions extends AbstractScriptTest {
 
         switchToRestrictedMode();
         try {
+            assertThat(referenceWithoutMetadata.getValueMetadataIfExists()).isNull();
+            executeAndAssertStringScalarExpression(
+                    "expression-reference-value-metadata.xml",
+                    createVariables("input", referenceWithoutMetadata, definition),
+                    "");
+            assertThat(referenceWithoutMetadata.getValueMetadataIfExists()).isNull();
             executeAndAssertStringScalarExpression(
                     "expression-reference-value-metadata.xml",
                     createVariables("input", referenceValue, definition),
@@ -305,6 +312,46 @@ public class TestMelExpressions extends AbstractScriptTest {
             switchToUnrestrictedMode();
         }
     }
+
+
+    @Test
+    public void testContainerValueMetadata() throws Exception {
+        var definition = prismContext.getSchemaRegistry().findContainerDefinitionByType(AssignmentType.COMPLEX_TYPE);
+
+        var assignmentWithoutMetadata = new AssignmentType();
+        var assignmentWithOneMetadataValue = new AssignmentType();
+        assignmentWithOneMetadataValue.asPrismContainerValue().getValueMetadata().addMetadataValue(
+                new ValueMetadataType()
+                        .storage(new StorageMetadataType().createChannel("first"))
+                        .asPrismContainerValue());
+
+        var assignmentWithTwoMetadataValues = assignmentWithOneMetadataValue.clone();
+        assignmentWithTwoMetadataValues.asPrismContainerValue().getValueMetadata().addMetadataValue(
+                new ValueMetadataType()
+                        .storage(new StorageMetadataType().createChannel("second"))
+                        .asPrismContainerValue());
+
+        executeAndAssertStringScalarExpression(
+                "expression-container-value-metadata.xml",
+                createVariables("input", assignmentWithoutMetadata, definition),
+                "");
+
+        executeAndAssertStringScalarExpression(
+                "expression-container-value-metadata.xml",
+                createVariables("input", assignmentWithOneMetadataValue, definition),
+                "first");
+
+        executeAndAssertStringScalarExpression(
+                "expression-container-value-metadata.xml",
+                createVariables("input", assignmentWithTwoMetadataValues, definition),
+                "first,second");
+
+        executeAndAssertStringScalarExpression(
+                "expression-container-value-metadata.xml",
+                createVariables("input", null, definition),
+                "");
+    }
+
 
     @Test
     public void testTracingAccountCondition() throws Exception {
@@ -400,6 +447,37 @@ public class TestMelExpressions extends AbstractScriptTest {
                 "expression-format-reference.xml",
                 createVariables("input", null, definition),
                 "");
+    }
+
+    /**
+     * Audit records without deltas provide null input; the column must stay empty (used by 016-object-collection-audit).
+     * The report code declares the input as plain Object, so both overloads of the function match.
+     */
+    @Test
+    public void testFormatAuditDeltaNull() throws Exception {
+        List<PrismPropertyValue<String>> values = executeScript(
+                "expression-format-audit-delta.xml",
+                DOMUtil.XSD_STRING,
+                false,
+                createVariables("input", null, Object.class));
+
+        assertThat(values).as("formatted deltas").isEmpty();
+    }
+
+    /** The same as above, but with the input declared using the audit record delta definition. */
+    @Test
+    public void testFormatAuditDeltaNullTyped() throws Exception {
+        var definition = prismContext.getSchemaRegistry()
+                .findContainerDefinitionByType(AuditEventRecordType.COMPLEX_TYPE)
+                .findPropertyDefinition(AuditEventRecordType.F_DELTA);
+
+        List<PrismPropertyValue<String>> values = executeScript(
+                "expression-format-audit-delta.xml",
+                DOMUtil.XSD_STRING,
+                false,
+                createVariables("input", null, definition));
+
+        assertThat(values).as("formatted deltas").isEmpty();
     }
 
     @Test

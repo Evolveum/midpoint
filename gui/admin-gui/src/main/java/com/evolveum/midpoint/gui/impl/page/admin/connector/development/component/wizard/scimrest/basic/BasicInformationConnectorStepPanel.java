@@ -168,7 +168,7 @@ public class BasicInformationConnectorStepPanel extends AbstractFormWizardStepPa
         OperationResult result = getHelper().onSaveObjectPerformed(target);
         if (result != null && !result.isError()) {
             if (getWizard() instanceof WizardModelWithParentSteps wizardModel) {
-                wizardModel.showSummaryPanel();
+                wizardModel.useInProgressStepOrShowSummary();
                 wizardModel.fireActiveStepChanged(wizardModel.getActiveStep());
                 target.add(wizardModel.getPanel());
             }

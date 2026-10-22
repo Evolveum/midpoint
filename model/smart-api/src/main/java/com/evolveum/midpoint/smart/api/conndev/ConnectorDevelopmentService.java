@@ -12,6 +12,15 @@ import java.util.List;
 
 public interface ConnectorDevelopmentService {
 
+    /**
+     * Message reported when an operation is rejected because the connector development tools are
+     * disabled by the deployment configuration
+     * ({@code midpoint.connectors/developmentToolsEnabled} in {@code config.xml}).
+     *
+     * <p>Rejected operations fail with an {@code AuthorizationException} carrying this message.
+     */
+    String ERROR_CONNECTOR_DEVELOPMENT_DISABLED = "Connector development is disabled by deployment configuration";
+
     ConnectorDevelopmentOperation startFromNew(ConnDevApplicationInfoType basicInfo, OperationResult result);
 
     ConnectorDevelopmentOperation continueFrom(ConnectorDevelopmentType type);

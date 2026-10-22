@@ -152,7 +152,7 @@
                 <expression>
                     <script>
                         <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
-                        <code>midpoint.getDefaultNameForResourceRelatedTask(stringify(archetypeName), focus.activity.work.liveSynchronization.resourceObjects)</code>
+                        <code>format.defaultNameForResourceRelatedTask(stringify(archetypeName), focus.activity.work.liveSynchronization.resourceObjects)</code>
                     </script>
                 </expression>
                 <target>

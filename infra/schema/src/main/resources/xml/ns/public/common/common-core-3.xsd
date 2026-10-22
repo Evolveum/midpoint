@@ -1708,7 +1708,7 @@
                 </p>
             </xsd:documentation>
             <xsd:appinfo>
-                <a:since>4.11</a:since>
+                <a:since>4.11.0</a:since>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
@@ -2502,7 +2502,7 @@
                 <!-- todo -->
             </xsd:documentation>
             <xsd:appinfo>
-                <a:since>4.11</a:since>
+                <a:since>4.11.0</a:since>
                 <a:container/>
             </xsd:appinfo>
         </xsd:annotation>
@@ -2535,7 +2535,7 @@
                 <!-- todo -->
             </xsd:documentation>
             <xsd:appinfo>
-                <a:since>4.11</a:since>
+                <a:since>4.11.0</a:since>
                 <a:container/>
             </xsd:appinfo>
         </xsd:annotation>
@@ -5221,7 +5221,7 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:displayName>IterationSpecificationType.start</a:displayName>
-                        <a:since>4.11</a:since>
+                        <a:since>4.11.0</a:since>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -5235,7 +5235,7 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:displayName>IterationSpecificationType.end</a:displayName>
-                        <a:since>4.11</a:since>
+                        <a:since>4.11.0</a:since>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -5295,7 +5295,7 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:displayName>IterationSpecificationType.useTokenOnlyOnConflict</a:displayName>
-                        <a:since>4.11</a:since>
+                        <a:since>4.11.0</a:since>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -6517,7 +6517,7 @@
                 it can be used to remove all values of the target item.
             </xsd:documentation>
             <xsd:appinfo>
-                <a:since>4.11</a:since>
+                <a:since>4.11.0</a:since>
             </xsd:appinfo>
         </xsd:annotation>
     </xsd:complexType>
@@ -6716,7 +6716,7 @@
     <xsd:element name="javaMethodReference" type="tns:JavaMethodReferenceExpressionEvaluatorType" substitutionGroup="tns:expressionEvaluator">
         <xsd:annotation>
             <xsd:appinfo>
-                <a:since>4.11</a:since>
+                <a:since>4.11.0</a:since>
             </xsd:appinfo>
         </xsd:annotation>
     </xsd:element>
@@ -6884,7 +6884,7 @@
                 Evaluates an expression by calling specified Java method.
             </xsd:documentation>
             <xsd:appinfo>
-                <a:since>4.11</a:since>
+                <a:since>4.11.0</a:since>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
@@ -9361,7 +9361,7 @@
                 </p>
             </xsd:documentation>
             <xsd:appinfo>
-                <a:since>4.11</a:since>
+                <a:since>4.11.0</a:since>
                 <a:experimental>true</a:experimental>
             </xsd:appinfo>
         </xsd:annotation>
@@ -10476,7 +10476,7 @@
                         <p>
                             Please note that no expression execution restriction means that the default profile
                             (from the system configuration) is applied. And if there's no configured default
-                            (as was the case before the initial system configuration in 4.11), all evaluators
+                            (as was the case before the initial system configuration in 4.11.0), all evaluators
                             and scripting languages are allowed and there are no restrictions for evaluation
                             of expressions.
                         </p>
@@ -12280,7 +12280,7 @@
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:displayName>SystemConfigurationType.smartIntegration</a:displayName>
-                                <a:since>4.11</a:since>
+                                <a:since>4.11.0</a:since>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -12389,7 +12389,7 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:displayName>SystemConfigurationAuditType.externalServices</a:displayName>
-                        <a:since>4.11</a:since>
+                        <a:since>4.11.0</a:since>
                         <a:experimental>true</a:experimental>
                     </xsd:appinfo>
                 </xsd:annotation>
@@ -12407,7 +12407,7 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
-                <a:since>4.11</a:since>
+                <a:since>4.11.0</a:since>
                 <a:experimental>true</a:experimental>
             </xsd:appinfo>
         </xsd:annotation>
@@ -12433,7 +12433,7 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
-                <a:since>4.11</a:since>
+                <a:since>4.11.0</a:since>
                 <a:experimental>true</a:experimental>
             </xsd:appinfo>
         </xsd:annotation>
@@ -12755,7 +12755,7 @@
                         Default language for script expressions.
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <a:since>4.11</a:since>
+                        <a:since>4.11.0</a:since>
                         <a:displayName>SystemConfigurationExpressionsType.defaultScriptLanguage</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
@@ -13345,7 +13345,7 @@
                     <xsd:appinfo>
                         <a:displayName>DefaultExpressionProfilesConfigurationType.bulkActions</a:displayName>
                         <a:deprecated>true</a:deprecated>
-                        <a:deprecatedSince>4.11</a:deprecatedSince>
+                        <a:deprecatedSince>4.11.0</a:deprecatedSince>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -13365,7 +13365,7 @@
                     <xsd:appinfo>
                         <a:displayName>DefaultExpressionProfilesConfigurationType.privilegedBulkActions</a:displayName>
                         <a:deprecated>true</a:deprecated>
-                        <a:deprecatedSince>4.11</a:deprecatedSince>
+                        <a:deprecatedSince>4.11.0</a:deprecatedSince>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -13379,7 +13379,7 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:displayName>DefaultExpressionProfilesConfigurationType.principal</a:displayName>
-                        <a:since>4.11</a:since>
+                        <a:since>4.11.0</a:since>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -13392,7 +13392,7 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:displayName>DefaultExpressionProfilesConfigurationType.privilegedPrincipal</a:displayName>
-                        <a:since>4.11</a:since>
+                        <a:since>4.11.0</a:since>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -13403,7 +13403,7 @@
                         Probably a temporary solution until expression profiles are implemented in full, or until
                         custom workflow notifications are removed.
 
-                        Removed since 4.11.
+                        Removed since 4.11.0.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:displayName>DefaultExpressionProfilesConfigurationType.customWorkflowNotifications</a:displayName>
@@ -13411,7 +13411,7 @@
                         <a:deprecated>true</a:deprecated>
                         <a:deprecatedSince>4.8</a:deprecatedSince>
                         <a:removed>true</a:removed>
-                        <a:removedSince>4.11</a:removedSince>
+                        <a:removedSince>4.11.0</a:removedSince>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -13425,7 +13425,7 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:displayName>DefaultExpressionProfilesConfigurationType.authorizedObjects</a:displayName>
-                        <a:since>4.11</a:since>
+                        <a:since>4.11.0</a:since>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -13449,7 +13449,7 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:displayName>DefaultExpressionProfilesConfigurationType.bulkActionsInAuthorizedObjects</a:displayName>
-                        <a:since>4.11</a:since>
+                        <a:since>4.11.0</a:since>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -16976,13 +16976,13 @@
 
                         DEPRECATED:
                         This swich was moved here from ActivityPolicyType for backward compatibility.
-                        Different approach was taken in 4.11 when switching policies on/off for specfic task,
+                        Different approach was taken in 4.11.0 when switching policies on/off for specfic task,
                         see ActivityPoliciesProcessingType for more info.
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <a:deprecatedSince>4.11</a:deprecatedSince>
+                        <a:deprecatedSince>4.11.0</a:deprecatedSince>
                         <a:deprecated/>
-                        <a:since>4.11</a:since>
+                        <a:since>4.11.0</a:since>
                         <a:displayName>PolicyRuleType.enabled</a:displayName>
                         <a:help>PolicyRuleType.enabled.help</a:help>
                     </xsd:appinfo>
@@ -17220,7 +17220,7 @@
                 <xsd:annotation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="OBJECT_MIN_ASSIGNEES_VIOLATION"/>
-                        <a:since>4.11</a:since>
+                        <a:since>4.11.0</a:since>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
@@ -17228,7 +17228,7 @@
                 <xsd:annotation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="OBJECT_MAX_ASSIGNEES_VIOLATION"/>
-                        <a:since>4.11</a:since>
+                        <a:since>4.11.0</a:since>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
@@ -17336,7 +17336,7 @@
                 <xsd:annotation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="EXECUTION_TIME"/>
-                        <a:since>4.11</a:since>
+                        <a:since>4.11.0</a:since>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
@@ -17344,7 +17344,7 @@
                 <xsd:annotation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="EXECUTION_ATTEMPTS"/>
-                        <a:since>4.11</a:since>
+                        <a:since>4.11.0</a:since>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
@@ -17352,7 +17352,7 @@
                 <xsd:annotation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="ITEM_PROCESSING_RESULT"/>
-                        <a:since>4.11</a:since>
+                        <a:since>4.11.0</a:since>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
@@ -17898,6 +17898,13 @@
                 <xsd:annotation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="ARCHETYPE_USER_SUBMITTED_TASK"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="83225dc6-bf8a-4d37-97e5-c94a3f77da54">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ARCHETYPE_SYSTEM_SUBMITTED_TASK"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
@@ -20187,7 +20194,7 @@
                         </xsd:documentation>
                         <xsd:appinfo>
                             <a:displayName>ExportConfigurationType.xlsx</a:displayName>
-                            <a:since>4.11</a:since>
+                            <a:since>4.11.0</a:since>
                         </xsd:appinfo>
                     </xsd:annotation>
                 </xsd:element>
@@ -20222,7 +20229,7 @@
                 <xsd:annotation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="XLSX"/>
-                        <a:since>4.11</a:since>
+                        <a:since>4.11.0</a:since>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
@@ -20457,7 +20464,7 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
-                <a:since>4.11</a:since>
+                <a:since>4.11.0</a:since>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
@@ -21847,7 +21854,7 @@
                         Experimental.
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <a:since>4.11</a:since>
+                        <a:since>4.11.0</a:since>
                         <a:experimental/>
                     </xsd:appinfo>
                 </xsd:annotation>
@@ -23052,7 +23059,7 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container>true</a:container>
-                <a:since>4.11</a:since>
+                <a:since>4.11.0</a:since>
                 <a:naturalKey>tns:type</a:naturalKey>
                 <a:naturalKey>tns:value</a:naturalKey>
                 <a:experimental>true</a:experimental>
@@ -23094,7 +23101,7 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container>true</a:container>
-                <a:since>4.11</a:since>
+                <a:since>4.11.0</a:since>
                 <a:naturalKey>tns:type</a:naturalKey>
                 <a:naturalKey>tns:value</a:naturalKey>
                 <a:experimental>true</a:experimental>
@@ -23137,7 +23144,7 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container>true</a:container>
-                <a:since>4.11</a:since>
+                <a:since>4.11.0</a:since>
                 <a:naturalKey>tns:type</a:naturalKey>
                 <a:naturalKey>tns:formatted</a:naturalKey>
                 <a:naturalKey>tns:streetAddress</a:naturalKey>

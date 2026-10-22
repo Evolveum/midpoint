@@ -297,7 +297,7 @@ public class TestAccountActivationNonce extends AbstractModelImplementationInteg
         assertUserHasNonce(USER_ACTIVATOR_OID);
     }
 
-    /** A nonce issued before 4.11 carries no sequence identifier and is accepted, so links in flight keep working. */
+    /** A nonce issued before 4.11.0 carries no sequence identifier and is accepted, so links in flight keep working. */
     @Test
     public void test210NonceWithoutSequenceIdentifierAccepted() throws Exception {
         given("user with nonce without sequence identifier");
@@ -459,7 +459,7 @@ public class TestAccountActivationNonce extends AbstractModelImplementationInteg
         setupNonce(userOid, SEQUENCE_IDENTIFIER);
     }
 
-    /** Nonce as issued by createAccountActivationLink; null sequence identifier = nonce issued before 4.11. */
+    /** Nonce as issued by createAccountActivationLink; null sequence identifier = nonce issued before 4.11.0. */
     private void setupNonce(String userOid, String sequenceIdentifier) throws Exception {
         Task task = getTestTask();
         executeChanges(

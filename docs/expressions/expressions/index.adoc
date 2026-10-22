@@ -165,6 +165,19 @@ There are several script languages to choose from.
 The script expressions are described in more details in a xref:/midpoint/reference/expressions/expressions/script/[Script Expression] page.
 This page only provides few examples.
 
+.Expression evaluator using MidPoint Expression Language (MEL) script
+[source,xml]
+----
+<expression>
+    <script>
+        <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
+        <code>
+            'uid=' + user.name + ',ou=people,dc=example,dc=com'
+        </code>
+    </script>
+</expression>
+----
+
 .Expression evaluator using Groovy script
 [source,xml]
 ----
@@ -196,7 +209,7 @@ See xref:/midpoint/reference/expressions/expressions/script/[Script Expression] 
 [#_java_method_reference]
 === Java Method Reference
 
-#TODO provide reasoning here#
+//TODO provide reasoning here
 
 .Expression evaluator using Java method reference
 [source,xml]
@@ -209,7 +222,7 @@ See xref:/midpoint/reference/expressions/expressions/script/[Script Expression] 
 </expression>
 ----
 
-#TODO example Java code and things from XSD#
+//TODO example Java code and things from XSD
 
 === Filter
 

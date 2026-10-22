@@ -6,6 +6,9 @@ doc-type: config
 :page-nav-title: Specification
 :page-upkeep-status: green
 :page-toc: top
+:page-display-order: 400
+:page-keywords: mel, midpoint expression language, secure, expression, scripting
+:page-description: This page provides reference documentation of MEL with detailed description of its constructs and functions.
 
 MidPoint Expression Language (MEL) is an expression language designed to support customization of midPoint functionality in an easy-to-use and secure way.
 
@@ -484,6 +487,8 @@ However, the null values of are rendered as string `null`.
 '%s has %d apples'.format(['Jack', 3])
 format('%s has %d apples', ['Jack', 3])
 ----
+
+{empty}
 
 .Example
 [source,mel]
@@ -1408,6 +1413,8 @@ which enables placing of log functions into complex expression without breaking 
 log.info('The {} is broken', 'system')
 ----
 
+{empty}
+
 .Example
 [source,mel]
 ----
@@ -1433,6 +1440,8 @@ which enables placing of log functions into complex expression without breaking 
 // Logs message 'The system is broken', returns 'system' as its output
 log.error('The {} is broken', 'system')
 ----
+
+{empty}
 
 .Example
 [source,mel]
@@ -1460,6 +1469,8 @@ which enables placing of log functions into complex expression without breaking 
 log.warn('The {} is broken', 'system')
 ----
 
+{empty}
+
 .Example
 [source,mel]
 ----
@@ -1486,6 +1497,8 @@ which enables placing of log functions into complex expression without breaking 
 log.debug('The {} is broken', 'system')
 ----
 
+{empty}
+
 .Example
 [source,mel]
 ----
@@ -1511,6 +1524,8 @@ which enables placing of log functions into complex expression without breaking 
 // Logs message 'The system is broken', returns 'system' as its output
 log.trace('The {} is broken', 'system')
 ----
+
+{empty}
 
 .Example
 [source,mel]
@@ -3551,7 +3566,7 @@ Following configuration allows access to all MEL extensions, except for `midpoin
 </systemConfiguration>
 ----
 
-// TODO: default expression profiles in 4.11
+// TODO: default expression profiles in 4.11.0
 
 == MEL and CEL
 

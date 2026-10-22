@@ -6,13 +6,15 @@ doc-type: intro
 :page-nav-title: MEL
 :page-upkeep-status: green
 :page-toc: top
+:page-keywords: mel, midpoint expression language, secure, expression, scripting
+:page-description: MidPoint expression language is secure expression language intended for common use in midPoint expressions.
 
 MidPoint Expression Language (MEL) is a supported and recommended expression language for midPoint.
 Its language URL is:
 
  http://midpoint.evolveum.com/xml/ns/public/expression/language#mel
 
-Since midPoint 4.11, MEL is a recommended expression language to create script expressions in midPoint.
+Since midPoint 4.11.0, MEL is a recommended expression language to create script expressions in midPoint.
 
 == MidPoint Expression Language
 

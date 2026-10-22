@@ -92,8 +92,8 @@ public class FixConnectionConnectorStepPanel extends AbstractWizardStepPanel<Con
     private static final String ID_AUTH_SCRIPT_SECTION = "authScriptSection";
     private static final String ID_AUTH_SCRIPT_PANEL = "authScriptPanel";
 
-    private IModel<String> baseUrlModel;
-    private IModel<String> endpointModel;
+    private LoadableModel<String> baseUrlModel;
+    private LoadableModel<String> endpointModel;
     private LoadableModel<List<PrismContainerValueWrapper<ConnDevAuthInfoType>>> authValuesModel;
     private LoadableModel<ConnDevArtifactType> authScriptModel;
 
@@ -117,6 +117,8 @@ public class FixConnectionConnectorStepPanel extends AbstractWizardStepPanel<Con
             return;
         }
         authScriptModel.reset();
+        baseUrlModel.reset();
+        endpointModel.reset();
     }
 
     private void initModels() {

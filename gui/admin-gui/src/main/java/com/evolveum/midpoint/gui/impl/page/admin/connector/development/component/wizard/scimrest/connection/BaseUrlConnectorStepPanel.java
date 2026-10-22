@@ -142,6 +142,7 @@ public class BaseUrlConnectorStepPanel extends AbstractFormWizardStepPanel<Conne
         PrismContainerWrapper<?> wrapper = getContainerFormModel().getObject();
 
         if (containerWrapper != null && containerWrapper != wrapper) {
+            //TODO This is a really wrong idea. We should call it from the onInitialize() method because it will be called repeatedly.
             initLayout();
         }
         containerWrapper = wrapper;

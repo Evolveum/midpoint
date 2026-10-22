@@ -51,7 +51,7 @@ public abstract class ConnectorObjectClassTilePanel extends BasePanel<TemplateTi
     private static final String ID_CAPABILITY = "capability";
     private static final String ID_CAPABILITY_LABEL = "capabilityLabel";
 
-    private static final List<ConnectorDevelopmentArtifacts.KnownArtifactType> OBJECT_CLASS_CAPABILITIES = List.of(
+    public static final List<ConnectorDevelopmentArtifacts.KnownArtifactType> OBJECT_CLASS_CAPABILITIES = List.of(
             ConnectorDevelopmentArtifacts.KnownArtifactType.NATIVE_SCHEMA_DEFINITION,
             ConnectorDevelopmentArtifacts.KnownArtifactType.SEARCH_ALL_DEFINITION,
             ConnectorDevelopmentArtifacts.KnownArtifactType.SEARCH_BY_ID_DEFINITION,

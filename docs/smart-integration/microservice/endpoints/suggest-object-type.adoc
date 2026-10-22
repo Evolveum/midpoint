@@ -1,0 +1,197 @@
+= Suggest object type endpoint
+:page-toc: top
+:page-since: "4.11.0"
+:page-upkeep-status: green
+
+== Overview
+
+`POST /api/v1/objectType/suggestObjectType`
+
+The endpoint recommends object types for an object class.
+Each object type is identified by a kind and an intent and has a delineation (filters and a base context filter) that selects its objects.
+MidPoint calls it with the `SUGGEST_OBJECT_TYPES` method, see xref:../../recommendations/object-types/object-types-recommendation.adoc[].
+
+== Request
+
+[cols="25%,15%,60%",options="header"]
+|===
+| Field | Required | Description
+
+| `schema`
+| yes
+| Schema of the object class.
+
+| `statistics`
+| yes
+| Statistics of the object class, see <<Statistics>>.
+
+| `validationErrorFeedback`
+| no
+| Object types from a previous call whose filters failed the validation in midPoint, see <<Validation error feedback>>.
+
+| `regenerateMode`
+| no
+| Reason for regenerating the object types, `NEW_DATA_SPLIT` or `NEW_FILTER`, see <<Regeneration>>.
+Not present in the first call.
+
+| `previousDelineation`
+| no
+| Object types recommended before, in the same structure as in the response.
+Used together with `regenerateMode`.
+|===
+
+=== Statistics
+
+[cols="25%,15%,60%",options="header"]
+|===
+| Field | Required | Description
+
+| `size`
+| yes
+| Number of objects the statistics were computed from.
+
+| `coverage`
+| yes
+| Part of the objects of the object class covered by the statistics, from `0.0` to `1.0`.
+
+| `timestamp`
+| no
+| Time when the statistics were computed.
+
+| `attribute`
+| yes
+a| Statistics of single attributes:
+
+* `ref` - item path of the attribute.
+* `uniqueValueCount` - number of unique values.
+* `missingValueCount` - number of objects without a value.
+* `valueCount` - the most frequent values.
+* `valuePatternCount` - the most frequent value patterns.
+
+|===
+
+The statistics are described in xref:../../statistics.adoc[].
+
+=== Validation error feedback
+
+Each entry contains:
+
+* `objectType` - the object type from the previous call, in the same structure as in the response.
+* `filterErrors` - the errors found when midPoint parsed or evaluated its filters.
+
+=== Regeneration
+
+* `NEW_DATA_SPLIT` - the user does not agree with how the objects are split into object types.
+The LLM is asked for a completely different split.
+* `NEW_FILTER` - the kinds and intents are correct, but the filters are not.
+The LLM is asked to keep the same kinds and intents and to create new filters.
+
+== Response
+
+[cols="25%,75%",options="header"]
+|===
+| Field | Description
+
+| `objectType`
+a| Recommended object types.
+Each object type contains:
+
+* `kind` - `account`, `entitlement` or `generic`.
+* `intent` - intent of the object type, for example `default` or `admin`.
+* `displayName` - display name of the object type.
+* `description` - explanation of the delineation.
+* `filter` - list of filters in midPoint Query Language, or nothing.
+* `baseContextFilter` - filter of the base context, or nothing.
+* `baseContextObjectClassName` - object class of the base context, `organizationalUnit` when `baseContextFilter` is present.
+
+| `metadata`
+| AI provider name and model, see xref:index.adoc#_response_metadata[Response metadata].
+|===
+
+== Processing
+
+The microservice sends the LLM:
+
+* the name of the object class,
+* the names and types of the attributes (without descriptions),
+* the number of objects,
+* the statistics of the attributes with the ratios of unique and missing values,
+
+Attributes without any value are left out.
+So are attributes where every value is unique and there are no value counts or patterns, because they cannot be used to split the objects.
+
+The prompt asks for a small number of object types (usually fewer than 10) with filters that do not overlap.
+If the request contains validation error feedback or a regeneration mode, they are added to the prompt.
+
+The microservice does not validate the filters: this is done by midPoint, which can call the endpoint again with the validation error feedback.
+
+== Errors
+
+If the answer of the LLM cannot be parsed, the status is `550`.
+
+== Example
+
+.Request
+[source,json]
+----
+{
+    "schema": {
+        "name": "ri:group",
+        "attribute": [
+            { "name": "attributes/ri:dn", "type": "xsd:string", "minOccurs": 1, "maxOccurs": 1 },
+            { "name": "attributes/ri:groupType", "type": "xsd:double", "minOccurs": 1, "maxOccurs": 1 }
+        ]
+    },
+    "statistics": {
+        "size": 1670,
+        "coverage": 1,
+        "attribute": [
+            {
+                "ref": "attributes/ri:groupType",
+                "uniqueValueCount": 2,
+                "missingValueCount": 0,
+                "valueCount": [
+                    { "value": "-2147483646.0", "count": 1432 },
+                    { "value": "8.0", "count": 238 }
+                ]
+            },
+            {
+                "ref": "attributes/ri:dn",
+                "uniqueValueCount": 1670,
+                "missingValueCount": 0,
+                "valuePatternCount": [
+                    { "value": "ou=Groups,dc=example,dc=com", "type": "DNsuffix", "count": 1633 },
+                    { "value": "ou=Service,dc=example,dc=com", "type": "DNsuffix", "count": 37 }
+                ]
+            }
+        ]
+    }
+}
+----
+
+.Response
+[source,json]
+----
+{
+    "objectType": [
+        {
+            "kind": "entitlement",
+            "intent": "security",
+            "displayName": "Security group",
+            "description": "Security groups, identified by the group type.",
+            "filter": [ "attributes/ri:groupType = -2147483646.0" ]
+        },
+        {
+            "kind": "entitlement",
+            "intent": "distribution",
+            "displayName": "Distribution group",
+            "description": "Distribution groups, identified by the group type.",
+            "filter": [ "attributes/ri:groupType = 8.0" ]
+        }
+    ],
+    "metadata": {
+        "provider": "openrouter",
+        "model": "openai/gpt-oss-20b"
+    }
+}
+----

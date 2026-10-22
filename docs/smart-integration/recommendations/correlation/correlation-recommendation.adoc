@@ -1,0 +1,302 @@
+= Smart correlation recommendation
+:page-toc: top
+:page-since: "4.11.0"
+:page-upkeep-status: green
+
+== Overview
+
+The *smart correlation recommendation* operation proposes correlation rules for a resource object type.
+Correlation rules tell midPoint how to find the existing focus object (for example, a user) that a resource object belongs to, see xref:../../../correlation/index.adoc[Correlation].
+
+The operation proposes simple single-item correlators for well-known identifying properties of the focus type, such as `name`, `personalNumber` or `emailAddress`.
+For each such property, it finds a resource attribute that corresponds to it and evaluates on real data how well the pair links resource objects to existing focus objects.
+
+For each recommended correlator, the result contains:
+
+* **correlation definition** - an `items` correlator that uses the focus property,
+* **inbound mapping** - a correlation mapping from the resource attribute to the focus property, unless a suitable inbound mapping already exists,
+* **quality** - how well the correlator links sampled resource objects to existing focus objects, see <<Quality assessment>>.
+
+The resource attribute is taken from an existing inbound mapping or found by the schema match, see xref:../../schema-match.adoc[Schema match].
+The AI microservice is used only to compute the schema match.
+The correlators themselves are built and evaluated locally in midPoint.
+
+The recommendations are not applied to the resource automatically.
+They are stored in the work state of the recommendation task, and the user can review and accept them in the GUI.
+
+=== Execution
+
+The operation runs as a background task that is submitted by `SmartIntegrationService.submitSuggestCorrelationOperation()`.
+The activity has two child activities that run in this order:
+
+. `schemaMatching` - provides the schema match for the object type, see <<1. Schema match>>.
+. `correlationSuggestion` - runs the correlation recommendation itself (`CorrelationSuggestionOperation`) and stores the result in the task work state.
+
+Before the operation runs, midPoint checks the `#smartIntegration` authorization, see xref:../../security/authorization.adoc[].
+
+== Inputs
+
+The operation takes these inputs:
+
+[cols="25%,15%,60%",options="header"]
+|===
+| Input | Required | Description
+
+| Resource and object type
+| yes
+| The resource OID and the kind and intent of the object type for which correlation is recommended.
+The object type must have a focus type defined.
+
+| Data access permissions
+| no
+a| `DataAccessPermissionType` values granted to the task:
+
+* `SCHEMA_ACCESS` - allows sending the schema to the AI microservice to compute the schema match.
+Without it, only well-known schema pairs are used.
+
+| Force recompute schema match
+| no
+| If set, the schema match is always computed again, even if a valid stored one exists.
+
+| Target paths to ignore
+| no
+| Focus item paths for which no correlator is recommended.
+For example, if a correlator has already been recommended for the property, the property is skipped.
+|===
+
+The evaluation reads resource objects and focus objects locally in midPoint.
+No attribute values are sent to the AI microservice, so no other data access permission is needed.
+
+== Processing flow
+
+The activities run these steps:
+
+.Correlation recommendation flow
+----
+Schema match (reused or computed)
+    ↓
+Known correlation properties of the focus type
+    ↓
+Skip properties with existing or already recommended correlators
+    ↓
+Find candidate resource attributes (existing inbound mappings, schema match)
+    ↓
+Sample resource objects, read all focus objects
+    ↓
+Compute quality for every candidate
+    ↓
+Keep the best candidate with quality > 0 for each property
+    ↓
+CorrelationSuggestionsType
+----
+
+=== 1. Schema match
+
+The `schemaMatching` step provides the pairs of resource attributes and focus properties for the object type:
+
+* If `SCHEMA_ACCESS` is granted and the recomputation is not forced, the latest stored schema match is reused, if it exists.
+* Otherwise, the schema match is computed and stored.
+Without `SCHEMA_ACCESS`, it is computed only from well-known schemas.
+
+See xref:../../schema-match.adoc#_storage_and_reuse[Storage and reuse] for details.
+
+=== 2. Known correlation properties
+
+MidPoint recommends correlators only for a fixed set of properties that typically identify a focus object:
+
+[cols="30%,70%",options="header"]
+|===
+| Property | Focus types
+
+| `name`
+| All focus types.
+
+| `personalNumber`
+| `UserType`.
+
+| `identifier`
+| `AbstractRoleType` and its subtypes (for example `RoleType`, `OrgType`, `ServiceType`).
+
+| `emailAddress`
+| All focus types.
+|===
+
+Only the properties that apply to the focus type of the object type are used.
+
+Some properties are then skipped:
+
+* **Properties already used by existing correlators.**
+If the correlation definition of the object type already contains an `items` correlator with a single item that refers to the property, no new correlator is recommended for it.
+Correlators with more than one item are not taken into account.
+* **Ignored properties.**
+Properties listed in the _Target paths to ignore_ input (for example, those with already recommended correlators) are skipped.
+
+=== 3. Selection of resource attributes
+
+For every remaining property, midPoint looks for resource attributes that can provide its value:
+
+. *Existing inbound mapping.* If the object type already has an inbound mapping that targets the property, its source attribute is used.
+No new mapping is recommended in this case, only the correlator.
+. *Schema match.* Otherwise, every schema match pair whose focus property is the property becomes a candidate.
+For each candidate, midPoint prepares a new inbound mapping, see <<Result structure>>.
+
+If neither an existing mapping nor a schema match pair is found, no correlator is recommended for the property.
+
+=== 4. Quality evaluation
+
+All candidates are evaluated on real data:
+
+. All focus objects of the focus type are read from the repository.
+. Resource objects of the object type are sampled, see <<Shadow sampling>>.
+. The quality of every candidate is computed, see <<Quality assessment>>.
+
+=== 5. Selection of best candidates
+
+For every property, only the candidate with the highest quality is kept.
+Candidates with quality `0` are discarded, so a property for which no candidate links any resource object to a focus object gets no correlator.
+
+== Shadow sampling
+
+The quality is computed on a sample of resource objects.
+The sample size depends on whether the attributes used by the candidates are cached:
+
+* if all of them are cached, cached shadows are read from the repository, at most `correlationSampleSizeCached` (default `5000`),
+* otherwise, shadows are fetched from the resource, at most `correlationSampleSizeUncached` (default `2000`).
+
+If the attributes are cached but the repository contains no shadows of the object type yet, the shadows are fetched from the resource instead.
+
+If there are more resource objects than the sample size, a random sample is taken.
+The sampling is deterministic, so repeated runs on the same data use the same sample.
+
+See xref:../../shadow-sampling.adoc[Shadow sampling configuration].
+
+Focus objects are not sampled: all focus objects of the focus type are used.
+
+== Quality assessment
+
+The *quality* is the share of sampled resource objects that the candidate links to existing focus objects, penalized for ambiguous links.
+It is a number from `0.0` to `1.0`.
+
+For a candidate (resource attribute and focus property), midPoint compares the attribute value of each sampled resource object with the property value of each focus object.
+Values are compared as text, exactly, without any normalization.
+Objects with more than one value of the compared item are skipped.
+
+The quality is computed from these counts:
+
+* `N` - number of sampled resource objects,
+* `L` - number of resource objects linked to at least one focus object,
+* `A` - number of resource objects linked to more than one focus object,
+* `L'` - number of focus objects linked to at least one resource object,
+* `A'` - number of focus objects linked to more than one resource object.
+
+----
+quality = (L / N) × (1 − A / L) × (1 − A' / L')
+----
+
+The first factor is the coverage: how many resource objects find a focus object.
+The other two factors penalize ambiguity in both directions: a resource object that matches several focus objects, and a focus object that is matched by several resource objects.
+If every sampled resource object matches exactly one focus object and no focus object is matched by more than one resource object, the quality is `1.0`.
+
+NOTE: Focus objects that are not yet in midPoint cannot be linked.
+Before the initial import, the quality is usually `0` and no correlator is recommended.
+
+== Result structure
+
+The result (`CorrelationSuggestionsType`) contains a list of `suggestion` items.
+Each of them (`CorrelationSuggestionType`) contains:
+
+* `correlation` - a correlation definition (`CorrelationDefinitionType`) with one `items` correlator:
+** `name` and `displayName` - derived from the property, for example `EmailAddress correlator`,
+** `description` - the resource attribute and the focus property that were matched,
+** `item` - a reference to the focus property,
+** `composition` with `tier` `1` and `weight` `1.0`.
+* `attributes` - a resource attribute definition (`ResourceAttributeDefinitionType`), missing if the correlator uses an existing inbound mapping (see <<3. Selection of resource attributes>>), with:
+** `ref` - the resource attribute,
+** one `inbound` mapping with the name `<attribute>-into-<property>`, `strong` strength, `correlation` use and the focus property as the target.
+* `quality` - the quality of the correlator, see <<Quality assessment>>.
+
+.Example of a recommended correlation
+[source,xml]
+----
+<suggestion>
+    <correlation>
+        <correlators>
+            <items>
+                <name>EmailAddress correlator</name>
+                <displayName>EmailAddress correlator</displayName>
+                <description>Suggested based on matching of attributes/mail to emailAddress</description>
+                <item>
+                    <ref>c:emailAddress</ref>
+                </item>
+                <composition>
+                    <tier>1</tier>
+                    <weight>1.0</weight>
+                </composition>
+            </items>
+        </correlators>
+    </correlation>
+    ...
+    <quality>0.98</quality>
+</suggestion>
+----
+
+The example omits the provenance metadata (`_metadata`) that is attached to the recommended values, see <<Provenance>>.
+
+=== Provenance
+
+Every recommendation is marked with provenance metadata, so the GUI can show where it comes from:
+
+[cols="20%,80%",options="header"]
+|===
+| Provenance | Meaning
+
+| `AI`
+| The resource attribute was found by the AI-assisted schema match, or comes from an existing inbound mapping marked as AI-provided.
+
+| `SYSTEM`
+| The resource attribute comes from a well-known schema match, or from an existing inbound mapping not marked as AI-provided.
+|===
+
+The same marker is applied to the correlation definition and to the `ref` and the mapping `target` of the recommended attribute.
+
+== Correlators simulation
+
+See xref:correlators-simulation.adoc[Correlators simulation].
+
+== Configuration
+
+The operation is affected by these settings in the `<smartIntegration>` container of the system configuration:
+
+[cols="35%,15%,50%",options="header"]
+|===
+| Setting | Default | Description
+
+| `shadowSampling/correlationSampleSizeCached`
+| `5000`
+| Maximum number of cached shadows used for the quality evaluation.
+
+| `shadowSampling/correlationSampleSizeUncached`
+| `2000`
+| Maximum number of shadows used for the quality evaluation when the required attributes are not cached.
+
+| `schemaMatchTtl`
+| `P1D`
+| How long a stored schema match is reused, see xref:../../schema-match.adoc[Schema match].
+|===
+
+The settings of the AI microservice (`serviceUrl`, `serviceApiKey`, `serviceResponseTimeout`) apply to the schema match computation.
+
+See also xref:../../configuration.adoc[Smart Integration configuration].
+
+== Limitations
+
+* **Fixed set of properties.** Correlators are recommended only for the properties listed in <<2. Known correlation properties>>.
+* **Single-item correlators only.** Each recommended correlator uses one focus property.
+Composite correlators (for example, given name and family name together) are not recommended.
+* **One attribute per property.** For every property, at most one correlator is recommended, using the best resource attribute.
+* **Exact match.** Values are compared exactly as text.
+Values that differ only in letter case, whitespace or format do not match, and no transformation is recommended for the mapping.
+* **Multi-valued items are ignored.** Objects with more than one value of the compared item are skipped in the evaluation.
+* **Existing data required.** The quality is computed against existing focus objects.
+Without them, no correlator is recommended.
+* **All focus objects are read.** The evaluation reads all focus objects of the focus type, which may take a long time in large deployments.

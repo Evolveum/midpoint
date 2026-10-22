@@ -429,21 +429,6 @@ public class CelMidPointExtensions extends AbstractMidPointCelExtensions {
                                 this::isCurrentProjectionDeactivated)
                 ),
 
-                // midpoint.getDefaultNameForResourceRelatedTask(taskTypeName, resourceObjectSet)
-                new Function(
-                        CelFunctionDecl.newFunctionDeclaration(
-                                FUNCTION_NAME_PREFIX_DOT + "getDefaultNameForResourceRelatedTask",
-                                CelOverloadDecl.newGlobalOverload(
-                                        FUNCTION_NAME_PREFIX_DASH + "getDefaultNameForResourceRelatedTask",
-                                        "Determines the default name for a task that executes an operation against given resource, like import or reconciliation.",
-                                        SimpleType.STRING,
-                                        SimpleType.STRING, NullableType.create(ContainerValueCelValue.CEL_TYPE))),
-                        CelFunctionBinding.from(FUNCTION_NAME_PREFIX_DASH + "getDefaultNameForResourceRelatedTask",
-                                String.class, Object.class,
-                                this::getDefaultNameForResourceRelatedTask,
-                                NullabilityProperties.NULLABLE)
-                ),
-
                 // midpoint.isUniquePropertyValue(object, propertyPathString, propertyValue)
                 new Function(
                         CelFunctionDecl.newFunctionDeclaration(
@@ -569,20 +554,6 @@ public class CelMidPointExtensions extends AbstractMidPointCelExtensions {
 
                 ),
 
-                // midpoint.translateKeyInCurrentLocale(key)
-                new Function(
-                        CelFunctionDecl.newFunctionDeclaration(
-                                FUNCTION_NAME_PREFIX_DOT + "translateKeyInCurrentLocale",
-                                CelOverloadDecl.newGlobalOverload(
-                                        FUNCTION_NAME_PREFIX_DASH + "translateKeyInCurrentLocale",
-                                        "Translates message key in user's current locale.",
-                                        SimpleType.STRING,
-                                        SimpleType.STRING)),
-                        CelFunctionBinding.from(FUNCTION_NAME_PREFIX_DASH + "translateKeyInCurrentLocale",
-                                String.class,
-                                key -> midpointExpressionFunctions.translateKeyInCurrentLocale(key))
-                ),
-
                 // midpoint.selectIdentityItemValues(identities, source, itemPath)
                 new Function(
                         CelFunctionDecl.newFunctionDeclaration(
@@ -602,30 +573,8 @@ public class CelMidPointExtensions extends AbstractMidPointCelExtensions {
                                         ItemPathCelValue.class),
                                 this::selectIdentityItemValues,
                                 NullabilityProperties.NULLABLE)
-                ),
-
-                // midpoint.getPrincipalRef()
-                new Function(
-                        CelFunctionDecl.newFunctionDeclaration(
-                                FUNCTION_NAME_PREFIX_DOT + "getPrincipalRef",
-                                CelOverloadDecl.newGlobalOverload(
-                                        FUNCTION_NAME_PREFIX_DASH + "getPrincipalRef",
-                                        "Returns a reference to the principal representing the user whose identity is used to execute the expression.",
-                                        NullableType.create(ReferenceCelValue.CEL_TYPE))),
-                        CelFunctionBinding.from(FUNCTION_NAME_PREFIX_DASH + "getPrincipalRef",
-                                ImmutableList.of(),
-                                this::getPrincipalRef,
-                                NullabilityProperties.NULLABLE)
                 )
         );
-    }
-
-    private CelValue getPrincipalRef(Object[] objects) {
-        try {
-            return toCelReference(midpointExpressionFunctions.getPrincipalRef());
-        } catch (CommonException e) {
-            throw createException(e);
-        }
     }
 
     private boolean isFocusActivated(Object[] objects) {
@@ -651,16 +600,6 @@ public class CelMidPointExtensions extends AbstractMidPointCelExtensions {
     private boolean isCurrentProjectionDeactivated(Object[] objects) {
         try {
             return midpointExpressionFunctions.isCurrentProjectionDeactivated();
-        } catch (CommonException e) {
-            throw createException(e);
-        }
-    }
-
-    private String getDefaultNameForResourceRelatedTask(String taskTypeName, Object set) {
-        try {
-            ResourceObjectSetType javaSet = isCelNull(set)
-                    ? null : toJavaContainerable((ContainerValueCelValue<ResourceObjectSetType>) set);
-            return midpointExpressionFunctions.getDefaultNameForResourceRelatedTask(taskTypeName, javaSet);
         } catch (CommonException e) {
             throw createException(e);
         }
@@ -931,7 +870,7 @@ public class CelMidPointExtensions extends AbstractMidPointCelExtensions {
         }
     }
 
-    private static CelValue toCelReference(ObjectReferenceType reference) {
+    static CelValue toCelReference(ObjectReferenceType reference) {
         if (reference == null) {
             return NullValue.NULL_VALUE;
         }
@@ -958,7 +897,7 @@ public class CelMidPointExtensions extends AbstractMidPointCelExtensions {
         return celObject.getObject().asObjectable();
     }
 
-    private <C extends Containerable> C toJavaContainerable(ContainerValueCelValue<C> celValue) {
+    static <C extends Containerable> C toJavaContainerable(ContainerValueCelValue<C> celValue) {
         if (celValue == null) {
             return null;
         }
