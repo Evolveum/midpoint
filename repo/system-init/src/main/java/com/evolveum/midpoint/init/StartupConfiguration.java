@@ -19,7 +19,7 @@ import ch.qos.logback.classic.joran.JoranConfigurator;
 import ch.qos.logback.core.util.StatusPrinter;
 
 import com.evolveum.axiom.concepts.Lazy;
-import com.evolveum.midpoint.common.configuration.api.ExpressionsConfigurationSection;
+import com.evolveum.midpoint.common.configuration.api.*;
 
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.configuration2.XMLConfiguration;
@@ -37,9 +37,6 @@ import org.springframework.core.env.EnumerablePropertySource;
 import org.springframework.core.env.Environment;
 import org.springframework.core.env.PropertySource;
 
-import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
-import com.evolveum.midpoint.common.configuration.api.ProfilingMode;
-import com.evolveum.midpoint.common.configuration.api.SystemConfigurationSection;
 import com.evolveum.midpoint.init.interpol.HostnameLookup;
 import com.evolveum.midpoint.init.interpol.RandomLookup;
 import com.evolveum.midpoint.util.ClassPathUtil;
@@ -99,6 +96,9 @@ public class StartupConfiguration implements MidpointConfiguration, EnvironmentA
     /** Expressions are evaluated frequently, so we want to cache the configuration section. */
     private final Lazy<ExpressionsConfigurationSection> expressionsConfigurationSection = Lazy.from(
             () -> ExpressionsConfigurationSectionImpl.create(getConfiguration(EXPRESSIONS_CONFIGURATION)));
+
+    private final Lazy<ConnectorsConfigurationSection> connectorsConfigurationSection = Lazy.from(
+            () -> ConnectorsConfigurationSectionImpl.create(getConfiguration(CONNECTORS_CONFIGURATION)));
 
     /**
      * Normalized name of midPoint home directory.
@@ -430,6 +430,11 @@ public class StartupConfiguration implements MidpointConfiguration, EnvironmentA
     }
 
     @Override
+    public boolean isConnectorDevelopmentToolsEnabled() {
+        return getConnectorsSection().developmentToolsEnabled();
+    }
+
+    @Override
     public boolean isProfilingEnabled() {
         return getProfilingMode() != ProfilingMode.OFF;
     }
@@ -458,6 +463,10 @@ public class StartupConfiguration implements MidpointConfiguration, EnvironmentA
 
     public @NotNull ExpressionsConfigurationSection getExpressionsSection() {
         return expressionsConfigurationSection.get();
+    }
+
+    public @NotNull ConnectorsConfigurationSection getConnectorsSection() {
+        return connectorsConfigurationSection.get();
     }
 
     @Override

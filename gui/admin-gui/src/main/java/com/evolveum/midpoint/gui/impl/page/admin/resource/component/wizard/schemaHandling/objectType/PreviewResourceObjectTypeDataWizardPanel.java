@@ -81,7 +81,7 @@ public class PreviewResourceObjectTypeDataWizardPanel extends AbstractWizardBasi
             protected ResourceObjectTypeIdentification getResourceObjectTypeIdentification() {
                 PrismContainerValueWrapper<ResourceObjectTypeDefinitionType> object = resourceObjectType.getObject();
                 ResourceObjectTypeDefinitionType realValue = object.getRealValue();
-                return ResourceObjectTypeIdentification.of(realValue.getKind(), realValue.getIntent());
+                return ResourceObjectTypeIdentification.of(realValue);
             }
 
             @Override

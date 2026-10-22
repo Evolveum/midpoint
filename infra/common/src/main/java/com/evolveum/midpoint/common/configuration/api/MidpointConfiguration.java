@@ -44,6 +44,7 @@ public interface MidpointConfiguration {
     String ROOT_MIDPOINT_CONFIGURATION = "midpoint";
     String CONSTANTS_CONFIGURATION = "midpoint.constants";
     String ICF_CONFIGURATION = "midpoint.icf";
+    String CONNECTORS_CONFIGURATION = "midpoint.connectors";
     String TASK_MANAGER_CONFIGURATION = "midpoint.taskManager";
     String DOT_CONFIGURATION = "midpoint.dot";
     String WEB_APP_CONFIGURATION = "midpoint.webApplication";
@@ -100,6 +101,12 @@ public interface MidpointConfiguration {
     boolean isSafeMode();
 
     /**
+     * Returns {@code true} if the connector development tools (currently connector generator) are enabled.
+     * The rationale for disabling them is to increase the security of the system by disabling Groovy.
+     */
+    boolean isConnectorDevelopmentToolsEnabled();
+
+    /**
      * @return True if the profiling interceptor should be loaded.
      */
     @SuppressWarnings("unused")
@@ -119,6 +126,9 @@ public interface MidpointConfiguration {
 
     /** Returns "midpoint.expressions" section of the system configuration. */
     @NotNull ExpressionsConfigurationSection getExpressionsSection();
+
+    /** Returns "midpoint.connectors" section of the system configuration. */
+    @NotNull ConnectorsConfigurationSection getConnectorsSection();
 
     /**
      * Returns {@code true} if unsafe scripting languages (Groovy, full Velocity, Python, etc) are disallowed globally

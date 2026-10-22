@@ -1,11 +1,13 @@
 ---
 midpoint-feature: expression-mel
-doc-type: intro
+doc-type: config
 ---
 = MidPoint Expression Language strftime Formatting
 :page-nav-title: strftime
 :page-upkeep-status: yellow
-:page-toc: top
+:page-display-order: 600
+:page-keywords:  MEL, midPoint expression language, strftime, time formatting
+:page-description: This article describes formatting clauses can be used in MEL strftime and strptime functions.
 
 Following formatting clauses can be used in MEL `strftime` and `strptime` functions:
 

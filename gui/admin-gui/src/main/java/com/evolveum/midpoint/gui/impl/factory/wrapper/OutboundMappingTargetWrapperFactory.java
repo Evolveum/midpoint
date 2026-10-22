@@ -32,11 +32,7 @@ public class OutboundMappingTargetWrapperFactory extends NoEmptyValueContainerWr
             ItemPath.create(AssignmentHolderType.F_ASSIGNMENT, AssignmentType.F_FOCUS_MAPPINGS, MappingsType.F_MAPPING),
             ItemPath.create(AbstractRoleType.F_INDUCEMENT, AssignmentType.F_FOCUS_MAPPINGS, MappingsType.F_MAPPING),
             ItemPath.create(ObjectTemplateType.F_MAPPING),
-            ItemPath.create(ObjectTemplateType.F_ITEM, ObjectTemplateItemDefinitionType.F_MAPPING), ItemPath.create(
-                    AbstractRoleType.F_INDUCEMENT,
-                    AssignmentType.F_CONSTRUCTION,
-                    ConstructionType.F_ATTRIBUTE,
-                    ResourceAttributeDefinitionType.F_OUTBOUND));
+            ItemPath.create(ObjectTemplateType.F_ITEM, ObjectTemplateItemDefinitionType.F_MAPPING));
 
     @Override
     public <C extends Containerable> boolean match(ItemDefinition<?> def, PrismContainerValue<C> parent) {

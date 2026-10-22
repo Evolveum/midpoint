@@ -37,6 +37,9 @@ public interface ItemWrapper<I extends Item<?, ?>, VW extends PrismValueWrapper>
     void setVisibleOverwrite(UserInterfaceElementVisibilityType visible);
     UserInterfaceElementVisibilityType getVisibleOverwrite();
     boolean isVisible(PrismContainerValueWrapper<?> parentContainer, ItemVisibilityHandler visibilityHandler);
+    default boolean isVisible(PrismContainerValueWrapper<?> parentContainer, ItemVisibilityHandler visibilityHandler, ItemMandatoryHandler mandatoryHandler){
+        return isVisible(parentContainer, visibilityHandler);
+    };
 
     boolean checkRequired();
 

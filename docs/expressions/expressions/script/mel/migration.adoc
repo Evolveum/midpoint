@@ -3,9 +3,12 @@ midpoint-feature: expression-mel
 doc-type: guide
 ---
 = MidPoint Expression Language Migration Guide
-:page-nav-title: Migation Guide
+:page-nav-title: Migration Guide
 :page-upkeep-status: green
 :page-toc: top
+:page-display-order: 300
+:page-keywords: mel, midpoint expression language, secure, expression, scripting, migration from groovy, groovy, migration
+:page-description: This document provides guidance for migration of script expression from legacy scripting languages (Groovy, etc.) to midPoint expression language (MEL).
 
 This document provides guidance for migration of script expression from legacy scripting languages (Groovy, etc.) to midPoint expression language (MEL).
 

@@ -1,4 +1,4 @@
-MidPoint 4.11 Development Branch
+MidPoint 4.12.0 Development Branch
 -------------------------------
 
 General information:
@@ -22,7 +22,7 @@ Other features:
 - Identity repository implementation (SQL)
 - Custom schema extensibility
 - Identity synchronization (liveSync, reconciliation, discovery, import)
-- Support for expressions in synchronization mappings (Groovy, JavaScript, Python)
+- Support for expressions in synchronization mappings (mainly via MidPoint Expression Language)
 - Advanced RBAC support with temporal constraints
 - Identity management process automation (workflow, notifications)
 - Password policies
@@ -36,6 +36,7 @@ Other features:
 - Notifications
 - Local Java APIs, Remote web service interface (SOAP), REST API
 - High availability (HA) support
+- Rapid application onboarding with the help of AI
 
 For more information about midPoint identity manager please go to:
 https://midpoint.evolveum.com/

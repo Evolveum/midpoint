@@ -331,6 +331,7 @@ public abstract class MemberOperationsTaskCreator {
 
     private ActivitySubmissionOptions createSubmissionOptions() {
         return ActivitySubmissionOptions.create()
+                .withSystemSubmitted(true)
                 .withTaskTemplate(new TaskType()
                         .channel(SchemaConstants.CHANNEL_USER_URI)
                         .name(WebComponentUtil.createPolyFromOrigString(

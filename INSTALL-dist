@@ -8,7 +8,7 @@ and release notes can be found at:
 
 1. Prerequisites:
 
-    Java (JRE) 17 or 21
+    Java (JRE) 25 or 21
 
 2. Install midPoint
 
@@ -36,4 +36,4 @@ spaces, so it is enclosed with double quotes. Do not forget to remove quotes.
 
 For more information about initial administrator password, please see:
 
-https://docs.evolveum.com/midpoint/reference/support-4.10/security/authentication/administrator-initial-password/
+https://docs.evolveum.com/midpoint/reference/support-4.11/security/authentication/administrator-initial-password/

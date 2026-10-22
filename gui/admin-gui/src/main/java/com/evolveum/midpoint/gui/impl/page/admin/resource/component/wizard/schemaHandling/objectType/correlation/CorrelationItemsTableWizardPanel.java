@@ -397,8 +397,7 @@ public abstract class CorrelationItemsTableWizardPanel extends AbstractResourceW
         if (parentContainerValue == null || parentContainerValue.getRealValue() == null) {
             return null;
         }
-        ResourceObjectTypeDefinitionType resourceObjectTypeDef = parentContainerValue.getRealValue();
-        return ResourceObjectTypeIdentification.of(resourceObjectTypeDef.getKind(), resourceObjectTypeDef.getIntent());
+        return ResourceObjectTypeIdentification.of(parentContainerValue.getRealValue());
     }
 
     protected void acceptSuggestionItemPerformed(PageBase pageBase, AjaxRequestTarget target,

@@ -942,6 +942,18 @@ public interface ProvisioningService {
             CommunicationException, ConfigurationException, SecurityViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException, SubscriptionComplianceException;
 
     /**
+     * Same as {@link #executeScript(String, ProvisioningScriptType, Task, OperationResult)}, but with
+     * {@code productionUse} set to {@code false} skipping the connector instance's normal schema-fetching
+     * initialization (see {@code ConnectorManager#configureAndInitializeConnectorInstance}) - the script
+     * is dispatched straight to the (merely configured) connector. Intended for development-mode script
+     * validation, where the resource's currently deployed schema may itself be broken (that is exactly
+     * the scenario being fixed), so requiring it to be fetched successfully first would make validation
+     * impossible in exactly the case it exists for.
+     */
+    Object executeScript(String resourceOid, ProvisioningScriptType script, boolean productionUse, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException,
+            CommunicationException, ConfigurationException, SecurityViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException, SubscriptionComplianceException;
+
+    /**
      * Tests the resource connection and basic resource connector functionality.
      *
      * This operation will NOT throw exception in case the resource connection fails. It such case it will indicate

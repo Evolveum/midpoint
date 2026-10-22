@@ -31,7 +31,8 @@ import com.evolveum.midpoint.web.session.UserProfileStorage;
                         description = "PageServices.auth.integrationApplicationServices.description"),
                 @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_SERVICES_INTEGRATION_APPLICATIONS_VIEW_URL,
                         label = "PageServices.auth.integrationApplicationServices.view.label",
-                        description = "PageServices.auth.integrationApplicationServices.view.description") })
+                        description = "PageServices.auth.integrationApplicationServices.view.description") },
+        experimental = true)
 @SuppressWarnings("unused")
 public class PageIntegrationApplicationServices extends PageApplicationServices {
 

@@ -24,6 +24,7 @@ import com.evolveum.midpoint.test.TestReport;
 import com.evolveum.midpoint.test.TestTask;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import static com.evolveum.midpoint.model.test.CommonInitialObjects.REPORTS;
 
 @ContextConfiguration(locations = { "classpath:ctx-report-test-main.xml" })
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
@@ -43,8 +44,8 @@ public class TestCsvReportAllAssignments extends TestCsvReport {
     private static final int C_SOURCE = 9;
     private static final String SAFE_SCRIPTS_ONLY = "safe-scripts-only";
 
-    private static final TestReport REPORT_INDIRECT_ASSIGNMENTS = TestReport.classPath(DIR_REPORTS,
-            "report-indirect-assignments.xml", "7f1695f2-d826-4d78-a046-b8249b79d2b5");
+    private static final TestReport REPORT_INDIRECT_ASSIGNMENTS = TestReport.classPath(
+            REPORTS, "200-report-indirect-assignments.xml", "00000000-0000-0000-0000-000000000200");
 
     private static final TestTask TASK_EXPORT_CLASSIC_ROLE_CACHING = new TestTask(TEST_DIR_REPORTS,
             "task-export-role-caching.xml", "0ff414b6-76c6-4d38-95e8-d2d34c7a11cb");
@@ -64,6 +65,7 @@ public class TestCsvReportAllAssignments extends TestCsvReport {
         setDefaultExpressionProfile(SAFE_SCRIPTS_ONLY, initTask, initResult);
 
         CommonInitialObjects.ARCHETYPE_REPORT.init(this, initTask, initResult);
+        CommonInitialObjects.ARCHETYPE_COLLECTION_REPORT.init(this, initTask, initResult);
         REPORT_INDIRECT_ASSIGNMENTS.init(this, initTask, initResult); // new style (2023-02 and later)
         repoAdd(TASK_EXPORT_CLASSIC_ROLE_CACHING, initResult); // old style
 
@@ -92,9 +94,15 @@ public class TestCsvReportAllAssignments extends TestCsvReport {
 
         // Initialization of the bulk of the users
         for (int i = 1; i <= USERS; i++) {
+            AssignmentType businessRoleAssignment = new AssignmentType()
+                    .targetRef(businessRoleOid, RoleType.COMPLEX_TYPE);
+            if (i == 1) {
+                businessRoleAssignment.asPrismContainerValue().setValueMetadata(new ValueMetadataType()
+                        .storage(new StorageMetadataType().createChannel(SchemaConstants.CHANNEL_USER_URI)));
+            }
             UserType user = new UserType()
                     .name(String.format("user-%05d", i))
-                    .assignment(new AssignmentType().targetRef(businessRoleOid, RoleType.COMPLEX_TYPE));
+                    .assignment(businessRoleAssignment);
             if (i % 3 == 0) {
                 // To mix it up, every third user has also direct assignment to the service.
                 XMLGregorianCalendar validTo = MiscUtil.asXMLGregorianCalendar(Instant.now().plus(1, ChronoUnit.DAYS));
@@ -158,16 +166,18 @@ public class TestCsvReportAllAssignments extends TestCsvReport {
                         .assertValue(C_ACTIVATION, "Enabled")
                         .assertValue(C_VALID_TO, "")
                         .assertValueNotEmpty(C_SINCE)
-                        .assertValue(C_SOURCE, ""))
+                        .assertValue(C_SOURCE, "User"))
                 .forRecord(C_NAME, "appRole", record -> record
                         .assertValue(C_USER, "user-00001")
                         .assertValue(C_PATH, "businessRole -> appRole")
-                        .assertValue(C_PARENT, "businessRole"))
+                        .assertValue(C_PARENT, "businessRole")
+                        .assertValue(C_SOURCE, "User"))
                 .forRecord(C_NAME, "appService", record -> record
                         .assertValue(C_USER, "user-00001")
                         .assertValue(C_ARCHETYPE, "Application")
                         .assertValue(C_PATH, "businessRole -> appRole -> appService")
-                        .assertValue(C_PARENT, "appRole"));
+                        .assertValue(C_PARENT, "appRole")
+                        .assertValue(C_SOURCE, "User"));
     }
 
     @Test
