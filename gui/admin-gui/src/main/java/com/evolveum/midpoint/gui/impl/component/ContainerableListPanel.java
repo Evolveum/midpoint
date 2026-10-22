@@ -1519,10 +1519,12 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
     }
 
     protected void setDefaultSorting(ISelectableDataProvider<PO> provider) {
+        // view can be missing e.g. when collection name in page parameters refers to a view which doesn't exist (anymore)
+        CompiledObjectCollectionView view = isCollectionViewPanel() ? getObjectCollectionView() : null;
         if (provider instanceof SortableDataProvider
-                && isCollectionViewPanel() && getObjectCollectionView().getPaging() != null
-                && getObjectCollectionView().getPaging().getOrderBy() != null) {
-            PagingType paging = getObjectCollectionView().getPaging();
+                && view != null && view.getPaging() != null
+                && view.getPaging().getOrderBy() != null) {
+            PagingType paging = view.getPaging();
             boolean ascending = !OrderDirectionType.DESCENDING.equals(paging.getOrderDirection());
             String orderPathString = getPrismContext().itemPathSerializer()
                     .serializeStandalone(paging.getOrderBy().getItemPath());
