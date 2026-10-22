@@ -580,7 +580,8 @@ public abstract class SmartMappingTable<P extends Containerable> extends BasePan
     public PrismContainerValueWrapper<MappingType> createNewValue(
             @Nullable PrismContainerValue<MappingType> value,
             @Nullable AjaxRequestTarget target) {
-        PrismContainerValueWrapper<MappingType> newValue = createNewVirtualMappingValue(
+
+        return createNewVirtualMappingValue(
                 value,
                 getValueModel(),
                 getMappingDirectionType(),
@@ -588,8 +589,6 @@ public abstract class SmartMappingTable<P extends Containerable> extends BasePan
                 AbstractAttributeMappingsDefinitionType.F_REF,
                 getPageBase(),
                 target);
-
-        return newValue;
     }
 
     protected void createDuplicateValuePerform(PrismContainerValue<MappingType> value, AjaxRequestTarget target) {
