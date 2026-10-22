@@ -21,6 +21,7 @@ import org.springframework.stereotype.Component;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.quartzimpl.TaskQuartzImpl;
 import com.evolveum.midpoint.task.quartzimpl.quartz.TaskSynchronizer;
@@ -30,7 +31,12 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityRealizationStateType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityStateType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskActivityStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStateType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskSchedulingStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
@@ -109,6 +115,7 @@ class ResumeHelper {
 
             LOGGER.trace("Task scheduling state before suspend: {}", task.getSchedulingStateBeforeSuspend());
             if (task.getSchedulingStateBeforeSuspend() == TaskSchedulingStateType.WAITING) {
+                List<TaskQuartzImpl> subtasks = task.listSubtasks(true, result);
                 List<ItemDelta<?, ?>> itemDeltas = prismContext.deltaFor(TaskType.class)
                         .item(TaskType.F_EXECUTION_STATE).replace(MoreObjects.firstNonNull(task.getStateBeforeSuspend(), TaskExecutionStateType.WAITING))
                         .item(TaskType.F_SCHEDULING_STATE).replace(TaskSchedulingStateType.WAITING)
@@ -116,6 +123,7 @@ class ResumeHelper {
                         .item(TaskType.F_SCHEDULING_STATE_BEFORE_SUSPEND).replace()
                         .asItemDeltas();
                 task.applyDeltasImmediate(itemDeltas, result);
+                synchronizeInProgressWorkers(task, subtasks, result);
             } else {
                 List<ItemDelta<?, ?>> itemDeltas = prismContext.deltaFor(TaskType.class)
                         .item(TaskType.F_EXECUTION_STATE).replace(TaskExecutionStateType.RUNNABLE)
@@ -129,5 +137,37 @@ class ResumeHelper {
         } catch (ObjectAlreadyExistsException t) {
             throw new SystemException("Unexpected exception while resuming task " + task + ": " + t.getMessage(), t);
         }
+    }
+
+    /** Restores missing worker triggers after a suspended coordinator returns to WAITING. */
+    private void synchronizeInProgressWorkers(TaskQuartzImpl coordinator, List<TaskQuartzImpl> subtasks, OperationResult result) {
+        for (TaskQuartzImpl subtask : subtasks) {
+            if (shouldSynchronizeWorker(coordinator, subtask)) {
+                taskSynchronizer.synchronizeTask(subtask, result);
+            }
+        }
+    }
+
+    private boolean shouldSynchronizeWorker(TaskQuartzImpl coordinator, TaskQuartzImpl worker) {
+        TaskActivityStateType workerWorkState = worker.getWorkState();
+        if (workerWorkState == null || workerWorkState.getTaskRole() != TaskRoleType.WORKER
+                || workerWorkState.getLocalRoot() == null || worker.getSchedulingState() != TaskSchedulingStateType.READY) {
+            return false;
+        }
+
+        ActivityPath activityPath = ActivityPath.fromBean(workerWorkState.getLocalRoot());
+        ActivityStateType coordinatorActivity;
+        try {
+            coordinatorActivity = coordinator.getActivityStateOrClone(activityPath);
+        } catch (IllegalStateException e) {
+            // The activity path of an older worker may no longer exist in the coordinator state.
+            LOGGER.debug("Skipping worker {} with no coordinator activity at {}", worker, activityPath, e);
+            return false;
+        }
+
+        ActivityStateType workerActivity = workerWorkState.getActivity();
+        return coordinatorActivity != null && coordinatorActivity.getRealizationState() == ActivityRealizationStateType.IN_PROGRESS_DISTRIBUTED
+                && workerActivity != null && workerActivity.getRealizationState() == ActivityRealizationStateType.IN_PROGRESS_LOCAL
+                && workerActivity.getResultStatus() == OperationResultStatusType.IN_PROGRESS;
     }
 }
