@@ -64,8 +64,6 @@ MidPoint records the communication with the microservice in the audit trail, see
 The microservice passes the data from the request to the LLM provider as part of the prompts.
 Which data midPoint sends depends on the data access permissions granted to the operation, see xref:../security/data-access-permissions.adoc[].
 
-// TODO: Summary of data sent by each endpoint (schema only vs. statistics vs. sample values).
-
 == Topics
 
 * xref:endpoints/index.adoc[Microservice endpoints] - List of endpoints, common behavior, response metadata and errors.
