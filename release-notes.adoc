@@ -41,6 +41,7 @@ See xref:/midpoint/guides/account-activation-sequence/[Account Activation Authen
 * Mail nonce is spent only when the whole authentication sequence succeeds and it is bound to the sequence it was issued for.
 * Fixed unbounded growth of task operation results during iterative item processing. See bug:MID-12197[]
 * Fixed access certification ignoring overridden system clock in deadlines, reminders, notifications and campaign cleanup. See bug:MID-11008[]
+* Requests for unknown paths outside the REST API (for example under /actuator or /static) now return HTTP 404 instead of 500 with a stack trace. See bug:MID-12566[].
 
 == Changes With Respect To Version 4.10.4
 
