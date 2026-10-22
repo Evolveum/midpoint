@@ -69,6 +69,19 @@
                 <necessity>sufficient</necessity>
             </module>
         </sequence>
+        <sequence>
+            <identifier>actuator-default</identifier>
+            <channel>
+                <channelId>http://midpoint.evolveum.com/xml/ns/public/common/channels-3#actuator</channelId>
+                <default>true</default>
+                <urlSuffix>actuator-default</urlSuffix>
+            </channel>
+            <module>
+                <identifier>internalBasic</identifier>
+                <order>10</order>
+                <necessity>sufficient</necessity>
+            </module>
+        </sequence>
     </authentication>
     <credentials>
         <password>
