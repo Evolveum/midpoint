@@ -93,8 +93,8 @@ public class BrowserTabSessionStorage implements Serializable, DebugDumpable {
         return ps;
     }
 
-    public GenericPageStorage getConfiguration() {
-        return getPageStorage(SessionStorage.KEY_CONFIGURATION, new GenericPageStorage());
+    public RepositoryObjectsStorage getRepositoryObjectsStorage() {
+        return getPageStorage(SessionStorage.KEY_REPOSITORY_OBJECTS, new RepositoryObjectsStorage());
     }
 
     public OrgStructurePanelStorage getOrgStructurePanelStorage() {

@@ -94,7 +94,9 @@ public class StatusInfoTableUtil {
 
             boolean present = statusInfo != null;
 
-            if (present && statusInfo.getStatus() != OperationResultStatusType.SUCCESS) {
+            if (present
+                    && statusInfo.getStatus() != OperationResultStatusType.SUCCESS
+                    && statusInfo.getStatus() != OperationResultStatusType.PARTIAL_ERROR) {
                 return false;
             }
 
