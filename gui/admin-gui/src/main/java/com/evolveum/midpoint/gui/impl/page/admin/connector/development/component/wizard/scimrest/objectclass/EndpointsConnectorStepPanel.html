@@ -11,23 +11,32 @@
     <div wicket:id="feedbackContainer" class="col-12 feedbackContainer">
         <div wicket:id="feedback" class="messagePanel"/>
     </div>
-    <div class="col-12 card shadow-sm mb-3 p-0" wicket:id="radioGroup">
-        <div class="d-flex flex-column" wicket:id="panel">
-            <div class="d-flex flex-row w-100">
-                <div class="h-100 m-auto pe-3">
-                    <input wicket:id="radio" type="radio" onclick="event.stopPropagation()"/>
-                </div>
-                <div class="h-100 m-auto border rounded px-2">
-                    <div wicket:id="operation"/>
-                </div>
-                <div class="w-100 d-flex flex-row ps-3">
-                    <div class="d-lex flex-row">
-                        <div class="d-inline" wicket:id="name"/>
-                    </div>
-                    <div class="text-secondary ps-5" wicket:id="uri"/>
-                </div>
-            </div>
-        </div>
+
+    <div class="col-12" wicket:id="radioGroup">
+        <table class="table align-middle mb-2">
+            <tr>
+                <th style="width: 2.5rem;"><wicket:message key="EndpointsConnectorStepPanel.column.select"/></th>
+                <th><wicket:message key="EndpointsConnectorStepPanel.column.method"/></th>
+                <th><wicket:message key="EndpointsConnectorStepPanel.column.url"/></th>
+                <th><wicket:message key="EndpointsConnectorStepPanel.column.source"/></th>
+            </tr>
+            <tr wicket:id="rows" style="cursor: pointer;">
+                <td><input wicket:id="radio" type="radio"/></td>
+                <td><span class="border rounded px-2" wicket:id="method">method</span></td>
+                <td><span class="fw-normal" wicket:id="uri">uri</span></td>
+                <td class="text-secondary"><span wicket:id="source">source</span></td>
+            </tr>
+            <tr wicket:id="manualItem">
+                <td><input wicket:id="manualRadio" type="radio"/></td>
+                <td><div wicket:id="manualOperation" style="width: 8rem;"/></td>
+                <td>
+                    <input class="form-control form-control-sm fw-normal" wicket:id="manualUri" type="text"
+                           wicket:message="placeholder:EndpointsConnectorStepPanel.manual.uriPlaceholder"/>
+                </td>
+                <td></td>
+            </tr>
+        </table>
+        <div wicket:id="pagingNavigator" class="d-flex justify-content-center mb-2"/>
     </div>
 </wicket:extend>
 </html>

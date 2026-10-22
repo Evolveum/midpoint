@@ -106,6 +106,11 @@ public class RepairObjectClassButton extends AjaxIconButton {
         onRepairPerformed(target);
     }
 
+    /** Whether the repair action currently applies - exposed for reuse outside this button, e.g. a dropdown menu item. */
+    public boolean isApplicable() {
+        return hasPendingFixableError();
+    }
+
     /**
      * {@code ScriptConnectorStepPanel.onInitialize} forces its own {@code valueModel} to resolve
      * eagerly - the same load() call that would otherwise clear a stale error as a side effect
@@ -114,6 +119,11 @@ public class RepairObjectClassButton extends AjaxIconButton {
      * tell the browser.
      */
     private boolean hasPendingFixableError() {
+        // The fix (repair) is an AI-service operation - there is nothing to fix with offline, the
+        // user edits the skeleton scripts manually.
+        if (ConnectorDevelopmentWizardUtil.isOffline(hostStep.getDetailsModel())) {
+            return false;
+        }
         return objectClassModel.getObject() != null && findWaitingFixStep().isPresent() && !collectErrorMessages().isEmpty();
     }
 

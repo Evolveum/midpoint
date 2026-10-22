@@ -46,15 +46,16 @@ import org.apache.wicket.model.Model;
                 @Url(mountUrl = "/admin/applications")
         },
         action = {
-        @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_APPROVALS_ALL_URL,
+            @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_APPROVALS_ALL_URL,
                 label = "PageAdminApplications.auth.applicationsAll.label",
                 description = "PageAdminApplications.auth.applicationsAll.description"),
-        @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_APPLICATIONS_URL,
+            @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_APPLICATIONS_URL,
                 label = "PageApplications.auth.applications.label",
                 description = "PageApplications.auth.applications.description"),
-        @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_APPLICATION_VIEW_URL,
+            @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_APPLICATION_VIEW_URL,
                 label = "PageApplications.auth.applications.view.label",
-                description = "PageApplications.auth.applications.view.description")})
+                description = "PageApplications.auth.applications.view.description")
+        }, experimental = true)
 @CollectionInstance(identifier = "allApplications", applicableForType = ApplicationType.class,
         display = @PanelDisplay(label = "PageAdmin.menu.top.applications.list", singularLabel = "ObjectType.application", icon = GuiStyleConstants.CLASS_OBJECT_APPLICATION_ICON))
 public class PageApplications extends PageAdmin {

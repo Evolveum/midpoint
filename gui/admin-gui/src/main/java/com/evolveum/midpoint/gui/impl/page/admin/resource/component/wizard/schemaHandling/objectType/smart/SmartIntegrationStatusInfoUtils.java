@@ -892,18 +892,18 @@ public class SmartIntegrationStatusInfoUtils {
         return pageBase.createStringResource("Activity.explanation." + operationKey);
     }
 
-    public static @NotNull String extractEfficiencyFromSuggestedCorrelationItemWrapper(
+    public static @Nullable String extractEfficiencyFromSuggestedCorrelationItemWrapper(
             @NotNull PrismContainerValueWrapper<ItemsSubCorrelatorType> valueWrapper) {
         PrismContainerValueWrapper<CorrelationSuggestionType> parent = valueWrapper.getParentContainerValue(
                 CorrelationSuggestionType.class);
         if (parent == null || parent.getRealValue() == null) {
-            return "-";
+            return null;
         }
 
         Double quality = parent.getRealValue().getQuality();
         return quality != null && quality != -1
                 ? BigDecimal.valueOf(quality).multiply(BigDecimal.valueOf(100)).setScale(1, RoundingMode.FLOOR).toPlainString()
-                : "-";
+                : null;
     }
 
     public static int computeSuggestedObjectsCount(@Nullable StatusInfo<?> statusInfo) {

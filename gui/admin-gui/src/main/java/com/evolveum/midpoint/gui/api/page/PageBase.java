@@ -113,7 +113,6 @@ public abstract class PageBase extends PageAdminLTE {
     private static final String OPERATION_LOAD_USER = DOT_CLASS + "loadUser";
 
     private static final String ID_MAIN_HEADER = "mainHeader";
-    private static final String ID_ACCESSIBILITY_LOGO = "accessibilityLogo";
     private static final String ID_PAGE_TITLE_CONTAINER = "pageTitleContainer";
     private static final String ID_PAGE_TITLE_REAL = "pageTitleReal";
     private static final String ID_PAGE_TITLE = "pageTitle";
@@ -280,16 +279,9 @@ public abstract class PageBase extends PageAdminLTE {
         }
 
         getSession().getFeedbackMessages().clear();
-
-        LeftMenuPanel sidebarMenu = getSideBarMenuPanel();
-        updateAccessibilityLogo(sidebarMenu.getLogoMarkupId());
     }
 
     private void initHeaderLayout(WebMarkupContainer container) {
-        WebMarkupContainer menuToggle = new WebMarkupContainer(ID_MENU_TOGGLE);
-        menuToggle.add(createUserStatusBehaviour());
-        container.add(menuToggle);
-
         LocaleTopMenuPanel locale = new LocaleTopMenuPanel(ID_LOCALE);
         container.add(locale);
 
@@ -432,17 +424,14 @@ public abstract class PageBase extends PageAdminLTE {
 
     private void initLayout() {
         WebMarkupContainer mainHeader = new WebMarkupContainer(ID_MAIN_HEADER);
-        mainHeader.add(AttributeAppender.append("class", () -> {
-            String skin = WebComponentUtil.getMidPointSkin().getBackgroundCss();
-
-            if (skin != null && Arrays.stream(skin.split(" ")).noneMatch("navbar-light"::equals)) {
-                return "navbar-dark text-white " + skin;
-            }
-
-            return skin;
-        }));
+        mainHeader.add(createHeaderSkinClassAppender());
         mainHeader.setOutputMarkupId(true);
         add(mainHeader);
+
+        WebMarkupContainer menuToggle = new WebMarkupContainer(ID_MENU_TOGGLE);
+        menuToggle.add(createHeaderSkinClassAppender());
+        menuToggle.add(createUserStatusBehaviour());
+        add(menuToggle);
 
         IModel<IconType> logoModel = new IModel<>() {
 
@@ -499,9 +488,6 @@ public abstract class PageBase extends PageAdminLTE {
 //        mainPopup.setResizable(false);
         mainPopup.setOutputMarkupId(true);
         add(mainPopup);
-
-        WebMarkupContainer accessibilityLogo = new WebMarkupContainer(ID_ACCESSIBILITY_LOGO);
-        mainHeader.add(accessibilityLogo);
 
         addAdditionalFooter((MarkupContainer) get(ID_FOOTER_CONTAINER), ID_ADDITIONAL_FOOTER);
 
@@ -585,9 +571,16 @@ public abstract class PageBase extends PageAdminLTE {
         showDrawer(drawerModel, target);
     }
 
-    private void updateAccessibilityLogo(String logoId) {
-        Component accessibilityLogo = get(createComponentPath(ID_MAIN_HEADER, ID_ACCESSIBILITY_LOGO));
-        accessibilityLogo.add(AttributeAppender.replace("aria-owns", () -> logoId));
+    private AttributeAppender createHeaderSkinClassAppender() {
+        return AttributeAppender.append("class", () -> {
+            String skin = WebComponentUtil.getMidPointSkin().getBackgroundCss();
+
+            if (skin != null && Arrays.stream(skin.split(" ")).noneMatch("navbar-light"::equals)) {
+                return "navbar-dark text-white " + skin;
+            }
+
+            return skin;
+        });
     }
 
     protected boolean isContentVisible() {

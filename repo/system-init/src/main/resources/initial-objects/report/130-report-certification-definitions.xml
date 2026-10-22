@@ -50,6 +50,7 @@
                 <export>
                     <expression>
                         <script>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                             <code>campaigns</code>
                         </script>
                     </expression>
@@ -70,12 +71,12 @@
                 <export>
                     <expression>
                         <script>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                             <code><![CDATA[
-                                import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType
-                                import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType.*
-
-                                (campaigns as Collection<AccessCertificationCampaignType>)
-                                        .count { it.state != CREATED && it.state != CLOSED }
+                                campaigns
+                                    .filter(campaign, stringify(campaign.state) != 'CREATED'
+                                    && stringify(campaign.state) != 'CLOSED')
+                                    .size()
                             ]]></code>
                         </script>
                     </expression>
@@ -119,17 +120,11 @@
             <type>AccessCertificationCampaignType</type>
             <expression>
                 <script>
+                    <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                     <code>
-                        import com.evolveum.midpoint.prism.query.ObjectQuery
-                        import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType
-
                         midpoint.searchObjects(
-                            AccessCertificationCampaignType.class,
-                            prismContext.queryFor(AccessCertificationCampaignType.class)
-                                .item(AccessCertificationCampaignType.F_DEFINITION_REF)
-                                .ref(object.oid)
-                                .build() as ObjectQuery,
-                            null)
+                            'AccessCertificationCampaignType',
+                            'definitionRef matches (oid = "%s")'.format([object.oid]))
                     </code>
                 </script>
             </expression>

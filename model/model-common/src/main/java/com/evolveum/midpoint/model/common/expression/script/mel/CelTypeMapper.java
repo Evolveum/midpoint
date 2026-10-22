@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.model.common.expression.script.mel;
 
 import com.evolveum.midpoint.model.common.expression.script.mel.value.*;
+import com.evolveum.midpoint.model.api.simulation.ProcessedObject;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.binding.TypeSafeEnum;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
@@ -22,6 +23,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectDeltaOperationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemEscalationLevelType;
 import com.evolveum.prism.xml.ns._public.types_3.*;
 
 import com.google.common.collect.ImmutableCollection;
@@ -71,7 +73,12 @@ public class CelTypeMapper implements CelTypeProvider  {
                 ItemPathCelValue.CEL_TYPE,
                 PROTECTED_STRING_CEL_TYPE,
                 ObjectDeltaOperationCelValue.CEL_TYPE,
-                OperationResultCelValue.CEL_TYPE
+                OperationResultCelValue.CEL_TYPE,
+                SimulationMetricCelValue.CEL_TYPE,
+                SimulationItemDeltaCelValue.CEL_TYPE,
+                SimulationValueWithStateCelValue.CEL_TYPE,
+                PrismCelValue.CEL_TYPE,
+                BigDecimalCelValue.CEL_TYPE
         );
     }
 
@@ -193,11 +200,27 @@ public class CelTypeMapper implements CelTypeProvider  {
     @NotNull
     public static CelType toCelType(@NotNull QName xsdType) {
         CelType celType = getCelType(xsdType);
-        if (celType == null) {
-            throw new IllegalArgumentException("No CEL mapping for XSD type " + xsdType);
-        } else {
+        if (celType != null) {
             return celType;
         }
+
+        ComplexTypeDefinition typeDefinition = PrismContext.get()
+                .getSchemaRegistry()
+                .findComplexTypeDefinitionByType(xsdType);
+
+        if (typeDefinition != null) {
+            if (typeDefinition.isObjectMarker()) {
+                return ObjectCelValue.CEL_TYPE;
+            } else if (typeDefinition.isReferenceMarker()) {
+                return ReferenceCelValue.CEL_TYPE;
+            } else if (typeDefinition.isContainerMarker()) {
+                return ContainerValueCelValue.CEL_TYPE;
+            } else {
+                return SimpleType.DYN;
+            }
+        }
+
+        throw new IllegalArgumentException("No CEL mapping for XSD type " + xsdType);
     }
 
     @NotNull
@@ -352,12 +375,12 @@ public class CelTypeMapper implements CelTypeProvider  {
         if (celValue instanceof Collection<?> col) {
             return toJavaValues(col);
         }
-        if (celValue instanceof CelValue) {
-            return toJavaValue((CelValue) celValue);
+        if (celValue instanceof CelValue realCelValue) {
+            return toJavaValue(realCelValue);
         } else if (celValue instanceof Instant i) {
             return toXmlGregorianCalendar(i);
-        } else if (celValue instanceof com.google.protobuf.Duration gDurantion) {
-            return toXmlDuration(gDurantion);
+        } else if (celValue instanceof com.google.protobuf.Duration gDuration) {
+            return toXmlDuration(gDuration);
         } else {
             return celValue;
         }
@@ -401,6 +424,29 @@ public class CelTypeMapper implements CelTypeProvider  {
         if (javaValue instanceof Duration xmlDuration) {
             return toGoogleDuration(xmlDuration);
         }
+        if (javaValue instanceof Float floatValue) {
+            return floatValue.doubleValue();
+        }
+        if (javaValue instanceof Integer
+                || javaValue instanceof Short
+                || javaValue instanceof Byte) {
+            return ((Number) javaValue).longValue();
+        }
+        if (javaValue instanceof WorkItemEscalationLevelType escalationLevel) {
+            return Map.of(
+                    "number", toCelValue(escalationLevel.getNumber()),
+                    "name", toCelValue(escalationLevel.getName()),
+                    "displayName", toCelValue(escalationLevel.getDisplayName()));
+        }
+        if (javaValue instanceof ProcessedObject.Metric metric) {
+            return SimulationMetricCelValue.create(metric);
+        }
+        if (javaValue instanceof ProcessedObject.ProcessedObjectItemDelta<?, ?> itemDelta) {
+            return SimulationItemDeltaCelValue.create(itemDelta);
+        }
+        if (javaValue instanceof ProcessedObject.ValueWithState valueWithState) {
+            return SimulationValueWithStateCelValue.create(valueWithState);
+        }
         if (javaValue instanceof PrismObject<?> o) {
             return ObjectCelValue.create(o);
         }
@@ -409,6 +455,16 @@ public class CelTypeMapper implements CelTypeProvider  {
         }
         if (javaValue instanceof PrismReferenceValue rval) {
             return ReferenceCelValue.create(rval);
+        }
+        // TODO Is it better to treat these tree "*able"s here or in convertVariableValue()?
+        if (javaValue instanceof Objectable objectable) {
+            return ObjectCelValue.create((PrismObject<?>) objectable.asPrismObject());
+        }
+        if (javaValue instanceof Containerable containerable) {
+            return ContainerValueCelValue.create((PrismContainerValue<?>) containerable.asPrismContainerValue());
+        }
+        if (javaValue instanceof Referencable referencable) {
+            return ReferenceCelValue.create(referencable.asReferenceValue());
         }
         if (javaValue instanceof ObjectDeltaType od) {
             return ObjectDeltaCelValue.create(od);

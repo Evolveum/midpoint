@@ -64,11 +64,6 @@ public class PreviewResourceDataWizardPanel extends AbstractWizardBasicPanel<Res
             }
 
             @Override
-            protected boolean isShadowDetailsEnabled() {
-                return false;
-            }
-
-            @Override
             protected boolean isEnabledInlineMenu() {
                 return false;
             }
@@ -76,6 +71,11 @@ public class PreviewResourceDataWizardPanel extends AbstractWizardBasicPanel<Res
             @Override
             protected boolean isTaskButtonVisible() {
                 return false;
+            }
+
+            @Override
+            protected boolean showPopupShadowDetailsOnClick() {
+                return true;
             }
 
             @Override

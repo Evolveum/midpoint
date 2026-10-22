@@ -119,7 +119,15 @@ public abstract class AbstractWizardController<AH extends AssignmentHolderType, 
         for (int i = 0; i < partItems.size(); i++) {
             AbstractWizardPartItem<AH, ADM> partItem = partItems.get(i);
             if (partItem.setActiveStepById(id)) {
+                int exactlyActiveParentStepIndex = partItem.getActiveParentStepIndex();
+                int exactlyActiveStepIndex = partItem.getActiveStepIndex();
                 setActiveWizardPartIndex(i);
+                if (exactlyActiveParentStepIndex != partItem.getActiveParentStepIndex()) {
+                    partItem.setActiveParentStepIndex(exactlyActiveParentStepIndex);
+                    partItem.setActiveStepIndex(exactlyActiveStepIndex);
+                } else if (exactlyActiveStepIndex == -1 || partItem.getActiveStepIndex() == -1){
+                    partItem.setActiveStepIndex(exactlyActiveStepIndex);
+                }
                 return;
             }
         }
@@ -211,11 +219,9 @@ public abstract class AbstractWizardController<AH extends AssignmentHolderType, 
     }
 
     public boolean hasPrevious() {
-        if (showSummaryPanel) {
-            return false;
-        }
-
-        return getActivePartItem().hasPrevious();
+        // The summary panel is always one level above any wizard part, so back navigation
+        // exists as long as we are not already on the summary.
+        return !showSummaryPanel && getActivePartItem() != null;
     }
 
     public void previous() {
@@ -223,7 +229,13 @@ public abstract class AbstractWizardController<AH extends AssignmentHolderType, 
             return;
         }
 
-        getActivePartItem().previous();
+        AbstractWizardPartItem<AH, ADM> activePartItem = getActivePartItem();
+        if (activePartItem == null || !activePartItem.hasPrevious()) {
+            showSummaryPanel();
+            fireActiveStepChanged(getActiveStep());
+        } else {
+            activePartItem.previous();
+        }
     }
 
     public WizardStep getNextPanel() {
@@ -244,10 +256,10 @@ public abstract class AbstractWizardController<AH extends AssignmentHolderType, 
 
     public List<WizardStep> getInProgressChildrenSteps() {
         if (indexOfInProgressPart == -1) {
-            return List.of();
+            return getActiveChildrenSteps();
         }
 
-        return getInProgressPartItem().getActiveChildrenSteps();
+        return getInProgressPartItem().getInProgressChildrenSteps();
     }
 
     public WizardParentStep getActiveParentStep() {
@@ -256,6 +268,14 @@ public abstract class AbstractWizardController<AH extends AssignmentHolderType, 
         }
 
         return getActivePartItem().getActiveParentStep();
+    }
+
+    public WizardParentStep getInProgressParentStep() {
+        if (indexOfInProgressPart == -1) {
+            return getActiveParentStep();
+        }
+
+        return getInProgressPartItem().getInProgressParentStep();
     }
 
     public List<WizardParentStep> getParentSteps() {
@@ -285,6 +305,20 @@ public abstract class AbstractWizardController<AH extends AssignmentHolderType, 
         showSummaryPanel = true;
     }
 
+    public void useInProgressStepOrShowSummary() {
+        if (indexOfInProgressPart != -1) {
+            setActiveWizardPartIndex(indexOfInProgressPart);
+            getActivePartItem().useInProgressStepAsActive();
+        } else {
+            showSummaryPanel();
+        }
+    }
+
+    @Override
+    public void clearChildStep() {
+        getActivePartItem().clearActiveStep();
+    }
+
     protected final int addWizardPartAfter(AbstractWizardPartItem<AH, ADM> newPartItem, Enum<?> identifier) {
         List<AbstractWizardPartItem<AH, ADM>> newPartItems = new ArrayList<>();
         boolean added = false;
@@ -312,10 +346,7 @@ public abstract class AbstractWizardController<AH extends AssignmentHolderType, 
     public List<WizardParentStep> getAllParentSteps() {
         List<WizardParentStep> list = new ArrayList<>();
         partItems.stream()
-                .map(
-                        partItem -> partItem.getParentSteps().stream()
-                                .filter(parentStep -> BooleanUtils.isTrue(parentStep.isStepVisible().getObject()))
-                                .toList())
+                .map(AbstractWizardPartItem::getParentSteps)
                 .forEach(list::addAll);
         return list;
     }
@@ -335,7 +366,13 @@ public abstract class AbstractWizardController<AH extends AssignmentHolderType, 
             return null;
         }
 
-        return getActivePartItem().findPreviousStep(false);
+        AbstractWizardPartItem<AH, ADM> activePartItem = getActivePartItem();
+        if (activePartItem == null) {
+            return null;
+        }
+
+        WizardStep previous = activePartItem.findPreviousStep(false);
+        return previous != null ? previous : getSummaryPanel();
     }
 
     @Override
@@ -345,5 +382,12 @@ public abstract class AbstractWizardController<AH extends AssignmentHolderType, 
 
     protected final void removeActivePartItem() {
         partItems.remove(getActivePartItem());
+    }
+
+    public boolean isActiveAndInProgressParentSame() {
+        if (indexOfActivePart == -1 || indexOfInProgressPart == -1) {
+            return false;
+        }
+        return indexOfInProgressPart == indexOfActivePart && getInProgressParentStepIndex() == getActiveParentStepIndex();
     }
 }

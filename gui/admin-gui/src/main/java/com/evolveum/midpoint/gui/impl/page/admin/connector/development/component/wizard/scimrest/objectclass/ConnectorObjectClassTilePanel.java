@@ -51,7 +51,7 @@ public abstract class ConnectorObjectClassTilePanel extends BasePanel<TemplateTi
     private static final String ID_CAPABILITY = "capability";
     private static final String ID_CAPABILITY_LABEL = "capabilityLabel";
 
-    private static final List<ConnectorDevelopmentArtifacts.KnownArtifactType> OBJECT_CLASS_CAPABILITIES = List.of(
+    public static final List<ConnectorDevelopmentArtifacts.KnownArtifactType> OBJECT_CLASS_CAPABILITIES = List.of(
             ConnectorDevelopmentArtifacts.KnownArtifactType.NATIVE_SCHEMA_DEFINITION,
             ConnectorDevelopmentArtifacts.KnownArtifactType.SEARCH_ALL_DEFINITION,
             ConnectorDevelopmentArtifacts.KnownArtifactType.SEARCH_BY_ID_DEFINITION,
@@ -62,7 +62,11 @@ public abstract class ConnectorObjectClassTilePanel extends BasePanel<TemplateTi
 
     public ConnectorObjectClassTilePanel(String id, IModel<TemplateTile<PrismContainerValueWrapper<ConnDevObjectClassInfoType>>> model) {
         super(id, model);
+    }
 
+    @Override
+    protected void onInitialize() {
+        super.onInitialize();
         initLayout();
     }
 
@@ -126,6 +130,7 @@ public abstract class ConnectorObjectClassTilePanel extends BasePanel<TemplateTi
                 DisplayType tag = item.getModelObject();
 
                 WebMarkupContainer tagContainer = new WebMarkupContainer(ID_CAPABILITY);
+                tagContainer.add(AttributeAppender.append("class", () -> tag.getCssClass()));
                 item.add(tagContainer);
 
                 Label tagLabel = new Label(ID_CAPABILITY_LABEL, () -> WebComponentUtil.getTranslatedPolyString(tag.getLabel()));
@@ -251,6 +256,27 @@ public abstract class ConnectorObjectClassTilePanel extends BasePanel<TemplateTi
             }
         });
 
+        actions.add(new InlineMenuItem(createStringResource("ConnectorObjectClassTilePanel.actions.fixScripts")) {
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            public IModel<String> getAdditionalCssClass() {
+                return Model.of("border-top");
+            }
+
+            @Override
+            public InlineMenuItemAction initAction() {
+                return new ColumnMenuAction<>() {
+                    @Serial private static final long serialVersionUID = 1L;
+
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        editFixScriptsPerformed(getObjectClassName(), target);
+                    }
+                };
+            }
+        });
+
         actions.add(new ButtonInlineMenuItem(createStringResource("ConnectorObjectClassTilePanel.actions.deleteCapabilities")) {
             @Override
             public CompositedIconBuilder getIconCompositedBuilder() {
@@ -259,7 +285,7 @@ public abstract class ConnectorObjectClassTilePanel extends BasePanel<TemplateTi
 
             @Override
             public IModel<String> getAdditionalCssClass() {
-                return Model.of("text-danger border-top");
+                return Model.of("text-danger");
             }
 
             @Serial private static final long serialVersionUID = 1L;
@@ -300,7 +326,7 @@ public abstract class ConnectorObjectClassTilePanel extends BasePanel<TemplateTi
         return getAvailableCapabilities(getModelObject().getValue());
     }
 
-    static List<ConnectorDevelopmentArtifacts.KnownArtifactType> getAvailableCapabilities(
+    public static List<ConnectorDevelopmentArtifacts.KnownArtifactType> getAvailableCapabilities(
             PrismContainerValueWrapper<ConnDevObjectClassInfoType> value) {
         List<ConnectorDevelopmentArtifacts.KnownArtifactType> capabilities = new ArrayList<>();
         for (ConnectorDevelopmentArtifacts.KnownArtifactType type : OBJECT_CLASS_CAPABILITIES) {
@@ -331,4 +357,6 @@ public abstract class ConnectorObjectClassTilePanel extends BasePanel<TemplateTi
     protected abstract void editUpdatePerformed(String objectClassName, AjaxRequestTarget target);
 
     protected abstract void editDeletePerformed(String objectClassName, AjaxRequestTarget target);
+
+    protected abstract void editFixScriptsPerformed(String objectClassName, AjaxRequestTarget target);
 }

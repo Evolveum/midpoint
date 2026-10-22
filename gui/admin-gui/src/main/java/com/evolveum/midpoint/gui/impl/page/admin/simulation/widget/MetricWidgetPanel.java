@@ -309,10 +309,16 @@ public class MetricWidgetPanel extends WidgetPanel<DashboardWidgetType> {
             }
 
             @Override
+            protected boolean isTooltipEnabled() {
+                return true;
+            }
+
+            @Override
             protected String getLabelAdditionalCssClass() {
                 return "w-90 text-truncate";
             }
         };
+
         add(title);
 
         // todo implement properly and make visible

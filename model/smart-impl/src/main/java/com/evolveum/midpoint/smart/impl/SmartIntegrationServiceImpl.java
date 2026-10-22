@@ -161,9 +161,9 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
     }
 
     @Override
-    public Optional<AiInfo> getAiInfo(Task task, OperationResult result) {
+    public Optional<AiInfo> getAiInfo(Task task, OperationResult result) throws CommonException {
+        authorizeSmartIntegration(task, result);
         try (var client = clientFactory.getServiceClient(result)) {
-            authorizeSmartIntegration(task, result);
             return client.getAiInfo();
         } catch (Exception e) {
             throw new SystemException("Failed to retrieve AI info: " + e.getMessage(), e);

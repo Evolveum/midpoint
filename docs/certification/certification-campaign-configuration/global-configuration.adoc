@@ -1,7 +1,7 @@
 = Global access certification settings in system configuration
 :page-nav-title: Global configuration
 :page-display-order: 40
-:page-upkeep-status: orange
+:page-upkeep-status: green
 :experimental:
 :page-description: This article describes the global access certification configuration concerning all campaigns regardless the template on which they are based.
 :page-keywords: certification campaign, campaign definition, campaign configuration

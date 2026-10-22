@@ -69,7 +69,7 @@ public class QueryConverterPanel extends BasePanel<QueryDto> {
 
         DropDownChoicePanel<QName> objectTypeChoice = new DropDownChoicePanel<>(ID_OBJECT_TYPE,
                 new PropertyModel<>(getModel(), QueryDto.F_OBJECT_TYPE),
-                new ListModel<>(ObjectTypeListUtil.createSearchableTypeList()),
+                new ListModel<>(ObjectTypeListUtil.createSearchableTypeList(getPageBase())),
                 new QNameObjectTypeChoiceRenderer());
         objectTypeChoice.setOutputMarkupId(true);
         objectTypeChoice.getBaseFormComponent().add(new EmptyOnChangeAjaxFormUpdatingBehavior());

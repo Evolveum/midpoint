@@ -12,6 +12,7 @@ import java.util.function.BiFunction;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.page.PageAdminLTE;
+import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismReferenceValueWrapperImpl;
 import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;
@@ -29,7 +30,7 @@ public interface PrismReferenceWrapper<R extends Referencable> extends ItemWrapp
 
     void setFilter(BiFunction<PrismReferenceWrapper, PageAdminLTE, ObjectFilter> filterFunction);
 
-    List<QName> getTargetTypes();
+    List<QName> getTargetTypes(ModelServiceLocator modelServiceLocator);
 
 //    Set<SerializableSupplier<FilterableSearchItemWrapper>> getSpecialSearchItemFunctions();
 //    void setSpecialSearchItemFunctions(Set<SerializableSupplier<FilterableSearchItemWrapper>> specialItems);

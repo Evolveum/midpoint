@@ -1,14 +1,17 @@
 ---
 midpoint-feature: expression-mel
-doc-type: config
+doc-type: guide
 ---
 = MidPoint Expression Language Tips and Recommendations
 :page-nav-title: Tips
 :page-upkeep-status: green
 :page-toc: top
+:page-display-order: 700
+:page-keywords: mel, midpoint expression language, secure, expression, scripting
+:page-description: This article lists miscellaneous tips and recommendations for writing MEL expressions.
 
+This article lists miscellaneous tips and recommendations for writing MEL expressions.
 xref:../introduction/[MidPoint Expression Language (MEL)] is an expression language, designed to support customization of midPoint functionality in an easy-to-use and secure way.
-This page lists miscellaneous tips and recommendations for writing MEL expressions.
 
 == Conditions
 
@@ -154,7 +157,7 @@ list(['foo'])     // Returns ['foo']
 ----
 
 The `list()` function always returns list.
-If a single-valued (scalar_ argument is provided, it returns a single-element list containing that argument.
+If a single-valued (scalar) argument is provided, it returns a single-element list containing that argument.
 If a list is provided as argument, the same list is returned.
 Hence, the `list()` function can be used to make sure that list is provided in context where list arguments are required.
 

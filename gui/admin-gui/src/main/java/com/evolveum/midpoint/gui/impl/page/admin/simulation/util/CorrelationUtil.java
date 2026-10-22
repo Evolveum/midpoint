@@ -22,18 +22,10 @@ import org.jetbrains.annotations.Nullable;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.Badge;
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.api.prism.ItemStatus;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
-import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismContainerWrapperImpl;
 import com.evolveum.midpoint.model.api.simulation.ProcessedObject;
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.delta.ContainerDelta;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.impl.binding.AbstractReferencable;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.CloneUtil;
@@ -427,42 +419,6 @@ public class CorrelationUtil {
     public static Optional<String> getCorrelatedOwner(ShadowType shadow) {
         return Optional.ofNullable(shadow.getCorrelation().getResultingOwner())
                 .map(AbstractReferencable::getOid);
-    }
-
-    @SuppressWarnings({ "unchecked", "rawtypes" })
-    public static @Nullable List<ResourceObjectOwnerOptionType> parseResourceObjectOwnerOptionsFromDelta(
-            @Nullable ObjectDelta<?> delta) {
-        try {
-            if (delta != null) {
-                List<ResourceObjectOwnerOptionType> optionList = new ArrayList<>();
-                ItemPath path = ShadowType.F_CORRELATION
-                        .append(ShadowCorrelationStateType.F_OWNER_OPTIONS);
-
-                ItemDelta<?, ?> itemDelta = delta.findItemDelta(path);
-
-                if (itemDelta instanceof ContainerDelta containerDelta) {
-                    Collection<? extends PrismContainerValue<ResourceObjectOwnerOptionsType>> values =
-                            (Collection<? extends PrismContainerValue<ResourceObjectOwnerOptionsType>>)
-                                    containerDelta.getValuesToReplace();
-                    for (PrismContainerValue<ResourceObjectOwnerOptionsType> pcv : values) {
-                        ResourceObjectOwnerOptionsType options =
-                                pcv.asContainerable(ResourceObjectOwnerOptionsType.class);
-                        if (options != null) {
-                            List<ResourceObjectOwnerOptionType> filteredOptions =
-                                    options.getOption().stream()
-                                            .filter(o -> o.getCandidateOwnerRef() != null)
-                                            .filter(o -> o.getCandidateOwnerRef().getOid() != null)
-                                            .toList();
-                            optionList.addAll(filteredOptions);
-                        }
-                    }
-                }
-                return optionList;
-            }
-        } catch (Exception ex) {
-            LOGGER.error("Error retrieving correlation candidate options from delta: {}", ex.getMessage(), ex);
-        }
-        return null;
     }
 
     public static @NotNull Badge createStatusBadge(@NotNull List<ObjectReferenceType> eventMakRefs, @NotNull PageBase pageBase) {

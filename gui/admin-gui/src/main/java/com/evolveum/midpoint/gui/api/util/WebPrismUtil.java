@@ -74,6 +74,18 @@ public class WebPrismUtil {
 
     public static final ItemName PRISM_SCHEMA = new ItemName(PrismSchemaType.F_COMPLEX_TYPE.getNamespaceURI(), "prismSchema");
 
+    /** Returns localized help for a property in the given container type. */
+    public static <C extends Containerable> @Nullable String getHelpText(
+            PrismContext prismContext,
+            Class<C> containerClass,
+            ItemName itemName) {
+        var containerDefinition = prismContext.getSchemaRegistry()
+                .findContainerDefinitionByCompileTimeClass(containerClass);
+        return containerDefinition != null
+                ? getHelpText(containerDefinition.findPropertyDefinition(itemName), containerClass)
+                : null;
+    }
+
     public static <ID extends ItemDefinition<I>, I extends Item<?, ?>> String getHelpText(ID def, Class<?> containerClass) {
         if (def == null) {
             return null;

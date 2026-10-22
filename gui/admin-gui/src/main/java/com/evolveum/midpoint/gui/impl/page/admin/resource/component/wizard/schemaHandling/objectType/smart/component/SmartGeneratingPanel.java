@@ -403,7 +403,9 @@ public class SmartGeneratingPanel extends BasePanel<SmartGeneratingDto> {
             return;
         }
 
-        TaskOperationUtils.resumeTasks(Collections.singletonList(taskObject), getPageBase());
+        if (taskObject.getExecutionState() == TaskExecutionStateType.SUSPENDED) {
+            TaskOperationUtils.resumeTasks(Collections.singletonList(taskObject), getPageBase());
+        }
 
         timerBehavior.restart(target);
         if (target != null) {

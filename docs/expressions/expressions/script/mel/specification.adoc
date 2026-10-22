@@ -6,6 +6,9 @@ doc-type: config
 :page-nav-title: Specification
 :page-upkeep-status: green
 :page-toc: top
+:page-display-order: 400
+:page-keywords: mel, midpoint expression language, secure, expression, scripting
+:page-description: This page provides reference documentation of MEL with detailed description of its constructs and functions.
 
 MidPoint Expression Language (MEL) is an expression language designed to support customization of midPoint functionality in an easy-to-use and secure way.
 
@@ -484,6 +487,8 @@ However, the null values of are rendered as string `null`.
 '%s has %d apples'.format(['Jack', 3])
 format('%s has %d apples', ['Jack', 3])
 ----
+
+{empty}
 
 .Example
 [source,mel]
@@ -1408,6 +1413,8 @@ which enables placing of log functions into complex expression without breaking 
 log.info('The {} is broken', 'system')
 ----
 
+{empty}
+
 .Example
 [source,mel]
 ----
@@ -1433,6 +1440,8 @@ which enables placing of log functions into complex expression without breaking 
 // Logs message 'The system is broken', returns 'system' as its output
 log.error('The {} is broken', 'system')
 ----
+
+{empty}
 
 .Example
 [source,mel]
@@ -1460,6 +1469,8 @@ which enables placing of log functions into complex expression without breaking 
 log.warn('The {} is broken', 'system')
 ----
 
+{empty}
+
 .Example
 [source,mel]
 ----
@@ -1486,6 +1497,8 @@ which enables placing of log functions into complex expression without breaking 
 log.debug('The {} is broken', 'system')
 ----
 
+{empty}
+
 .Example
 [source,mel]
 ----
@@ -1511,6 +1524,8 @@ which enables placing of log functions into complex expression without breaking 
 // Logs message 'The system is broken', returns 'system' as its output
 log.trace('The {} is broken', 'system')
 ----
+
+{empty}
 
 .Example
 [source,mel]
@@ -3430,7 +3445,7 @@ This is optional, as some statuses do not need a message (e.g. success).
 // TODO: later, when implemented
 
 
-== Null and Optional Values
+== Null Values
 
 MEL data structures and functions are generally null-safe.
 I.e. expression authors do not need to worry about passing `null` values into functions, or even invoking member functions on `null` values.
@@ -3438,7 +3453,6 @@ MEL interpreter substitutes a reasonable return value in such a case, which is u
 However, some functions may return empty string (`''`), zero (`0`) or appropriate boolean value instead.
 
 Navigation of structured data is also null-safe.
-See section xref:#optional-values-in-structured-data[Optional Values in Structured Data] for more details.
 
 However, there is one unpleasant detail regarding `null` literal.
 CEL interpreter is regarding `null` as a special data type.
@@ -3552,7 +3566,7 @@ Following configuration allows access to all MEL extensions, except for `midpoin
 </systemConfiguration>
 ----
 
-// TODO: default expression profiles in 4.11
+// TODO: default expression profiles in 4.11.0
 
 == MEL and CEL
 
@@ -3563,6 +3577,24 @@ Moreover, MEL is extending the basic CEL environment with midPoint data types su
 
 Simple expressions in MEL and CEL are going to be the same.
 However, MEL is expanding on CEL, especially with convenience functions and much better support for nullable values, MEL expressions have a very distinct "midPointish" look and feel.
+
+Significant differences between CEL and MEL:
+
+* MEL is null-safe language.
++
+CEL is built to work with non-null values.
+Therefore, in case that CEL expression encounters a `null` value, it most likely results in an error.
+Creating a core which works with `null` values is a major pain in CEL.
++
+On the other hand, MEL was designed to work seamlessly with `null` values.
+If a function or operator encounters `null` value, it does not fail.
+Appropriate value is returned instead, which is usually a `null`, `false`, empty string or empty array.
+
+* Native support for polystrings.
+
+* Support for midPoint (prism) data structures instead of protobuf structures.
+
+* MidPoint-specific language extensions and libraries.
 
 == MEL and Java/Groovy
 

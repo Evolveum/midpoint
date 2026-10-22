@@ -408,6 +408,11 @@ public class ExpressionUtil {
             Task task, OperationResult result) throws SchemaException, ObjectNotFoundException,
             CommunicationException, ConfigurationException, SecurityViolationException,
             ExpressionEvaluationException, SubscriptionComplianceException {
+
+        if (objectVariableMode == ObjectVariableModeType.REFERENCABLE_WITHOUT_RESOLUTION) {
+            return referenceTypedValue;
+        }
+
         TypedValue<?> resolvedTypedValue;
         Referencable originalReference = (Referencable) referenceTypedValue.getValue();
         Itemable originalParent = originalReference.asReferenceValue().getParent();
@@ -447,7 +452,10 @@ public class ExpressionUtil {
                 // This may be a bit fishy, but this only preserves parent for ref variable mode.
                 // It's a waste to forget the parent (if available) and it can save some ref resolutions in the script.
                 value.setParent(originalParent);
-                return new TypedValue<>(value, value.getDefinition());
+                ItemDefinition<?> definition = referenceTypedValue.getDefinition() != null
+                        ? referenceTypedValue.getDefinition()
+                        : value.getDefinition();
+                return new TypedValue<>(value, definition, referenceTypedValue.getTypeClass());
             } else {
                 return referenceTypedValue;
             }

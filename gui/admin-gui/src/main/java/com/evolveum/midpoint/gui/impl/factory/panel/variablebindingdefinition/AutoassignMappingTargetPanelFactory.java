@@ -6,6 +6,8 @@
 
 package com.evolveum.midpoint.gui.impl.factory.panel.variablebindingdefinition;
 
+import java.io.Serializable;
+
 import org.apache.wicket.markup.html.panel.Panel;
 import org.springframework.stereotype.Component;
 
@@ -21,7 +23,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.VariableBindingDefin
  * there is always the role's own assignment.
  */
 @Component
-public class AutoassignMappingTargetPanelFactory extends VariableBindingDefinitionTypePanelFactory {
+public class AutoassignMappingTargetPanelFactory extends VariableBindingDefinitionTypePanelFactory implements Serializable {
 
     @Override
     public <IW extends ItemWrapper<?, ?>, VW extends PrismValueWrapper<?>> boolean match(IW wrapper, VW valueWrapper) {

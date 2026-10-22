@@ -2,7 +2,7 @@
 :page-nav-title: Scope
 :page-toc: top
 :page-display-order: 20
-:page-upkeep-status: orange
+:page-upkeep-status: green
 :experimental:
 :page-description: This article describes access certification campaign scope definition, i.e., an algorithm to select objects and targets to certify.
 :page-keywords: certification campaign, campaign definition, campaign configuration, scope

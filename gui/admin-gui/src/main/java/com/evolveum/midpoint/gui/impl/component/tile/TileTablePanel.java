@@ -416,7 +416,7 @@ public abstract class TileTablePanel<T extends Tile, O extends Serializable> ext
             }
         };
 
-        TogglePanel<ViewToggle> viewToggle = new TogglePanel<>(id, items) {
+        TogglePanel<ViewToggle> viewToggle = new ViewTogglePanel(id, items, getViewToggleModel()) {
 
             @Override
             protected void itemSelected(AjaxRequestTarget target, IModel<Toggle<ViewToggle>> item) {

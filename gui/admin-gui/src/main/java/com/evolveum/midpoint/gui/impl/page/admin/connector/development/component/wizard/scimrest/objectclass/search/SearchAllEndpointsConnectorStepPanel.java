@@ -16,6 +16,7 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.ConnectorDevelopmentDetailsModel;
 import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.smart.api.conndev.ConnectorDevelopmentArtifacts;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
@@ -52,6 +53,11 @@ public class SearchAllEndpointsConnectorStepPanel extends EndpointsConnectorStep
     @Override
     protected Collection<ConnDevHttpEndpointIntentType> getEndpointIntents() {
         return List.of(ConnDevHttpEndpointIntentType.SEARCH, ConnDevHttpEndpointIntentType.GET_ALL, ConnDevHttpEndpointIntentType.LIST);
+    }
+
+    @Override
+    protected ConnectorDevelopmentArtifacts.KnownArtifactType getScriptType() {
+        return ConnectorDevelopmentArtifacts.KnownArtifactType.SEARCH_ALL_DEFINITION;
     }
 
     protected String getPanelType() {

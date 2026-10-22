@@ -1175,29 +1175,41 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
 
         @Override
         public @NotNull Set<?> getRealValuesAdded() {
-            return PrismValueCollectionsUtil.getRealValuesOfCollection(
-                    PrismValueCollectionsUtil.differenceConsideringIds(
-                            getPrismValuesAfter(),
-                            getPrismValuesBefore(),
-                            ParameterizedEquivalenceStrategy.REAL_VALUE));
+            return PrismValueCollectionsUtil.getRealValuesOfCollection(getPrismValuesAdded());
+        }
+
+        @Override
+        public @NotNull Set<? extends PrismValue> getPrismValuesAdded() {
+            return PrismValueCollectionsUtil.differenceConsideringIds(
+                    getPrismValuesAfter(),
+                    getPrismValuesBefore(),
+                    ParameterizedEquivalenceStrategy.REAL_VALUE);
         }
 
         @Override
         public @NotNull Set<?> getRealValuesDeleted() {
-            return PrismValueCollectionsUtil.getRealValuesOfCollection(
-                    PrismValueCollectionsUtil.differenceConsideringIds(
-                            getPrismValuesBefore(),
-                            getPrismValuesAfter(),
-                            ParameterizedEquivalenceStrategy.REAL_VALUE));
+            return PrismValueCollectionsUtil.getRealValuesOfCollection(getPrismValuesDeleted());
+        }
+
+        @Override
+        public @NotNull Set<? extends PrismValue> getPrismValuesDeleted() {
+            return PrismValueCollectionsUtil.differenceConsideringIds(
+                    getPrismValuesBefore(),
+                    getPrismValuesAfter(),
+                    ParameterizedEquivalenceStrategy.REAL_VALUE);
         }
 
         @Override
         public @NotNull Set<?> getRealValuesModified() {
-            return PrismValueCollectionsUtil.getRealValuesOfCollection(
-                    PrismValueCollectionsUtil.sameIdDifferentContent(
-                            getPrismValuesBefore(),
-                            getPrismValuesAfter(),
-                            ParameterizedEquivalenceStrategy.REAL_VALUE));
+            return PrismValueCollectionsUtil.getRealValuesOfCollection(getPrismValuesModified());
+        }
+
+        @Override
+        public @NotNull Set<? extends PrismValue> getPrismValuesModified() {
+            return PrismValueCollectionsUtil.sameIdDifferentContent(
+                    getPrismValuesBefore(),
+                    getPrismValuesAfter(),
+                    ParameterizedEquivalenceStrategy.REAL_VALUE);
         }
 
         @Override
@@ -1217,12 +1229,12 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
         @Override
         public @NotNull Collection<ValueWithState> getValuesWithStates() {
             List<ValueWithState> all = new ArrayList<>();
-            getRealValuesAdded().forEach(v -> all.add(new ValueWithState(v, ValueWithState.State.ADDED)));
-            getRealValuesDeleted().forEach(v -> all.add(new ValueWithState(v, ValueWithState.State.DELETED)));
+            getPrismValuesAdded().forEach(v -> all.add(new ValueWithState(v, ValueWithState.State.ADDED)));
+            getPrismValuesDeleted().forEach(v -> all.add(new ValueWithState(v, ValueWithState.State.DELETED)));
             if (isReplace()) {
                 // We provide the information about modified values only if the delta is "REPLACE".
                 // The reason is that for ADD/DELETE deltas, all modifications should be covered by separate sub-item deltas.
-                getRealValuesModified().forEach(v -> all.add(new ValueWithState(v, ValueWithState.State.MODIFIED)));
+                getPrismValuesModified().forEach(v -> all.add(new ValueWithState(v, ValueWithState.State.MODIFIED)));
             }
             //getRealValuesUnchanged().forEach(v -> all.add(new ValueWithState(v, ValueWithState.State.UNCHANGED)));
             return all;

@@ -38,7 +38,8 @@
                 <name>$projection-deactivated</name>
                 <expression>
                     <script>
-                        <code>midpoint.currentProjectionDeactivated</code>
+                        <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
+                        <code>midpoint.isCurrentProjectionDeactivated()</code>
                     </script>
                 </expression>
             </custom>

@@ -16,6 +16,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
 import com.google.common.collect.ImmutableSet;
 import dev.cel.common.types.CelType;
+import dev.cel.common.types.NullableType;
 import dev.cel.common.types.SimpleType;
 import dev.cel.common.types.StructType;
 import dev.cel.common.values.CelValue;
@@ -34,6 +35,7 @@ public class ReferenceCelValue extends CelValue implements Map<String,Object>, M
     private static final String F_OID = ObjectReferenceType.F_OID.getLocalPart();
     private static final String F_RELATION = ObjectReferenceType.F_RELATION.getLocalPart();
     private static final String F_TYPE = ObjectReferenceType.F_TYPE.getLocalPart();
+    private static final String F_TARGET_NAME = ObjectReferenceType.F_TARGET_NAME.getLocalPart();
     public static final CelType CEL_TYPE = createObjectReferenceType();
     private final PrismReferenceValue objectReferenceValue;
 
@@ -47,7 +49,9 @@ public class ReferenceCelValue extends CelValue implements Map<String,Object>, M
 
     public Map<String, Object> value() {
         return Map.of(F_OID, objectReferenceValue.getOid(),
-                F_RELATION, CelTypeMapper.toCelValue(objectReferenceValue.getRelation()));
+                F_TYPE, CelTypeMapper.toCelValue(objectReferenceValue.getTargetType()),
+                F_RELATION, CelTypeMapper.toCelValue(objectReferenceValue.getRelation()),
+                F_TARGET_NAME, CelTypeMapper.toCelValue(objectReferenceValue.getTargetName()));
     }
 
     @Override
@@ -138,14 +142,16 @@ public class ReferenceCelValue extends CelValue implements Map<String,Object>, M
     }
 
     private static CelType createObjectReferenceType() {
-        ImmutableSet<String> fieldNames = ImmutableSet.of(F_OID, F_RELATION, F_TYPE);
+        ImmutableSet<String> fieldNames = ImmutableSet.of(F_OID, F_RELATION, F_TYPE, F_TARGET_NAME);
         StructType.FieldResolver fieldResolver = fieldName -> {
             if (F_OID.equals(fieldName)) {
                 return Optional.of(SimpleType.STRING);
-                // TODO
-//            }
-//                    || OBJECT_REFERENCE_NORM.equals(fieldName)) {
-//                return Optional.of(SimpleType.STRING);
+            } else if (F_RELATION.equals(fieldName)) {
+                return Optional.of(NullableType.create(QNameCelValue.CEL_TYPE));
+            } else if (F_TYPE.equals(fieldName)) {
+                return Optional.of(QNameCelValue.CEL_TYPE);
+            } else if (F_TARGET_NAME.equals(fieldName)) {
+                return Optional.of(PolyStringCelValue.CEL_TYPE);
             } else {
                 throw new IllegalStateException("Illegal request for objectReference field " + fieldName);
             }

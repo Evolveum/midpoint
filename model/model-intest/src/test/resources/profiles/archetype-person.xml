@@ -1,0 +1,166 @@
+<!--
+  ~ Copyright (C) 2010-2026 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<archetype
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+        xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
+        oid="efab2dc9-8959-4f24-bc61-110b6589f40e">
+    <name>person</name>
+    <assignment>
+        <targetRef oid="2a68ff58-b009-11f0-9b5e-236da66bcdb4" type="ArchetypeType"/>
+    </assignment>
+    <inducement>
+        <construction>
+            <resourceRef oid="2003a0c3-62a3-413d-9941-6fecaef84a16"/>
+            <association>
+                <ref>ri:group</ref>
+                <outbound>
+                    <expression>
+                        <associationTargetSearch>
+                            <filter>
+                                <q:text>attributes/icfs:name = `'test-role'`</q:text> <!-- groovy! will fail -->
+                            </filter>
+                            <searchStrategy>onResourceIfNeeded</searchStrategy>
+                        </associationTargetSearch>
+                    </expression>
+                </outbound>
+            </association>
+        </construction>
+        <condition>
+            <source>
+                <path>name</path>
+            </source>
+            <expression>
+                <script>
+                    <language>mel</language>
+                    <code>name.startsWith('test410')</code>
+                </script>
+            </expression>
+        </condition>
+    </inducement>
+    <inducement>
+        <construction>
+            <resourceRef oid="2003a0c3-62a3-413d-9941-6fecaef84a16"/>
+            <association>
+                <ref>ri:group</ref>
+                <outbound>
+                    <expression>
+                        <associationTargetSearch>
+                            <filter>
+                                <q:text>attributes/icfs:name = 'test-role'</q:text>
+                            </filter>
+                            <searchStrategy>onResourceIfNeeded</searchStrategy>
+                            <populate>
+                                <populateItem>
+                                    <expression>
+                                        <script>
+                                            <code>'forbidden'</code>
+                                        </script>
+                                    </expression>
+                                    <target>
+                                        <path>objects</path> <!-- nonsense but just for testing -->
+                                    </target>
+                                </populateItem>
+                            </populate>
+                        </associationTargetSearch>
+                    </expression>
+                </outbound>
+            </association>
+        </construction>
+        <condition>
+            <source>
+                <path>name</path>
+            </source>
+            <expression>
+                <script>
+                    <language>mel</language>
+                    <code>name.startsWith('test412')</code>
+                </script>
+            </expression>
+        </condition>
+    </inducement>
+    <inducement>
+        <construction>
+            <resourceRef oid="2003a0c3-62a3-413d-9941-6fecaef84a16"/>
+            <association>
+                <ref>ri:group</ref>
+                <outbound>
+                    <expression>
+                        <associationTargetSearch>
+                            <filter>
+                                <q:text>attributes/icfs:name = 'does not exist'</q:text>
+                            </filter>
+                            <searchStrategy>onResourceIfNeeded</searchStrategy>
+                            <createOnDemand>true</createOnDemand>
+                            <populateObject>
+                                <populateItem>
+                                    <expression>
+                                        <script>
+                                            <code>'forbidden'</code>
+                                        </script>
+                                    </expression>
+                                    <target>
+                                        <path>name</path>
+                                    </target>
+                                </populateItem>
+                            </populateObject>
+                        </associationTargetSearch>
+                    </expression>
+                </outbound>
+            </association>
+        </construction>
+        <condition>
+            <source>
+                <path>name</path>
+            </source>
+            <expression>
+                <script>
+                    <language>mel</language>
+                    <code>name.startsWith('test414')</code>
+                </script>
+            </expression>
+        </condition>
+    </inducement>
+    <inducement>
+        <construction>
+            <resourceRef oid="2003a0c3-62a3-413d-9941-6fecaef84a16"/>
+            <association>
+                <ref>ri:group</ref>
+                <outbound>
+                    <expression>
+                        <associationTargetSearch>
+                            <filter>
+                                <q:text>attributes/icfs:name = 'test-role'</q:text>
+                            </filter>
+                            <searchStrategy>onResourceIfNeeded</searchStrategy>
+                        </associationTargetSearch>
+                    </expression>
+                    <condition>
+                        <script>
+                            <code>true</code> <!-- groovy! should fail -->
+                        </script>
+                    </condition>
+                </outbound>
+            </association>
+        </construction>
+        <condition>
+            <source>
+                <path>name</path>
+            </source>
+            <expression>
+                <script>
+                    <language>mel</language>
+                    <code>name.startsWith('test416')</code>
+                </script>
+            </expression>
+        </condition>
+    </inducement>
+    <archetypePolicy>
+        <objectTemplateRef oid="80ee6e76-21a7-4687-b051-25ae77e9c891"/>
+    </archetypePolicy>
+</archetype>

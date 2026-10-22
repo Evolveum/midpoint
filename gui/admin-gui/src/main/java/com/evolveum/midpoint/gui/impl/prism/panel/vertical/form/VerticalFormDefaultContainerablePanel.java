@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.gui.impl.prism.panel.vertical.form;
 
 import java.io.Serial;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
@@ -120,7 +121,7 @@ public class VerticalFormDefaultContainerablePanel<C extends Containerable> exte
     }
 
     protected boolean isNoContainerFormVisible(IModel<List<ItemWrapper<?, ?>>> nonContainerWrappers) {
-        return isShowMoreButtonVisible(nonContainerWrappers);
+        return super.isShowMoreButtonVisible(nonContainerWrappers);
     }
 
     protected String getCssClassForFormContainer() {
@@ -157,7 +158,8 @@ public class VerticalFormDefaultContainerablePanel<C extends Containerable> exte
         }
         return item.getModelObject().isVisible(
                 VerticalFormDefaultContainerablePanel.this.getModelObject(),
-                settings.getVisibilityHandler());
+                settings.getVisibilityHandler(),
+                settings.getMandatoryHandler());
     }
 
     public Boolean isVisibleVirtualValueWrapper() {
@@ -191,6 +193,9 @@ public class VerticalFormDefaultContainerablePanel<C extends Containerable> exte
             protected List<PrismContainerWrapper<? extends Containerable>> load() {
                 ContainerPanelConfigurationType config = getPanelConfiguration();
                 PrismContainerValueWrapper<C> modelObject = getModelObject();
+                if (modelObject == null) {
+                    return new ArrayList<>();
+                }
                 List<PrismContainerWrapper<? extends Containerable>> containers = modelObject.getContainers(getPanelConfiguration(), getPageBase());
 
                 if (config == null) {
@@ -229,10 +234,14 @@ public class VerticalFormDefaultContainerablePanel<C extends Containerable> exte
 
             @Override
             public boolean isEnabled() {
-                return !itemWrapper.isReadOnly() || itemWrapper.isMetadata(); //TODO hack isMetadata - beacuse all links are then disabled.
+                return isSubContainerEnabled(itemWrapper);
             }
         });
         container.add(panel);
+    }
+
+    protected boolean isSubContainerEnabled(PrismContainerWrapper<?> wrapper) {
+        return !wrapper.isReadOnly() || wrapper.isMetadata();
     }
 
     @Override
@@ -338,6 +347,11 @@ public class VerticalFormDefaultContainerablePanel<C extends Containerable> exte
                 return VerticalFormDefaultContainerablePanel.this.isVisibleSubContainer(c);
             }
         };
+    }
+
+    @Override
+    protected boolean isShowMoreButtonVisible(IModel<List<ItemWrapper<?, ?>>> nonContainerWrappers) {
+        return super.isShowMoreButtonVisible(nonContainerWrappers) && isShowEmptyButtonVisible();
     }
 
     protected boolean isVisibleSubContainerHeader(PrismContainerWrapper<? extends Containerable> c) {

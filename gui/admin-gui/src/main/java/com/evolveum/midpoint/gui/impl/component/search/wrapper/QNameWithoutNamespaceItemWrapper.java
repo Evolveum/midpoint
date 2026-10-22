@@ -9,8 +9,10 @@ package com.evolveum.midpoint.gui.impl.component.search.wrapper;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.api.util.ObjectTypeListUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.impl.component.search.factory.SearchItemContext;
 import com.evolveum.midpoint.prism.impl.DisplayableValueImpl;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationResultProcessedObjectType;
 
@@ -19,9 +21,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationResultProc
  */
 public class QNameWithoutNamespaceItemWrapper extends ChoicesSearchItemWrapper<QName> {
 
-    public QNameWithoutNamespaceItemWrapper() {
+    public QNameWithoutNamespaceItemWrapper(ModelServiceLocator modelServiceLocator) {
         super(SimulationResultProcessedObjectType.F_TYPE,
-                ObjectTypeListUtil.createObjectTypesList().stream()
+                ObjectTypeListUtil.createObjectTypesList(modelServiceLocator).stream()
                         .map(o -> new DisplayableValueImpl<>(new QName(o.getTypeQName().getLocalPart()), WebComponentUtil.createEnumResourceKey(o)))
                         .collect(Collectors.toList()));
     }

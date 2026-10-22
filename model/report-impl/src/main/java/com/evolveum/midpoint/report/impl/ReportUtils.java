@@ -16,13 +16,14 @@ import java.util.stream.Collectors;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.util.SchemaDisplayUtil;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.text.WordUtils;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.audit.api.AuditEventType;
-import com.evolveum.midpoint.certification.api.OutcomeUtils;
 import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.common.UserFriendlyPrettyPrinter;
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
@@ -113,7 +114,7 @@ public class ReportUtils {
     }
 
     public static String prettyPrintCertOutcomeForReport(String uri, boolean noResponseIfEmpty) {
-        return prettyPrintForReport(OutcomeUtils.fromUri(uri), noResponseIfEmpty);
+        return SchemaDisplayUtil.formatCertificationOutcome(uri, noResponseIfEmpty);
     }
 
     public static String prettyPrintCertOutcomeForReport(String uri) {
@@ -160,21 +161,11 @@ public class ReportUtils {
     }
 
     public static String getPropertyString(String key) {
-        return getPropertyString(key, null);
+        return SchemaDisplayUtil.getPropertyString(key);
     }
 
     public static String getPropertyString(String key, String defaultValue) {
-        String val = (defaultValue == null) ? key : defaultValue;
-        ResourceBundle bundle;
-        try {
-            bundle = ResourceBundle.getBundle("localization/schema", new Locale("en", "US"));
-        } catch (MissingResourceException e) {
-            return (defaultValue != null) ? defaultValue : key; //workaround for reports
-        }
-        if (bundle != null && bundle.containsKey(key)) {
-            val = bundle.getString(key);
-        }
-        return val;
+        return SchemaDisplayUtil.getPropertyString(key, defaultValue);
     }
 
     public static String prettyPrintForReport(QName qname) {
@@ -239,24 +230,11 @@ public class ReportUtils {
     }
 
     public static String prettyPrintForReport(Referencable prv) {
-        return prettyPrintForReport(prv, true);
+        return SchemaDisplayUtil.formatReference(prv);
     }
 
     public static String prettyPrintForReport(Referencable prv, boolean showType) {
-        if (prv == null) {
-            return "";
-        }
-        StringBuilder sb = new StringBuilder();
-        if (showType || prv.getTargetName() == null) {
-            sb.append(getTypeDisplayName(prv.getType()));
-            sb.append(": ");
-        }
-        if (prv.getTargetName() != null) {
-            sb.append(prv.getTargetName());
-        } else {
-            sb.append(prv.getOid());
-        }
-        return sb.toString();
+        return SchemaDisplayUtil.formatReference(prv, showType);
     }
 
     public static String prettyPrintForReport(ObjectType object, LocalizationService localizationService) {
@@ -845,23 +823,11 @@ public class ReportUtils {
     }
 
     public static String prettyPrintForReport(AccessCertificationResponseType response, boolean noResponseIfEmpty) {
-        if (noResponseIfEmpty) {
-            if (response == null) {
-                response = AccessCertificationResponseType.NO_RESPONSE;
-            }
-        } else {
-            if (response == null || response == AccessCertificationResponseType.NO_RESPONSE) {
-                return "";
-            }
-        }
-        return getPropertyString("AccessCertificationResponseType." + response.name());
+        return SchemaDisplayUtil.formatCertificationOutcome(response, noResponseIfEmpty);
     }
 
     public static String prettyPrintForReport(AccessCertificationResponseType response) {
-        if (response == null || response == AccessCertificationResponseType.NO_RESPONSE) {
-            return "";
-        }
-        return getPropertyString("AccessCertificationResponseType." + response.name());
+        return SchemaDisplayUtil.formatCertificationOutcome(response, false);
     }
 
     public static String prettyPrintForReport(EvaluatedPolicyRuleTriggerType trigger) {
@@ -895,10 +861,7 @@ public class ReportUtils {
     }
 
     public static String getTypeDisplayName(QName typeName) {
-        if (typeName == null) {
-            return null;
-        }
-        return getPropertyString(SchemaConstants.OBJECT_TYPE_KEY_PREFIX + typeName.getLocalPart(), typeName.getLocalPart());
+        return SchemaDisplayUtil.getTypeDisplayName(typeName);
     }
 
     public static String getEventProperty(List<AuditEventRecordPropertyType> properties, String key) {

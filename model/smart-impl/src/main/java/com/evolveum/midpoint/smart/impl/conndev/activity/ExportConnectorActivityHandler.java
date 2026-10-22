@@ -73,7 +73,13 @@ public class ExportConnectorActivityHandler
         }
 
         @Override
+        public boolean isExcludedFromStalenessChecking() {
+            return true;
+        }
+
+        @Override
         protected @NotNull ActivityRunResult runLocally(OperationResult result) throws CommonException {
+            getActivityHandler().checkDevelopmentToolsEnabled();
             var task = getRunningTask();
             var beans = ConnDevBeans.get();
             var backend = ConnectorDevelopmentBackend.backendFor(getWorkDefinition().connectorDevelopmentOid, task, result);

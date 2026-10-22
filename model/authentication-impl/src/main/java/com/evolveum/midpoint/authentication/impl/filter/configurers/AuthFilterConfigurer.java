@@ -9,10 +9,6 @@ package com.evolveum.midpoint.authentication.impl.filter.configurers;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.evolveum.midpoint.authentication.impl.filter.MidpointAuthFilter;
-import com.evolveum.midpoint.authentication.impl.filter.SequenceAuditFilter;
-import com.evolveum.midpoint.authentication.impl.filter.TransformExceptionFilter;
-
 import org.springframework.context.ApplicationContext;
 import org.springframework.security.config.annotation.web.HttpSecurityBuilder;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -24,6 +20,10 @@ import org.springframework.security.web.servlet.util.matcher.PathPatternRequestM
 import org.springframework.security.web.session.InvalidSessionStrategy;
 import org.springframework.security.web.session.SessionManagementFilter;
 import org.springframework.web.accept.ContentNegotiationStrategy;
+
+import com.evolveum.midpoint.authentication.impl.filter.MidpointAuthFilter;
+import com.evolveum.midpoint.authentication.impl.filter.SequenceCompletionFilter;
+import com.evolveum.midpoint.authentication.impl.filter.TransformExceptionFilter;
 
 /**
  * @author skublik
@@ -51,11 +51,10 @@ public class AuthFilterConfigurer<H extends HttpSecurityBuilder<H>> extends
         mpFilter.createFilterForAuthenticatedRequest();
         http.addFilterBefore(mpFilter, SessionManagementFilter.class);
 
-        http.addFilterAfter(postProcess(new SequenceAuditFilter()), AnonymousAuthenticationFilter.class);
+        http.addFilterAfter(postProcess(new SequenceCompletionFilter()), AnonymousAuthenticationFilter.class);
 
         http.addFilterAfter(new TransformExceptionFilter(), AnonymousAuthenticationFilter.class);
     }
-
 
     private void setSharedObject(Map<Class<?>, Object> sharedObjects, H http, Class<?> clazz) {
         sharedObjects.put(clazz, http.getSharedObject(clazz));

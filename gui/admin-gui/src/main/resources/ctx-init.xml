@@ -35,6 +35,9 @@
         <!-- property name="modelInteractionService" ref="" / -->
     </bean>
 
+    <bean id="initialDataImportActivityHandler"
+            class="com.evolveum.midpoint.init.InitialDataImportActivityHandler"/>
+
     <bean id="modelInitialSetup"
             class="com.evolveum.midpoint.init.ModelInitialSetup"
             init-method="init">

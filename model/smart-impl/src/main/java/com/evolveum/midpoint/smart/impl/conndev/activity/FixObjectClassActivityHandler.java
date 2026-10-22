@@ -66,9 +66,15 @@ public class FixObjectClassActivityHandler
             super(context);
             setInstanceReady();
         }
+        @Override
+        public boolean isExcludedFromStalenessChecking() {
+            return true;
+        }
+
 
         @Override
         protected @NotNull ActivityRunResult runLocally(OperationResult result) throws CommonException {
+            getActivityHandler().checkDevelopmentToolsEnabled();
 
             var task = getRunningTask();
 
@@ -81,8 +87,8 @@ public class FixObjectClassActivityHandler
                     getWorkDefinition().typedDefinition.getArtifact(),
                     skipCache);
             for (var artifact : resultObj.getArtifact()) {
-                if (artifact.getContent() != null) {
-                    // Mark as AI
+                if (artifact.getContent() != null && backend.isOnline()) {
+                    // Mark as AI (offline fixes return the current scripts unchanged)
                     SmartMetadataUtil.markAsAiProvided(artifact.asPrismContainerValue().findItem(ConnDevArtifactType.F_CONTENT).getValue());
                 }
             }

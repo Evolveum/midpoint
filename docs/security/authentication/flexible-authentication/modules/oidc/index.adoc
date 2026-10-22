@@ -10,8 +10,8 @@ Instead, the configuration should be determined by your particular security requ
 
 The OIDC module allows you to use the OpenID Connect (OIDC) authentication protocol in midPoint in the following authentication scenarios:
 
-* Interactive link:/midpoint/reference/master/security/authentication/flexible-authentication/modules/module-OIDC/GUI/[GUI authentication] - Uses OIDC authentication provider to provide GUI authentication for midPoint users.
-* Incoming link:/midpoint/reference/master/security/authentication/flexible-authentication/modules/module-OIDC/REST/[REST API authentication] - Using a token issued by an OIDC authentication provider and evaluated by midPoint.
+* Interactive link:/midpoint/reference/master/security/authentication/flexible-authentication/modules/oidc/gui/[GUI authentication] - Uses OIDC authentication provider to provide GUI authentication for midPoint users.
+* Incoming link:/midpoint/reference/master/security/authentication/flexible-authentication/modules/oidc/rest/[REST API authentication] - Using a token issued by an OIDC authentication provider and evaluated by midPoint.
 
 OIDC authentication providers include Keycloak, Okta, Auth0, etc.
 

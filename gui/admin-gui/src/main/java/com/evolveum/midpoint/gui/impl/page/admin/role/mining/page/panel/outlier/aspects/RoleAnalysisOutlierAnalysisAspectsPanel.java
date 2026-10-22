@@ -118,7 +118,12 @@ public class RoleAnalysisOutlierAnalysisAspectsPanel extends AbstractObjectMainP
             @Override
             protected @NotNull Component getPanelComponent(String id) {
                 RoleAnalysisDetectedAnomalyTable detectedAnomalyTable = new RoleAnalysisDetectedAnomalyTable(id,
-                        buildAnomalyObjectModel());
+                        buildAnomalyObjectModel()){
+                    @Override
+                    protected boolean showTableAsCard() {
+                        return false;
+                    }
+                };
 
                 detectedAnomalyTable.setOutputMarkupId(true);
                 detectedAnomalyTable.add(AttributeModifier.append("style", "min-height: 400px;"));

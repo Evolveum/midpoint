@@ -90,7 +90,7 @@ public class PrismReferenceValuePanel<R extends Referencable> extends PrismValue
 
             @Override
             public List<QName> getSupportedTypes() {
-                List<QName> targetTypeList = getParentWrapper().getTargetTypes();
+                List<QName> targetTypeList = getParentWrapper().getTargetTypes(getPageBase());
                 if (targetTypeList == null || WebComponentUtil.isAllNulls(targetTypeList)) {
                     return Arrays.asList(ObjectType.COMPLEX_TYPE);
                 }

@@ -112,7 +112,8 @@ public class TabbedPanel<T extends ITab> extends Panel {
         tabsContainer.setOutputMarkupPlaceholderTag(true);
         // a tablist with nothing to switch between isn't a tablist; drop the role rather than
         // let screen reader announce a "1 of 1" tab that can never change
-        tabsContainer.add(AttributeModifier.replace("role", (IModel<String>) () -> hasSingleVisibleTab() ? null : "tablist"));
+        tabsContainer.add(AttributeModifier.replace("role", (IModel<Serializable>) () ->
+                hasSingleVisibleTab() ? AttributeModifier.VALUELESS_ATTRIBUTE_REMOVE : "tablist"));
         add(tabsContainer);
 
         // add the loop used to generate tab names

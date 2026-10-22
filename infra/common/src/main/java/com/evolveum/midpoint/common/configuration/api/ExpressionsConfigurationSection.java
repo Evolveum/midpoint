@@ -21,11 +21,8 @@ import java.util.Collection;
 @NullMarked
 public interface ExpressionsConfigurationSection {
 
-    /** @see MidpointConfiguration#isSafeExpressionsOnly() */
-    boolean safeExpressionsOnly();
-
-    /** Whether we should allow running Velocity in safe mode only. If {@code true}, full Velocity will be forbidden. */
-    boolean safeVelocityExpressionsOnly();
+    /** @see MidpointConfiguration#isSafeScriptingLanguagesOnly() */
+    boolean safeScriptingLanguagesOnly();
 
     /**
      * Whether we should initialize Velocity engine with legacy settings (as in midPoint 4.10 and earlier).

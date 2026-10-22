@@ -105,7 +105,14 @@ public class MappingRangeUtils {
      * @return the range to store, never null.
      */
     public static ValueSetDefinitionType defaultRange(PrismContainerValueWrapper<MappingType> mappingValue) {
-        MappingRangeOption option = isMultiValueTarget(mappingValue)
+        MappingType mapping = mappingValue != null ? mappingValue.getRealValue() : null;
+        return defaultRange(mappingValue, mapping != null ? mapping.getTarget() : null);
+    }
+
+    /** Computes the default for a proposed target before it is stored in the mapping wrapper. */
+    public static ValueSetDefinitionType defaultRange(
+            PrismContainerValueWrapper<MappingType> mappingValue, VariableBindingDefinitionType target) {
+        MappingRangeOption option = isMultiValueTarget(mappingValue, target)
                 ? MappingRangeOption.MATCHING_PROVENANCE
                 : MappingRangeOption.ALL;
 
@@ -119,11 +126,17 @@ public class MappingRangeUtils {
      * @return true when the target may hold more than one value.
      */
     public static boolean isMultiValueTarget(PrismContainerValueWrapper<MappingType> mappingValue) {
+        MappingType mapping = mappingValue != null ? mappingValue.getRealValue() : null;
+        return isMultiValueTarget(mappingValue, mapping != null ? mapping.getTarget() : null);
+    }
+
+    private static boolean isMultiValueTarget(
+            PrismContainerValueWrapper<MappingType> mappingValue, VariableBindingDefinitionType target) {
         if (isAutoassignMapping(mappingValue)) {
             return true;
         }
 
-        ItemPath targetPath = getTargetPath(mappingValue);
+        ItemPath targetPath = getTargetPath(target);
         if (targetPath == null) {
             return false;
         }
@@ -200,9 +213,7 @@ public class MappingRangeUtils {
         }
     }
 
-    private static ItemPath getTargetPath(PrismContainerValueWrapper<MappingType> mappingValue) {
-        MappingType mapping = mappingValue != null ? mappingValue.getRealValue() : null;
-        VariableBindingDefinitionType target = mapping != null ? mapping.getTarget() : null;
+    private static ItemPath getTargetPath(VariableBindingDefinitionType target) {
         ItemPathType path = target != null ? target.getPath() : null;
         if (path == null) {
             return null;

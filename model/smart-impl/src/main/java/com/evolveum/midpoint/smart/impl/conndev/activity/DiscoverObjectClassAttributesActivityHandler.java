@@ -80,17 +80,24 @@ public class DiscoverObjectClassAttributesActivityHandler
         }
 
         @Override
+        public boolean isExcludedFromStalenessChecking() {
+            return true;
+        }
+
+        @Override
         protected @NotNull ActivityRunResult runLocally(OperationResult result) throws CommonException {
+            getActivityHandler().checkDevelopmentToolsEnabled();
             String objectClass = getWorkDefinition().objectClass;
             String connectorDevelopmentOid = getWorkDefinition().connectorDevelopmentOid;
 
             LOGGER.info("Discovering attributes for object class '{}' in task {}", objectClass, getRunningTask().getName());
             var backend = ConnectorDevelopmentBackend.backendFor(connectorDevelopmentOid, getRunningTask(), result);
-            backend.ensureDocumentationIsProcessed();
             backend.ensureObjectClass(objectClass);
 
+            backend.ensureDocumentationIsProcessed();
             var skipCache = Boolean.TRUE.equals(getWorkDefinition().typedDefinition.getSkipCache());
             var attributes = backend.discoverObjectClassAttributes(objectClass, skipCache);
+
             backend.updateConnectorObjectClassAttributes(objectClass, attributes);
             LOGGER.info("Successfully discovered attributes for object class '{}'", objectClass);
 

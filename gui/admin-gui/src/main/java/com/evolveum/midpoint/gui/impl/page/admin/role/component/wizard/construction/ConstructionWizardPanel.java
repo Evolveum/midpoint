@@ -50,9 +50,12 @@ public class ConstructionWizardPanel<AR extends AbstractRoleType> extends Abstra
             IModel<PrismContainerValueWrapper<AssignmentType>> valueModel,
             String stepId) {
         WizardModelBasic wizardModelBasic = new WizardModelBasic(createConstructionSteps(valueModel));
+
         if (StringUtils.isNotEmpty(stepId)) {
-            wizardModelBasic.setActiveStepById(stepId);
+            getPageBase().getPageParameters()
+                    .set(WizardModelBasic.PARAM_STEP, stepId);
         }
+
         showWizardFragment(
                 target,
                 new WizardPanel(getIdOfWizardPanel(), wizardModelBasic));
@@ -190,7 +193,13 @@ public class ConstructionWizardPanel<AR extends AbstractRoleType> extends Abstra
                 showConstructionWizard(target, valueModel, ConstructionOutboundMappingsStepPanel.PANEL_TYPE);
             }
         });
-        steps.add(new ConstructionOutboundOptionalStepPanel(getAssignmentHolderModel(), rowModel) {
+        steps.add(new ConstructionOutboundMappingRangeStepPanel<>(getAssignmentHolderModel(), rowModel) {
+            @Override
+            protected void onExitPerformed(AjaxRequestTarget target) {
+                showConstructionWizard(target, valueModel, ConstructionOutboundMappingsStepPanel.PANEL_TYPE);
+            }
+        });
+        steps.add(new ConstructionOutboundOptionalStepPanel<>(getAssignmentHolderModel(), rowModel) {
             @Override
             protected void onExitPerformed(AjaxRequestTarget target) {
                 showConstructionWizard(target, valueModel, ConstructionOutboundMappingsStepPanel.PANEL_TYPE);

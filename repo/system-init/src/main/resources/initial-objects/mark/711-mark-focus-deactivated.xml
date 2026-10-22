@@ -38,7 +38,8 @@
                 <name>$focus-deactivated</name>
                 <expression>
                     <script>
-                        <code>midpoint.focusDeactivated</code>
+                        <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
+                        <code>midpoint.isFocusDeactivated()</code>
                     </script>
                 </expression>
             </custom>

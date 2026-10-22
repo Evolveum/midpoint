@@ -83,7 +83,7 @@ public class ProgressBarForm extends BasePanel<RoleAnalysisAttributeAnalysisDto>
                 int attributeCount = attributeStatistics.size();
                 Label label = new Label(id, attributeCount);
                 label.setOutputMarkupId(true);
-                label.add(AttributeAppender.append("class", "badge border"));
+                label.add(AttributeAppender.replace("class", "p-1 badge border bg-primary"));
                 return label;
             }
         };

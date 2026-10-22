@@ -3,9 +3,12 @@ midpoint-feature: expression-mel
 doc-type: guide
 ---
 = MidPoint Expression Language Migration Guide
-:page-nav-title: Migation Guide
+:page-nav-title: Migration Guide
 :page-upkeep-status: green
 :page-toc: top
+:page-display-order: 300
+:page-keywords: mel, midpoint expression language, secure, expression, scripting, migration from groovy, groovy, migration
+:page-description: This document provides guidance for migration of script expression from legacy scripting languages (Groovy, etc.) to midPoint expression language (MEL).
 
 This document provides guidance for migration of script expression from legacy scripting languages (Groovy, etc.) to midPoint expression language (MEL).
 
@@ -206,8 +209,8 @@ The combination of `filter()` and `map()` is so common, that there is even a sho
 focus.assignment.map(a, a.isTargetRole(), a.description)
 ----
 
-There are other macros such as `all`, `exists` and `exsists_one`.
-See xref:../specification/[full MEP specification] for the details.
+There are other macros such as `all`, `exists` and `exists_one`.
+See xref:../specification/[full MEL specification] for the details.
 
 TIP: List operations may look like loops, but they are not.
 Such operations are based on finite list (e.g. search results or a list of fixed number of attempts),
@@ -236,7 +239,7 @@ Built-in midPoint xref:/midpoint/reference/concepts/iteration/[iteration mechani
 == Multivalue Data
 
 Multi-valued items of midPoint objects behave as lists.
-E.g. expression `focus.assginemnt` evaluates to a _list_ of all assignments that the focus has.
+E.g. expression `focus.assignment` evaluates to a _list_ of all assignments that the focus has.
 The macros above can be applied to multi-valued items.
 E.g. following expression returns a list of OIDs from `targetRef` of all assignments that have `targetRef` specified:
 
@@ -343,7 +346,7 @@ It exists just because it came with CEL.
 
 |===
 
-See xref:../specification/[full MEP specification] for the details.
+See xref:../specification/[full MEL specification] for the details.
 
 == Structured Data
 

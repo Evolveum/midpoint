@@ -21,7 +21,7 @@
                 Each 'pair' contains 1..N records on the midPoint side and 1..N records on the application side.
             </xsd:documentation>
             <xsd:appinfo>
-                <a:since>4.11</a:since>
+                <a:since>4.11.0</a:since>
                 <!-- intentionally not a container -->
             </xsd:appinfo>
         </xsd:annotation>
@@ -37,7 +37,7 @@
                 One aligned sample containing both sides (each side can contain 1..N records).
             </xsd:documentation>
             <xsd:appinfo>
-                <a:since>4.11</a:since>
+                <a:since>4.11.0</a:since>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -53,7 +53,7 @@
                 One record on a side (midPoint/application), identified by a stable identifier.
             </xsd:documentation>
             <xsd:appinfo>
-                <a:since>4.11</a:since>
+                <a:since>4.11.0</a:since>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -70,7 +70,7 @@
                 Missing value is represented by either no 'value' elements or an empty list.
             </xsd:documentation>
             <xsd:appinfo>
-                <a:since>4.11</a:since>
+                <a:since>4.11.0</a:since>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -86,7 +86,7 @@
                 Verdict (similar), rationale, and MidPoint → Application identifier pairs.
             </xsd:documentation>
             <xsd:appinfo>
-                <a:since>4.11</a:since>
+                <a:since>4.11.0</a:since>
                 <!-- intentionally not a container -->
             </xsd:appinfo>
         </xsd:annotation>
@@ -104,7 +104,7 @@
                 Mapping from one MidPoint record ID to one Application record ID.
             </xsd:documentation>
             <xsd:appinfo>
-                <a:since>4.11</a:since>
+                <a:since>4.11.0</a:since>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>

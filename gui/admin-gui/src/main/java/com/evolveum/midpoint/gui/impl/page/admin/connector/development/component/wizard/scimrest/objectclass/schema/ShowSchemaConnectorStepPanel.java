@@ -13,10 +13,13 @@ import java.util.Optional;
 import org.apache.commons.lang3.Strings;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismReferenceWrapper;
+import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.ConnectorDevelopmentDetailsModel;
@@ -37,6 +40,7 @@ import com.evolveum.midpoint.xml.ns._public.prism_schema_3.ComplexTypeDefinition
 import com.evolveum.midpoint.xml.ns._public.prism_schema_3.DefinitionType;
 import com.evolveum.midpoint.xml.ns._public.prism_schema_3.PrismContainerDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.prism_schema_3.PrismItemDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.prism_schema_3.PrismSchemaType;
 import com.evolveum.midpoint.gui.impl.component.wizard.collapse.HelpTab;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.ConnectorWizardHelpTopics;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.ConnectorDevelopmentWizardUtil;
@@ -55,6 +59,7 @@ public class ShowSchemaConnectorStepPanel extends ScriptConfirmationPanel {
     private static final String PANEL_TYPE = "cdw-show-schema";
 
     private static final String ID_PANEL = "panel";
+    private static final String ID_EMPTY_STATE = "emptyState";
 
     public ShowSchemaConnectorStepPanel(
             WizardPanelHelper<? extends Containerable, ConnectorDevelopmentDetailsModel> helper,
@@ -94,6 +99,22 @@ public class ShowSchemaConnectorStepPanel extends ScriptConfirmationPanel {
             throw new RuntimeException(e);
         }
 
+        boolean objectClassFoundInSchema;
+        try {
+            PrismContainerWrapper<DefinitionType> complexTypes = resourceDetailsModel.getObjectWrapper().findContainer(
+                    ItemPath.create(ResourceType.F_SCHEMA, WebPrismUtil.PRISM_SCHEMA, PrismSchemaType.F_COMPLEX_TYPE));
+            objectClassFoundInSchema = complexTypes != null && complexTypes.getValues().stream()
+                    .anyMatch(value -> value.getRealValue() != null && value.getRealValue().getName() != null
+                            && Strings.CI.equals(value.getRealValue().getName().getLocalPart(),
+                                    getValueModel().getObject().getRealValue().getName()));
+        } catch (SchemaException e) {
+            objectClassFoundInSchema = false;
+        }
+
+        WebMarkupContainer emptyState = new WebMarkupContainer(ID_EMPTY_STATE);
+        emptyState.setVisible(!objectClassFoundInSchema);
+        add(emptyState);
+
         ComplexTypeDefinitionPanel<ResourceType, ResourceDetailsModel> view = new ComplexTypeDefinitionPanel<>(
                 ID_PANEL,
                 resourceDetailsModel,
@@ -115,7 +136,7 @@ public class ShowSchemaConnectorStepPanel extends ScriptConfirmationPanel {
                 List<PrismContainerValueWrapper<? extends DefinitionType>> list = new ArrayList<>();
                 List<PrismContainerValueWrapper<? extends DefinitionType>> values = super.createListOfItem(searchItemModel);
                 Optional<PrismContainerValueWrapper<? extends DefinitionType>> configuredObjectClass = values.stream()
-                        .filter(value -> Strings.CS.equals(
+                        .filter(value -> Strings.CI.equals(
                                 value.getRealValue().getName().getLocalPart(), getValueModel().getObject().getRealValue().getName()))
                         .findFirst();
 
@@ -145,6 +166,7 @@ public class ShowSchemaConnectorStepPanel extends ScriptConfirmationPanel {
             }
         };
         view.setOutputMarkupId(true);
+        view.setVisible(objectClassFoundInSchema);
         add(view);
     }
 

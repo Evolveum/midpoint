@@ -11,11 +11,18 @@ import java.io.File;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.PrimitiveType;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
+import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 
 import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.test.IntegrationTestTools;
+import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
@@ -26,6 +33,7 @@ import org.testng.annotations.Test;
 
 import javax.xml.namespace.QName;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.assertEquals;
 
 /**
@@ -34,6 +42,8 @@ import static org.testng.AssertJUnit.assertEquals;
 @ContextConfiguration(locations = { "classpath:ctx-model-test-main.xml" })
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class TestModelExpressionsMel extends AbstractModelExpressionsTest {
+
+    private static final String ORG_F0001_OID = "00000000-8888-6666-0000-100000000001";
 
     @Override
     protected File getTestDir() {
@@ -195,6 +205,16 @@ public class TestModelExpressionsMel extends AbstractModelExpressionsTest {
     }
 
     @Test
+    public void testStructuralArchetype() throws Exception {
+        var org = repositoryService.getObject(
+                OrgType.class, ORG_F0001_OID, null, getTestOperationResult());
+
+        assertExecuteScriptExpressionString(
+                createVariables("input", org, org.getDefinition()),
+                "Organizational unit");
+    }
+
+    @Test
     public void testShadowNameSubstring() throws Exception {
         assertExecuteScriptExpressionString(
                 createFocusProjectionResourceVariables(),
@@ -281,6 +301,104 @@ public class TestModelExpressionsMel extends AbstractModelExpressionsTest {
                 USER_GUYBRUSH_USERNAME);
     }
 
+    @Test
+    public void testResolveReferenceIfExists() throws Exception {
+        var definition = prismContext.getSchemaRegistry()
+                .findObjectDefinitionByCompileTimeClass(UserType.class)
+                .findReferenceDefinition(UserType.F_PERSONA_REF);
+
+        assertExecuteScriptExpressionString(
+                createFocusProjectionResourceVariables(
+                        "ref",
+                        new ObjectReferenceType()
+                                .oid(USER_GUYBRUSH_OID)
+                                .type(UserType.COMPLEX_TYPE),
+                        definition
+                ),
+                "resolve-reference-if-exists",
+                "Guybrush Threepwood");
+
+        assertExecuteScriptExpressionString(
+                createFocusProjectionResourceVariables("ref", null, definition),
+                "resolve-reference-if-exists",
+                null);
+    }
+
+    @Test
+    public void testGetObjectWithOptions() throws Exception {
+        assertExecuteScriptExpressionString(
+                createFocusProjectionResourceVariables(
+                        "oid", ACCOUNT_SHADOW_GUYBRUSH_OID, PrimitiveType.STRING
+                ),
+                "get-object-with-options",
+                "Dummy Resource");
+    }
+
+    @Test
+    public void testGetPrincipalRef() throws Exception {
+        assertExecuteScriptExpressionReference(
+                createVariables(),
+                "get-principal-ref",
+                ObjectTypeUtil.createObjectRef(userAdministrator)); // we hope the references will match (adapt the test if not)
+    }
+
+    @Test
+    public void testSearchObjectsWithOptions() throws Exception {
+        // There should be 3 shadows, all of them on Dummy Resource. The script should return the resource name for each of them.
+        //displayCollection("shadows", repositoryService.searchObjects(ShadowType.class, null, null, getTestOperationResult()));
+
+        assertExecuteScriptExpressionStringList(
+                createVariables("filter", null, PrimitiveType.STRING),
+                "search-objects-with-options",
+                "Dummy Resource");
+    }
+
+    @Test
+    public void testFilterExpressionRespectingSystemDefaultLanguageSimple() throws Exception {
+        // The script is constructed so that it fails if the expression is interpreted as Groovy
+        testFilterExpressionRespectingSystemDefaultLanguage("name = `default(test, 'abc')`");
+    }
+
+    @Test
+    public void testFilterExpressionRespectingSystemDefaultLanguageMultiline() throws Exception {
+        // The script is constructed so that it fails if the expression is interpreted as Groovy
+        testFilterExpressionRespectingSystemDefaultLanguage("""
+                name = ```
+                   default(test, 'abc')
+                ```""");
+    }
+
+    private void testFilterExpressionRespectingSystemDefaultLanguage(String filterAsString) throws CommonException {
+        var task = getTestTask();
+        var result = task.getResult();
+
+        setDefaultExpressionLanguage(MidPointConstants.EXPRESSION_LANGUAGE_MEL_URL, task, result);
+        try {
+            given("filters with expression (unspecified language, should be interpreted as default)");
+            var filter = prismContext.createQueryParser().parseFilter(UserType.class, filterAsString);
+            filter.setTrustDescriptor(IntegrationTestTools.trustedForTests());
+
+            when("expression is resolved");
+            var resolvedFilter = ExpressionUtil.evaluateFilterExpressions(
+                    filter,
+                    createVariables("test", "xyz", PrimitiveType.STRING),
+                    expressionFactory,
+                    "testFilterResolution", task, result);
+
+            then("it is interpreted as MEL");
+            displayDumpable("resolvedFilter", resolvedFilter);
+            var expectedFilter = prismContext.createQueryParser().parseFilter(UserType.class, "name = 'xyz'");
+            assertThat(resolvedFilter).as("resolvedFilter").isEqualTo(expectedFilter);
+        } finally {
+            setDefaultExpressionLanguage(null, task, result);
+        }
+    }
+
+    /*
+                var filter2 = prismContext.createQueryParser().parseFilter(UserType.class, "name = ```\ndefault(test, 'abc')\n```");
+            filter2.setTrustDescriptor(IntegrationTestTools.trustedForTests());
+
+     */
     @Test
     public void testCacheInvalidation() throws Exception {
         VariablesMap variables = VariablesMap.create(prismContext,

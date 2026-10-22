@@ -224,7 +224,7 @@ public class PrismReferenceValueWrapperImpl<T extends Referencable> extends Pris
      */
     protected <O extends ObjectType> PrismObject<O> createNewPrismObject(OperationResult result, PageAdminLTE pageAdminLTE) throws SchemaException {
         PrismReferenceWrapper<T> parent = getParent();
-        List<QName> types = parent.getTargetTypes();
+        List<QName> types = parent.getTargetTypes(pageAdminLTE);
         if (types.size() != 1) {
             result.recordFatalError("Cannot create archetype wrapper for new object in reference, because couldn't one type, actual types " + types);
             return null;

@@ -242,10 +242,16 @@ public interface ProcessedObject<O extends ObjectType> extends DebugDumpable, Se
         @NotNull Set<? extends PrismValue> getPrismValuesAfter();
         /** Real values added by this delta. (Phantom ones are filtered out.) */
         @NotNull Collection<?> getRealValuesAdded();
+        /** Prism values added by this delta. (Phantom ones are filtered out.) */
+        @NotNull Collection<? extends PrismValue> getPrismValuesAdded();
         /** Real values deleted by this delta. (Phantom ones are filtered out.) */
         @NotNull Collection<?> getRealValuesDeleted();
+        /** Prism values deleted by this delta. (Phantom ones are filtered out.) */
+        @NotNull Collection<? extends PrismValue> getPrismValuesDeleted();
         /** Real values modified by this delta - their identity is known by PCV ID. */
         @NotNull Set<?> getRealValuesModified();
+        /** Prism values modified by this delta - their identity is known by PCV ID. */
+        @NotNull Set<? extends PrismValue> getPrismValuesModified();
         /** Real values unchanged by this delta. */
         @NotNull Collection<?> getRealValuesUnchanged();
         /** All values (added, deleted, modified) with the corresponding state. Modified values returned only for REPLACE deltas. */
@@ -258,17 +264,21 @@ public interface ProcessedObject<O extends ObjectType> extends DebugDumpable, Se
     @Experimental
     class ValueWithState implements Serializable {
 
-        /** We hope this object is serializable, as it originated in a delta (which is serializable). */
-        @NotNull private final Object value;
+        @NotNull private final PrismValue value;
 
         @NotNull private final State state;
 
-        public ValueWithState(@NotNull Object value, @NotNull State state) {
+        public ValueWithState(@NotNull PrismValue value, @NotNull State state) {
             this.value = value;
             this.state = state;
         }
 
-        public @NotNull Object getValue() {
+        // for backwards compatibility
+        public Object getValue() {
+            return value.getRealValue();
+        }
+
+        public @NotNull PrismValue getPrismValue() {
             return value;
         }
 
@@ -278,7 +288,7 @@ public interface ProcessedObject<O extends ObjectType> extends DebugDumpable, Se
 
         @Override
         public String toString() {
-            return String.format("'%s' (%s)", value, state);
+            return String.format("'%s' (%s)", getValue(), state);
         }
 
         public enum State {

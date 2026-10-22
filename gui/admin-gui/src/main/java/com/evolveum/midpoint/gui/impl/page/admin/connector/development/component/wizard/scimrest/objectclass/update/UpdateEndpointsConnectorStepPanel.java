@@ -15,6 +15,7 @@ import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.ConnectorDevelopmentDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.EndpointsConnectorStepPanel;
 import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.smart.api.conndev.ConnectorDevelopmentArtifacts;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
@@ -51,6 +52,11 @@ public class UpdateEndpointsConnectorStepPanel extends EndpointsConnectorStepPan
     @Override
     protected Collection<ConnDevHttpEndpointIntentType> getEndpointIntents() {
         return List.of(ConnDevHttpEndpointIntentType.UPDATE);
+    }
+
+    @Override
+    protected ConnectorDevelopmentArtifacts.KnownArtifactType getScriptType() {
+        return ConnectorDevelopmentArtifacts.KnownArtifactType.UPDATE;
     }
 
     protected String getPanelType() {

@@ -108,13 +108,10 @@
         <focusMappings>
             <mapping id="20">
                 <strength>weak</strength>
-                <expression>
-                    <script>
-                        <code>
-                            return source.name
-                        </code>
-                    </script>
-                </expression>
+                <source>
+                    <path>$source/name</path>
+                    <name>archetypeName</name>
+                </source>
                 <target>
                     <path>name</path>
                 </target>

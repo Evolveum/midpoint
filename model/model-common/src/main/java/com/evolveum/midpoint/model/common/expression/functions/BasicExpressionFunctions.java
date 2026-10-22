@@ -981,7 +981,7 @@ public class BasicExpressionFunctions {
 
     @Safe
     public XMLGregorianCalendar fromNow(String timeSpec) {
-        return XmlTypeConverter.fromNow(timeSpec);
+        return XmlTypeConverter.fromNow(clock.currentTimeMillis(), timeSpec);
     }
 
     @Safe

@@ -16,6 +16,7 @@ import com.evolveum.midpoint.gui.api.component.wizard.WizardStep;
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 import com.evolveum.midpoint.gui.impl.component.wizard.withnavigation.WizardParentStep;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.ConnectorDevelopmentDetailsModel;
+import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.FixObjectClassReviewConnectorStepPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.WaitingFixObjectClassConnectorStepPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.AbstractObjectClassConnectorStepPanel;
 import com.evolveum.midpoint.prism.Containerable;
@@ -56,6 +57,7 @@ public class SchemaObjectClassConnectorStepPanel extends AbstractObjectClassConn
                 new WaitingObjectClassDetailsConnectorStepPanel(getHelper(), getObjectClassModel()),
                 new WaitingNativeSchemaConnectorStepPanel(getHelper(), getObjectClassModel()),
                 new WaitingFixObjectClassConnectorStepPanel(getHelper(), getObjectClassModel(), PANEL_TYPE),
+                new FixObjectClassReviewConnectorStepPanel(getHelper(), getObjectClassModel(), PANEL_TYPE),
                 new SchemaScriptConnectorStepPanel(getHelper(), getObjectClassModel()),
                 new ShowSchemaConnectorStepPanel(getHelper(), getObjectClassModel()));
     }

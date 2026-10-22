@@ -84,6 +84,13 @@ public class SqlBackend extends ConnectorDevelopmentBackend {
     }
 
     @Override
+    public boolean isOnline() {
+        // SQL generation talks to the same generation service (some operations are not yet
+        // implemented there); it is an online backend, unlike the Offline* backends.
+        return true;
+    }
+
+    @Override
     protected void restoreSession(ServiceClient.RestorationClient client) throws IOException {
         restoreMetadata(client);
         ensureDocumentationIsUploaded(client);

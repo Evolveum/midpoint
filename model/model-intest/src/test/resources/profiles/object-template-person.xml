@@ -1,0 +1,146 @@
+<!--
+  ~ Copyright (C) 2010-2026 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<objectTemplate
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+        oid="80ee6e76-21a7-4687-b051-25ae77e9c891">
+    <name>person</name>
+    <assignment>
+        <targetRef oid="2a68ff58-b009-11f0-9b5e-236da66bcdb4" type="ArchetypeType"/>
+    </assignment>
+    <mapping>
+        <source>
+            <path>name</path>
+        </source>
+        <expression>
+            <assignmentTargetSearch>
+                <targetType>RoleType</targetType>
+                <filter>
+                    <q:text>name = `'Superuser'`</q:text> <!-- groovy! forbidden here -->
+                </filter>
+            </assignmentTargetSearch>
+        </expression>
+        <target>
+            <path>assignment</path>
+        </target>
+        <condition>
+            <script>
+                <language>mel</language>
+                <code>name.startsWith('test400')</code>
+            </script>
+        </condition>
+    </mapping>
+    <mapping>
+        <source>
+            <path>name</path>
+        </source>
+        <expression>
+            <assignmentTargetSearch>
+                <targetType>RoleType</targetType>
+                <filter>
+                    <q:text>name = 'Superuser'</q:text>
+                </filter>
+                <populate>
+                    <populateItem>
+                        <expression>
+                            <script>
+                                <code>'forbidden'</code>
+                            </script>
+                        </expression>
+                        <target>
+                            <path>subtype</path>
+                        </target>
+                    </populateItem>
+                </populate>
+            </assignmentTargetSearch>
+        </expression>
+        <target>
+            <path>assignment</path>
+        </target>
+        <condition>
+            <script>
+                <language>mel</language>
+                <code>name.startsWith('test402')</code>
+            </script>
+        </condition>
+    </mapping>
+    <mapping>
+        <source>
+            <path>name</path>
+        </source>
+        <expression>
+            <assignmentTargetSearch>
+                <targetType>RoleType</targetType>
+                <filter>
+                    <q:text>name = 'non-existing'</q:text>
+                </filter>
+                <createOnDemand>true</createOnDemand>
+                <populateObject>
+                    <populateItem>
+                        <expression>
+                            <script>
+                                <code>'forbidden'</code>
+                            </script>
+                        </expression>
+                        <target>
+                            <path>name</path>
+                        </target>
+                    </populateItem>
+                </populateObject>
+            </assignmentTargetSearch>
+        </expression>
+        <target>
+            <path>assignment</path>
+        </target>
+        <condition>
+            <script>
+                <language>mel</language>
+                <code>name.startsWith('test404')</code>
+            </script>
+        </condition>
+    </mapping>
+
+    <mapping>
+        <source>
+            <path>name</path>
+        </source>
+        <expression>
+            <assignmentTargetSearch>
+                <targetType>RoleType</targetType>
+                <filter>
+                    <q:text>name = 'Superuser'</q:text>
+                </filter>
+                <populate>
+                    <populateItem>
+                        <expression>
+                            <value>subtype</value>
+                        </expression>
+                        <target>
+                            <path>subtype</path>
+                            <set>
+                                <condition>
+                                    <script>
+                                        <code>throw new IllegalArgumentException()</code> <!-- forbidden, but this won't be called -->
+                                    </script>
+                                </condition>
+                            </set>
+                        </target>
+                    </populateItem>
+                </populate>
+            </assignmentTargetSearch>
+        </expression>
+        <target>
+            <path>assignment</path>
+        </target>
+        <condition>
+            <script>
+                <language>mel</language>
+                <code>name.startsWith('test406')</code>
+            </script>
+        </condition>
+    </mapping>
+</objectTemplate>

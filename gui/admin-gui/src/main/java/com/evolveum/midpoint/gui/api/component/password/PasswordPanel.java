@@ -128,11 +128,6 @@ public class PasswordPanel extends InputPanel {
         response.render(JavaScriptHeaderItem.forReference(new UrlResourceReference(Url.parse("static/vendors-passwords.js")).setContextRelative(true)));
     }
 
-    @Override
-    protected void onInitialize() {
-        super.onInitialize();
-    }
-
     protected <F extends FocusType> void initLayout() {
         setOutputMarkupId(true);
 
@@ -194,7 +189,7 @@ public class PasswordPanel extends InputPanel {
         }
 
         Label repeatPasswordLabel = new Label(ID_REPEAT_PASSWORD_LABEL,
-                getString("PasswordPanel.repeatPasswordPlaceholder"));
+                getRepeatPasswordPlaceholder());
         repeatPasswordLabel.setOutputMarkupId(true);
         repeatPasswordLabel.add(new VisibleBehaviour(this::arePasswordInputFieldsAssociatedWithLabels));
         inputContainer.add(repeatPasswordLabel);
@@ -447,13 +442,21 @@ public class PasswordPanel extends InputPanel {
 
     private String getRepeatPasswordFieldPlaceholderValue() {
         return arePasswordInputFieldsAssociatedWithLabels() ?
-                null : getString("PasswordPanel.repeatPasswordPlaceholder");
+                null : getRepeatPasswordPlaceholder().getObject();
 
+    }
+
+    protected IModel<String> getRepeatPasswordPlaceholder() {
+        return () -> getString("PasswordPanel.repeatPasswordPlaceholder");
     }
 
     private String getPasswordFieldPlaceholderValue() {
         return arePasswordInputFieldsAssociatedWithLabels() ?
-                null : getString("PasswordPanel.passwordPlaceholder");
+                null : getPasswordPlaceholder().getObject();
 
+    }
+
+    protected IModel<String> getPasswordPlaceholder() {
+        return () -> getString("PasswordPanel.passwordPlaceholder");
     }
 }

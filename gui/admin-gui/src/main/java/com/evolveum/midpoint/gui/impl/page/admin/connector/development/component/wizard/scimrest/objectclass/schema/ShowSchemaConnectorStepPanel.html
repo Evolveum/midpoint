@@ -11,6 +11,14 @@
     <div wicket:id="feedbackContainer" class="col-12 feedbackContainer">
         <div wicket:id="feedback" class="messagePanel"/>
     </div>
+    <div class="col-12 text-center text-secondary py-4" wicket:id="emptyState">
+        <div class="fw-bold">
+            <wicket:message key="ShowSchemaConnectorStepPanel.empty.title"/>
+        </div>
+        <div>
+            <wicket:message key="ShowSchemaConnectorStepPanel.empty.description"/>
+        </div>
+    </div>
     <div class="col-12 p-0 mt-1" wicket:id="panel"/>
 </wicket:extend>
 </html>

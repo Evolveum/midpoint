@@ -90,7 +90,7 @@ public class VerticalFormPrismReferenceValuePanel<R extends Referencable> extend
 
             @Override
             public List<QName> getSupportedTypes() {
-                List<QName> targetTypeList = getParentWrapper().getTargetTypes();
+                List<QName> targetTypeList = getParentWrapper().getTargetTypes(getPageBase());
                 if (targetTypeList == null || WebComponentUtil.isAllNulls(targetTypeList)) {
                     return Arrays.asList(ObjectType.COMPLEX_TYPE);
                 }

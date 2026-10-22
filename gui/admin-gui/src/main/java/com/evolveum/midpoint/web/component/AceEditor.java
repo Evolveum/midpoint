@@ -8,10 +8,12 @@ package com.evolveum.midpoint.web.component;
 
 import com.evolveum.midpoint.gui.api.component.form.TextArea;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.smart.api.conndev.ConnDevScriptFormat;
 
 import com.evolveum.midpoint.web.util.ExpressionUtil;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.text.StringEscapeUtils;
 import org.apache.wicket.Session;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.head.IHeaderResponse;
@@ -34,6 +36,7 @@ public class AceEditor extends TextArea<String> {
         MEL(ExpressionUtil.Language.MEL.getLanguage(), "ace/mode/groovy"), //TBD cel not supported yet
         PYTHON(ExpressionUtil.Language.PYTHON.getLanguage(), "ace/mode/python"),
         VELOCITY(ExpressionUtil.Language.VELOCITY.getLanguage(), "ace/mode/velocity"),
+        SAFE_VELOCITY(ExpressionUtil.Language.SAFE_VELOCITY.getLanguage(), "ace/mode/velocity"),
         JAVASCRIPT(ExpressionUtil.Language.JAVASCRIPT.getLanguage(), "ace/mode/javascript");
 
         public String language;
@@ -57,6 +60,19 @@ public class AceEditor extends TextArea<String> {
             }
 
             return null;
+        }
+
+        /**
+         * Maps the script format of a connector development script to the editor mode.
+         *
+         * @param format script format
+         * @return editor mode used for syntax highlighting of the script
+         */
+        public static Mode forScriptFormat(ConnDevScriptFormat format) {
+            return switch (format) {
+                case GROOVY -> GROOVY;
+                case YAML -> YAML;
+            };
         }
     }
 
@@ -108,6 +124,13 @@ public class AceEditor extends TextArea<String> {
         String module = mode!= null? mode.module : "";
 
         target.appendJavaScript("window.MidPointAceEditor.changeMode('" + getMarkupId() + "','" + module + "');");
+    }
+
+    /** Pushes a model change into the already-initialized Ace instance - a plain re-render alone won't, since initEditor() no-ops once it exists. */
+    public void updateValue(AjaxRequestTarget target, String value) {
+        setModelObject(value);
+        String escaped = StringEscapeUtils.escapeEcmaScript(value != null ? value : "");
+        target.appendJavaScript("window.MidPointAceEditor.setValue('" + getMarkupId() + "','" + escaped + "');");
     }
 
     public int getMinHeight() {

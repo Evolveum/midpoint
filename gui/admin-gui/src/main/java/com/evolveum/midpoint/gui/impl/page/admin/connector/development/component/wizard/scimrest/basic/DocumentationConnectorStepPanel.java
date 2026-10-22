@@ -6,28 +6,38 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.basic;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.Serial;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
+import org.apache.wicket.MarkupContainer;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.form.upload.FileUpload;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.model.StringResourceModel;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
+import com.evolveum.midpoint.gui.api.component.wizard.TileEnum;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.component.data.provider.MultivalueContainerListDataProvider;
 import com.evolveum.midpoint.gui.impl.component.dialog.OnePanelPopupPanel;
+import com.evolveum.midpoint.gui.impl.component.tile.EnumTileChoicePanel;
 import com.evolveum.midpoint.gui.impl.component.tile.MultiSelectContainerActionTileTablePanel;
 import com.evolveum.midpoint.gui.impl.component.tile.ViewToggle;
 import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardStepPanel;
@@ -43,8 +53,10 @@ import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.SmartMetadataUtil;
+import com.evolveum.midpoint.smart.api.conndev.DocumentationContentTypes;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -53,6 +65,8 @@ import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
+import com.evolveum.midpoint.web.component.AjaxSubmitButton;
+import com.evolveum.midpoint.web.component.dialog.HelpInfoPanel;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
@@ -80,9 +94,12 @@ public class DocumentationConnectorStepPanel extends AbstractWizardStepPanel<Con
     private static final String CLASS_DOT = DocumentationConnectorStepPanel.class.getName() + ".";
     private static final String OP_LOAD_DOCS = CLASS_DOT + "loadDocumentations";
     private static final String OP_REMOVE_DISCOVERED_DOCUMENTATION = CLASS_DOT + "removeDiscoveredDocumentation";
+    private static final String OP_SAVE_DOCUMENTATION_FILE = CLASS_DOT + "saveDocumentationFile";
 
     private static final String ID_PANEL = "panel";
     private static final String ID_AI_ALERT = "aiAlert";
+    // The id must match the "noValuePanel" placeholder in TileTablePanel.html.
+    private static final String ID_NO_VALUE_PANEL = "noValuePanel";
 
     private LoadableModel<List<PrismContainerValueWrapper<ConnDevDocumentationSourceType>>> valuesModel;
 
@@ -91,18 +108,42 @@ public class DocumentationConnectorStepPanel extends AbstractWizardStepPanel<Con
     }
 
     private void deleteDocumentationSource(PrismContainerValueWrapper<ConnDevDocumentationSourceType> value) throws CommonException {
-        if (value.getStatus() != ValueStatus.ADDED) {
-            PrismContainerWrapper<ConnDevDocumentationSourceType> container = getDetailsModel().getObjectWrapper().findContainer(ConnectorDevelopmentType.F_DOCUMENTATION_SOURCE);
+        PrismContainerWrapper<ConnDevDocumentationSourceType> container = getDetailsModel().getObjectWrapper().findContainer(ConnectorDevelopmentType.F_DOCUMENTATION_SOURCE);
+        // ADDED values are mostly AI suggestions outside the container, but uploaded files are ADDED and inside it.
+        if (value.getStatus() != ValueStatus.ADDED || container.getValues().contains(value)) {
             container.remove(value, getPageBase());
         }
 
         Task removeTask = getPageBase().createSimpleTask(OP_REMOVE_DISCOVERED_DOCUMENTATION);
-        String token = ConnectorDevelopmentWizardUtil.getTaskToken(
-                WorkDefinitionsType.F_DISCOVER_DOCUMENTATION,
-                getDetailsModel().getObjectWrapper().getOid(),
-                getDetailsModel().getPageAssignmentHolder());
-        getDetailsModel().getServiceLocator().getConnectorService()
-                .removeDiscoveredDocumentation(token, value.getRealValue().getName(), removeTask, removeTask.getResult());
+        ConnDevDocumentationSourceType source = value.getRealValue();
+        if (StringUtils.isEmpty(source.getUri())) {
+            // An uploaded file: also drop its processed documentation and the stored file, so the
+            // session restoration stops uploading it to the generation service.
+            getDetailsModel().getConnectorDevelopmentOperation()
+                    .removeDocumentationFile(source.getName(), removeTask, removeTask.getResult());
+        } else {
+            String token = ConnectorDevelopmentWizardUtil.getTaskToken(
+                    WorkDefinitionsType.F_DISCOVER_DOCUMENTATION,
+                    getDetailsModel().getObjectWrapper().getOid(),
+                    getDetailsModel().getPageAssignmentHolder());
+            getDetailsModel().getServiceLocator().getConnectorService()
+                    .removeDiscoveredDocumentation(token, source.getName(), removeTask, removeTask.getResult());
+        }
+    }
+
+    /**
+     * Deselecting a document should only exclude it from the connector's currently-used
+     * documentation, not destroy it - unlike the trash icon ({@link #deleteDocumentationSource}),
+     * this only removes the value from the container, leaving the underlying file/discovered
+     * documentation entry intact so it can still show up (and be re-selected) as a candidate.
+     */
+    private void excludeFromUsedDocumentation(PrismContainerValueWrapper<ConnDevDocumentationSourceType> value) {
+        try {
+            PrismContainerWrapper<ConnDevDocumentationSourceType> container = getDetailsModel().getObjectWrapper().findContainer(ConnectorDevelopmentType.F_DOCUMENTATION_SOURCE);
+            container.remove(value, getPageBase());
+        } catch (SchemaException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
@@ -138,8 +179,9 @@ public class DocumentationConnectorStepPanel extends AbstractWizardStepPanel<Con
                 }
                 ConnDevDiscoverDocumentationResultType documentationResultBean = statusInfo.getResult();
 
-                PrismContainer<ConnDevDocumentationSourceType> suggestionsParent = documentationResultBean.asPrismContainerValue()
-                        .findContainer(ConnDevDiscoverDocumentationResultType.F_DOCUMENTATION);
+                PrismContainer<ConnDevDocumentationSourceType> suggestionsParent = documentationResultBean == null ? null
+                        : documentationResultBean.asPrismContainerValue()
+                                .findContainer(ConnDevDiscoverDocumentationResultType.F_DOCUMENTATION);
 
                 try {
                     PrismContainerWrapper<ConnDevDocumentationSourceType> parentWrapper =
@@ -150,6 +192,7 @@ public class DocumentationConnectorStepPanel extends AbstractWizardStepPanel<Con
                             .filter(value -> value.getStatus() != ValueStatus.DELETED)
                             .filter(value -> value.getStatus() != ValueStatus.ADDED
                                     || StringUtils.isNotEmpty(value.getRealValue().getName()))
+                            .peek(value -> value.setSelected(true))
                             .toList());
 
                     if (suggestionsParent == null) {
@@ -160,8 +203,9 @@ public class DocumentationConnectorStepPanel extends AbstractWizardStepPanel<Con
                             .filter(suggestedValue -> {
                                 String name = ((ConnDevDocumentationSourceType) suggestedValue.getRealValue()).getName();
                                 boolean hasName = StringUtils.isNotEmpty(name);
-                                boolean alreadyPresent = parentWrapper.getValues().stream().anyMatch(value ->
-                                        StringUtils.equals(name, value.getRealValue().getName()));
+                                boolean alreadyPresent = parentWrapper.getValues().stream()
+                                        .filter(value -> value.getStatus() != ValueStatus.DELETED)
+                                        .anyMatch(value -> StringUtils.equals(name, value.getRealValue().getName()));
                                 return hasName && !alreadyPresent;
                             })
                             .map(suggestedValue -> {
@@ -258,7 +302,8 @@ public class DocumentationConnectorStepPanel extends AbstractWizardStepPanel<Con
                         } catch (CommonException e) {
                             throw new RuntimeException(e);
                         }
-                        refreshAndDetach(target);
+                        adjustPagingIfEmpty();
+                        refresh(target);
                     }
                 };
             }
@@ -308,6 +353,7 @@ public class DocumentationConnectorStepPanel extends AbstractWizardStepPanel<Con
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
+                        onUploadFilePerformed(target);
                     }
                 };
 
@@ -315,6 +361,44 @@ public class DocumentationConnectorStepPanel extends AbstractWizardStepPanel<Con
                 uploadFile.add(AttributeAppender.replace("class", "btn btn-light border rounded-0 text-nowrap"));
                 buttons.add(uploadFile);
                 return buttons;
+            }
+
+            @Override
+            protected WebMarkupContainer createHeaderContainer() {
+                WebMarkupContainer headerContainer = super.createHeaderContainer();
+                // The generic "create new" button has no behaviour in this panel - the documentation
+                // sources are added through the "add URL" / "upload file" buttons instead.
+                headerContainer.get("newObjectButton").add(new VisibleBehaviour(() -> false));
+                return headerContainer;
+            }
+
+            @Override
+            protected Component createPanelForNoValue() {
+                // When no documentation source is present, replace the generic "no value" panel
+                // with big tiles offering to add a documentation URL or upload a documentation
+                // file - otherwise these actions are only reachable from the hidden header.
+                EnumTileChoicePanel<DocumentationSourceAction> emptyStateTiles =
+                        new EnumTileChoicePanel<>(ID_NO_VALUE_PANEL, DocumentationSourceAction.class) {
+
+                            @Serial private static final long serialVersionUID = 1L;
+
+                            @Override
+                            protected String getDescriptionForTile(DocumentationSourceAction type) {
+                                return getString(type.getDescription());
+                            }
+
+                            @Override
+                            protected void onTemplateChosePerformed(DocumentationSourceAction action, AjaxRequestTarget target) {
+                                switch (action) {
+                                    case ADD_URL -> onAddUrlPerformed(target);
+                                    case UPLOAD -> onUploadFilePerformed(target);
+                                }
+                            }
+                        };
+                emptyStateTiles.setOutputMarkupId(true);
+                emptyStateTiles.setOutputMarkupPlaceholderTag(true);
+                emptyStateTiles.add(new VisibleBehaviour(this::displayNoValuePanel));
+                return emptyStateTiles;
             }
 
             @Override
@@ -377,6 +461,7 @@ public class DocumentationConnectorStepPanel extends AbstractWizardStepPanel<Con
             protected WebMarkupContainer createPanel(String id) {
                 ItemPanelSettings settings = new ItemPanelSettingsBuilder()
                         .headerVisibility(false)
+                        .mandatoryHandler(wrapper -> QNameUtil.match(wrapper.getItemName(), ConnDevDocumentationSourceType.F_URI))
                         .build();
                 settings.setConfig(getContainerConfiguration(PANEL_TYPE));
 
@@ -384,16 +469,9 @@ public class DocumentationConnectorStepPanel extends AbstractWizardStepPanel<Con
 
                     @Override
                     protected PrismContainerValueWrapper<ConnDevDocumentationSourceType> load() {
-                        PrismContainerWrapperModel<ConnectorDevelopmentType, ConnDevDocumentationSourceType> model
-                                = PrismContainerWrapperModel.fromContainerWrapper(
-                                getDetailsModel().getObjectWrapperModel(),
-                                ConnectorDevelopmentType.F_DOCUMENTATION_SOURCE);
                         PrismContainerValueWrapper<ConnDevDocumentationSourceType> newItemWrapper;
                         try {
-                            PrismContainerValue<ConnDevDocumentationSourceType> newItem = model.getObject().getItem().createNewValue();
-                            newItemWrapper = WebPrismUtil.createNewValueWrapper(
-                                    model.getObject(), newItem, getPageBase());
-                            model.getObject().getValues().add(newItemWrapper);
+                            newItemWrapper = addNewDocumentationSourceValue();
                         } catch (SchemaException e) {
                             LOGGER.error("Couldn't create new value for limitation container", e);
                             return null;
@@ -420,14 +498,95 @@ public class DocumentationConnectorStepPanel extends AbstractWizardStepPanel<Con
             }
 
             @Override
+            protected Component createDoneButton(String id) {
+                return new AjaxSubmitButton(id) {
+
+                    @Override
+                    public void onSubmit(AjaxRequestTarget target) {
+                        processHide(target);
+                    }
+
+                    @Override
+                    protected void onError(AjaxRequestTarget target) {
+                        WebComponentUtil.refreshFeedbacks((MarkupContainer) getPanel(), target);
+                    }
+                };
+            }
+
+            @Override
             protected void processHide(AjaxRequestTarget target) {
-                valuesModel.detach();
-                ((MultiSelectContainerActionTileTablePanel) DocumentationConnectorStepPanel.this.get(ID_PANEL)).refreshAndDetach(target);
+                var newValue = (PrismContainerValueWrapper<ConnDevDocumentationSourceType>) getPanel().getDefaultModelObject();
+                if (newValue != null && StringUtils.isNotEmpty(newValue.getRealValue().getName())) {
+                    newValue.setSelected(true);
+                    valuesModel.getObject().add(0, newValue);
+                }
+                ((MultiSelectContainerActionTileTablePanel) DocumentationConnectorStepPanel.this.get(ID_PANEL)).refresh(target);
                 super.processHide(target);
             }
         };
         popup.setOutputMarkupId(true);
         getPageBase().showMainPopup(popup, target);
+    }
+
+    private void onUploadFilePerformed(AjaxRequestTarget target) {
+        DocumentationUploadPopupPanel popup = new DocumentationUploadPopupPanel(getPageBase().getMainPopupBodyId()) {
+            @Override
+            protected void onFileUploaded(FileUpload fileUpload, AjaxRequestTarget target) {
+                if (uploadDocumentationFile(fileUpload, target)) {
+                    ((MultiSelectContainerActionTileTablePanel) DocumentationConnectorStepPanel.this.get(ID_PANEL)).refresh(target);
+                }
+                getPageBase().hideMainPopup(target);
+            }
+        };
+        popup.setOutputMarkupId(true);
+        getPageBase().showMainPopup(popup, target);
+    }
+
+    private PrismContainerValueWrapper<ConnDevDocumentationSourceType> addNewDocumentationSourceValue() throws SchemaException {
+        PrismContainerWrapper<ConnDevDocumentationSourceType> container =
+                PrismContainerWrapperModel.<ConnectorDevelopmentType, ConnDevDocumentationSourceType>fromContainerWrapper(
+                        getDetailsModel().getObjectWrapperModel(),
+                        ConnectorDevelopmentType.F_DOCUMENTATION_SOURCE).getObject();
+        PrismContainerValue<ConnDevDocumentationSourceType> newItem = container.getItem().createNewValue();
+        PrismContainerValueWrapper<ConnDevDocumentationSourceType> newItemWrapper =
+                WebPrismUtil.createNewValueWrapper(container, newItem, getPageBase());
+        container.getValues().add(newItemWrapper);
+        return newItemWrapper;
+    }
+
+    private void addUploadedFileDocumentationSource(FileUpload fileUpload) throws SchemaException {
+        PrismContainerValueWrapper<ConnDevDocumentationSourceType> newItemWrapper = addNewDocumentationSourceValue();
+        newItemWrapper.findProperty(ConnDevDocumentationSourceType.F_NAME).getValue().setRealValue(fileUpload.getClientFileName());
+        // The same resolved content type the processed-documentation element carries (see
+        // saveDocumentationFile), so both elements describe the file identically.
+        newItemWrapper.findProperty(ConnDevDocumentationSourceType.F_CONTENT_TYPE).getValue()
+                .setRealValue(DocumentationContentTypes.resolve(fileUpload.getContentType(), fileUpload.getClientFileName()));
+        newItemWrapper.setSelected(true);
+        valuesModel.getObject().add(0, newItemWrapper);
+    }
+
+    private boolean uploadDocumentationFile(FileUpload fileUpload, AjaxRequestTarget target) {
+        String fileName = fileUpload.getClientFileName();
+        Task task = getPageBase().createSimpleTask(OP_SAVE_DOCUMENTATION_FILE);
+        OperationResult result = task.getResult();
+        try (InputStream content = fileUpload.getInputStream()) {
+            getDetailsModel().getConnectorDevelopmentOperation()
+                    .saveDocumentationFile(fileName, content, fileUpload.getContentType(), task, result);
+            addUploadedFileDocumentationSource(fileUpload);
+        } catch (IOException | CommonException e) {
+            LOGGER.error("Couldn't save documentation file {}", fileName, e);
+            result.recordFatalError(
+                    createStringResource("DocumentationUploadPopupPanel.message.error.uploadFailed", fileName).getString(), e);
+        }
+        result.computeStatus();
+
+        if (result.isError()) {
+            getPageBase().showResult(result);
+        } else {
+            getPageBase().success(createStringResource("DocumentationUploadPopupPanel.message.success.uploaded", fileName).getString());
+        }
+        target.add(getFeedback());
+        return !result.isError();
     }
 
     protected String getPanelType() {
@@ -472,6 +631,12 @@ public class DocumentationConnectorStepPanel extends AbstractWizardStepPanel<Con
     @Override
     public boolean onNextPerformed(AjaxRequestTarget target) {
         try {
+            valuesModel.getObject().stream()
+                    .filter(value -> value.getStatus() != ValueStatus.ADDED)
+                    .filter(value -> !value.isSelected())
+                    .toList()
+                    .forEach(this::excludeFromUsedDocumentation);
+
             PrismContainerWrapper<ConnDevDocumentationSourceType> parentWrapper = getDetailsModel().getObjectWrapper().findContainer(ConnectorDevelopmentType.F_DOCUMENTATION_SOURCE);
             valuesModel.getObject().stream()
                     .filter(value -> value.getStatus() == ValueStatus.ADDED)
@@ -490,6 +655,13 @@ public class DocumentationConnectorStepPanel extends AbstractWizardStepPanel<Con
             throw new RuntimeException(e);
         }
 
+        if (!ConnectorDevelopmentWizardUtil.isSql(getDetailsModel()) && valuesModel.getObject().stream().noneMatch(PrismContainerValueWrapper::isSelected)) {
+            valuesModel.detach();
+            ((MultiSelectContainerActionTileTablePanel) get(ID_PANEL)).refreshAndDetach(target);
+            showNoDocumentationPopup(target);
+            return false;
+        }
+
         valuesModel.detach();
 
         OperationResult result = getHelper().onSaveObjectPerformed(target);
@@ -502,8 +674,37 @@ public class DocumentationConnectorStepPanel extends AbstractWizardStepPanel<Con
         return false;
     }
 
+    private void showNoDocumentationPopup(AjaxRequestTarget target) {
+        HelpInfoPanel popup = new HelpInfoPanel(
+                getPageBase().getMainPopupBodyId(),
+                createStringResource("DocumentationConnectorStepPanel.noDocumentation.warning")) {
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            public StringResourceModel getTitle() {
+                return createStringResource("DocumentationConnectorStepPanel.noDocumentation.title");
+            }
+
+            @Override
+            protected @NotNull Label initLabel(IModel<String> messageModel) {
+                Label label = super.initLabel(messageModel);
+                label.add(AttributeModifier.append("class", "alert alert-warning"));
+                return label;
+            }
+
+            @Override
+            public int getHeight() {
+                return 180;
+            }
+        };
+        getPageBase().showMainPopup(popup, target);
+    }
+
     @Override
     public boolean isCompleted() {
+        if (ConnectorDevelopmentWizardUtil.isBasicSettingsComplete(getDetailsModel().getObjectWrapper())) {
+            return true;
+        }
         return ConnectorDevelopmentWizardUtil.existContainerValue(
                 getDetailsModel().getObjectWrapper(), ConnectorDevelopmentType.F_DOCUMENTATION_SOURCE);
     }
@@ -516,5 +717,34 @@ public class DocumentationConnectorStepPanel extends AbstractWizardStepPanel<Con
     @Override
     protected List<HelpTab> computeHelpTabs() {
         return ConnectorDevelopmentWizardUtil.helpTabs(getDetailsModel(), ConnectorWizardHelpTopics.DOCUMENTATION_SOURCE, null);
+    }
+
+    /**
+     * Actions offered when no documentation source is present yet.
+     */
+    public enum DocumentationSourceAction implements TileEnum {
+
+        ADD_URL("fa fa-globe bg-blue-100 text-primary",
+                "DocumentationSourceAction.ADD_URL.description"),
+        UPLOAD("fa fa-upload bg-teal-100 text-success",
+                "DocumentationSourceAction.UPLOAD.description");
+
+        private final String icon;
+        private final String descriptionKey;
+
+        DocumentationSourceAction(String icon, String descriptionKey) {
+            this.icon = icon;
+            this.descriptionKey = descriptionKey;
+        }
+
+        @Override
+        public String getIcon() {
+            return icon;
+        }
+
+        @Override
+        public String getDescription() {
+            return descriptionKey;
+        }
     }
 }

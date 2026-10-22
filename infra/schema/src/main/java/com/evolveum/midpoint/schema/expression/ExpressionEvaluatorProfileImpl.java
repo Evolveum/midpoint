@@ -70,4 +70,10 @@ public class ExpressionEvaluatorProfileImpl implements ExpressionEvaluatorProfil
                 scriptLanguageProfiles.get(qualifiedLanguageUri),
                 () -> ScriptLanguageExpressionProfile.forDecision(defaultDecision));
     }
+
+    @Override
+    public boolean isNotCompletelyForbidden() {
+        return defaultDecision == AccessDecision.ALLOW // TODO what about AccessDecision#DEFAULT?
+                || scriptLanguageProfiles.values().stream().anyMatch(p -> p.isNotCompletelyForbidden());
+    }
 }

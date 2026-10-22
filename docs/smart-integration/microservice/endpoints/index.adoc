@@ -1,0 +1,115 @@
+= Microservice endpoints
+:page-toc: top
+:page-since: "4.11.0"
+:page-upkeep-status: green
+
+== Overview
+
+The Smart Integration microservice provides one endpoint for each AI operation and one health check endpoint.
+The operation endpoints are `POST` requests under the `/api/v1` base path.
+They accept and return JSON, and the names of endpoints and fields use camel case.
+
+The microservice publishes its OpenAPI specification.
+A running microservice serves the interactive API documentation on `/docs` (Swagger UI) and `/redoc` (ReDoc).
+
+== Endpoints
+
+[cols="40%,25%,35%",options="header"]
+|===
+| Endpoint | midPoint method | Used by
+
+| xref:suggest-object-type.adoc[`POST /api/v1/objectType/suggestObjectType`]
+| `SUGGEST_OBJECT_TYPES`
+| xref:../../recommendations/object-types/object-types-recommendation.adoc[Object types recommendation]
+
+| xref:suggest-focus-type.adoc[`POST /api/v1/focusType/suggestFocusType`]
+| `SUGGEST_FOCUS_TYPE`
+| xref:../../recommendations/focus-type/focus-type-recommendation.adoc[Focus type recommendation]
+
+| xref:match-schema.adoc[`POST /api/v1/matching/matchSchema`]
+| `MATCH_SCHEMA`
+| xref:../../schema-match.adoc[Schema match]
+
+| xref:suggest-mapping.adoc[`POST /api/v1/mapping/suggestMapping`]
+| `SUGGEST_MAPPING`
+| xref:../../recommendations/mappings/mappings-recommendation.adoc[Mappings recommendation]
+
+| xref:suggest-categorical-mapping.adoc[`POST /api/v1/mapping/suggestCategoricalMapping`]
+| `SUGGEST_CATEGORICAL_MAPPING`
+| xref:../../recommendations/mappings/mappings-recommendation.adoc[Mappings recommendation]
+
+| xref:health.adoc[`GET /health`]
+| -
+| AI provider name and model shown in the GUI
+|===
+
+== Common behavior
+
+All operation endpoints work in the same way:
+
+. The microservice validates the request against the request schema of the endpoint.
+. It builds the prompt from the request data.
+It does not send the request to the LLM as it is: each endpoint selects the data it needs, see the endpoint pages.
+. It calls the LLM and parses the answer into the response structure.
+
+The microservice does not keep any data between requests.
+If midPoint needs to correct a previous result, it sends the previous result and the problems found in the request, for example in the xref:suggest-object-type.adoc[suggest object type] and xref:suggest-mapping.adoc[suggest mapping] endpoints.
+
+=== Response metadata
+
+Every successful response contains a `metadata` object with the configured AI provider name and model:
+
+[source,json]
+----
+"metadata": {
+    "provider": "openrouter",
+    "model": "openai/gpt-oss-20b"
+}
+----
+
+== Errors
+
+The microservice reports errors with these HTTP status codes:
+
+[cols="15%,85%",options="header"]
+|===
+| Status | Meaning
+
+| `400`
+| A value in the request does not match its type, for example an example value of an `xsd:boolean` attribute that is neither `true` nor `false`.
+
+| `401`
+| The LLM provider rejected the configured API key.
+The response does not contain the key.
+
+| `422`
+| The request does not match the request schema, for example a required field is missing.
+
+| `500`
+| Unexpected error in the microservice.
+
+| `503`
+| The health check failed, see xref:health.adoc[].
+
+| `504`
+| The LLM did not answer within the configured timeout.
+
+| `550`
+| The answer of the LLM could not be parsed into the response structure, even after the retry.
+|===
+
+The response body contains a `detail` field with the description of the error, for example:
+
+[source,json]
+----
+{
+    "detail": "LLM request timed out after 120 seconds"
+}
+----
+
+If the call fails, midPoint fails the recommendation operation with an error that contains the status code and the response body.
+
+== Request correlation
+
+The microservice generates an identifier for every request.
+It returns the identifier in the `X-Request-ID` response header and adds it to all log messages written while processing the request, see xref:../logging.adoc[].

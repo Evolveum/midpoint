@@ -14,6 +14,8 @@ import com.evolveum.midpoint.schema.util.Resource;
 import com.evolveum.midpoint.smart.api.conndev.ConnDevArtifactValidationResult;
 import com.evolveum.midpoint.smart.api.conndev.ConnDevScriptFormat;
 import com.evolveum.midpoint.smart.api.conndev.ConnectorDevelopmentArtifacts;
+import com.evolveum.midpoint.smart.api.conndev.ConnectorDevelopmentOperation;
+import com.evolveum.midpoint.smart.api.conndev.DocumentationContentTypes;
 import com.evolveum.midpoint.smart.api.conndev.SupportedAuthorization;
 import com.evolveum.midpoint.smart.impl.conndev.activity.ConnDevBeans;
 import com.evolveum.midpoint.smart.impl.mappings.ConnDevJsonMapper;
@@ -32,8 +34,10 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.hc.client5.http.entity.EntityBuilder;
 import org.apache.hc.core5.http.ContentType;
+import org.apache.hc.core5.http.HttpStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -41,11 +45,14 @@ import javax.xml.namespace.QName;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Properties;
 import java.util.UUID;
 import java.util.function.BooleanSupplier;
@@ -87,6 +94,12 @@ public abstract class ConnectorDevelopmentBackend {
     protected record DevShadowDocument(String uuid, String uri, String contentType, String content) {}
 
     /**
+     * A {@code conndev_*} shadow read from the testing resource: its discovered name and the
+     * unwrapped (prism-stripped) content as JSON.
+     */
+    protected record DevShadow(String name, JsonNode content) {}
+
+    /**
      * Returns a supplier that operations must poll to implement cooperative cancellation.
      *
      * Because operations run in threads that cannot be forcibly killed, each operation is
@@ -102,7 +115,7 @@ public abstract class ConnectorDevelopmentBackend {
         var beans = ConnDevBeans.get();
         var connDev = beans.modelService.getObject(ConnectorDevelopmentType.class, connectorDevelopmentOid, null, task, result);
         if (beans.isOffline()) {
-            return new OfflineBackend(beans, connDev.asObjectable(), task, result);
+            return offlineBackendFor(connDev.asObjectable(), beans, task, result);
         }
         return backendFor(connDev.asObjectable(), task, result);
     }
@@ -112,15 +125,41 @@ public abstract class ConnectorDevelopmentBackend {
             case REST -> new RestBackend(beans, connDev, task, result);
             case SCIM -> new ScimBackend(beans, connDev, task, result);
             case SQL -> new SqlBackend(beans, connDev, task, result);
-            //case DUMMY -> new OfflineBackend(beans, connDev, task, result);
         };
 
+    }
+
+    /**
+     * The protocol-specific offline backend for the given development: SCIM and SQL get their own
+     * backends, everything else (REST, unknown) uses the REST one.
+     */
+    private static ConnectorDevelopmentBackend offlineBackendFor(ConnectorDevelopmentType connDev, ConnDevBeans beans, Task task, OperationResult result) {
+        var integrationType = resolveIntegrationType(connDev);
+        return switch (integrationType) {
+            case SCIM -> new OfflineScimBackend(beans, connDev, task, result);
+            case SQL -> new OfflineSqlBackend(beans, connDev, task, result);
+            default -> new OfflineRestBackend(beans, connDev, task, result);
+        };
+    }
+
+    /** The development's integration type: the connector's, then the application's, then {@code null}. */
+    private static ConnDevIntegrationType resolveIntegrationType(ConnectorDevelopmentType connDev) {
+        if (connDev.getConnector() != null && connDev.getConnector().getIntegrationType() != null) {
+            return connDev.getConnector().getIntegrationType();
+        }
+        if (connDev.getApplication() != null) {
+            return connDev.getApplication().getIntegrationType();
+        }
+        return null;
     }
 
     @NotNull
     public static ConnectorDevelopmentBackend backendFor(ConnectorDevelopmentType connDev, Task task, OperationResult result) {
         var beans = ConnDevBeans.get();
 
+        if (beans.isOffline()) {
+            return offlineBackendFor(connDev, beans, task, result);
+        }
         if (connDev.getConnector() != null && connDev.getConnector().getIntegrationType() != null) {
             return backendFor(connDev.getConnector().getIntegrationType(), connDev, beans, task, result);
         }
@@ -177,6 +216,62 @@ public abstract class ConnectorDevelopmentBackend {
         beans.modelService.executeChanges(List.of(delta), null, task, result);
         reload();
     };
+
+    /**
+     * Saves the uploaded documentation file to disk (tmp-docs) and registers it as processed
+     * documentation of the development (see {@link #refreshConnDevDocumentation} for the same
+     * integration of the discovered schema), so that the session restoration uploads it to the
+     * generation service (see {@link #ensureDocumentationIsUploaded}).
+     *
+     * @param fileName original name of the uploaded file
+     * @param content file content
+     * @param contentType MIME type of the file
+     * @return generated UUID under which the file is stored
+     */
+    public String saveDocumentationFile(String fileName, InputStream content, String contentType)
+            throws IOException, CommonException {
+        String uuid = UUID.randomUUID().toString();
+        var documentation = new ProcessedDocumentation(uuid, fileName)
+                .contentType(DocumentationContentTypes.resolve(contentType, fileName));
+        try (var output = documentation.asOutputStream()) {
+            content.transferTo(output);
+        }
+
+        var delta = PrismContext.get().deltaFor(ConnectorDevelopmentType.class)
+                .item(ConnectorDevelopmentType.F_PROCESSED_DOCUMENTATION)
+                .addRealValues(List.of(documentation.toBean()))
+                .<ConnectorDevelopmentType>asObjectDelta(developmentObject().getOid());
+        beans.modelService.executeChanges(List.of(delta), null, task, result);
+        reload();
+        return uuid;
+    }
+
+    /**
+     * Removes the processed documentation (and its stored file) of an uploaded documentation file,
+     * identified by its original file name (the processed documentation's uri), so that the session
+     * restoration stops uploading it to the generation service. A no-op when the development carries
+     * no such processed documentation.
+     */
+    public void removeDocumentationFile(String fileName) throws CommonException {
+        var toRemove = developmentObject().getProcessedDocumentation().stream()
+                .filter(documentation -> StringUtils.equals(fileName, documentation.getUri()))
+                // Clones: the live container values carry a parent, which the delta builder refuses to reset.
+                .map(ProcessedDocumentationType::clone)
+                .toList();
+        if (toRemove.isEmpty()) {
+            return;
+        }
+
+        var delta = PrismContext.get().deltaFor(ConnectorDevelopmentType.class)
+                .item(ConnectorDevelopmentType.F_PROCESSED_DOCUMENTATION)
+                .deleteRealValues(toRemove)
+                .<ConnectorDevelopmentType>asObjectDelta(developmentObject().getOid());
+        beans.modelService.executeChanges(List.of(delta), null, task, result);
+        for (var documentation : toRemove) {
+            new ProcessedDocumentation(documentation).delete();
+        }
+        reload();
+    }
 
     public ConnectorDevelopmentType developmentObject() {
         return development;
@@ -271,6 +366,18 @@ public abstract class ConnectorDevelopmentBackend {
     }
 
     /**
+     * Deletes the generated file backing an artifact whose model entry is already gone (see
+     * {@link ConnectorDevelopmentOperation#deleteArtifactFile}) - a no-op if no such file exists.
+     */
+    public void deleteArtifactFile(String filename) throws IOException {
+        if (filename == null) {
+            return;
+        }
+        editableConnector().deleteFileIfExists(filename);
+        invalidateConnector();
+    }
+
+    /**
      * Finds the connector-scoped artifact whose filename matches {@code filename} (leading slash
      * optional, since a validation error's {@code source} carries one but {@link
      * ConnDevArtifactType#getFilename()} doesn't).
@@ -325,6 +432,41 @@ public abstract class ConnectorDevelopmentBackend {
      * doesn't support script validation, ...) is reported as an error, blocking the save.
      */
     public ConnDevArtifactValidationResult validateArtifact(ConnDevArtifactType artifact) {
+        return validateArtifact(artifact, Map.of());
+    }
+
+    /**
+     * Validates several candidate artifacts as one set, so none of them blocks on another one's
+     * own not-yet-saved content. Every artifact in the input is validated as its own "primary"
+     * (actually built), with every other artifact substituted in place of its own still-broken
+     * deployed version. Grouping by {@link ConnDevArtifactType#getOperation()} instead would be
+     * wrong: several distinct script kinds share the same operation (e.g. search-all/by-id/filter
+     * are all {@code SEARCH}), so grouping would silently skip validating all but one of them.
+     * Errors from every artifact are merged into one result, each attributed to its own filename.
+     */
+    public ConnDevArtifactValidationResult validateArtifacts(List<ConnDevArtifactType> artifacts) {
+        if (artifacts.isEmpty()) {
+            return ConnDevArtifactValidationResult.success();
+        }
+        var errors = new ArrayList<ConnDevArtifactValidationResult.Error>();
+        for (var primary : artifacts) {
+            var primarySource = "/" + primary.getFilename();
+            var overrides = new LinkedHashMap<String, String>();
+            for (var other : artifacts) {
+                if (other != primary && other.getFilename() != null) {
+                    overrides.put("/" + other.getFilename(), other.getContent());
+                }
+            }
+            var primaryErrors = validateArtifact(primary, overrides).errors();
+            for (var error : primaryErrors) {
+                errors.add(error.source() != null ? error : new ConnDevArtifactValidationResult.Error(
+                        error.phase(), error.message(), error.line(), error.column(), primarySource));
+            }
+        }
+        return errors.isEmpty() ? ConnDevArtifactValidationResult.success() : ConnDevArtifactValidationResult.errors(errors);
+    }
+
+    private ConnDevArtifactValidationResult validateArtifact(ConnDevArtifactType artifact, Map<String, String> overrides) {
         var filename = artifact.getFilename();
         if (!ConnDevScriptFormat.hasRecognizedExtension(filename)) {
             return ConnDevArtifactValidationResult.success();
@@ -344,11 +486,20 @@ public abstract class ConnectorDevelopmentBackend {
         script.getArgument().add(scriptArgument("artifactKind",
                 ConnDevOperationType.SCHEMA.equals(artifact.getOperation()) ? "schema" : "operation"));
         script.getArgument().add(scriptArgument("filename", "/" + artifact.getFilename()));
+        if (!overrides.isEmpty()) {
+            var overridesNode = JSON_FACTORY.objectNode();
+            overrides.forEach((k, v) -> overridesNode.set(k, JSON_FACTORY.textNode(v)));
+            script.getArgument().add(scriptArgument("overrides", overridesNode.toString()));
+        }
 
         Object response;
         try {
+            // productionUse=false: the resource's currently deployed schema may itself be broken
+            // (that is exactly the scenario being validated/fixed), so requiring it to be fetched
+            // successfully first - the normal production path - would make validation impossible
+            // in exactly the case it exists for.
             response = beans.provisioningService.executeScript(
-                    testingResourceOid, script, task, result);
+                    testingResourceOid, script, false, task, result);
         } catch (CommonException | RuntimeException e) {
             LOGGER.warn("Couldn't validate script {}.", artifact.getFilename(), e);
             return ConnDevArtifactValidationResult.errors(List.of(
@@ -422,13 +573,60 @@ public abstract class ConnectorDevelopmentBackend {
     }
 
     /**
-     * Discovers object classes using connector functionality.
+     * Discovers object classes using the connector's own development-mode metadata: low-code
+     * frameworks (SCIM, REST, SQL) expose the shared {@code conndev_ObjectClass} object class when
+     * running in development mode, and its objects carry the framework's translated schema model.
      *
-     * Ideal for connector frameworks with protocols which supports dynamic discovery of schema, such as SCIM or Database.
-     * @return
+     * <p>Ideal for connector frameworks with protocols which support dynamic discovery of the
+     * schema, such as SCIM or databases. Returns an empty list when the development-mode metadata
+     * is not available (no testing resource, the connector doesn't expose {@code conndev_ObjectClass},
+     * or the resource can't be tested) - in that case the caller falls back to
+     * documentation-based discovery.
      */
     public List<ConnDevBasicObjectClassInfoType> discoverObjectClassesUsingConnector() {
-        return List.of();
+        return devModeObjectClassShadows().stream()
+                .map(shadow -> DevSchemaObjectClassParser.toBasicObjectClassInfo(shadow.name(), shadow.content()))
+                .filter(Objects::nonNull)
+                .toList();
+    }
+
+    /**
+     * Parses the attributes of the given object class from the development-mode metadata (the
+     * shared {@code conndev_ObjectClass} dev object class). Returns an empty list when the object
+     * class is not exposed by the development mode, so the caller can fall back to
+     * documentation-based attribute discovery.
+     */
+    public List<ConnDevAttributeInfoType> discoverObjectClassAttributesFromDevMode(String objectClass) {
+        return devModeObjectClassShadows().stream()
+                .filter(shadow -> objectClass.equalsIgnoreCase(shadow.name()))
+                .map(shadow -> DevSchemaObjectClassParser.toAttributes(shadow.content()))
+                .findFirst()
+                .orElse(List.of());
+    }
+
+    /**
+     * Loads the shadows of the shared {@code conndev_ObjectClass} dev object class from the testing
+     * resource, refreshing the resource first. Returns an empty list when the development-mode
+     * metadata is not available - no testing resource, the connector doesn't expose
+     * {@code conndev_ObjectClass}, or the resource can't be tested.
+     */
+    protected List<DevShadow> devModeObjectClassShadows() {
+        var testing = developmentObject().getTesting();
+        if (testing == null || testing.getTestingResource() == null || testing.getTestingResource().getOid() == null) {
+            return List.of();
+        }
+        var testingResourceOid = testing.getTestingResource().getOid();
+        try {
+            ResourceUtils.deleteSchema(testingResourceOid, beans.modelService, task, result);
+            beans.provisioningService.testResource(testingResourceOid, task, result);
+            if (!exposesConnDevObjectClass(testingResourceOid)) {
+                return List.of();
+            }
+            return loadDevShadows(testingResourceOid, CONNDEV_OBJECT_CLASS);
+        } catch (Exception e) {
+            LOGGER.warn("Couldn't read development-mode object classes from the testing resource", e);
+            return List.of();
+        }
     }
 
     public void updateApplicationObjectClasses(List<ConnDevBasicObjectClassInfoType> discovered) throws CommonException {
@@ -505,7 +703,7 @@ public abstract class ConnectorDevelopmentBackend {
 
     public abstract ConnDevApplicationInfoType discoverBasicInformation(boolean skipCache);
     public abstract List<ConnDevAuthInfoType> discoverAuthorizationInformation(boolean skipCache);
-    public abstract List<ConnDevDocumentationSourceType> discoverDocumentation(boolean skipCache);
+    public abstract List<ConnDevDocumentationSourceType> discoverDocumentation(boolean skipCache) throws CommunicationException;
 
     /**
      * Generates a non-object-class artifact (authorization script or test-connection script) or,
@@ -790,8 +988,9 @@ public abstract class ConnectorDevelopmentBackend {
     protected abstract void restoreSession(ServiceClient.RestorationClient client) throws IOException;
 
     protected void synchronizeSession(ServiceClient.RestorationClient client) throws IOException {
-        // FIXME: Implement session synchronization here
-        // ensureDocumentationIsUploaded(client);
+        // The session exists: make sure the documentation stored in the development (uploaded files,
+        // detected schemas) is present in it. Idempotent - a no-op when everything is already there.
+        ensureDocumentationIsUploaded(client);
     }
 
     protected void restoreObjectClasses(ServiceClient.RestorationClient client) throws IOException {
@@ -909,8 +1108,10 @@ public abstract class ConnectorDevelopmentBackend {
 
     protected void restoreCodegenArtifacts(ServiceClient.RestorationClient client) throws IOException {
         var connector = developmentObject().getConnector();
-        if (connector == null) return;
-
+        if (connector == null || connector.getDirectory() == null) {
+            // COnnector is not unpacked, we can not upload files.
+            return;
+        }
         for (var oc : connector.getObjectClass()) {
             var name = oc.getName();
             putCodegenArtifact(client, "codegen/{sessionId}/classes/" + name + "/native-schema", oc.getNativeSchemaScript());
@@ -950,23 +1151,75 @@ public abstract class ConnectorDevelopmentBackend {
 
     public void ensureDocumentationIsUploaded(ServiceClient.RestorationClient client) {
         try {
+            var sync = client().synchronizationClient();
             for (var documentation : getProcessedDocumentation()) {
-                client.putDocumentationIfMissing(
-                        "session/{sessionId}/documentation/" + documentation.uuid(), () -> {
-                            try {
-                                var body = new String(documentation.asInputStream().readAllBytes(), StandardCharsets.UTF_8);
-                                return EntityBuilder.create()
-                                        .setText(body)
-                                        .setContentType(ContentType.create(documentation.contentType(), StandardCharsets.UTF_8))
-                                        .build();
-                            } catch (IOException e) {
-                                throw new SystemException("Couldn't build documentation upload body", e);
-                            }
-                        });
+                if (isDocumentationBundle(documentation)) {
+                    // Pre-processed documentation (a {docId, chunks:[...]} bundle as returned by the
+                    // generation service): import it as-is through the PUT import endpoint, so the
+                    // service does not reprocess it.
+                    client.putDocumentationIfMissing(
+                            "session/{sessionId}/documentation/" + documentation.uuid(), () -> {
+                                try {
+                                    var body = new String(documentation.asInputStream().readAllBytes(), StandardCharsets.UTF_8);
+                                    return EntityBuilder.create()
+                                            .setText(body)
+                                            .setContentType(ContentType.APPLICATION_JSON)
+                                            .build();
+                                } catch (IOException e) {
+                                    throw new SystemException("Couldn't build documentation upload body", e);
+                                }
+                            });
+                } else {
+                    // Raw documentation file (uploaded in the wizard, or a detected schema stored as
+                    // its raw content): the service expects these through the multipart upload
+                    // endpoint, which (re)processes them. Skip the upload when the documentation (or
+                    // its processing) is already present in the session.
+                    var status = sync.documentationStatus(documentation.uuid());
+                    if (status != HttpStatus.SC_OK && status != HttpStatus.SC_NO_CONTENT && status != HttpStatus.SC_ACCEPTED) {
+                        sync.postDocumentation(
+                                documentation.uuid(),
+                                documentation.asInputStream(),
+                                documentationContentType(documentation),
+                                documentation.uri());
+                        sync.awaitDocumentation(documentation.uuid(), SLEEP_TIME, canRun());
+                    }
+                }
             }
         } catch (Exception e) {
             throw new SystemException("Couldn't upload documentation", e);
         }
+    }
+
+    /**
+     * Whether the stored documentation is a pre-processed documentation bundle ({@code {docId,
+     * chunks:[...]}}) as returned by the generation service, as opposed to a raw documentation file.
+     */
+    private boolean isDocumentationBundle(ProcessedDocumentation documentation) {
+        try {
+            return isDocumentationBundle(documentation.asInputStream().readAllBytes());
+        } catch (IOException e) {
+            return false;
+        }
+    }
+
+    static boolean isDocumentationBundle(byte[] content) {
+        JsonNode root;
+        try {
+            root = MAPPER.readTree(content);
+        } catch (IOException e) {
+            return false;
+        }
+        var chunks = root == null ? null : root.get("chunks");
+        return chunks != null && chunks.isArray();
+    }
+
+    private ContentType documentationContentType(ProcessedDocumentation documentation) {
+        var mimeType = documentation.contentType();
+        if (StringUtils.isBlank(mimeType)) {
+            // Let the service derive the content type from the file name.
+            return ContentType.DEFAULT_BINARY;
+        }
+        return ContentType.create(mimeType, StandardCharsets.UTF_8);
     }
 
     /**
@@ -1022,12 +1275,18 @@ public abstract class ConnectorDevelopmentBackend {
     }
 
     protected ServiceClient client() {
-        return beans.client(sessionId(), this::restoreSession, this::synchronizeSession, result);
+        return beans.client(sessionId(), this::restoreSession, this::synchronizeSession,
+                task, result, developmentObject().asPrismObject());
     }
 
     protected String apiType() {
         var connector = developmentObject().getConnector();
         var integrationType = connector != null ? connector.getIntegrationType() : null;
+        if (integrationType != null) {
+            return integrationType.value();
+        }
+        var application = developmentObject().getApplication();
+        integrationType = application != null ? application.getIntegrationType() : null;
         return integrationType != null ? integrationType.value() : null;
     }
 
@@ -1171,6 +1430,31 @@ public abstract class ConnectorDevelopmentBackend {
      * {@code conndev_ObjectClass} (SCIM, SQL, ...) works unchanged, including future fields.
      */
     protected List<DevShadowDocument> loadShadowsAsDocumentation(String resourceOid, String objectClassLocalName) {
+        var writer = MAPPER.writerWithDefaultPrettyPrinter();
+        var docs = new ArrayList<DevShadowDocument>();
+        for (var shadow : loadDevShadows(resourceOid, objectClassLocalName)) {
+            var uri = objectClassLocalName + "_" + shadow.name() + ".json";
+            var uuid = UUID.nameUUIDFromBytes(uri.getBytes(StandardCharsets.UTF_8)).toString();
+            try {
+                docs.add(new DevShadowDocument(uuid, uri, CONNDEV_CONTENT_TYPE,
+                        writer.writeValueAsString(shadow.content())));
+            } catch (IOException e) {
+                throw new SystemException("Couldn't serialize shadow documentation for " + shadow.name(), e);
+            }
+        }
+        return docs;
+    }
+
+    /**
+     * Loads the shadows of a {@code conndev_*} object class from a testing resource, unwrapping
+     * each one's content: the shadow content is only structurally unwrapped from prism
+     * serialization ({@link ConnDevShadowUnwrapper}), never interpreted — the connector owns the
+     * schema-mapping content (single source), midPoint reads only the name (see
+     * {@link #resolveDocName}). The result is an in-memory carrier: it becomes a persisted
+     * {@link ProcessedDocumentation} only in {@link #refreshConnDevDocumentation}, and feeds
+     * the development-mode object class/attribute parsing otherwise.
+     */
+    protected List<DevShadow> loadDevShadows(String resourceOid, String objectClassLocalName) {
         try {
             var objectClass = new QName(SchemaConstants.NS_RI, objectClassLocalName);
             var query = PrismContext.get().queryFor(ShadowType.class)
@@ -1189,10 +1473,8 @@ public abstract class ConnectorDevelopmentBackend {
             }
 
             var serializer = PrismContext.get().jsonSerializer();
-            var mapper = new ObjectMapper();
-            var writer = mapper.writerWithDefaultPrettyPrinter();
             var unwrapper = new ConnDevShadowUnwrapper();
-            var docs = new ArrayList<DevShadowDocument>();
+            var devShadows = new ArrayList<DevShadow>();
             for (var shadow : shadows) {
                 var attrs = shadow.findContainer(ShadowType.F_ATTRIBUTES);
                 if (attrs == null || attrs.isEmpty()) {
@@ -1200,22 +1482,17 @@ public abstract class ConnectorDevelopmentBackend {
                 }
 
                 var json = serializer.serialize(attrs.getValue());
-                var attributesContainer = mapper.readTree(json).get("attributes");
+                var attributesContainer = MAPPER.readTree(json).get("attributes");
                 if (attributesContainer == null) {
                     continue;
                 }
 
                 var document = unwrapper.unwrap(attributesContainer);
-                var content = writer.writeValueAsString(document);
-
-                var name = resolveDocName(shadow, document);
-                var uri = objectClassLocalName + "_" + name + ".json";
-                var uuid = UUID.nameUUIDFromBytes(uri.getBytes(StandardCharsets.UTF_8)).toString();
-                docs.add(new DevShadowDocument(uuid, uri, CONNDEV_CONTENT_TYPE, content));
+                devShadows.add(new DevShadow(resolveDocName(shadow, document), document));
             }
-            return docs;
+            return devShadows;
         } catch (Exception e) {
-            throw new SystemException("Could not load shadow documentation for " + objectClassLocalName, e);
+            throw new SystemException("Could not load shadows for " + objectClassLocalName, e);
         }
     }
 

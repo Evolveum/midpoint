@@ -13,6 +13,7 @@ import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormChoiceComponentUpdatingBehavior;
@@ -21,10 +22,13 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Radio;
 import org.apache.wicket.markup.html.form.RadioGroup;
+import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.model.StringResourceModel;
+import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
@@ -41,6 +45,7 @@ import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
+import com.evolveum.midpoint.web.component.dialog.HelpInfoPanel;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -70,10 +75,13 @@ public class ObjectClassSelectConnectorStepPanel extends AbstractWizardStepPanel
     private static final String ID_DESCRIPTION = "description";
     private static final String ID_MORE_OBJECT_CLASSES_BUTTON = "moreObjectClassesButton";
     private static final String ID_MORE_CLASSES_HINT = "moreClassesHint";
+    private static final String ID_CREATE_OBJECT_CLASS = "createObjectClass";
+    private static final String ID_NEW_OBJECT_CLASS_NAME = "newObjectName";
 
     private final IModel<PrismContainerValueWrapper<ConnDevObjectClassInfoType>> valueModel;
     private boolean showAllClasses;
     private LoadableModel<List<PrismContainerValueWrapper<ConnDevObjectClassInfoType>>> valuesModel;
+    private final IModel<String> newObjectNameModel = Model.of("");
 
     public ObjectClassSelectConnectorStepPanel(WizardPanelHelper<? extends Containerable, ConnectorDevelopmentDetailsModel> helper,
             IModel<PrismContainerValueWrapper<ConnDevObjectClassInfoType>> valueModel) {
@@ -272,6 +280,22 @@ public class ObjectClassSelectConnectorStepPanel extends AbstractWizardStepPanel
                 target.add(get(ID_RADIO_GROUP));
             }
         });
+
+        WebMarkupContainer createObjectClass = new WebMarkupContainer(ID_CREATE_OBJECT_CLASS);
+        createObjectClass.setOutputMarkupId(true);
+        createObjectClass.setOutputMarkupPlaceholderTag(true);
+        createObjectClass.add(new VisibleBehaviour(this::hasNoCandidates));
+        TextField<String> newName = new TextField<>(ID_NEW_OBJECT_CLASS_NAME, newObjectNameModel);
+        newName.setOutputMarkupId(true);
+        createObjectClass.add(newName);
+        add(createObjectClass);
+    }
+
+    /**
+     * The "create object class" option is offered when none of the detected classes is available to pick from.
+     */
+    private boolean hasNoCandidates() {
+        return valuesModel.getObject().isEmpty();
     }
 
     protected String getPanelType() {
@@ -316,34 +340,68 @@ public class ObjectClassSelectConnectorStepPanel extends AbstractWizardStepPanel
     @Override
     public boolean onNextPerformed(AjaxRequestTarget target) {
         AtomicReference<String> objectClassName = new AtomicReference<>();
+        AtomicReference<PrismContainerValueWrapper<ConnDevObjectClassInfoType>> createdValue = new AtomicReference<>();
+        PrismContainerWrapper<ConnDevObjectClassInfoType> parentWrapper;
 
         try {
-            PrismContainerWrapper<ConnDevObjectClassInfoType> parentWrapper =
-                    getDetailsModel().getObjectWrapper().findContainer(
+            parentWrapper = getDetailsModel().getObjectWrapper().findContainer(
                             ItemPath.create(ConnectorDevelopmentType.F_CONNECTOR, ConnDevConnectorType.F_OBJECT_CLASS));
 
-            valuesModel.getObject().stream()
-                    .filter(PrismContainerValueWrapper::isSelected)
-                    .map(detectedValue -> {
-                        try {
-                            //noinspection unchecked
-                            return (PrismContainerValueWrapper<ConnDevObjectClassInfoType>) getPageBase().createValueWrapper(
-                                    parentWrapper, detectedValue.getRealValue().asPrismContainerValue().clone(), ValueStatus.ADDED, getDetailsModel().createWrapperContext());
-                        } catch (SchemaException e) {
-                            throw new RuntimeException(e);
-                        }
-                    })
-                    .findFirst()
-                    .ifPresent(valueWrapper -> {
-                        objectClassName.set(valueWrapper.getRealValue().getName());
-                        try {
-                            //noinspection unchecked
-                            parentWrapper.getItem().add(valueWrapper.getRealValue().asPrismContainerValue());
-                        } catch (SchemaException e) {
-                            throw new RuntimeException(e);
-                        }
-                        parentWrapper.getValues().add(valueWrapper);
-                    });
+            if (hasNoCandidates()) {
+                String newName = StringUtils.trimToNull(newObjectNameModel.getObject());
+                if (newName == null) {
+                    getPageBase().error(createStringResource("ObjectClassSelectConnectorStepPanel.create.name.empty").getString());
+                    target.add(getFeedback());
+                    return false;
+                }
+                boolean duplicate = getDetailsModel().getObjectType().getConnector().getObjectClass().stream()
+                        .anyMatch(existing -> StringUtils.equalsIgnoreCase(existing.getName(), newName));
+                if (duplicate) {
+                    getPageBase().error(createStringResource("ObjectClassSelectConnectorStepPanel.create.name.duplicate").getString());
+                    target.add(getFeedback());
+                    return false;
+                }
+
+                ConnDevObjectClassInfoType newObjectClass = new ConnDevObjectClassInfoType();
+                newObjectClass.setName(newName);
+                //noinspection unchecked
+                PrismContainerValueWrapper<ConnDevObjectClassInfoType> valueWrapper =
+                        (PrismContainerValueWrapper<ConnDevObjectClassInfoType>) getPageBase().createValueWrapper(
+                                parentWrapper, newObjectClass.asPrismContainerValue(), ValueStatus.ADDED, getDetailsModel().createWrapperContext());
+                objectClassName.set(newName);
+                //noinspection unchecked
+                parentWrapper.getItem().add(valueWrapper.getRealValue().asPrismContainerValue());
+                parentWrapper.getValues().add(valueWrapper);
+                createdValue.set(valueWrapper);
+            } else {
+                if (valuesModel.getObject().stream().noneMatch(PrismContainerValueWrapper::isSelected)) {
+                    showNoSelectedObjectClassPopup(target);
+                    return false;
+                }
+                valuesModel.getObject().stream()
+                        .filter(PrismContainerValueWrapper::isSelected)
+                        .map(detectedValue -> {
+                            try {
+                                //noinspection unchecked
+                                return (PrismContainerValueWrapper<ConnDevObjectClassInfoType>) getPageBase().createValueWrapper(
+                                        parentWrapper, detectedValue.getRealValue().asPrismContainerValue().clone(), ValueStatus.ADDED, getDetailsModel().createWrapperContext());
+                            } catch (SchemaException e) {
+                                throw new RuntimeException(e);
+                            }
+                        })
+                        .findFirst()
+                        .ifPresent(valueWrapper -> {
+                            objectClassName.set(valueWrapper.getRealValue().getName());
+                            try {
+                                //noinspection unchecked
+                                parentWrapper.getItem().add(valueWrapper.getRealValue().asPrismContainerValue());
+                            } catch (SchemaException e) {
+                                throw new RuntimeException(e);
+                            }
+                            parentWrapper.getValues().add(valueWrapper);
+                            createdValue.set(valueWrapper);
+                        });
+            }
 
         } catch (SchemaException e) {
             throw new RuntimeException(e);
@@ -368,9 +426,42 @@ public class ObjectClassSelectConnectorStepPanel extends AbstractWizardStepPanel
 //            target.add(getWizard().getPanel());
             super.onNextPerformed(target);
         } else {
+            if (createdValue.get() != null) {
+                PrismContainerValueWrapper<ConnDevObjectClassInfoType> created = createdValue.get();
+                parentWrapper.getValues().remove(created);
+                if (created.getNewValue() != null) {
+                    parentWrapper.getItem().remove(created.getNewValue());
+                }
+            }
             target.add(getFeedback());
         }
         return false;
+    }
+
+    private void showNoSelectedObjectClassPopup(AjaxRequestTarget target) {
+        HelpInfoPanel popup = new HelpInfoPanel(
+                getPageBase().getMainPopupBodyId(),
+                createStringResource("ObjectClassSelectConnectorStepPanel.select.required")) {
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            public StringResourceModel getTitle() {
+                return createStringResource("ObjectClassSelectConnectorStepPanel.select.title");
+            }
+
+            @Override
+            protected @NotNull Label initLabel(IModel<String> messageModel) {
+                Label label = super.initLabel(messageModel);
+                label.add(AttributeModifier.append("class", "alert alert-warning"));
+                return label;
+            }
+
+            @Override
+            public int getHeight() {
+                return 180;
+            }
+        };
+        getPageBase().showMainPopup(popup, target);
     }
 
     @Override
@@ -380,6 +471,11 @@ public class ObjectClassSelectConnectorStepPanel extends AbstractWizardStepPanel
         }
 
         return valueModel.getObject().getStatus() != ValueStatus.ADDED;
+    }
+
+    @Override
+    public IModel<Boolean> isStepVisible() {
+        return () -> !isCompleted();
     }
 
     @Override

@@ -620,6 +620,18 @@ public final class WebComponentUtil {
                 && (isRunnableTask(task) || (isClosedTask(task) && !isRecurringTask(task)));
     }
 
+    /**
+     * Restart (suspend, delete the work state and the result, resume) makes sense for a root task that has not finished:
+     * a closed one is started anew by "run now" anyway.
+     */
+    public static boolean canRestartTask(TaskType task, PageBase pageBase) {
+        return task != null
+                && task.getParent() == null
+                && pageBase.isAuthorized(ModelAuthorizationAction.SUSPEND_TASK, task.asPrismObject())
+                && pageBase.isAuthorized(ModelAuthorizationAction.RESUME_TASK, task.asPrismObject())
+                && (isRunnableTask(task) || isRunningTask(task) || isWaitingTask(task) || isSuspendedTask(task));
+    }
+
     /** Checks user-visible state, not the technical (scheduling) state. So RUNNABLE means the task is not actually running. */
     public static boolean isRunnableTask(TaskType task) {
         return task != null && task.getExecutionState() == TaskExecutionStateType.RUNNABLE;
@@ -786,21 +798,21 @@ public final class WebComponentUtil {
         return (int) l.longValue();
     }
 
-    public static List<QName> createSupportedTargetTypeList(QName targetTypeFromDef) {
+    public static List<QName> createSupportedTargetTypeList(QName targetTypeFromDef, ModelServiceLocator modelServiceLocator) {
         if (targetTypeFromDef == null || ObjectType.COMPLEX_TYPE.equals(targetTypeFromDef)) {
-            return ObjectTypeListUtil.createObjectTypeList();
+            return ObjectTypeListUtil.createObjectTypeList(modelServiceLocator);
         }
 
         if (AbstractRoleType.COMPLEX_TYPE.equals(targetTypeFromDef)) {
-            return ObjectTypeListUtil.createAbstractRoleTypeList();
+            return ObjectTypeListUtil.createAbstractRoleTypeList(modelServiceLocator);
         }
 
         if (FocusType.COMPLEX_TYPE.equals(targetTypeFromDef)) {
-            return ObjectTypeListUtil.createFocusTypeList();
+            return ObjectTypeListUtil.createFocusTypeList(modelServiceLocator);
         }
 
         if (AssignmentHolderType.COMPLEX_TYPE.equals(targetTypeFromDef)) {
-            return ObjectTypeListUtil.createAssignmentHolderTypeQnamesList();
+            return ObjectTypeListUtil.createAssignmentHolderTypeQnamesList(modelServiceLocator);
         }
 
         return Collections.singletonList(targetTypeFromDef);
@@ -814,20 +826,21 @@ public final class WebComponentUtil {
      * <p>
      * TODO: move to schema component
      */
-    public static <O extends ObjectType> List<QName> resolveObjectTypesToQNames(Collection<Class<? extends O>> types, PrismContext prismContext) {
+    public static <O extends ObjectType> List<QName> resolveObjectTypesToQNames(
+            Collection<Class<? extends O>> types, ModelServiceLocator modelServiceLocator) {
         if (types == null) {
             return null;
         }
         List<QName> concreteTypes = new ArrayList<>(types.size());
         for (Class<? extends O> type : types) {
             if (type == null || type.equals(ObjectType.class)) {
-                MiscUtil.addAllIfNotPresent(concreteTypes, ObjectTypeListUtil.createObjectTypeList());
+                MiscUtil.addAllIfNotPresent(concreteTypes, ObjectTypeListUtil.createObjectTypeList(modelServiceLocator));
             } else if (type.equals(FocusType.class)) {
-                MiscUtil.addAllIfNotPresent(concreteTypes, ObjectTypeListUtil.createFocusTypeList());
+                MiscUtil.addAllIfNotPresent(concreteTypes, ObjectTypeListUtil.createFocusTypeList(modelServiceLocator));
             } else if (type.equals(AbstractRoleType.class)) {
-                MiscUtil.addAllIfNotPresent(concreteTypes, ObjectTypeListUtil.createAbstractRoleTypeList());
+                MiscUtil.addAllIfNotPresent(concreteTypes, ObjectTypeListUtil.createAbstractRoleTypeList(modelServiceLocator));
             } else {
-                MiscUtil.addIfNotPresent(concreteTypes, classToQName(prismContext, type));
+                MiscUtil.addIfNotPresent(concreteTypes, classToQName(modelServiceLocator.getPrismContext(), type));
             }
         }
         return concreteTypes;
@@ -2317,7 +2330,7 @@ public final class WebComponentUtil {
                 sb.append("; ");
             }
             if (referenceDef != null) {
-                List<QName> supportedTypes = createSupportedTargetTypeList(referenceDef.getTargetTypeName());
+                List<QName> supportedTypes = createSupportedTargetTypeList(referenceDef.getTargetTypeName(), pageBase);
                 if (supportedTypes != null && supportedTypes.size() > 1) {
                     sb.append(ref.getType().getLocalPart());
                 }

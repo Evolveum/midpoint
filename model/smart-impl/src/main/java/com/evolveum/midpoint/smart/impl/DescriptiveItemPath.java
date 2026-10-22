@@ -28,17 +28,18 @@ import java.util.List;
  * <p>
  * Examples:
  * <p>
- * - `c:givenName`
- * - `c:attributes/icfs:name`
- * - `c:attributes/ri:login`
- * - `c:activation/c:validFrom`
- * - `c:extension/ext1:shoeSize`
- * - `c:email[*]/c:value`
+ * - `givenName`
+ * - `attributes/icfs:name`
+ * - `attributes/ri:login`
+ * - `activation/validFrom`
+ * - `extension/ext1:shoeSize`
+ * - `email[*]/value`
  * <p>
- * The last example means that `c:email` is a multivalued container and this definition refers to its `c:value` property.
+ * The last example means that `email` is a multivalued container and this definition refers to its `value` property.
  * <p>
- * Individual segments may include an XML namespace prefix, typically "ri:", "icfs:", or "c:".
- * These prefixes are either well-known, or their exact value is not important ("ext1:", "ext2:", and so on).
+ * Individual segments may include an XML namespace prefix, typically "ri:" or "icfs:". The common midPoint
+ * ("c:") namespace, being the default one, is never shown. These prefixes are either well-known, or their
+ * exact value is not important ("ext1:", "ext2:", and so on).
  */
 public class DescriptiveItemPath {
 
@@ -109,7 +110,7 @@ public class DescriptiveItemPath {
                 sb.append("/");
             }
             String serialized = ItemPathSerialization.serialize(
-                    UniformItemPath.from(ItemPath.create(segment.name())), ctx, true)
+                    UniformItemPath.from(ItemPath.create(segment.name())), ctx, true, true)
                     .getXPathWithoutDeclarations();
             sb.append(serialized);
             if (segment.isMultiValued() &&

@@ -19,12 +19,14 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.AbstractLink;
 import org.apache.wicket.model.IModel;
 
+import java.io.Serial;
+
 /**
  * Created by Viliam Repan (lazyman).
  */
 public class TitleWithMarks extends BasePanel<String> {
 
-    private static final long serialVersionUID = 1L;
+    @Serial private static final long serialVersionUID = 1L;
 
     private static final String ID_LINK = "link";
     private static final String ID_TITLE = "title";

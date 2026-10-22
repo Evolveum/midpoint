@@ -18,7 +18,7 @@ You can do this by going to [.nowrap]#icon:database[] btn:[Resources]# > _resour
 * The OID of that resource.
 This is visible in:
 ** The resource URL - Following `objectId=`, for example `ebd0bf7b-7e80-4175-ba5e-4fd5de2ecd62`.
-** The resource XML - Open the resource, click [.nowrap]#icon:edit[] btn:[Edit raw]#, and check the `oid` attribute of the `<resource>` element. 
+** The resource XML - Open the resource, click [.nowrap]#icon:edit[] btn:[Edit raw]#, and check the `oid` attribute of the `<resource>` element.
 * For verification, the ability to create or modify accounts directly on the resource (LDAP browser, DB client, etc.).
 
 == Configuration overview

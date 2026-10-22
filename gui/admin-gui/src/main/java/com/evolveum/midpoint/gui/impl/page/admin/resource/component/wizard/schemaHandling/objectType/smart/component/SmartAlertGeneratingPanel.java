@@ -79,8 +79,12 @@ public abstract class SmartAlertGeneratingPanel extends BasePanel<SmartGeneratin
     @Override
     protected void onInitialize() {
         super.onInitialize();
-        add(new VisibleBehaviour(() -> SmartIntegrationUtils.isSmartIntegrationAuthorized(getPageBase())));
         initLayout();
+    }
+
+    @Override
+    public boolean isVisible() {
+        return super.isVisible() && SmartIntegrationUtils.isSmartIntegrationAuthorized(getPageBase());
     }
 
     /** Builds the component layout: container, message, buttons, progress, info, timer. */

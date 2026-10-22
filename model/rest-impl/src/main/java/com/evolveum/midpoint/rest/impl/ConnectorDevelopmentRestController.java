@@ -45,8 +45,13 @@ public class ConnectorDevelopmentRestController extends AbstractRestController {
     private static final String CLASS_DOT = ConnectorDevelopmentRestController.class.getName() + ".";
 
     public static final String START_FROM_NEW = CLASS_DOT + "startFromNew";
+    public static final String START_FROM_EXISTING = CLASS_DOT + "startFromExisting";
+    public static final String IS_MANIFEST_BASED_CONNECTOR = CLASS_DOT + "isManifestBasedConnector";
     public static final String CONTINUE_FROM = CLASS_DOT + "continueFrom";
+    public static final String IS_OFFLINE = CLASS_DOT + "isOffline";
+    public static final String IS_CONNECTOR_ALREADY_PRESENT = CLASS_DOT + "isConnectorAlreadyPresent";
     public static final String OPERATION_CREATE_CONNECTOR = CLASS_DOT + "CreateConnector";
+    public static final String OPERATION_COPY_CONNECTOR = CLASS_DOT + "CopyConnector";
     public static final String OPERATION_DISCOVER_BASIC_INFORMATION = CLASS_DOT + "DiscoverBasicInformation";
     public static final String OPERATION_DISCOVER_DOCUMENTATION = CLASS_DOT + "DiscoverDocumentation";
     public static final String OPERATION_PROCESS_DOCUMENTATION = CLASS_DOT + "ProcessDocumentation";
@@ -66,6 +71,18 @@ public class ConnectorDevelopmentRestController extends AbstractRestController {
     @Autowired private ModelService modelService;
     @Autowired private SecurityEnforcer securityEnforcer;
 
+    /**
+     * Fails the request when the connector development tools are disabled by the deployment
+     * configuration ({@code midpoint.connectors/developmentToolsEnabled} in {@code config.xml}).
+     * Treated the same way as the connector-generation wizard authorization - only the reported
+     * message is different (see {@link ConnectorDevelopmentService#ERROR_CONNECTOR_DEVELOPMENT_DISABLED}).
+     */
+    private void checkDevelopmentToolsEnabled() throws AuthorizationException {
+        if (!configuration.isConnectorDevelopmentToolsEnabled()) {
+            throw new AuthorizationException(ConnectorDevelopmentService.ERROR_CONNECTOR_DEVELOPMENT_DISABLED);
+        }
+    }
+
     @PostMapping(ConnectorGeneratorConstants.RPC_START_FROM_NEW)
     public ResponseEntity<?> startFromNew(
             @RequestBody @NotNull ConnDevApplicationInfoType applicationInfoType
@@ -75,6 +92,7 @@ public class ConnectorDevelopmentRestController extends AbstractRestController {
         var result = createSubresult(task, START_FROM_NEW);
 
         try {
+            checkDevelopmentToolsEnabled();
 
             return createResponse(
                     HttpStatus.OK,
@@ -82,6 +100,52 @@ public class ConnectorDevelopmentRestController extends AbstractRestController {
                             applicationInfoType,
                             new OperationResult("load_ConnectorDevelopmentOperation")
                     ),
+                    result
+            );
+        } catch (Exception e) {
+            return handleException(result, e);
+        } finally {
+            finishRequest(task, result);
+        }
+    }
+
+    @PostMapping(ConnectorGeneratorConstants.RPC_START_FROM_EXISTING)
+    public ResponseEntity<?> startFromExisting(
+            @RequestParam("oid") @NotNull String oid
+    ) {
+        var task = initRequest();
+        var result = createSubresult(task, START_FROM_EXISTING);
+
+        try {
+            checkDevelopmentToolsEnabled();
+            var connector = modelService.getObject(ConnectorType.class, oid, null, task, result).asObjectable();
+
+            return createResponse(
+                    HttpStatus.OK,
+                    connectorDevelopmentService.startFromExisting(connector, task, result),
+                    result
+            );
+        } catch (Exception e) {
+            return handleException(result, e);
+        } finally {
+            finishRequest(task, result);
+        }
+    }
+
+    @GetMapping(ConnectorGeneratorConstants.RPC_IS_MANIFEST_BASED_CONNECTOR)
+    public ResponseEntity<?> isManifestBasedConnector(
+            @RequestParam("oid") @NotNull String oid
+    ) {
+        var task = initRequest();
+        var result = createSubresult(task, IS_MANIFEST_BASED_CONNECTOR);
+
+        try {
+            checkDevelopmentToolsEnabled();
+            var connector = modelService.getObject(ConnectorType.class, oid, null, task, result).asObjectable();
+
+            return createResponse(
+                    HttpStatus.OK,
+                    connectorDevelopmentService.isManifestBasedConnector(connector),
                     result
             );
         } catch (Exception e) {
@@ -102,6 +166,54 @@ public class ConnectorDevelopmentRestController extends AbstractRestController {
             return createResponse(
                     HttpStatus.OK,
                     getConnectorDevelopmentOperation(oid, task, result).getObject(),
+                    result
+            );
+        } catch (Exception e) {
+            return handleException(result, e);
+        } finally {
+            finishRequest(task, result);
+        }
+    }
+
+    @GetMapping(ConnectorGeneratorConstants.RPC_IS_OFFLINE)
+    public ResponseEntity<?> isOffline() {
+
+        var task = initRequest();
+        var result = createSubresult(task, IS_OFFLINE);
+
+        try {
+            return createResponse(
+                    HttpStatus.OK,
+                    connectorDevelopmentService.isOffline(),
+                    result
+            );
+        } catch (Exception e) {
+            return handleException(result, e);
+        } finally {
+            finishRequest(task, result);
+        }
+    }
+
+    @GetMapping(ConnectorGeneratorConstants.RPC_IS_CONNECTOR_ALREADY_PRESENT)
+    public ResponseEntity<?> isConnectorAlreadyPresent(
+            @RequestParam("groupId") @NotNull  String groupId,
+            @RequestParam("artifactId") @NotNull  String artifactId,
+            @RequestParam("version") @NotNull String version
+    ) {
+
+        var task = initRequest();
+        var result = createSubresult(task, IS_CONNECTOR_ALREADY_PRESENT);
+
+        try {
+            return createResponse(
+                    HttpStatus.OK,
+                    connectorDevelopmentService.isConnectorAlreadyPresent(
+                            groupId,
+                            artifactId,
+                            version,
+                            task,
+                            result
+                    ),
                     result
             );
         } catch (Exception e) {
@@ -137,6 +249,35 @@ public class ConnectorDevelopmentRestController extends AbstractRestController {
                 task,
                 result,
                 (service) -> service.getCreateConnectorStatus(token, task, result)
+        );
+    }
+
+    @PostMapping(ConnectorGeneratorConstants.RPC_COPY_CONNECTOR_SUBMIT_OPERATION)
+    public ResponseEntity<?> submitOperationCopyConnector(
+            @RequestParam("oid") @NotNull String oid
+    ) {
+        var task = initRequest();
+        var result = createSubresult(task, OPERATION_COPY_CONNECTOR);
+
+        return submitOperation(
+                oid,
+                task,
+                result,
+                (operation) -> operation.submitCopyConnector(task, result)
+        );
+    }
+
+    @GetMapping(ConnectorGeneratorConstants.RPC_COPY_CONNECTOR_STATUS_INFO)
+    public ResponseEntity<?> getCopyConnectorStatus(
+            @RequestParam("token") @NotNull String token
+    ) {
+        var task = initRequest();
+        var result = createSubresult(task, OPERATION_COPY_CONNECTOR);
+
+        return handleStatusInfo(
+                task,
+                result,
+                (service) -> service.getCopyConnectorStatus(token, task, result)
         );
     }
 
@@ -453,6 +594,7 @@ public class ConnectorDevelopmentRestController extends AbstractRestController {
         var result = createSubresult(task, OPERATION_DOWNLOAD_CONNECTOR);
 
         try {
+            checkDevelopmentToolsEnabled();
             securityEnforcer.authorize(AuthorizationConstants.AUTZ_UI_CONNECTOR_WIZARD_URL, task, result);
 
             Configuration config = configuration.getConfiguration(MidpointConfiguration.ICF_CONFIGURATION);
@@ -539,6 +681,7 @@ public class ConnectorDevelopmentRestController extends AbstractRestController {
             CommunicationException,
             ConfigurationException,
             ObjectNotFoundException, SubscriptionComplianceException {
+        checkDevelopmentToolsEnabled();
         securityEnforcer.authorize(AuthorizationConstants.AUTZ_UI_CONNECTOR_WIZARD_URL, task, result);
 
         PrismObject<ConnectorDevelopmentType> connectorDevelopmentType = modelService.getObject(
@@ -579,6 +722,7 @@ public class ConnectorDevelopmentRestController extends AbstractRestController {
             SmartIntegrationOperationExecutor<ConnectorDevelopmentService, StatusInfo<?>> serviceExecutor
     ) {
         try {
+            checkDevelopmentToolsEnabled();
             var statusInfo = serviceExecutor.execute(connectorDevelopmentService);
             var smartIntegrationOperationStatusInfoType = new SmartIntegrationOperationStatusInfoType();
             smartIntegrationOperationStatusInfoType.setStatus(statusInfo.getStatus());

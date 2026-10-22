@@ -61,12 +61,14 @@ public class ScriptExpressionPreviewDetailsPanel extends BasePanel<ExpressionTyp
     private @NotNull IModel<String> getLanguageModel() {
         ScriptExpressionEvaluatorType script = getScriptEvaluator();
 
-        ExpressionUtil.Language language = script != null && StringUtils.isNotBlank(script.getLanguage())
-                ? ExpressionUtil.converLanguage(script.getLanguage())
-                : null;
-
-        if (language == null) {
-            language = ExpressionUtil.Language.GROOVY;
+        ExpressionUtil.Language language;
+        if (script == null) {
+            language = ExpressionUtil.getDefaultLanguage(getPageBase().getSystemObjectCache(), true);
+        } else {
+            language = ExpressionUtil.converLanguage(
+                    script.getLanguage(),
+                    getPageBase().getSystemObjectCache(),
+                    StringUtils.isBlank(script.getCode()));
         }
 
         return createStringResource("Language." + language.name());

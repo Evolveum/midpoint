@@ -1,5 +1,5 @@
 = Focus policies in activities
-:page-since: "4.11"
+:page-since: "4.11.0"
 :page-toc: top
 :page-upkeep-status: green
 :page-description: This page describes how focus-type policy rules can be applied to objects processed by a task activity, either directly, through a referenced policy object, or through virtual assignments.
@@ -23,7 +23,7 @@ The evaluation of focus-based policies defined per activity works in the same wa
 
 [NOTE]
 ====
-Before midPoint 4.11, focus policy rule constraints could not be used in activity policies.
+Before midPoint 4.11.0, focus policy rule constraints could not be used in activity policies.
 This is now supported through the mechanisms described below.
 ====
 
@@ -201,7 +201,7 @@ If a virtual assignment policy seems to have no effect, check the log for such e
 
 == Migrate from task-wide policies
 
-Before midPoint 4.11, focus-based thresholds were configured by assigning a policy-bearing role to the task object (see xref:./thresholds[Thresholds]).
+Before midPoint 4.11.0, focus-based thresholds were configured by assigning a policy-bearing role to the task object (see xref:./thresholds[Thresholds]).
 That mechanism continues to work, but the two differ in several aspects:
 
 * *Scope*: a role assigned to the task applies to the whole task.

@@ -1708,7 +1708,7 @@
                 </p>
             </xsd:documentation>
             <xsd:appinfo>
-                <a:since>4.11</a:since>
+                <a:since>4.11.0</a:since>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
@@ -1978,23 +1978,6 @@
                         </xsd:annotation>
                     </xsd:element>
 
-                    <xsd:element name="email" type="tns:EmailAddressType" minOccurs="0" maxOccurs="unbounded">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                <p>
-                                    E-Mail addresses of the user, org. unit, etc.
-
-                                    TODO how to distinguish these addresses from the primary "emailAddress"?
-                                </p>
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:displayName>FocusType.email</a:displayName>
-                                <a:displayOrder>305</a:displayOrder>
-                                <a:since>4.11</a:since>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-
                     <xsd:element name="telephoneNumber" type="xsd:string" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -2005,36 +1988,6 @@
                             <xsd:appinfo>
                                 <a:displayName>FocusType.telephoneNumber</a:displayName>
                                 <a:displayOrder>310</a:displayOrder>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-
-                    <xsd:element name="phoneNumber" type="tns:PhoneNumberType" minOccurs="0" maxOccurs="unbounded">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                <p>
-                                    The phone numbers of the user, org. unit, etc.
-
-                                    TODO how to distinguish these numbers from the primary "telephoneNumber"?
-                                </p>
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:displayName>FocusType.telephoneNumber</a:displayName>
-                                <a:displayOrder>310</a:displayOrder>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-
-                    <xsd:element name="physicalAddress" type="tns:PhysicalMailingAddressType" minOccurs="0" maxOccurs="unbounded">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                <p>
-                                    Physical mailing addresses of the user, org. unit, etc.
-                                </p>
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:displayName>FocusType.physicalAddress</a:displayName>
-                                <a:since>4.11</a:since>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -2549,7 +2502,7 @@
                 <!-- todo -->
             </xsd:documentation>
             <xsd:appinfo>
-                <a:since>4.11</a:since>
+                <a:since>4.11.0</a:since>
                 <a:container/>
             </xsd:appinfo>
         </xsd:annotation>
@@ -2582,7 +2535,7 @@
                 <!-- todo -->
             </xsd:documentation>
             <xsd:appinfo>
-                <a:since>4.11</a:since>
+                <a:since>4.11.0</a:since>
                 <a:container/>
             </xsd:appinfo>
         </xsd:annotation>
@@ -2695,6 +2648,11 @@
                     <xsd:documentation>
                         <p>
                             Identifier of the authentication sequence within which current authentication attempt was processed.
+                        </p>
+                        <p>
+                            In a nonce credential (credentials/nonce) it is the sequence the nonce was issued for.
+                            The nonce is accepted only by the mail nonce module of that sequence; a nonce without
+                            the identifier is accepted by any sequence.
                         </p>
                     </xsd:documentation>
                     <xsd:appinfo>
@@ -5263,7 +5221,7 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:displayName>IterationSpecificationType.start</a:displayName>
-                        <a:since>4.11</a:since>
+                        <a:since>4.11.0</a:since>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -5277,7 +5235,7 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:displayName>IterationSpecificationType.end</a:displayName>
-                        <a:since>4.11</a:since>
+                        <a:since>4.11.0</a:since>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -5337,7 +5295,7 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:displayName>IterationSpecificationType.useTokenOnlyOnConflict</a:displayName>
-                        <a:since>4.11</a:since>
+                        <a:since>4.11.0</a:since>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -6559,7 +6517,7 @@
                 it can be used to remove all values of the target item.
             </xsd:documentation>
             <xsd:appinfo>
-                <a:since>4.11</a:since>
+                <a:since>4.11.0</a:since>
             </xsd:appinfo>
         </xsd:annotation>
     </xsd:complexType>
@@ -6758,7 +6716,7 @@
     <xsd:element name="javaMethodReference" type="tns:JavaMethodReferenceExpressionEvaluatorType" substitutionGroup="tns:expressionEvaluator">
         <xsd:annotation>
             <xsd:appinfo>
-                <a:since>4.11</a:since>
+                <a:since>4.11.0</a:since>
             </xsd:appinfo>
         </xsd:annotation>
     </xsd:element>
@@ -6926,7 +6884,7 @@
                 Evaluates an expression by calling specified Java method.
             </xsd:documentation>
             <xsd:appinfo>
-                <a:since>4.11</a:since>
+                <a:since>4.11.0</a:since>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
@@ -7061,6 +7019,20 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="PRISM_REFERENCE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="referencableWithoutResolution">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The variable will be presented as a Referencable (typically ObjectReferenceType),
+                        without any attempt to resolve it.
+
+                        Experimental.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="REFERENCABLE_WITHOUT_RESOLUTION"/>
+                        <a:experimental>true</a:experimental>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
@@ -9389,7 +9361,8 @@
                 </p>
             </xsd:documentation>
             <xsd:appinfo>
-                <a:since>4.11</a:since>
+                <a:since>4.11.0</a:since>
+                <a:experimental>true</a:experimental>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
@@ -10499,15 +10472,18 @@
                             Specifies a profile for expression execution.
                             The profile mostly specifies restrictions for execution of expressions
                             and scripts. This applies to expressions in archetyped objects.
-                            Please note that no expression execution restriction means that all evaluators
+                        </p>
+                        <p>
+                            Please note that no expression execution restriction means that the default profile
+                            (from the system configuration) is applied. And if there's no configured default
+                            (as was the case before the initial system configuration in 4.11.0), all evaluators
                             and scripting languages are allowed and there are no restrictions for evaluation
                             of expressions.
                         </p>
                         <p>
-                            Implementation note: implementation of those restriction in midPoint 4.0 is very
-                            limited. There is no guarantee that this will work for archetypes at all.
-                            The only supported option in 4.0 is application of the restrictions to reports
-                            (ReportType) and only if it is configured in global system configuration.
+                            The profile must be defined in the system configuration.
+                            An exception is "##currentPrincipal" that denotes the profile derived from the authorizations
+                            of the currently logged-in principal and is reserved for internal Evolveum use.
                         </p>
                     </xsd:documentation>
                     <xsd:appinfo>
@@ -12304,7 +12280,7 @@
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:displayName>SystemConfigurationType.smartIntegration</a:displayName>
-                                <a:since>4.11</a:since>
+                                <a:since>4.11.0</a:since>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -12413,7 +12389,7 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:displayName>SystemConfigurationAuditType.externalServices</a:displayName>
-                        <a:since>4.11</a:since>
+                        <a:since>4.11.0</a:since>
                         <a:experimental>true</a:experimental>
                     </xsd:appinfo>
                 </xsd:annotation>
@@ -12431,7 +12407,7 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
-                <a:since>4.11</a:since>
+                <a:since>4.11.0</a:since>
                 <a:experimental>true</a:experimental>
             </xsd:appinfo>
         </xsd:annotation>
@@ -12457,7 +12433,7 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
-                <a:since>4.11</a:since>
+                <a:since>4.11.0</a:since>
                 <a:experimental>true</a:experimental>
             </xsd:appinfo>
         </xsd:annotation>
@@ -12779,7 +12755,7 @@
                         Default language for script expressions.
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <a:since>4.11</a:since>
+                        <a:since>4.11.0</a:since>
                         <a:displayName>SystemConfigurationExpressionsType.defaultScriptLanguage</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
@@ -13364,12 +13340,12 @@
                         DEPRECATED. Please replace the use of this setting by the following two:
 
                          - for actions in repository objects: use expression profiles based on types/archetypes
-                         - for actions provided by user via GUI or REST: use new "unprivilegedPrincipal" setting.
+                         - for actions provided by user via GUI or REST: use new "principal" setting.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:displayName>DefaultExpressionProfilesConfigurationType.bulkActions</a:displayName>
                         <a:deprecated>true</a:deprecated>
-                        <a:deprecatedSince>4.11</a:deprecatedSince>
+                        <a:deprecatedSince>4.11.0</a:deprecatedSince>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -13384,38 +13360,39 @@
                         DEPRECATED. Please replace the use of this setting by the following two:
 
                         - for actions in repository objects: use expression profiles based on types/archetypes
-                        - for actions provided by user via GUI or REST: use new "privilegedPrincipal" setting.
+                        - for actions provided by user via GUI or REST: use new "principal"/"privilegedPrincipal" setting.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:displayName>DefaultExpressionProfilesConfigurationType.privilegedBulkActions</a:displayName>
                         <a:deprecated>true</a:deprecated>
-                        <a:deprecatedSince>4.11</a:deprecatedSince>
+                        <a:deprecatedSince>4.11.0</a:deprecatedSince>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="unprivilegedPrincipal" type="xsd:string" minOccurs="0">
+            <xsd:element name="principal" type="xsd:string" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Expression profile for expressions with trust derived from being run under an unprivileged principal.
+                        Expression profile for expressions with trust derived from being run under an unprivileged
+                        or privileged principal (if privilegedPrincipal is not specified).
 
                         Applies to all expressions and midPoint actions obtained via REST or GUI.
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <a:displayName>DefaultExpressionProfilesConfigurationType.unprivilegedPrincipal</a:displayName>
-                        <a:since>4.11</a:since>
+                        <a:displayName>DefaultExpressionProfilesConfigurationType.principal</a:displayName>
+                        <a:since>4.11.0</a:since>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="privilegedPrincipal" type="xsd:string" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Expression profile for expressions with trust derived from being run under an unprivileged principal.
+                        Expression profile for expressions with trust derived from being run under an privileged principal.
 
                         Applies to all expressions and midPoint actions obtained via REST or GUI.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:displayName>DefaultExpressionProfilesConfigurationType.privilegedPrincipal</a:displayName>
-                        <a:since>4.11</a:since>
+                        <a:since>4.11.0</a:since>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -13426,7 +13403,7 @@
                         Probably a temporary solution until expression profiles are implemented in full, or until
                         custom workflow notifications are removed.
 
-                        Removed since 4.11.
+                        Removed since 4.11.0.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:displayName>DefaultExpressionProfilesConfigurationType.customWorkflowNotifications</a:displayName>
@@ -13434,7 +13411,7 @@
                         <a:deprecated>true</a:deprecated>
                         <a:deprecatedSince>4.8</a:deprecatedSince>
                         <a:removed>true</a:removed>
-                        <a:removedSince>4.11</a:removedSince>
+                        <a:removedSince>4.11.0</a:removedSince>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -13445,13 +13422,10 @@
                         are stored in repository or processed by the clockwork (after authorization was carried out).
 
                         Should be set to something that is safe to execute.
-
-                        Note that midPoint actions (bulk actions) are currently not covered by this. Their default profile
-                        is driven by bulkActionsInAuthorizedObjects and (deprecated) bulkActions/privilegedBulkActions settings.
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <a:displayName>DefaultExpressionProfilesConfigurationType.default</a:displayName>
-                        <a:since>4.11</a:since>
+                        <a:displayName>DefaultExpressionProfilesConfigurationType.authorizedObjects</a:displayName>
+                        <a:since>4.11.0</a:since>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -13464,10 +13438,18 @@
                         Should be set to something that is safe to execute.
 
                         TEMPORARY MEASURE for migration. You should plan to set this to the same value as "authorizedObjects".
+
+                        So, the order of checking for bulk actions in authorized objects is:
+
+                        - bulkActionsInAuthorizedObjects
+                        - authorizedObjects
+                        - privilegedBulkActions (if privileged principal is logged in)
+                        - bulkActions
+                        - ##full (if privileged) or ##legacyUnprivilegedBulkActions (if unprivileged)
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <a:displayName>DefaultExpressionProfilesConfigurationType.default</a:displayName>
-                        <a:since>4.11</a:since>
+                        <a:displayName>DefaultExpressionProfilesConfigurationType.bulkActionsInAuthorizedObjects</a:displayName>
+                        <a:since>4.11.0</a:since>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -13948,6 +13930,7 @@
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
+    <xsd:element name="integerStatType" type="tns:IntegerStatType"/>
 
     <xsd:complexType name="PrismConfigurationType">
         <xsd:annotation>
@@ -16993,13 +16976,13 @@
 
                         DEPRECATED:
                         This swich was moved here from ActivityPolicyType for backward compatibility.
-                        Different approach was taken in 4.11 when switching policies on/off for specfic task,
+                        Different approach was taken in 4.11.0 when switching policies on/off for specfic task,
                         see ActivityPoliciesProcessingType for more info.
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <a:deprecatedSince>4.11</a:deprecatedSince>
+                        <a:deprecatedSince>4.11.0</a:deprecatedSince>
                         <a:deprecated/>
-                        <a:since>4.11</a:since>
+                        <a:since>4.11.0</a:since>
                         <a:displayName>PolicyRuleType.enabled</a:displayName>
                         <a:help>PolicyRuleType.enabled.help</a:help>
                     </xsd:appinfo>
@@ -17237,7 +17220,7 @@
                 <xsd:annotation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="OBJECT_MIN_ASSIGNEES_VIOLATION"/>
-                        <a:since>4.11</a:since>
+                        <a:since>4.11.0</a:since>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
@@ -17245,7 +17228,7 @@
                 <xsd:annotation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="OBJECT_MAX_ASSIGNEES_VIOLATION"/>
-                        <a:since>4.11</a:since>
+                        <a:since>4.11.0</a:since>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
@@ -17353,7 +17336,7 @@
                 <xsd:annotation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="EXECUTION_TIME"/>
-                        <a:since>4.11</a:since>
+                        <a:since>4.11.0</a:since>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
@@ -17361,7 +17344,7 @@
                 <xsd:annotation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="EXECUTION_ATTEMPTS"/>
-                        <a:since>4.11</a:since>
+                        <a:since>4.11.0</a:since>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
@@ -17369,7 +17352,7 @@
                 <xsd:annotation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="ITEM_PROCESSING_RESULT"/>
-                        <a:since>4.11</a:since>
+                        <a:since>4.11.0</a:since>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
@@ -17908,6 +17891,20 @@
                 <xsd:annotation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="ARCHETYPE_CERTIFICATION_REITERATE_CAMPAIGN_TASK"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="d515f699-b7dd-4649-9703-a7c02afa1537">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ARCHETYPE_USER_SUBMITTED_TASK"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="83225dc6-bf8a-4d37-97e5-c94a3f77da54">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ARCHETYPE_SYSTEM_SUBMITTED_TASK"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
@@ -18673,6 +18670,7 @@
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
+    <xsd:element name="selectorQualifiedGetOptions" type="tns:SelectorQualifiedGetOptionsType"/>
 
     <xsd:complexType name="SelectorQualifiedGetOptionType">
         <xsd:annotation>
@@ -20196,7 +20194,7 @@
                         </xsd:documentation>
                         <xsd:appinfo>
                             <a:displayName>ExportConfigurationType.xlsx</a:displayName>
-                            <a:since>4.11</a:since>
+                            <a:since>4.11.0</a:since>
                         </xsd:appinfo>
                     </xsd:annotation>
                 </xsd:element>
@@ -20231,7 +20229,7 @@
                 <xsd:annotation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="XLSX"/>
-                        <a:since>4.11</a:since>
+                        <a:since>4.11.0</a:since>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
@@ -20466,7 +20464,7 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
-                <a:since>4.11</a:since>
+                <a:since>4.11.0</a:since>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
@@ -21856,7 +21854,7 @@
                         Experimental.
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <a:since>4.11</a:since>
+                        <a:since>4.11.0</a:since>
                         <a:experimental/>
                     </xsd:appinfo>
                 </xsd:annotation>
@@ -23056,12 +23054,15 @@
         <xsd:annotation>
             <xsd:documentation>
                 Information about a particular email address.
+
+                Unsupported, experimental.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container>true</a:container>
-                <a:since>4.11</a:since>
+                <a:since>4.11.0</a:since>
                 <a:naturalKey>tns:type</a:naturalKey>
                 <a:naturalKey>tns:value</a:naturalKey>
+                <a:experimental>true</a:experimental>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -23095,12 +23096,15 @@
         <xsd:annotation>
             <xsd:documentation>
                 Information about a phone number.
+
+                Unsupported, experimental.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container>true</a:container>
-                <a:since>4.11</a:since>
+                <a:since>4.11.0</a:since>
                 <a:naturalKey>tns:type</a:naturalKey>
                 <a:naturalKey>tns:value</a:naturalKey>
+                <a:experimental>true</a:experimental>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -23135,10 +23139,12 @@
             <xsd:documentation>
                 Information about a particular physical mailing address.
                 It is modeled after RFC 7643 (System for Cross-domain Identity Management: Core Schema).
+
+                Unsupported, experimental.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container>true</a:container>
-                <a:since>4.11</a:since>
+                <a:since>4.11.0</a:since>
                 <a:naturalKey>tns:type</a:naturalKey>
                 <a:naturalKey>tns:formatted</a:naturalKey>
                 <a:naturalKey>tns:streetAddress</a:naturalKey>
@@ -23146,6 +23152,7 @@
                 <a:naturalKey>tns:region</a:naturalKey>
                 <a:naturalKey>tns:postalCode</a:naturalKey>
                 <a:naturalKey>tns:country</a:naturalKey>
+                <a:experimental>true</a:experimental>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>

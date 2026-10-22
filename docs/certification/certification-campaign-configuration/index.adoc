@@ -4,7 +4,7 @@ doc-type: config
 ---
 = Certification campaign configuration
 :page-nav-title: Configuration
-:page-upkeep-status: orange
+:page-upkeep-status: green
 :experimental:
 :page-display-order: 200
 :page-description: This section describes access certification campaign configuration options.

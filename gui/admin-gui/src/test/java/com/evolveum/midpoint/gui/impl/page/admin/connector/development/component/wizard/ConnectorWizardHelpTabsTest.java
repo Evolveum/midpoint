@@ -12,7 +12,6 @@ import java.util.List;
 import java.util.Map;
 
 import com.evolveum.midpoint.gui.impl.component.wizard.collapse.HelpChapter;
-import com.evolveum.midpoint.gui.impl.component.wizard.collapse.HelpTab;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.smart.api.conndev.ConnDevDocumentationTopic;
 import com.evolveum.midpoint.smart.api.conndev.ConnectorDevelopmentArtifacts;
@@ -21,21 +20,7 @@ import com.evolveum.midpoint.smart.api.conndev.ConnectorDevelopmentService;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommonException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnDevApplicationInfoType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnDevCreateConnectorResultType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnDevDiscoverConnectivityEndpointResultType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnDevDiscoverDocumentationResultType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnDevDiscoverGlobalInformationResultType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnDevDiscoverObjectClassAttributesResultType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnDevDiscoverObjectClassEndpointsResultType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnDevDiscoverObjectClassInformationResultType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnDevExportConnectorResultType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnDevFixObjectClassResultType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnDevGenerateArtifactResultType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnDevIntegrationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnDevProcessDocumentationResultType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnDevRefreshSchemaResultType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorDevelopmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.testng.Assert;
 import org.testng.annotations.Test;
@@ -156,6 +141,17 @@ public class ConnectorWizardHelpTabsTest {
         }
 
         @Override
+        public boolean isOffline() {
+            throw unsupported();
+        }
+
+        @Override
+        public boolean isConnectorAlreadyPresent(String groupId, String artifactId, String version, Task task, OperationResult result)
+                throws CommonException {
+            throw unsupported();
+        }
+
+        @Override
         public ConnectorDevelopmentOperation startFromNew(ConnDevApplicationInfoType basicInfo, OperationResult result) {
             throw unsupported();
         }
@@ -252,6 +248,21 @@ public class ConnectorWizardHelpTabsTest {
         @Override
         public InputStream getExportedConnectorFileStream(String fileName, String nodeOid, Task task, OperationResult result)
                 throws CommonException, IOException {
+            throw unsupported();
+        }
+
+        @Override
+        public StatusInfo<ConnDevCreateConnectorResultType> getCopyConnectorStatus(String token, Task task, OperationResult result) throws CommonException {
+            throw unsupported();
+        }
+
+        @Override
+        public boolean isManifestBasedConnector(ConnectorType connector) {
+            throw unsupported();
+        }
+
+        @Override
+        public ConnectorDevelopmentType startFromExisting(ConnectorType sourceConnector, Task task, OperationResult result) throws CommonException {
             throw unsupported();
         }
     }

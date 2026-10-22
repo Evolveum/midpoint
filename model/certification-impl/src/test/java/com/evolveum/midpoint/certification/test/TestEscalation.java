@@ -593,6 +593,27 @@ public class TestEscalation extends AbstractCertificationTest {
                                 .assertValue(C_WI_COMMENT, "")
                                 .assertValue(C_WI_LAST_CHANGED, "")
                                 .assertValue(C_WI_CLOSED, ""));
+
+        var campaignRef = new ObjectReferenceType()
+                .oid(campaignOid)
+                .type(AccessCertificationCampaignType.COMPLEX_TYPE);
+        var workItemsIteration1 = REPORT_CERTIFICATION_WORK_ITEMS.export()
+                .withParameter("campaignRef", campaignRef)
+                .withParameter("iteration", 1)
+                .execute(result);
+
+        assertCsv(workItemsIteration1, "work items in iteration 1")
+                .assertRecords(7)
+                .allRecords(record -> record.assertValue(C_WI_ITERATION, "1"));
+
+        var workItemsIteration2 = REPORT_CERTIFICATION_WORK_ITEMS.export()
+                .withParameter("campaignRef", campaignRef)
+                .withParameter("iteration", 2)
+                .execute(result);
+
+        assertCsv(workItemsIteration2, "work items in iteration 2")
+                .assertRecords(6)
+                .allRecords(record -> record.assertValue(C_WI_ITERATION, "2"));
     }
 
     @Test

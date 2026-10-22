@@ -10,15 +10,24 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType.DISABLED;
 
+import java.util.List;
 import java.util.function.Consumer;
+
+import com.evolveum.midpoint.authentication.api.MidpointSessionRegistry;
+import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
+import com.evolveum.midpoint.schema.result.OperationResult;
 
 import com.evolveum.midpoint.schema.util.SimpleExpressionUtil;
 
 import com.evolveum.midpoint.test.IntegrationTestTools;
 
 import jakarta.xml.bind.JAXBElement;
+import org.springframework.security.core.session.SessionInformation;
+import org.springframework.security.core.session.SessionRegistryImpl;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.util.AopTestUtils;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.model.impl.AbstractInternalModelIntegrationTest;
@@ -88,6 +97,44 @@ public class TestGuiProfiledPrincipalManager extends AbstractInternalModelIntegr
                         new OtherPrivilegesLimitationType()
                                 .approvalWorkItems(new WorkItemSelectorType()
                                         .all(true))));
+    }
+
+    /**
+     * Two sessions of the same user have two principals (equal by OID), each with its own compiled profile.
+     * Change in system configuration has to invalidate both of them (issue 11041).
+     */
+    @Test
+    public void test200InvalidateProfilesOfAllSessions() throws Exception {
+        given("two sessions of the same user");
+        OperationResult result = createOperationResult();
+        GuiProfiledPrincipal olderPrincipal = focusProfileService.getPrincipal(userAdministrator, null, result);
+        GuiProfiledPrincipal newerPrincipal = focusProfileService.getPrincipal(userAdministrator, null, result);
+        assertThat(newerPrincipal).isNotSameAs(olderPrincipal).isEqualTo(olderPrincipal);
+
+        TestSessionRegistry sessionRegistry = new TestSessionRegistry();
+        sessionRegistry.registerNewSession("older-session", olderPrincipal);
+        sessionRegistry.registerNewSession("newer-session", newerPrincipal);
+
+        GuiProfiledPrincipalManagerImpl manager = AopTestUtils.getUltimateTargetObject(focusProfileService);
+        ReflectionTestUtils.setField(manager, "sessionRegistry", sessionRegistry);
+        try {
+            when("system configuration is changed");
+            manager.invalidate(SystemConfigurationType.class, null, null);
+        } finally {
+            ReflectionTestUtils.setField(manager, "sessionRegistry", null);
+        }
+
+        then("profiles of both sessions are invalid");
+        assertThat(olderPrincipal.getCompiledGuiProfile().isInvalid()).as("older session profile invalid").isTrue();
+        assertThat(newerPrincipal.getCompiledGuiProfile().isInvalid()).as("newer session profile invalid").isTrue();
+    }
+
+    private static class TestSessionRegistry extends SessionRegistryImpl implements MidpointSessionRegistry {
+
+        @Override
+        public List<SessionInformation> getLoggedInUsersSession(Object principal) {
+            return getAllSessions(principal, false);
+        }
     }
 
     private void executeDeputyLimitationsTest(

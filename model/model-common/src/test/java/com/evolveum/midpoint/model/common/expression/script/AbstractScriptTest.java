@@ -46,13 +46,17 @@ import com.evolveum.midpoint.model.common.expression.functions.FunctionLibraryBi
 import com.evolveum.midpoint.model.common.expression.functions.FunctionLibraryUtil;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.crypto.Protector;
+import com.evolveum.midpoint.prism.impl.match.MatchingRuleRegistryFactory;
+import com.evolveum.midpoint.prism.impl.polystring.NormalizerRegistryFactory;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.repo.common.DirectoryFileObjectResolver;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.schema.AccessDecision;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
+import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
+import com.evolveum.midpoint.schema.relation.RelationRegistryImpl;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.test.util.InfraTestMixin;
@@ -76,6 +80,7 @@ public abstract class AbstractScriptTest extends AbstractUnitTest
     protected static final File USER_JACK_FILE = new File(OBJECTS_DIR, USER_JACK_OID + ".xml");
     protected static final String USER_BARBOSSA_OID = "c0c010c0-d34d-b33f-f00d-111111111112";
     protected static final File USER_BARBOSSA_FILE = new File(OBJECTS_DIR, USER_BARBOSSA_OID + ".xml");
+    protected static final File GENERIC_OBJECT_FILE = new File(OBJECTS_DIR, "c0c010c0-d34d-b33f-f00d-999111111122.xml");
     protected static final String NON_EXISTENT_USER_OID = "608ccca5-5268-44d0-85b8-38f531df56b4";
 
     public static final String VAR_POISON = "poison";
@@ -86,7 +91,7 @@ public abstract class AbstractScriptTest extends AbstractUnitTest
     protected PrismContext prismContext;
     protected ScriptFactory scriptFactory;
     protected ScriptExecutor scriptExecutor;
-    /** As {@link #scriptExecutor} but having {@link ExpressionsConfigurationSection#safeExpressionsOnly()} set to `true`. */
+    /** As {@link #scriptExecutor} but having {@link ExpressionsConfigurationSection#safeScriptingLanguagesOnly()} set to `true`. */
     protected ScriptExecutor scriptExecutorInRestrictedMode;
     protected LocalizationService localizationService;
     protected final Clock clock = new Clock();
@@ -96,6 +101,11 @@ public abstract class AbstractScriptTest extends AbstractUnitTest
     public void setup() throws SchemaException, SAXException, IOException {
         SchemaDebugUtil.initializePrettyPrinter();
         PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
+        SchemaService.init(
+                PrismTestUtil.getPrismContext(),
+                new RelationRegistryImpl(),
+                MatchingRuleRegistryFactory.createRegistry(),
+                NormalizerRegistryFactory.createRegistry());
     }
 
     @BeforeClass
@@ -389,7 +399,7 @@ public abstract class AbstractScriptTest extends AbstractUnitTest
     protected void processScriptBeanAfterParsing(ScriptExpressionEvaluatorType bean) {
     }
 
-    private <T> List<PrismPropertyValue<T>> executeScript(
+    protected <T> List<PrismPropertyValue<T>> executeScript(
             ScriptExpressionEvaluatorType scriptType, ItemDefinition<?> outputDefinition,
             VariablesMap variables, String shortDesc, OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException,

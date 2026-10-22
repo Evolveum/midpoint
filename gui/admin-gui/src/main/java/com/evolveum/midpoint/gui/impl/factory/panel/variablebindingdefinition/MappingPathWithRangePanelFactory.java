@@ -6,6 +6,7 @@
 
 package com.evolveum.midpoint.gui.impl.factory.panel.variablebindingdefinition;
 
+import java.io.Serializable;
 import java.util.List;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
@@ -23,7 +24,7 @@ import org.springframework.stereotype.Component;
  * targets.
  */
 @Component
-public class MappingPathWithRangePanelFactory extends VariableBindingDefinitionTypePanelFactory {
+public class MappingPathWithRangePanelFactory extends VariableBindingDefinitionTypePanelFactory implements Serializable {
 
     private static final List<ItemPath> ENABLED_PATHS = List.of(
             ItemPath.create(

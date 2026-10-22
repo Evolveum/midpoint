@@ -8,7 +8,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.sche
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
-import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
+import com.evolveum.midpoint.gui.api.util.MappingAuthorityDisplayResolver;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -28,13 +28,13 @@ import java.util.stream.Collectors;
 
 /**
  * UI panel rendering a card-style preview of a mapping, showing its
- * strength, source and target values, and related icons.
+ * mapping authority, source and target values, and related icons.
  */
 public class MappingPreviewCardPanel extends BasePanel<PrismContainerValueWrapper<MappingType>> {
 
     private static final String ID_CARD = "card";
-    private static final String ID_STRENGTH_ICON = "strengthIcon";
-    private static final String ID_STRENGTH_LABEL = "strengthLabel";
+    private static final String ID_MAPPING_AUTHORITY_ICON = "mappingAuthorityIcon";
+    private static final String ID_MAPPING_AUTHORITY_LABEL = "mappingAuthorityLabel";
     private static final String ID_SOURCE_VALUE = "sourceValue";
     private static final String ID_TARGET_VALUE = "targetValue";
     private static final String ID_AI_ICON = "aiIcon";
@@ -61,11 +61,11 @@ public class MappingPreviewCardPanel extends BasePanel<PrismContainerValueWrappe
         card.add(AttributeModifier.append("class", "border rounded p-3 position-relative bg-light"));
         add(card);
 
-        Label strengthIcon = new Label(ID_STRENGTH_ICON, Model.of(""));
-        strengthIcon.add(AttributeModifier.append("class", getStrengthIconCss(mapping)));
+        Label strengthIcon = new Label(ID_MAPPING_AUTHORITY_ICON, Model.of(""));
+        strengthIcon.add(AttributeModifier.append("class", getMappingAuthorityIconCss(mapping)));
         card.add(strengthIcon);
 
-        card.add(new Label(ID_STRENGTH_LABEL, Model.of(getStrengthLabel(mapping))));
+        card.add(new Label(ID_MAPPING_AUTHORITY_LABEL, Model.of(getStrengthLabel(mapping))));
         card.add(new Label(ID_SOURCE_VALUE, Model.of(getSourceValue(mappingWrapper))));
         card.add(new Label(ID_TARGET_VALUE, Model.of(getTargetValue(mappingWrapper))));
 
@@ -128,16 +128,12 @@ public class MappingPreviewCardPanel extends BasePanel<PrismContainerValueWrappe
     }
 
     private String getStrengthLabel(@Nullable MappingType mapping) {
-        if (mapping == null || mapping.getStrength() == null) {
-            return "Normal";
-        }
-        return StringUtils.capitalize(mapping.getStrength().value());
+        return StringUtils.capitalize(MappingAuthorityDisplayResolver.resolveLabel(mapping));
     }
 
-    private @Nullable String getStrengthIconCss(@Nullable MappingType mapping) {
-        DisplayType display = GuiDisplayTypeUtil.getDisplayTypeForStrengthOfMapping(
-                "text-muted", mapping != null ? mapping.getStrength() : null);
-        IconType icon = display != null ? display.getIcon() : null;
+    private @Nullable String getMappingAuthorityIconCss(@Nullable MappingType mapping) {
+        DisplayType resolve = MappingAuthorityDisplayResolver.resolveDisplay(mapping, "");
+        IconType icon = resolve != null ? resolve.getIcon() : null;
         return icon != null ? icon.getCssClass() : null;
     }
 

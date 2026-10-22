@@ -103,7 +103,7 @@ public class WaitingRelationshipScriptConnectorStepPanel extends WaitingScriptCo
     }
 
     @Override
-    protected ConnectorDevelopmentArtifacts.KnownArtifactType getScriptType() {
+    public ConnectorDevelopmentArtifacts.KnownArtifactType getScriptType() {
         return ConnectorDevelopmentArtifacts.KnownArtifactType.RELATIONSHIP_SCHEMA_DEFINITION;
     }
 

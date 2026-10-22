@@ -1,0 +1,152 @@
+= Connector Generator Configuration
+:page-nav-title: Connector Generator Configuration
+:page-toc: top
+:page-since: "4.11.0"
+:page-upkeep-status: green
+:page-display-order: 200
+
+The connector generator is configured in the System Configuration object, in the `<smartIntegration>` container (`SmartIntegrationConfigurationType`).
+All settings on this page are optional.
+If a setting is missing, its default value is used, or the affected feature is unavailable, as noted below.
+
+The settings are read from the system configuration every time an operation needs them.
+Changes therefore apply to new operations without restarting midPoint.
+
+NOTE: The connector generator must also be *enabled* - that is a separate switch in the `config.xml` file, see xref:/midpoint/reference/connector-generator/enable/[Enabling the Connector Generator].
+The other settings of the same container (`serviceUrl`, `serviceApiKey`, statistics and so on) belong to the Smart Integration microservice, which provides the AI recommendations, see xref:/midpoint/reference/smart-integration/configuration/[Smart Integration configuration].
+
+== Settings
+
+[cols="35%,15%,15%,35%",options="header"]
+|===
+| Setting | Type | Default | Description
+
+| `connectorGenerationUrl`
+| `string`
+| -
+| URL of the code generation microservice, see <<_connection_to_the_microservice>>.
+
+| `connectorGeneratorApiKey`
+| `ProtectedStringType`
+| -
+| API key sent with every request to the code generation microservice, see <<_connection_to_the_microservice>>.
+
+| `connectorFrameworkUrl`
+| `string`
+| the 0.2.0 template JAR from Evolveum Nexus
+| URL of the connector framework template used for SCIM and REST connectors, see <<_framework_template>>.
+
+| `connectorSqlFrameworkUrl`
+| `string`
+| the 0.2.0 template JAR from Evolveum Nexus
+| URL of the SQL connector framework template used for SQL connectors, see <<_framework_template>>.
+
+| `connectorGenerationTransientErrorTimeout`
+| `duration`
+| `PT15S`
+| How long transient gateway errors (`502 Bad Gateway`, `504 Gateway Timeout`) are tolerated while midPoint monitors asynchronous jobs of the code generation microservice.
+A value of `PT0S` disables the tolerance.
+|===
+
+== Connection to the microservice
+
+The `connectorGenerationUrl` and `connectorGeneratorApiKey` settings configure the connection to the code generation microservice, which provides the AI part of the connector generator (documentation discovery and analysis, schema and script generation).
+
+[cols="35%,65%",options="header"]
+|===
+| Setting | Description
+
+| `connectorGenerationUrl`
+| Base URL of the microservice API, for example `https://midpilot-connector-gen.example.com/api/v1`.
+If it is not set (or the service is not reachable), the connector generator runs in a limited offline mode, see xref:/midpoint/reference/connector-generator/wizard/#_offline_mode[Offline mode].
+
+| `connectorGeneratorApiKey`
+| API key sent in the `X-Gravitee-Api-Key` HTTP header of every request.
+It is intended for an API gateway in front of the microservice.
+The value is stored encrypted, like other protected strings in midPoint.
+If it is not set, no header is sent.
+
+| `connectorGenerationTransientErrorTimeout`
+| Maximum time for which HTTP `502 Bad Gateway` and `504 Gateway Timeout` errors are tolerated while midPoint monitors asynchronous jobs of the microservice.
+The default is 15 seconds (`PT15S`); `PT0S` disables the tolerance.
+|===
+
+== Framework template
+
+A new low-code connector starts from a *framework template* - a ConnId connector bundle (a JAR file with a Maven layout) that provides the low-code connector infrastructure for one protocol family.
+When the wizard creates a connector, midPoint downloads the template JAR, renames the bundle to the coordinates you chose in the wizard, and installs it; the AI-generated scripts are added to it afterwards.
+
+The template is selected by the integration type chosen in the wizard:
+
+[cols="25%,40%,35%",options="header"]
+|===
+| Integration type | Artifact | Template (version 0.2.0)
+
+| SCIM and REST
+| `com.evolveum.polygon.scimrest:connector-scimrest-template`
+| link:https://nexus.evolveum.com/nexus/repository/releases/com/evolveum/polygon/scimrest/connector-scimrest-template/0.2.0/connector-scimrest-template-0.2.0.jar[connector-scimrest-template-0.2.0.jar]
+
+| SQL
+| `com.evolveum.polygon.sql:connector-sql-template`
+| link:https://nexus.evolveum.com/nexus/repository/releases/com/evolveum/polygon/sql/connector-sql-template/0.2.0/connector-sql-template-0.2.0.jar[connector-sql-template-0.2.0.jar]
+|===
+
+The two JAR URLs above are the defaults shipped with midPoint, stored in the `connectorFrameworkUrl` and `connectorSqlFrameworkUrl` settings of the System Configuration object.
+
+=== Finding the latest template
+
+The templates are published in the `releases` repository of the Evolveum Nexus.
+To find the currently available versions, run this asset search:
+
+link:https://nexus.evolveum.com/nexus/#browse/search=version%3D0.2.*%20AND%20attributes.maven2.artifactId%3Dconnector-*-template%20AND%20repository_name%3Dreleases[connector-*-template templates on Evolveum Nexus]
+
+and pick the version you want; the JAR URL then follows the standard Maven layout `https://nexus.evolveum.com/nexus/repository/releases/<group path>/<artifactId>/<version>/<artifactId>-<version>.jar`.
+Note that the search above filters on version `0.2.*` - widen the filter when a new version line is released.
+
+Alternatively, you can use a URL that always resolves to the newest version, which is convenient for development and test deployments (for stable deployments, pin a concrete version instead):
+
+* SCIM/REST template:
++
+[source]
+----
+https://nexus.evolveum.com/nexus/service/rest/v1/search/assets/download?repository=releases&maven.groupId=com.evolveum.polygon.scimrest&maven.artifactId=connector-scimrest-template&maven.extension=jar&maven.classifier=&sort=version&direction=desc
+----
+* SQL template:
++
+[source]
+----
+https://nexus.evolveum.com/nexus/service/rest/v1/search/assets/download?repository=releases&maven.groupId=com.evolveum.polygon.sql&maven.artifactId=connector-sql-template&maven.extension=jar&maven.classifier=&sort=version&direction=desc
+----
+
+If your deployment cannot reach Evolveum Nexus (for example an air-gapped environment), download the JAR and reference it with a `file://` path instead of an HTTP URL.
+
+== Self-hosted deployment
+
+If you do not use the Evolveum-hosted service, you can deploy the code generation microservice (`midpilot-connector-gen`) yourself, together with its PostgreSQL database and an LLM endpoint:
+
+* xref:/midpoint/get-started/install/midpilot-setup/[MidPilot AI services setup] - architecture, requirements, and deployment instructions (including the connector framework JAR requirement on the microservice side).
+* link:https://github.com/Evolveum/midpilot-connector-gen[Evolveum/midpilot-connector-gen] - the microservice source code; its own documentation is in the `docs/` directory of the repository.
+* link:https://github.com/Evolveum/midpoint-samples[midpoint-samples repository] - Docker Compose setups for the microservices and for a demo target application.
+
+Once the microservice is deployed, set `connectorGenerationUrl` to its API base URL (for example `http://midpilot-connector-gen:8090/api/v1` in the provided Docker Compose setups).
+
+== Example
+
+[source,xml]
+----
+<systemConfiguration xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
+    ...
+    <smartIntegration>
+        <connectorGenerationUrl>https://midpilot-connector-gen.example.com/api/v1</connectorGenerationUrl>
+        <connectorGeneratorApiKey>
+            <t:clearValue>my-api-key</t:clearValue>
+        </connectorGeneratorApiKey>
+        <connectorFrameworkUrl>https://nexus.evolveum.com/nexus/repository/releases/com/evolveum/polygon/scimrest/connector-scimrest-template/0.2.0/connector-scimrest-template-0.2.0.jar</connectorFrameworkUrl>
+        <connectorSqlFrameworkUrl>https://nexus.evolveum.com/nexus/repository/releases/com/evolveum/polygon/sql/connector-sql-template/0.2.0/connector-sql-template-0.2.0.jar</connectorSqlFrameworkUrl>
+        <connectorGenerationTransientErrorTimeout>PT15S</connectorGenerationTransientErrorTimeout>
+    </smartIntegration>
+</systemConfiguration>
+----
+
+The `clearValue` of the API key is encrypted when the system configuration is saved.

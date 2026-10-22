@@ -18,7 +18,7 @@ public class ProcessedObjectTypeItemWrapperFactory extends AbstractSearchItemWra
 
     @Override
     protected ProcessedObjectTypeSearchItemWrapper createSearchWrapper(SearchItemContext ctx) {
-        return new ProcessedObjectTypeSearchItemWrapper();
+        return new ProcessedObjectTypeSearchItemWrapper(ctx.getModelServiceLocator());
     }
 
     @Override

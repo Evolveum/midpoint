@@ -4,30 +4,45 @@ doc-type: config
 ---
 = Configuring Expression Evaluation
 
-#TODO expand these bullets#
+== Unsafe General-Purpose Scripting Languages
 
-- In order to prohibit unsafe (Groovy, Velocity, JavaScript, Python) expressions, it is possible to disable their execution right in the system configuration
-(so even midPoint administrator cannot enable their execution)
-- This is done by setting `safeExpressionsOnly` to `true` like this:
-+
+In order to prohibit unsafe (Groovy, Velocity, JavaScript, Python) expressions, it is possible to disable their execution right in the system configuration
+(so even midPoint administrator cannot enable their execution).
+
+
+This is done by setting `safeScriptingLanguagesOnly` to `true` like this:
+
 [source,xml]
 ----
 <configuration>
     <midpoint>
 	    <expressions>
-	        <safeExpressionsOnly>true</safeExpressionsOnly>
+	        <safeScriptingLanguagesOnly>true</safeScriptingLanguagesOnly>
     	</expressions>
     </midpoint>
 </configuration>
 ----
-+
-Any attempt to execute Groovy, Velocity, JavaScript, or Python expressions will result in an error being signalled.
-+
-NOTE: This does not cover executing Groovy code in connectors!
 
-- In order to provide the required flexibility even with disabled general-purpose scripting languages, midPoint allows calling selected Java methods using newly-introduced `javaMethodReference` expression evaluator.
+Any attempt to execute Groovy, full Velocity, JavaScript, or Python expressions will result in an error being signaled.
+
+This setting is `true` by default for new midPoint 4.11.0 installations.
+
+[NOTE]
+====
+This does not cover executing Groovy code in connectors nor in AI-assisted connector generator!
+
+Connectors are safe, as they have to be explicitly installed by the system administrator.
+
+Connector generator is disabled by default, and must be explicitly enabled by the system administrator.
+See xref:/midpoint/reference/connector-generator/enable[] for more information.
+====
+
+== JavaMethodReference expression evaluator
+
+In order to provide the required flexibility even with disabled general-purpose scripting languages, midPoint allows calling selected Java methods using newly-introduced `javaMethodReference` expression evaluator.
+
 These methods must reside in classes whose packages are explicitly allowed in the system configuration, like this:
-+
+
 [source,xml]
 ----
 <configuration>

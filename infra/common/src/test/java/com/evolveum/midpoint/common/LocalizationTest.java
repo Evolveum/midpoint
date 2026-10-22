@@ -118,6 +118,32 @@ public class LocalizationTest extends AbstractUnitTest {
         assertThat(translated).as("translated value").isEqualTo("Assignment of Role to User failed.");
     }
 
+    /**
+     * Single quotes in localization values are plain characters (as in Wicket), they must not prevent
+     * argument substitution. Already escaped quotes ('') are checked in {@link #localizationParams2()}.
+     */
+    @Test
+    public void localizationSingleQuotes() {
+        Locale locale = new Locale("sk");
+
+        // quotes around argument
+        assertThat(service.translate("quotedArgumentKey", new Object[] { "abc" }, locale))
+                .isEqualTo("Filter with name 'abc' is already defined");
+
+        // apostrophe in word, message built the same way as e.g. password policy messages
+        LocalizableMessage msg = new LocalizableMessageBuilder()
+                .key("apostropheKey")
+                .arg(8)
+                .arg(3)
+                .build();
+        assertThat(service.translate(msg, locale))
+                .isEqualTo("La taille minimale (8) n'est pas atteinte (longueur réelle : 3).");
+
+        // message without arguments is not formatted, it must stay unchanged
+        assertThat(service.translate("apostropheWithoutArgumentsKey", null, locale))
+                .isEqualTo("Couldn't do it, it's not allowed.");
+    }
+
     private void assertTranslation(LocalizationService service, String key, String expectedValue) {
         assertTranslation(service, key, null, expectedValue);
     }

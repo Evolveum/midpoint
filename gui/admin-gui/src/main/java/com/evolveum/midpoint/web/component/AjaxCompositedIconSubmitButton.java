@@ -78,7 +78,7 @@ public abstract class AjaxCompositedIconSubmitButton extends AjaxSubmitLink {
         if (icon.hasBasicIcon()) {
             String css = icon.getBasicIcon() != null ? icon.getBasicIcon().trim() : "";
 
-            String margin = titleAsLabel ? "me-1" : "";
+            String margin = getMarginCssClass();
             sb.append("<i class=\"" + margin + " ").append(escapeMarkup(css)).append("\"");
             if (icon.hasBasicIconHtmlColor()) {
                 sb.append(" style=\"color: " + escapeMarkup(icon.getBasicIconHtmlColor()) + ";\"");
@@ -112,6 +112,10 @@ public abstract class AjaxCompositedIconSubmitButton extends AjaxSubmitLink {
         }
 
         replaceComponentTagBody(markupStream, openTag, sb.toString());
+    }
+
+    protected String getMarginCssClass() {
+        return titleAsLabel ? "me-1" : "";
     }
 
     private CharSequence escapeMarkup(String markup) {

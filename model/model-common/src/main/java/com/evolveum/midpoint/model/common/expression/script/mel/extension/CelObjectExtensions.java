@@ -19,7 +19,9 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ShadowSimpleAttribute;
+import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
 import com.evolveum.midpoint.schema.util.FocusTypeUtil;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.*;
@@ -122,6 +124,75 @@ public class CelObjectExtensions extends AbstractMidPointCelExtensions {
                     CelFunctionBinding.from("prism-object-type",
                             ObjectCelValue.class,
                             CelObjectExtensions::objectType,
+                            NullabilityProperties.NULLABLE_NULL)),
+
+            // object.containingObject()
+            new Function(
+                    CelFunctionDecl.newFunctionDeclaration(
+                            "containingObject",
+                            CelOverloadDecl.newMemberOverload(
+                                    "prism-container-containingObject",
+                                    "Returns the object containing this container value.",
+                                    NullableType.create(ObjectCelValue.CEL_TYPE),
+                                    ContainerValueCelValue.CEL_TYPE)),
+                    CelFunctionBinding.from("prism-container-containingObject",
+                            ContainerValueCelValue.class,
+                            CelObjectExtensions::containingObject,
+                            NullabilityProperties.NULLABLE_NULL)),
+
+            // object.effectiveMarkRefs()
+            new Function(
+                    CelFunctionDecl.newFunctionDeclaration(
+                            "effectiveMarkRefs",
+                            CelOverloadDecl.newMemberOverload(
+                                    "prism-container-effectiveMarkRefs",
+                                    "Returns the effective mark references of an object.",
+                                    ListType.create(ReferenceCelValue.CEL_TYPE),
+                                    ContainerValueCelValue.CEL_TYPE)),
+                    CelFunctionBinding.from("prism-container-effectiveMarkRefs",
+                            ContainerValueCelValue.class,
+                            CelObjectExtensions::effectiveMarkRefs)),
+
+            // reference.valueMetadata()
+            new Function(
+                    CelFunctionDecl.newFunctionDeclaration(
+                            "valueMetadata",
+                            CelOverloadDecl.newMemberOverload(
+                                    "prism-reference-valueMetadata",
+                                    "Returns value metadata attached to a reference.",
+                                    ListType.create(ContainerValueCelValue.CEL_TYPE),
+                                    NullableType.create(ReferenceCelValue.CEL_TYPE))),
+                    CelFunctionBinding.from("prism-reference-valueMetadata",
+                            ReferenceCelValue.class,
+                            CelObjectExtensions::valueMetadata,
+                            NullabilityProperties.NULLABLE_EMPTY_LIST)),
+
+            // container.containerValueMetadata()
+            new Function(
+                    CelFunctionDecl.newFunctionDeclaration(
+                            "containerValueMetadata",
+                            CelOverloadDecl.newMemberOverload(
+                                    "prism-container-containerValueMetadata",
+                                    "Returns value metadata attached to a container value.",
+                                    ListType.create(ContainerValueCelValue.CEL_TYPE),
+                                    NullableType.create(ContainerValueCelValue.CEL_TYPE))),
+                    CelFunctionBinding.from("prism-container-containerValueMetadata",
+                            ContainerValueCelValue.class,
+                            CelObjectExtensions::containerValueMetadata,
+                            NullabilityProperties.NULLABLE_EMPTY_LIST)),
+
+            // object.structuralArchetype()
+            new Function(
+                    CelFunctionDecl.newFunctionDeclaration(
+                            "structuralArchetype",
+                            CelOverloadDecl.newMemberOverload(
+                                    "prism-object-structuralArchetype",
+                                    "Returns the structural archetype of an assignment holder.",
+                                    NullableType.create(ObjectCelValue.CEL_TYPE),
+                                    ObjectCelValue.CEL_TYPE)),
+                    CelFunctionBinding.from("prism-object-structuralArchetype",
+                            ObjectCelValue.class,
+                            this::structuralArchetype,
                             NullabilityProperties.NULLABLE_NULL)),
 
             // resource.connectorConfiguration(propertyName)
@@ -443,9 +514,28 @@ public class CelObjectExtensions extends AbstractMidPointCelExtensions {
                     CelFunctionBinding.from("objectdelta-isItemChanged",
                             ObjectDeltaCelValue.class, Object.class,
                             CelObjectExtensions::isItemChanged,
-                            NullabilityProperties.NULLABLE_FALSE))
+                            NullabilityProperties.NULLABLE_FALSE)),
+
+            // certification campaigns - TEMPORARY/EXPERIMENTAL, may change in the future, see #12789
+            new Function(
+                    CelFunctionDecl.newFunctionDeclaration(
+                            "certificationCasesDecidedPercentage",
+                            CelOverloadDecl.newMemberOverload(
+                                    "campaign-certificationCasesDecidedPercentage",
+                                    "Returns what % of cases is effectively decided (i.e. their preliminary outcome is ACCEPT, REJECT, or REVOKE)",
+                                    SimpleType.DOUBLE,
+                                    ObjectCelValue.CEL_TYPE)),
+                    CelFunctionBinding.from("campaign-certificationCasesDecidedPercentage",
+                            ObjectCelValue.class, CelObjectExtensions::certificationCasesDecidedPercentage)
+            )
+
         );
 
+    }
+
+    private static double certificationCasesDecidedPercentage(ObjectCelValue<AccessCertificationCampaignType> campaignValue) {
+        return CertCampaignTypeUtil.getCasesDecidedPercentageAllStagesAllIterations(
+                campaignValue.getObject().asObjectable());
     }
 
     private static Object objectType(ObjectCelValue<?> object) {
@@ -454,6 +544,54 @@ public class CelObjectExtensions extends AbstractMidPointCelExtensions {
             return NullValue.NULL_VALUE;
         }
         return QNameCelValue.create(definition.getTypeName());
+    }
+
+    private static ObjectCelValue<?> containingObject(ContainerValueCelValue<?> value) {
+        Objectable containingObject = ObjectTypeUtil.getParentObject(value.getContainerValue().asContainerable());
+        return containingObject != null
+                ? ObjectCelValue.create(containingObject.asPrismObject()) : null;
+    }
+
+    private static List<ReferenceCelValue> effectiveMarkRefs(ContainerValueCelValue<?> value) {
+        Containerable containerable = value.getContainerValue().asContainerable();
+        if (!(containerable instanceof ObjectType object)) {
+            throw new IllegalArgumentException("Expected an object, got " + containerable);
+        }
+        return ObjectTypeUtil.getReallyEffectiveMarkRefs(object).stream()
+                .map(ref -> ReferenceCelValue.create(ref.asReferenceValue()))
+                .toList();
+    }
+
+    private static List<?> valueMetadata(ReferenceCelValue reference) {
+        return valueMetadata(reference.getObjectReferenceValue());
+    }
+
+    private static List<?> containerValueMetadata(ContainerValueCelValue<?> container) {
+        return valueMetadata(container.getContainerValue());
+    }
+
+    private static List<?> valueMetadata(PrismValue value) {
+        var metadata = value.getValueMetadataIfExists();
+        if (metadata == null) {
+            return List.of();
+        }
+        return metadata
+                .getRealValues().stream()
+                .map(metadataValue -> ContainerValueCelValue.create(metadataValue.asPrismContainerValue()))
+                .toList();
+    }
+
+    private Object structuralArchetype(ObjectCelValue<?> object) {
+        Objectable objectable = object.getObject().asObjectable();
+        if (!(objectable instanceof AssignmentHolderType assignmentHolder)) {
+            return NullValue.NULL_VALUE;
+        }
+        try {
+            ArchetypeType archetype = midpointExpressionFunctions.getStructuralArchetype(assignmentHolder);
+            return archetype != null ? ObjectCelValue.create(archetype.asPrismObject()) : NullValue.NULL_VALUE;
+        } catch (SchemaException e) {
+            throw createException(e);
+        }
     }
 
     private static Object estimateAddedValuesFor(ObjectDeltaCelValue<?> objectDeltaCelValue, Object path) {

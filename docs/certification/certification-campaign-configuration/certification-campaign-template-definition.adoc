@@ -5,7 +5,7 @@ doc-type: config
 = Access certification campaign template definition
 :page-nav-title: Campaign template
 :page-toc: top
-:page-upkeep-status: orange
+:page-upkeep-status: green
 :experimental:
 :page-display-order: 10
 :page-description: This article describes certification campaign template configuration options.

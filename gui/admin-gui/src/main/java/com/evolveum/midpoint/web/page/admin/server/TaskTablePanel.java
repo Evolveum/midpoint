@@ -303,6 +303,7 @@ public abstract class TaskTablePanel extends MainObjectListPanel<TaskType> {
         List<InlineMenuItem> items = new ArrayList<>();
         items.add(createTaskSuspendActionNew());
         items.add(createTaskResumeAction());
+        items.add(createRestartTaskMenuAction());
         items.add(createScheduleTaskAction());
 
         items.add(createDeleteTaskMenuAction());
@@ -456,6 +457,14 @@ public abstract class TaskTablePanel extends MainObjectListPanel<TaskType> {
                 true);
     }
 
+    private InlineMenuItem createRestartTaskMenuAction() {
+        return createTaskInlineMenuItem("pageTasks.button.restartTask",
+                this::restartTasksPerformed,
+                "pageTasks.message.restartAction",
+                (task) -> WebComponentUtil.canRestartTask(task, TaskTablePanel.this.getPageBase()),
+                true);
+    }
+
     private InlineMenuItem createDividerMenuItem() {
         return InlineMenuItemBuilder
                 .create()
@@ -554,6 +563,18 @@ public abstract class TaskTablePanel extends MainObjectListPanel<TaskType> {
         refreshTable(target);
         clearCache();
 
+    }
+
+    private void restartTasksPerformed(AjaxRequestTarget target, IModel<SelectableBean<TaskType>> selectedTask) {
+        List<TaskType> selectedTasks = getSelectedTasks(target, selectedTask);
+        if (selectedTasks == null) {
+            return;
+        }
+        OperationResult result = TaskOperationUtils.restartTasks(selectedTasks, getPageBase());
+        showResult(result);
+
+        refreshTable(target);
+        clearCache();
     }
 
     private List<TaskType> getSelectedTasks(AjaxRequestTarget target, IModel<SelectableBean<TaskType>> selectedTask) {

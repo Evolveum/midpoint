@@ -13,6 +13,7 @@ import com.evolveum.midpoint.gui.api.component.button.DropdownButtonPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.component.tile.MultiSelectContainerActionTileTablePanel;
 import com.evolveum.midpoint.gui.impl.component.tile.TemplateTilePanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils.SuggestionUiStyle;
@@ -33,6 +34,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ItemsSubCorrelatorTy
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -127,8 +129,10 @@ public class SmartCorrelationTilePanel<C extends PrismContainerValueWrapper<Item
     }
 
     protected void buildBasicPanel(Fragment fragment) {
-        initLabelComponent(ID_TITLE, () -> getModelObject().getName(), fragment);
+        initLabelComponent(ID_TITLE, () -> getModelObject().getName() != null
+                ? getModelObject().getName() : createStringResource("SmartCorrelation.unnamed").getString(), fragment);
         initLabelComponent(ID_DESC, () -> getModelObject().getDescription(), fragment);
+        fragment.get(ID_DESC).add(new VisibleBehaviour(() -> getModelObject().getDescription() != null));
         initLabelComponent(ID_STATS_LABEL, createStringResource("SmartCorrelationTilePanel.stats.label"), fragment);
         if (statusModel.getObject() != null) {
             initLabelComponent(ID_STATE_LABEL, createStringResource("SmartCorrelationTilePanel.action.label"), fragment);
@@ -194,12 +198,19 @@ public class SmartCorrelationTilePanel<C extends PrismContainerValueWrapper<Item
             @Override
             protected void populateItem(@NotNull ListItem<SmartCorrelationTileModel.StateRecord> listItem) {
                 SmartCorrelationTileModel.StateRecord stateRecord = listItem.getModelObject();
-                Label stateValue = new Label(ID_STATS_PANEL_VALUE, stateRecord.getValue());
+                Label stateValue = new Label(ID_STATS_PANEL_VALUE, () -> stateRecord.getValue() != null
+                        ? stateRecord.getValue() : createStringResource("SmartCorrelation.notSet").getString());
                 stateValue.setOutputMarkupId(true);
                 listItem.add(stateValue);
 
                 Label stateLabel = new Label(ID_STATS_PANEL_LABEL, stateRecord.getLabel());
                 stateLabel.setOutputMarkupId(true);
+                String help = WebPrismUtil.getHelpText(getPageBase().getPrismContext(),
+                        stateRecord.containerClass(), stateRecord.itemName());
+                if (StringUtils.isNotBlank(help)) {
+                    stateLabel.add(AttributeModifier.replace("title", help));
+                    stateLabel.add(new TooltipBehavior());
+                }
                 listItem.add(stateLabel);
             }
         };

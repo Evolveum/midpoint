@@ -13,7 +13,11 @@ doc-type: intro
 :page-upkeep-status: green
 :page-toc: top
 
-Groovy is a supported expression language in midPoint.
+NOTE: Groovy is a general purpose scripting language.
+This means it's inherently dangerous and disabled by default for new installations, starting from midPoint 4.11.0.
+Please consider using xref:../mel[MidPoint Expression Language] instead.
+
+Groovy is an expression language in midPoint.
 Its language URL is:
 
  http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy

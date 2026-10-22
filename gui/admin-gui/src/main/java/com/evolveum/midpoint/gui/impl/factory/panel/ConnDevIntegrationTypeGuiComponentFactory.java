@@ -9,24 +9,32 @@ package com.evolveum.midpoint.gui.impl.factory.panel;
 import java.util.List;
 
 import jakarta.annotation.PostConstruct;
+import org.apache.wicket.MarkupContainer;
+import org.apache.wicket.feedback.ContainerFeedbackMessageFilter;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.gui.api.factory.AbstractGuiComponentFactory;
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismValueWrapper;
+import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.ConnectorDevelopmentWizardUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.web.component.input.EnumCardChoicePanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnDevApplicationInfoType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnDevConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnDevIntegrationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorDevelopmentType;
 
 /**
- * Renders {@code application/integrationType} as a card-based single selection
- * (see {@link EnumCardChoicePanel}) and restricts it so that a connector development
- * can never be switched between {@link ConnDevIntegrationType#SQL} and REST/SCIM once created —
+ * Renders {@code application/integrationType} (the protocol intended to use) and
+ * {@code connector/integrationType} (the actual implementation type of the generated
+ * connector) as a card-based single selection (see {@link EnumCardChoicePanel}) and
+ * restricts it so that a connector development can never be switched between
+ * {@link ConnDevIntegrationType#SQL} and REST/SCIM once created —
  * the SQL backend is a structurally different template/backend family, so such a switch would
  * leave the object in an inconsistent state. New (not yet persisted) objects still offer all values.
  */
@@ -40,10 +48,13 @@ public class ConnDevIntegrationTypeGuiComponentFactory extends AbstractGuiCompon
 
     @Override
     public <IW extends ItemWrapper<?, ?>, VW extends PrismValueWrapper<?>> boolean match(IW wrapper, VW valueWrapper) {
-        if (wrapper.getParentContainerValue(ConnDevApplicationInfoType.class) == null) {
-            return false;
+        if (wrapper.getParentContainerValue(ConnDevApplicationInfoType.class) != null) {
+            return QNameUtil.match(wrapper.getItemName(), ConnDevApplicationInfoType.F_INTEGRATION_TYPE);
         }
-        return QNameUtil.match(wrapper.getItemName(), ConnDevApplicationInfoType.F_INTEGRATION_TYPE);
+        if (wrapper.getParentContainerValue(ConnDevConnectorType.class) != null) {
+            return QNameUtil.match(wrapper.getItemName(), ConnDevConnectorType.F_INTEGRATION_TYPE);
+        }
+        return false;
     }
 
     @Override
@@ -75,8 +86,20 @@ public class ConnDevIntegrationTypeGuiComponentFactory extends AbstractGuiCompon
                 .toList();
 
         // A persisted SQL connector development is locked to the SQL card, so the selection is read-only.
+        // Likewise, once the connector is created, the intended integration type is part of the
+        // immutable basic settings and cannot be changed anymore.
+        boolean created = false;
+        PrismObjectWrapper<ConnectorDevelopmentType> objectWrapper = wrapper.findObjectWrapper();
+        if (objectWrapper != null) {
+            created = ConnectorDevelopmentWizardUtil.isBasicSettingsComplete(objectWrapper);
+        }
         return new EnumCardChoicePanel<>(panelCtx.getComponentId(), panelCtx.getRealValueModel(),
-                options, panelCtx.isMandatory(), oldType == ConnDevIntegrationType.SQL);
+                options, panelCtx.isMandatory(), oldType == ConnDevIntegrationType.SQL || created);
+    }
+
+    @Override
+    public void configure(PrismPropertyPanelContext<ConnDevIntegrationType> panelCtx, org.apache.wicket.Component component) {
+        panelCtx.getFeedback().setFilter(new ContainerFeedbackMessageFilter((MarkupContainer) component));
     }
 
     @Override

@@ -38,7 +38,8 @@
                 <name>$focus-activated</name>
                 <expression>
                     <script>
-                        <code>midpoint.focusActivated</code>
+                        <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
+                        <code>midpoint.isFocusActivated()</code>
                     </script>
                 </expression>
             </custom>

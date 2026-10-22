@@ -204,7 +204,7 @@ public class ItemPathPanel extends BasePanel<ItemPathDto> {
         setDefaultItemPath();
         DropDownChoicePanel<QName> namespacePanel = new DropDownChoicePanel<>(ID_NAMESPACE,
                 new PropertyModel<>(getModel(), "objectType"),
-                new ListModel<>(ObjectTypeListUtil.createObjectTypeList()), new QNameObjectTypeChoiceRenderer());
+                new ListModel<>(ObjectTypeListUtil.createObjectTypeList(getPageBase())), new QNameObjectTypeChoiceRenderer());
         namespacePanel.getBaseFormComponent().add(new AjaxFormComponentUpdatingBehavior("change") {
 
             private static final long serialVersionUID = 1L;

@@ -88,7 +88,7 @@ public abstract class AbstractModelExpressionsTest extends AbstractInternalModel
     private static final String SOMEHOW_USEFUL = "somehow useful";
 
     @Autowired private ScriptFactory scriptFactory;
-    @Autowired private ExpressionFactory expressionFactory;
+    @Autowired ExpressionFactory expressionFactory;
 
     private static final File TEST_EXPRESSIONS_OBJECTS_FILE = new File(BASE_TEST_DIR, "orgstruct.xml");
     protected static final TestObject<FunctionLibraryType> FUNCTION_LIBRARY =
@@ -462,7 +462,6 @@ public abstract class AbstractModelExpressionsTest extends AbstractInternalModel
                 ACCOUNT_GUYBRUSH_DUMMY_FULLNAME);
     }
 
-
     protected VariablesMap createFocusProjectionResourceVariables(Object... args) throws Exception {
         PrismObject<UserType> user = getUser(USER_GUYBRUSH_OID);
         PrismObject<ResourceType> resource = getDummyResourceObject();
@@ -514,6 +513,14 @@ public abstract class AbstractModelExpressionsTest extends AbstractInternalModel
         assertEquals("Unexpected script output", expectedOutput, output);
     }
 
+    protected void assertExecuteScriptExpressionReference(
+            VariablesMap variables, String scriptTag, ObjectReferenceType expectedOutput)
+            throws ConfigurationException, ExpressionEvaluationException, ObjectNotFoundException,
+            IOException, CommunicationException, SchemaException, SecurityViolationException {
+        ObjectReferenceType output = executeScriptExpressionReference(variables, scriptTag);
+        assertEquals("Unexpected script output", expectedOutput, output);
+    }
+
     protected void assertExecuteScriptExpressionStringList(
             VariablesMap variables, String scriptTag, String... expectedOutputs)
             throws ConfigurationException, ExpressionEvaluationException, ObjectNotFoundException,
@@ -531,6 +538,13 @@ public abstract class AbstractModelExpressionsTest extends AbstractInternalModel
         return assertSingle(executeScriptExpressionString(variables, scriptTag, 1));
     }
 
+    private ObjectReferenceType executeScriptExpressionReference(VariablesMap variables, String scriptTag)
+            throws SecurityViolationException, ExpressionEvaluationException, SchemaException,
+            ObjectNotFoundException, CommunicationException, ConfigurationException, IOException {
+
+        return assertSingleReference(executeScriptExpressionReference(variables, scriptTag, 1));
+    }
+
     private <T> T assertSingle(List<PrismPropertyValue<T>> scriptOutputs) {
         if (scriptOutputs.isEmpty()) {
             return null;
@@ -542,6 +556,19 @@ public abstract class AbstractModelExpressionsTest extends AbstractInternalModel
             return null;
         }
         return scriptOutput.getValue();
+    }
+
+    private ObjectReferenceType assertSingleReference(List<PrismReferenceValue> scriptOutputs) {
+        if (scriptOutputs.isEmpty()) {
+            return null;
+        }
+
+        assertEquals("Unexpected number of script outputs", 1, scriptOutputs.size());
+        var scriptOutput = scriptOutputs.get(0);
+        if (scriptOutput == null) {
+            return null;
+        }
+        return new ObjectReferenceType().setupReferenceValue(scriptOutput);
     }
 
     private List<String> executeScriptExpressionStringList(VariablesMap variables, String scriptTag)
@@ -567,7 +594,13 @@ public abstract class AbstractModelExpressionsTest extends AbstractInternalModel
         return executeScriptExpression(variables, scriptTag, DOMUtil.XSD_STRING, maxOccurs);
     }
 
-    private <T> List<PrismPropertyValue<T>> executeScriptExpression(VariablesMap variables, String scriptTag, QName type, int maxOccurs)
+    private List<PrismReferenceValue> executeScriptExpressionReference(VariablesMap variables, String scriptTag, int maxOccurs)
+            throws SecurityViolationException, ExpressionEvaluationException, SchemaException,
+            ObjectNotFoundException, CommunicationException, ConfigurationException, IOException {
+        return executeScriptExpression(variables, scriptTag, ObjectReferenceType.COMPLEX_TYPE, maxOccurs);
+    }
+
+    private <V extends PrismValue> List<V> executeScriptExpression(VariablesMap variables, String scriptTag, QName type, int maxOccurs)
             throws SecurityViolationException, ExpressionEvaluationException, SchemaException,
             ObjectNotFoundException, CommunicationException, ConfigurationException, IOException {
         // GIVEN
@@ -576,8 +609,11 @@ public abstract class AbstractModelExpressionsTest extends AbstractInternalModel
 
         ScriptExpressionEvaluatorType scriptType = parseScriptType("expression-" + scriptTag + ".xml");
         ItemDefinition<?> outputDefinition =
-                getPrismContext().definitionFactory().newPropertyDefinition(
-                        PROPERTY_NAME, type, 0, maxOccurs);
+                ObjectReferenceType.COMPLEX_TYPE.equals(type) ?
+                        getPrismContext().definitionFactory().newReferenceDefinition(
+                                PROPERTY_NAME, type, 0, maxOccurs) :
+                        getPrismContext().definitionFactory().newPropertyDefinition(
+                                PROPERTY_NAME, type, 0, maxOccurs);
         var expressionProfile = IntegrationTestTools.fullExpressionProfileForTests();
         var evaluatorProfile = ScriptExpressionEvaluatorFactory.getEvaluatorProfile(expressionProfile);
         Script script = scriptFactory.createScript(
@@ -588,8 +624,7 @@ public abstract class AbstractModelExpressionsTest extends AbstractInternalModel
 
         // WHEN
         when();
-        List<PrismPropertyValue<T>> scriptOutputs =
-                execute(script, variables, false, getTestNameShort(), task, result);
+        List<V> scriptOutputs = execute(script, variables, false, getTestNameShort(), task, result);
 
         // THEN
         then();
@@ -601,7 +636,7 @@ public abstract class AbstractModelExpressionsTest extends AbstractInternalModel
     }
 
     @SuppressWarnings("SameParameterValue")
-    private <T> List<PrismPropertyValue<T>> execute(
+    private <V extends PrismValue> List<V> execute(
             Script script, VariablesMap variables, boolean useNew,
             String contextDescription, Task task, OperationResult result) throws ExpressionEvaluationException,
             ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {

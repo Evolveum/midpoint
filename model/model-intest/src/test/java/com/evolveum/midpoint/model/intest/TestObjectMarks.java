@@ -11,12 +11,14 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
 
 import static com.evolveum.midpoint.model.test.CommonInitialObjects.*;
+import static com.evolveum.midpoint.schema.constants.MidPointConstants.EXPRESSION_LANGUAGE_MEL_URL;
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.RI_ACCOUNT_OBJECT_CLASS;
 import static com.evolveum.midpoint.test.util.MidPointTestConstants.TEST_RESOURCES_DIR;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType.ACCOUNT;
 
 import java.io.File;
 import java.util.List;
+import javax.xml.namespace.QName;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -31,6 +33,7 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.expression.MidPointTrustDescriptor;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -266,10 +269,13 @@ public class TestObjectMarks extends AbstractEmptyModelIntegrationTest {
         when("change is made on the resource and imported again");
         // Changes from resource should be imported (inbound enabled)
         account1.replaceAttributeValue(ATTR_GIVEN_NAME, "Renamed");
+        var specialAccountName = "O'Brien\\operations\nnight";
         importAccountsRequest()
                 .withResourceOid(RESOURCE_SHADOW_MARKS.oid)
                 .withNameValue("reddy")
-                .withTracing()
+                .withTracingAccounts("reddy", specialAccountName, "reddy")
+                .withTaskCustomizer(syncTask -> assertTracingAccountConditions(
+                        syncTask, List.of("reddy", specialAccountName)))
                 .execute(result);
 
         then("the change is propagated to the user");
@@ -277,6 +283,48 @@ public class TestObjectMarks extends AbstractEmptyModelIntegrationTest {
         assertEquals(userAfterImport.asObjectable().getGivenName().getOrig(), "Renamed");
 
         // We should be able to remove shadow mark
+    }
+
+    @Test
+    public void test210EmptyTracingAccountsCondition() throws Exception {
+        var result = createOperationResult();
+
+        importAccountsRequest()
+                .withResourceOid(RESOURCE_SHADOW_MARKS.oid)
+                .withNameValue("reddy")
+                .withTracingAccounts()
+                .withTaskCustomizer(syncTask -> assertTracingAccountConditions(syncTask, List.of()))
+                .execute(result);
+    }
+
+    private void assertTracingAccountConditions(TaskType task, List<String> accountNames) {
+        var tracingConfigurations = task.getActivity().getReporting().getTracing();
+        assertThat(tracingConfigurations).hasSize(1);
+
+        var conditions = tracingConfigurations.get(0).getBeforeItemCondition();
+        assertThat(conditions).hasSize(accountNames.isEmpty() ? 1 : accountNames.size());
+
+        for (int i = 0; i < conditions.size(); i++) {
+            var expression = conditions.get(i).getExpression();
+            assertThat(expression.getTrustDescriptor()).isEqualTo(MidPointTrustDescriptor.trusted());
+            assertThat(expression.getExpressionEvaluator()).hasSize(1);
+
+            var evaluator = expression.getExpressionEvaluator().get(0).getValue();
+            assertThat(evaluator).isInstanceOf(ScriptExpressionEvaluatorType.class);
+            var script = (ScriptExpressionEvaluatorType) evaluator;
+            assertThat(script.getLanguage()).isEqualTo(EXPRESSION_LANGUAGE_MEL_URL);
+
+            if (accountNames.isEmpty()) {
+                assertThat(script.getCode()).isEqualTo("false");
+                assertThat(expression.getVariable()).isEmpty();
+            } else {
+                assertThat(script.getCode()).isEqualTo("item.name.orig == tracingAccount");
+                assertThat(expression.getVariable()).hasSize(1);
+                var variable = expression.getVariable().get(0);
+                assertThat(variable.getName()).isEqualTo(new QName("tracingAccount"));
+                assertThat(variable.getValue()).isEqualTo(accountNames.get(i));
+            }
+        }
     }
 
     // Looks like unfinished test

@@ -1,0 +1,115 @@
+= Automatic ranges
+:page-toc: top
+:page-since: "4.11.0"
+:page-upkeep-status: green
+:page-description: Automatic range selection for mapping targets
+
+When configuring a mapping, you need to decide which target values it should manage.
+This is its *range*.
+The range also determines which existing values may be removed when the mapping no longer produces them.
+
+In supported GUI editors, midPoint selects a suitable range based on the mapping context and whether the target holds one value or several.
+You can review the selected range before saving.
+Automatic selection follows predefined rules and does not use AI.
+See xref:../../expressions/mappings/range/index.adoc[Mapping Range] for full range semantics and provenance requirements.
+
+== Where it applies
+
+Automatic range selection is available for:
+
+* *Resource object types:* inbound and outbound attribute mappings.
+* *Object templates:* mappings defined directly on the template or under individual items.
+* *Assignments and inducements:* focus mappings.
+* *Role auto-assignment:* newly created mappings.
+
+Supported target editors also apply these rules when you edit a target inline.
+
+.Automatically selected ranges
+[cols="42%,22%,36%",options="header"]
+|===
+| Mapping context | Selected range | What it means
+
+| Inbound attribute, object-template, or assignment/inducement focus mapping with a single-valued target
+| `all`
+| All possible target values belong to the range, including manually entered values.
+
+| The same mappings with a multivalued target
+| `matchingProvenance`
+| Values identified by provenance metadata as produced by this mapping belong to the range.
+
+| New resource object-type attribute outbound mapping without a target definition
+| `all`
+| The range covers all possible values of the resource attribute.
+
+| Newly created role auto-assignment mapping
+| `matchingProvenance`
+| The range identifies assignments produced by this mapping.
+|===
+
+.Example: Choosing a target
+====
+* Choose `givenName`: the range is set to `all` because the item holds one value.
+* Choose `assignment`: the range is set to `matchingProvenance` because the item can hold multiple values.
+This lets the range distinguish assignments produced by this mapping from those created elsewhere.
+====
+
+== When the range changes
+
+.Editing behavior in supported target editors
+[cols="35%,65%",options="header"]
+|===
+| Action | What happens
+
+| Select or change a target
+| Recalculate the range if it is unset, `all`, or `matchingProvenance`.
+This applies to both new and saved mappings.
+
+| Use `none` or a custom condition
+| Preserve the configured range when the target changes.
+
+| Open an existing mapping
+| Leave its range unchanged, without marking the mapping as modified.
+|===
+
+An automatic adjustment can display an informational notification, and the selected range is persisted when you save your changes.
+
+== Check the saved configuration
+
+When you save your changes, the automatically selected range is stored explicitly in the mapping configuration.
+For example, a mapping targeting `assignment` can contain this target fragment:
+
+.Target fragment with a provenance-based range
+[source,xml]
+----
+<target xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <path>assignment</path>
+    <set>
+        <predefined>matchingProvenance</predefined>
+    </set>
+</target>
+----
+
+* `path` identifies the mapping target.
+* `set/predefined` contains the selected range.
+For a single-valued target such as `givenName`, the automatically selected value is `all`.
+
+You can check the selected range in either place:
+
+* *Mapping editor:* Open the mapping and review its range settings.
+You can check the selection before saving, or reopen the mapping afterward to verify the saved value.
+* *XML view:* After saving, open the object containing the mapping, such as the resource, object template, or role.
+Find the mapping and check its `target/set/predefined` value.
+
+== How it works
+
+Automatic range selection happens while you edit the mapping.
+The mapping editor uses the target definition to determine whether it holds one value or several and applies the rules described above.
+The selected range becomes part of the configuration when you save.
+
+== Limitations
+
+* *Association mappings.*
+Association mappings are excluded from automatic range selection.
+
+* *Outbound mappings in inducement constructions.*
+Automatic range initialization for these mappings is currently disabled.

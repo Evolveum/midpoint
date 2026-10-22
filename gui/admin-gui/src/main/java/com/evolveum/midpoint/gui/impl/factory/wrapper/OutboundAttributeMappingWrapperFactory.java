@@ -7,12 +7,15 @@
 package com.evolveum.midpoint.gui.impl.factory.wrapper;
 
 import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.springframework.stereotype.Component;
@@ -36,6 +39,16 @@ public class OutboundAttributeMappingWrapperFactory extends PrismContainerWrappe
     @Override
     public int getOrder() {
         return 100;
+    }
+
+    @Override
+    public PrismContainerValueWrapper<MappingType> createContainerValueWrapper(
+            PrismContainerWrapper<MappingType> parent, PrismContainerValue<MappingType> value,
+            ValueStatus status, WrapperContext context) {
+        PrismContainerValueWrapper<MappingType> wrapper =
+                super.createContainerValueWrapper(parent, value, status, context);
+        OutboundMappingTargetWrapperFactory.initializeMissingTarget(wrapper, status);
+        return wrapper;
     }
 
     @Override

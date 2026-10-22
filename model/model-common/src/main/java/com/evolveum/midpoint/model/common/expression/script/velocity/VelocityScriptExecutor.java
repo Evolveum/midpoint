@@ -19,7 +19,7 @@ import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.util.exception.*;
 
 /**
- * Expression evaluator that is using Apache Velocity engine in the original way (before midPoint 4.11).
+ * Expression evaluator that is using Apache Velocity engine in the original way (before midPoint 4.11.0).
  */
 public class VelocityScriptExecutor extends AbstractVelocityScriptExecutor {
 
@@ -35,14 +35,6 @@ public class VelocityScriptExecutor extends AbstractVelocityScriptExecutor {
     @Override
     ExecutionMode getExecutionModeFromExecutor() {
         return ExecutionMode.FULL;
-    }
-
-    @Override
-    protected void checkProfileAndSafetyRestrictions(ScriptExecutionContext context) throws SecurityViolationException {
-        super.checkProfileAndSafetyRestrictions(context);
-        if (configuration.safeVelocityExpressionsOnly()) {
-            throw new SecurityViolationException("Unsafe velocity expressions are not allowed in this configuration");
-        }
     }
 
     @Override

@@ -24,6 +24,7 @@
             <class name="com.evolveum.midpoint.model.common.expression.TestExpression" />
             <class name="com.evolveum.midpoint.model.common.expression.TestExpressionProfileSafe" />
             <class name="com.evolveum.midpoint.model.common.expression.TestExpressionUtil" />
+            <class name="com.evolveum.midpoint.model.common.expression.TestOutputValuesConvertor" />
             <class name="com.evolveum.midpoint.model.common.mapping.TestMappingDynamicSimple" />
             <class name="com.evolveum.midpoint.model.common.mapping.TestMappingDynamicSysVar" />
             <class name="com.evolveum.midpoint.model.common.mapping.TestMappingStatic" />

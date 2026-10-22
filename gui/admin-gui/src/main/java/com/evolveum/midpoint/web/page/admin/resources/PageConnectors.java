@@ -16,17 +16,22 @@ import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
 import com.evolveum.midpoint.gui.api.component.data.provider.ISelectableDataProvider;
+import com.evolveum.midpoint.gui.api.component.wizard.WizardModel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.search.Search;
 import com.evolveum.midpoint.gui.impl.component.search.SearchBuilder;
+import com.evolveum.midpoint.gui.impl.page.admin.connector.development.PageConnectorDevelopment;
+import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.basic.ApplicationIdentificationConnectorStepPanel;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -35,9 +40,11 @@ import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
 import com.evolveum.midpoint.web.component.dialog.DeleteConfirmationPanel;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
@@ -45,8 +52,8 @@ import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
-import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
+import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
 
 /**
@@ -66,6 +73,7 @@ public class PageConnectors extends PageAdmin {
     private static final String DOT_CLASS = PageConnectors.class.getName() + ".";
 
     private static final String OPERATION_DELETE_CONNECTORS = DOT_CLASS + "deleteConnectors";
+    private static final String OPERATION_DEVELOP_CONNECTOR = DOT_CLASS + "developConnector";
 
     private static final String ID_MAIN_FORM = "mainForm";
     private static final String ID_TABLE = "table";
@@ -114,7 +122,7 @@ public class PageConnectors extends PageAdmin {
 
             @Override
             protected UserProfileStorage.TableId getTableId() {
-                return UserProfileStorage.TableId.PAGE_RESOURCES_CONNECTOR_HOSTS; // FIXME
+                return UserProfileStorage.TableId.PAGE_CONNECTORS;
             }
 
             @Override
@@ -149,52 +157,125 @@ public class PageConnectors extends PageAdmin {
     private List<IColumn<SelectableBean<ConnectorType>, String>> initColumns() {
         List<IColumn<SelectableBean<ConnectorType>, String>> columns = new ArrayList<>();
 
-        // TODO i18n
-        columns.add(new PropertyColumn(createStringResource("Display name"), "value.displayName"));
+        columns.add(new PropertyColumn(createStringResource("PageConnectors.column.displayName"), "value.displayName"));
         columns.add(
-                new PropertyColumn(createStringResource("Type"), "value.connectorType"));
-        columns.add(new PropertyColumn(createStringResource("Version"), "value.connectorVersion"));
-        //columns.add(new PropertyColumn(createStringResource("Bundle"), "value.connectorBundle"));
+                new PropertyColumn(createStringResource("PageConnectors.column.connectorType"), "value.connectorType"));
+        columns.add(new PropertyColumn(createStringResource("PageConnectors.column.connectorVersion"), "value.connectorVersion"));
+        //columns.add(new PropertyColumn(createStringResource("PageConnectors.column.connectorBundle"), "value.connectorBundle"));
 
         return columns;
     }
 
     private List<InlineMenuItem> createRowActions() {
-        List<InlineMenuItem> headerMenuItems = new ArrayList<>();
-        headerMenuItems.add(new InlineMenuItem(createStringResource("PageBase.button.delete")) {
+        List<InlineMenuItem> menuItems = new ArrayList<>();
+        menuItems.add(new InlineMenuItem(createStringResource("PageBase.button.delete")) {
             @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public InlineMenuItemAction initAction() {
-                return new HeaderMenuAction(PageConnectors.this) {
+                return new ColumnMenuAction<SelectableBean<ConnectorType>>() {
                     @Serial private static final long serialVersionUID = 1L;
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
-                        deleteConnectorPerformed(target);
+                        deleteConnectorPerformed(target, getRowModel() != null ? getRowModel().getObject().getValue() : null);
                     }
                 };
             }
         });
-        return headerMenuItems;
+
+        var developMenu = new InlineMenuItem(createStringResource("PageConnectors.button.developConnector")) {
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            public InlineMenuItemAction initAction() {
+                return new ColumnMenuAction<SelectableBean<ConnectorType>>() {
+                    @Serial private static final long serialVersionUID = 1L;
+
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        developConnectorPerformed(target, getRowModel() != null ? getRowModel().getObject().getValue() : null);
+                    }
+                };
+            }
+        };
+        developMenu.setVisibilityChecker((rowModel, isHeader) -> {
+            if (isHeader || !getMidpointConfiguration().isConnectorDevelopmentToolsEnabled()) {
+                return false;
+            }
+            var casted = (Model<SelectableBean<ConnectorType>>) rowModel;
+            if (casted != null && casted.getObject() != null && casted.getObject().getValue() != null) {
+                return getConnectorService().isManifestBasedConnector(casted.getObject().getValue());
+            }
+            return false;
+        });
+        menuItems.add(developMenu);
+        return menuItems;
     }
 
-    private void deleteConnectorPerformed(AjaxRequestTarget target) {
-        List<ConnectorType> selected = getObjectListPanel().getSelectedRealObjects();
+    /**
+     * Starts (or reuses) the connector development of the selected low-code (manifest-based)
+     * connector - the connector's bundle is copied under a new minor version instead of a fresh
+     * framework template being downloaded, so the original connector stays installed.
+     */
+    private void developConnectorPerformed(AjaxRequestTarget target, ConnectorType selectedConnector) {
+        List<ConnectorType> selected = selectedConnector != null
+                ? List.of(selectedConnector)
+                : getObjectListPanel().getSelectedRealObjects();
         if (selected.isEmpty()) {
-            warn(getString("pageResources.message.noHostSelected")); // FIXME
+            warn(getString("PageConnectors.message.noConnectorSelected"));
+            target.add(getFeedbackPanel());
+            return;
+        }
+        if (selected.size() > 1) {
+            warn(getString("PageConnectors.message.singleConnectorForDevelopment"));
+            target.add(getFeedbackPanel());
+            return;
+        }
+
+        var connector = selected.get(0);
+        var task = createSimpleTask(OPERATION_DEVELOP_CONNECTOR);
+        var result = task.getResult();
+        try {
+            if (!getConnectorService().isManifestBasedConnector(connector)) {
+                error(getString("PageConnectors.message.developConnectorNotManifestBased"));
+                target.add(getFeedbackPanel());
+                return;
+            }
+
+            var development = getConnectorService().startFromExisting(connector, task, result);
+            // the imported development already has its application details filled in, so the wizard
+            // would otherwise skip straight to the documentation step - open it on the
+            // application identification step instead, so the pre-filled values can be reviewed
+            PageParameters parameters = new PageParameters();
+            parameters.add(OnePageParameterEncoder.PARAMETER, development.getOid());
+            parameters.add(WizardModel.PARAM_STEP, ApplicationIdentificationConnectorStepPanel.PANEL_TYPE);
+            ((PageBase) getPage()).navigateToNext(PageConnectorDevelopment.class, parameters);
+        } catch (CommonException e) {
+            result.recordFatalError(getString("PageConnectors.message.developConnectorFailed"), e);
+            showResult(result);
+            target.add(getFeedbackPanel());
+        }
+    }
+
+    private void deleteConnectorPerformed(AjaxRequestTarget target, ConnectorType selectedConnector) {
+        List<ConnectorType> selected = selectedConnector != null
+                ? List.of(selectedConnector)
+                : getObjectListPanel().getSelectedRealObjects();
+        if (selected.isEmpty()) {
+            warn(getString("PageConnectors.message.noConnectorSelected"));
             target.add(getFeedbackPanel());
             return;
         }
 
         ConfirmationPanel dialog = new DeleteConfirmationPanel(((PageBase) getPage()).getMainPopupBodyId(),
-                createDeleteConfirmString("pageResources.message.deleteHostConfirm", // FIXME
-                        "pageResources.message.deleteHostsConfirm", false)) { // FIXME
+                createDeleteConfirmString("PageConnectors.message.deleteConnectorConfirm",
+                        "PageConnectors.message.deleteConnectorsConfirm", selected)) {
             private static final long serialVersionUID = 1L;
 
             @Override
             public void yesPerformed(AjaxRequestTarget target) {
-                deleteConnectorConfirmedPerformed(target);
+                deleteConnectorConfirmedPerformed(target, selected);
             }
         };
         ((PageBase) getPage()).showMainPopup(dialog, target);
@@ -210,33 +291,32 @@ public class PageConnectors extends PageAdmin {
      *            message if deleting one item
      * @param moreDeleteKey
      *            message if deleting more items
-     * @param resources
-     *            if true selecting resources if false selecting from hosts
      */
     private IModel<String> createDeleteConfirmString(final String oneDeleteKey, final String moreDeleteKey,
-            final boolean resources) {
+            final List<ConnectorType> selected) {
         return new IModel<String>() {
             private static final long serialVersionUID = 1L;
             @Override
             public String getObject() {
-                List<ConnectorType> selected = getObjectListPanel().getSelectedRealObjects();
-
+                String confirmation;
                 switch (selected.size()) {
                     case 1:
                         ConnectorType first = selected.get(0);
                         String name = WebComponentUtil
                                 .getName(first);
-                        return createStringResource(oneDeleteKey, name).getString();
+                        confirmation = createStringResource(oneDeleteKey, name).getString();
+                        break;
                     default:
-                        return createStringResource(moreDeleteKey, selected.size()).getString();
+                        confirmation = createStringResource(moreDeleteKey, selected.size()).getString();
+                        break;
                 }
+                String note = createStringResource("PageConnectors.message.deleteConnectorNote").getString();
+                return confirmation + " " + note;
             }
         };
     }
 
-    private void deleteConnectorConfirmedPerformed(AjaxRequestTarget target) {
-        List<ConnectorType> selected = getObjectListPanel().getSelectedRealObjects();
-
+    private void deleteConnectorConfirmedPerformed(AjaxRequestTarget target, List<ConnectorType> selected) {
         OperationResult result = new OperationResult(OPERATION_DELETE_CONNECTORS);
         for (ConnectorType selectable : selected) {
             try {
@@ -249,14 +329,14 @@ public class PageConnectors extends PageAdmin {
                             result);
                 }
             } catch (Exception ex) {
-                result.recordPartialError(createStringResource("PageConnectorHosts.message.deleteHostConfirmedPerformed.partialError").getString(), ex);
-                LoggingUtils.logUnexpectedException(LOGGER, "Couldn't delete host", ex);
+                result.recordPartialError(createStringResource("PageConnectors.message.deleteConnectorConfirmedPerformed.partialError").getString(), ex);
+                LoggingUtils.logUnexpectedException(LOGGER, "Couldn't delete connector", ex);
             }
         }
 
         result.recomputeStatus();
         if (result.isSuccess()) {
-            result.recordStatus(OperationResultStatus.SUCCESS, createStringResource("PageConnectorHosts.message.deleteHostConfirmedPerformed.success").getString());
+            result.recordStatus(OperationResultStatus.SUCCESS, createStringResource("PageConnectors.message.deleteConnectorConfirmedPerformed.success").getString());
         }
 
         getObjectListPanel().clearCache();

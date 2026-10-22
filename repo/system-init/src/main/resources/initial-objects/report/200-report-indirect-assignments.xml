@@ -57,8 +57,12 @@
             </resultHandling>
             <expression>
                 <script>
+                    <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                     <objectVariableMode>prismReference</objectVariableMode>
-                    <code>report.generateAssignmentPathRows(object)</code>
+                    <code>
+                        object.valueMetadata().filter(metadata,
+                            isPresent(metadata.provenance.assignmentPath))
+                    </code>
                 </script>
             </expression>
         </subreport>
@@ -84,8 +88,17 @@
                 <export>
                     <expression>
                         <script>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                             <objectVariableMode>prismReference</objectVariableMode>
-                            <code>data?.owner?.name?.orig ?: 'Unknown owner'</code>
+                            <code>
+                                cel.bind(values, list(data),
+                                    values.size() == 0 ? list('Unknown owner') : values.map(d,
+                                        cel.bind(owner,
+                                            midpoint.resolveReferenceIfExists(
+                                                d.provenance.assignmentPath.sourceRef),
+                                            cel.bind(name, owner.name.orig,
+                                                default(name, '') != '' ? name : 'Unknown owner'))))
+                            </code>
                         </script>
                     </expression>
                 </export>
@@ -104,8 +117,12 @@
                 <export>
                     <expression>
                         <script>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                             <objectVariableMode>prismReference</objectVariableMode>
-                            <code>data?.role?.name?.orig</code>
+                            <code>
+                                cel.bind(role, midpoint.resolveReferenceIfExists(object),
+                                    role.name.orig)
+                            </code>
                         </script>
                     </expression>
                 </export>
@@ -124,8 +141,13 @@
                 <export>
                     <expression>
                         <script>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                             <objectVariableMode>prismReference</objectVariableMode>
-                            <code>data?.roleArchetype?.name?.orig</code>
+                            <code>
+                                cel.bind(role, midpoint.resolveReferenceIfExists(object),
+                                    !isPresent(role) ? nil : cel.bind(archetype, role.structuralArchetype(),
+                                            archetype.name.orig))
+                            </code>
                         </script>
                     </expression>
                 </export>
@@ -144,8 +166,9 @@
                 <export>
                     <expression>
                         <script>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                             <objectVariableMode>prismReference</objectVariableMode>
-                            <code>object?.relation</code>
+                            <code>object.relation</code>
                         </script>
                     </expression>
                 </export>
@@ -164,9 +187,18 @@
                 <export>
                     <expression>
                         <script>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                             <objectVariableMode>prismReference</objectVariableMode>
                             <code>
-                                return data?.segmentTargets?.collect(o -> o?.name?.orig)?.join(' -> ') ?: '?'
+                                cel.bind(values, list(data),
+                                    values.size() == 0 ? list('?') : values.map(d,
+                                        d.provenance.assignmentPath.segment.size() == 0
+                                            ? '?' : cel.bind(path,
+                                                d.provenance.assignmentPath.segment
+                                                    .map(segment, midpoint.resolveReferenceIfExists(segment.targetRef))
+                                                    .map(target, stringify(target.name.orig, 'null'))
+                                                    .join(' -> '),
+                                                path != '' ? path : '?')))
                             </code>
                         </script>
                     </expression>
@@ -187,18 +219,18 @@
                 <export>
                     <expression>
                         <script>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                             <objectVariableMode>prismReference</objectVariableMode>
                             <code>
-                                if (!data?.segmentTargets) {
-                                    return "?"
-                                }
-
-                                def segLen = data.segmentTargets.size()
-                                if (segLen == 1) {
-                                    return 'Direct'
-                                } else {
-                                    return data.segmentTargets[segLen - 2]?.name?.orig
-                                }
+                                cel.bind(values, list(data),
+                                    values.size() == 0 ? list('?') : values.map(d,
+                                        d.provenance.assignmentPath.segment.size() == 0
+                                            ? '?' : d.provenance.assignmentPath.segment.size() == 1
+                                                ? 'Direct' : cel.bind(parent,
+                                                    midpoint.resolveReferenceIfExists(
+                                                        d.provenance.assignmentPath.segment[
+                                                            d.provenance.assignmentPath.segment.size() - 2].targetRef),
+                                                    parent.name.orig)))
                             </code>
                         </script>
                     </expression>
@@ -219,8 +251,18 @@
                 <export>
                     <expression>
                         <script>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                             <objectVariableMode>prismReference</objectVariableMode>
-                            <code>data?.assignment?.activation?.effectiveStatus</code>
+                            <code>
+                                list(data).map(d,
+                                    cel.bind(path, d.provenance.assignmentPath,
+                                        path.segment.size() == 0 ? nil : cel.bind(owner,
+                                            midpoint.resolveReferenceIfExists(path.sourceRef),
+                                            !isPresent(owner) ? nil : cel.bind(assignments,
+                                                owner.assignment.filter(assignment,
+                                                    assignment.id == path.segment[0].assignmentId),
+                                                assignments.size() == 0 ? nil : assignments[0].activation.effectiveStatus))))
+                            </code>
                         </script>
                     </expression>
                 </export>
@@ -239,8 +281,18 @@
                 <export>
                     <expression>
                         <script>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                             <objectVariableMode>prismReference</objectVariableMode>
-                            <code>data?.assignment?.activation?.validTo</code>
+                            <code>
+                                list(data).map(d,
+                                    cel.bind(path, d.provenance.assignmentPath,
+                                        path.segment.size() == 0 ? nil : cel.bind(owner,
+                                            midpoint.resolveReferenceIfExists(path.sourceRef),
+                                            !isPresent(owner) ? nil : cel.bind(assignments,
+                                                owner.assignment.filter(assignment,
+                                                    assignment.id == path.segment[0].assignmentId),
+                                                assignments.size() == 0 ? nil : assignments[0].activation.validTo))))
+                            </code>
                         </script>
                     </expression>
                 </export>
@@ -259,8 +311,11 @@
                 <export>
                     <expression>
                         <script>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                             <objectVariableMode>prismReference</objectVariableMode>
-                            <code>data?.createTimestamp</code>
+                            <code>
+                                list(data).map(d, d.storage.createTimestamp)
+                            </code>
                         </script>
                     </expression>
                 </export>
@@ -279,11 +334,24 @@
                 <export>
                     <expression>
                         <script>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                             <objectVariableMode>prismReference</objectVariableMode>
                             <code>
-                                // Explicit String to use the right split() and not random Groovy default method.
-                                String channel = data?.assignment?.metadata?.createChannel
-                                return channel?.split('#')?.last()?.with(s -> midpoint.translate('Channel.' + s))
+                                list(data).map(d,
+                                    cel.bind(path, d.provenance.assignmentPath,
+                                        isEmpty(path.segment) ? nil : cel.bind(owner,
+                                            midpoint.resolveReferenceIfExists(path.sourceRef),
+                                            !isPresent(owner) ? nil : cel.bind(assignments,
+                                                // Find the originating assignment for this path.
+                                                owner.assignment.filter(assignment,
+                                                    assignment.id == path.segment[0].assignmentId),
+                                                isEmpty(assignments) ? nil : cel.bind(assignment, assignments[0],
+                                                    // Prefer modern value metadata, falling back to legacy metadata.
+                                                    cel.bind(channels,
+                                                        default(assignment.containerValueMetadata().map(m, isPresent(m.storage.createChannel), m.storage.createChannel),
+                                                            list(assignment.metadata.createChannel)),
+                                                        isEmpty(channels) ? nil : cel.bind(parts, channels[0].split('#'),
+                                                            format.translateKeyInCurrentLocale('Channel.' + parts[parts.size() - 1]))))))))
                             </code>
                         </script>
                     </expression>

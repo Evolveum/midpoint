@@ -4,6 +4,7 @@ import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstallationService;
 import com.evolveum.midpoint.provisioning.ucf.api.DownloadedConnector;
 import com.evolveum.midpoint.provisioning.ucf.api.EditableConnector;
+import com.evolveum.midpoint.provisioning.ucf.api.ReadableConnector;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 
@@ -25,10 +26,14 @@ import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.channels.Channels;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Properties;
 import java.util.jar.Attributes;
+import java.util.jar.JarFile;
 import java.util.jar.Manifest;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -105,11 +110,17 @@ public class ConnectorInstallationServiceImpl implements ConnectorInstallationSe
     }
 
     @Override
-    public EditableConnector editableConnectorFor(@NotNull ConnectorType objectable) {
+    public ReadableConnector readableConnectorFor(@NotNull ConnectorType objectable) {
         var connectorKey = ConnectorFactoryConnIdImpl.getConnectorKey(objectable);
-        var uri =factoryImpl.getLocalConnectorInfoManager().findConnectorUri(connectorKey);
+        var uri = factoryImpl.getLocalConnectorInfoManager().findConnectorUri(connectorKey);
         if (uri != null && uri.getScheme().equals("file")) {
-            return new DownloadedDirectoryConnector(new File(uri.getPath()));
+            var bundleFile = new File(uri.getPath());
+            if (bundleFile.isDirectory()) {
+                return new DownloadedDirectoryConnector(bundleFile);
+            }
+            if (bundleFile.isFile()) {
+                return new JarBundleConnector(bundleFile);
+            }
         }
         return null;
     }
@@ -121,6 +132,150 @@ public class ConnectorInstallationServiceImpl implements ConnectorInstallationSe
             throw new IllegalStateException("Directory " + directory + " does not exist");
         }
         return new DownloadedDirectoryConnector(connDir);
+    }
+
+    @Override
+    public boolean isConnectorDirectoryPresent(String directory) {
+        return new File(downloadDirectory, directory).isDirectory();
+    }
+
+    @Override
+    public EditableConnector copyBundle(@NotNull ConnectorType sourceConnector, @NotNull String targetDirectoryName,
+            OperationResult result) {
+        if (targetDirectoryName.contains("/") || targetDirectoryName.contains("\\")) {
+            throw new IllegalArgumentException("Invalid target name: " + targetDirectoryName);
+        }
+        var sourceBundle = bundleFile(sourceConnector);
+        var targetDir = new File(downloadDirectory, targetDirectoryName);
+        var stagingDir = new File(downloadDirectory, targetDirectoryName + TMP_SUFFIX);
+
+        deleteRecursively(targetDir);
+        deleteRecursively(stagingDir);
+
+        try {
+            if (sourceBundle.isDirectory()) {
+                copyDirectory(sourceBundle, stagingDir);
+            } else {
+                unpackJar(sourceBundle, stagingDir);
+            }
+            Files.move(stagingDir.toPath(), targetDir.toPath(), ATOMIC_MOVE, REPLACE_EXISTING);
+        } catch (IOException e) {
+            throw new SystemException("Couldn't copy connector bundle from " + sourceBundle + " to " + targetDir, e);
+        }
+        return new DownloadedDirectoryConnector(targetDir);
+    }
+
+    @Override
+    public String getConnectorClass(@NotNull ConnectorType connector) {
+        var bundleFile = bundleFile(connector);
+        Manifest manifest;
+        try {
+            if (bundleFile.isDirectory()) {
+                var manifestFile = new File(bundleFile, "META-INF/MANIFEST.MF");
+                if (!manifestFile.exists()) {
+                    return null;
+                }
+                try (var fs = new FileInputStream(manifestFile)) {
+                    manifest = new Manifest(fs);
+                }
+            } else {
+                try (var jar = new JarFile(bundleFile)) {
+                    var entry = jar.getEntry("META-INF/MANIFEST.MF");
+                    if (entry == null) {
+                        return null;
+                    }
+                    try (var is = jar.getInputStream(entry)) {
+                        manifest = new Manifest(is);
+                    }
+                }
+            }
+        } catch (IOException e) {
+            throw new SystemException("Couldn't read bundle manifest of " + ObjectTypeUtil.toShortString(connector), e);
+        }
+        return manifest.getMainAttributes().getValue(MANIFEST_CONNECTOR_CLASS);
+    }
+
+    /**
+     * The local bundle of the given connector - its bundle directory, or its bundle JAR file.
+     */
+    private File bundleFile(@NotNull ConnectorType connector) {
+        var connectorKey = ConnectorFactoryConnIdImpl.getConnectorKey(connector);
+        var uri = factoryImpl.getLocalConnectorInfoManager().findConnectorUri(connectorKey);
+        if (uri == null || !uri.getScheme().equals("file")) {
+            throw new SystemException("No local bundle found for " + ObjectTypeUtil.toShortString(connector));
+        }
+        var bundle = new File(uri.getPath());
+        if (!bundle.exists() || (!bundle.isDirectory() && !bundle.isFile())) {
+            throw new SystemException("Local connector bundle of " + ObjectTypeUtil.toShortString(connector)
+                    + " does not exist: " + bundle);
+        }
+        return bundle;
+    }
+
+    private static void copyDirectory(File sourceDir, File targetDir) throws IOException {
+        Files.walk(sourceDir.toPath())
+                .sorted(Comparator.reverseOrder())
+                .forEach(path -> {
+                    var relative = sourceDir.toPath().relativize(path);
+                    var target = targetDir.toPath().resolve(relative);
+                    if (Files.isRegularFile(path) && path.getFileName().toString().endsWith(TMP_SUFFIX)) {
+                        return; // staging leftovers are not bundle content
+                    }
+                    try {
+                        if (Files.isDirectory(path)) {
+                            Files.createDirectories(target);
+                        } else {
+                            Files.createDirectories(target.getParent());
+                            Files.copy(path, target, REPLACE_EXISTING);
+                        }
+                    } catch (IOException e) {
+                        throw new SystemException("Couldn't copy " + path + " to " + target, e);
+                    }
+                });
+    }
+
+    private static void unpackJar(File jarFile, File targetDir) throws IOException {
+        var targetRoot = targetDir.getCanonicalFile().toPath();
+        try (var zip = new ZipInputStream(new FileInputStream(jarFile))) {
+            ZipEntry entry;
+            while ((entry = zip.getNextEntry()) != null) {
+                var target = new File(targetDir, entry.getName()).getCanonicalFile();
+                // guard against zip-slip
+                if (!target.toPath().startsWith(targetRoot)) {
+                    throw new IOException("Invalid zip entry: " + entry.getName());
+                }
+                if (entry.isDirectory()) {
+                    if (!target.isDirectory() && !target.mkdirs()) {
+                        throw new IOException("Failed to create directory " + target);
+                    }
+                } else {
+                    var parent = target.getParentFile();
+                    if (!parent.isDirectory() && !parent.mkdirs()) {
+                        throw new IOException("Failed to create directory " + parent);
+                    }
+                    try (var out = Files.newOutputStream(target.toPath())) {
+                        zip.transferTo(out);
+                    }
+                }
+            }
+        }
+    }
+
+    private static void deleteRecursively(File file) {
+        if (!file.exists()) {
+            return;
+        }
+        try (var paths = Files.walk(file.toPath())) {
+            paths.sorted(Comparator.reverseOrder()).forEach(path -> {
+                try {
+                    Files.delete(path);
+                } catch (IOException e) {
+                    throw new SystemException("Couldn't delete " + path, e);
+                }
+            });
+        } catch (IOException e) {
+            throw new SystemException("Couldn't delete " + file, e);
+        }
     }
 
     @Override
@@ -319,6 +474,74 @@ public class ConnectorInstallationServiceImpl implements ConnectorInstallationSe
             try (var outputStream = new FileOutputStream(file)) {
                 props.store(outputStream, null);
             }
+        }
+
+        @Override
+        public boolean fileExists(String filename) {
+            try {
+                return newFile(connectorFile, filename).exists();
+            } catch (IOException e) {
+                return false;
+            }
+        }
+    }
+
+    /**
+     * A read-only view of a local connector bundle installed as a JAR file: the bundle content
+     * is read straight from the JAR. The bundle is installed and must not be modified - to work
+     * with an editable copy, use {@link #copyBundle(ConnectorType, String, OperationResult)}.
+     */
+    private static class JarBundleConnector implements ReadableConnector {
+
+        private final File jarFile;
+
+        private JarBundleConnector(File jarFile) {
+            this.jarFile = jarFile;
+        }
+
+        @Override
+        public boolean fileExists(String filename) {
+            var entryName = normalizeEntryName(filename);
+            if (entryName == null) {
+                return false;
+            }
+            try (var jar = new JarFile(jarFile)) {
+                return jar.getEntry(entryName) != null;
+            } catch (IOException e) {
+                return false;
+            }
+        }
+
+        @Override
+        public String readFile(String filename) throws IOException {
+            var entryName = normalizeEntryName(filename);
+            if (entryName == null) {
+                throw new NoSuchFileException(filename);
+            }
+            try (var jar = new JarFile(jarFile)) {
+                var entry = jar.getEntry(entryName);
+                if (entry == null) {
+                    throw new NoSuchFileException(filename);
+                }
+                try (var is = jar.getInputStream(entry)) {
+                    return new String(is.readAllBytes(), StandardCharsets.UTF_8);
+                }
+            }
+        }
+
+        /**
+         * The JAR entry name for the given (relative) file name, or {@code null} for invalid
+         * names (blank, absolute or escaping the bundle root).
+         */
+        private String normalizeEntryName(String filename) {
+            if (filename == null || filename.isBlank()) {
+                return null;
+            }
+            var name = filename.startsWith("/") ? filename.substring(1) : filename;
+            if (name.isEmpty() || name.contains("..") || name.contains("\\")) {
+                return null;
+            }
+            return name;
         }
     }
 

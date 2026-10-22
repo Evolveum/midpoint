@@ -97,7 +97,12 @@ Also, covers 'Create report' button on the Campaign details page.
 | Connector generator wizard - GUI pages, REST API and the backend service that generates and executes connector code.
 Involves generating and running arbitrary connector code, so it is not granted by any out-of-the-box role, including Superuser (which reaches it only via `#all`).
 Grant it explicitly, only to administrators who need to generate connectors.
-| Since 4.11
+| Since 4.11.0
+
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#smartIntegration
+| Smart Integration suggestion operations - GUI suggestion actions, REST API (together with `authorization-rest-3#smartIntegration`) and the backend service.
+Statistics are not covered; they are protected by object-scoped authorizations on `SmartIntegrationArtifactType`.
+| Since 4.11.0
 
 |===
 

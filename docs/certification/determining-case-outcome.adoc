@@ -10,7 +10,7 @@ doc-type: intro
 :page-wiki-metadata-create-date: 2016-02-04T15:35:26.459+01:00
 :page-wiki-metadata-modify-user: mederly
 :page-wiki-metadata-modify-date: 2016-04-21T16:57:58.966+02:00
-:page-upkeep-status: yellow
+:page-upkeep-status: green
 :page-moved-from: /midpoint/reference/roles-policies/certification/determining-case-outcome/
 :page-display-order: 500
 :page-description: This page explains how midPoint determines the outcome of certification campaigns.

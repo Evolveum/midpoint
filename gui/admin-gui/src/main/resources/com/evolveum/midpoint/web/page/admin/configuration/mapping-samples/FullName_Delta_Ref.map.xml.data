@@ -8,6 +8,7 @@
 	</source>
 	<expression>
 		<script>
+		    <language>mel</language>
 			<code>
 				givenName + ' ' + familyName
 			</code>

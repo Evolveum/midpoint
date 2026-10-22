@@ -13,6 +13,7 @@ import com.evolveum.midpoint.prism.path.InfraItemName;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
+import com.evolveum.midpoint.schema.expression.MidPointTrustDescriptor;
 import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -787,6 +788,9 @@ public abstract class SchemaConstants {
 
     /** ID of expression profile for "asIs" evaluator only. */
     public static final String AS_IS_ONLY_PROFILE_ID = "##asIsOnly";
+
+    /** ID of special profile that corresponds to {@link MidPointTrustDescriptor#forCurrentPrincipal()}. */
+    public static final String CURRENT_PRINCIPAL_PROFILE_ID = "##currentPrincipal";
 
     /**
      * The ID for built-in Groovy permission and script expression profiles.

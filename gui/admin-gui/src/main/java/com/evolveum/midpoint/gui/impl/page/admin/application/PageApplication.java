@@ -33,7 +33,7 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
                 @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_APPLICATION_URL,
                         label = "PageApplication.auth.application.label",
                         description = "PageApplication.auth.application.description")
-        })
+        }, experimental = true)
 public class PageApplication extends PageAbstractRole<ApplicationType, AbstractRoleDetailsModel<ApplicationType>> {
 
     public PageApplication() {

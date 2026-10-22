@@ -173,7 +173,7 @@ And if the changes are not already in the CSV then the reconciliation detects th
 
 == ITSM Ticketing
 
-Since midPoint 4.11 the built-in manual connector can optionally manage the tickets on a real ITSM system, using a dedicated xref:/midpoint/reference/resources/manual/ticketing/[ticketing resource].
+Since midPoint 4.11.0 the built-in manual connector can optionally manage the tickets on a real ITSM system, using a dedicated xref:/midpoint/reference/resources/manual/ticketing/[ticketing resource].
 See the xref:/midpoint/reference/resources/manual/ticketing/[ITSM Ticketing] page for details and the ticketing resource setup.
 
 The manual connector is configured by the following configuration items (in the `connectorConfiguration` of the resource):

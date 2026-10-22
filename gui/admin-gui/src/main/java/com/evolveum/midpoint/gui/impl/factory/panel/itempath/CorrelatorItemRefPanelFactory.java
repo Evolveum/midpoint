@@ -12,6 +12,7 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismValueWrapper;
 import com.evolveum.midpoint.gui.impl.factory.panel.PrismPropertyPanelContext;
+import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardBasicInitializer;
 import com.evolveum.midpoint.web.component.input.PopoverActionChoicePanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
@@ -19,6 +20,7 @@ import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
@@ -51,14 +53,21 @@ public class CorrelatorItemRefPanelFactory extends ItemPathPanelFactory implemen
     protected Panel getPanel(PrismPropertyPanelContext<ItemPathType> panelCtx) {
         PrismPropertyWrapper<ItemPathType> item = panelCtx.unwrapWrapperModel();
 
-        List<ItemPathType> itemPaths = getTargetsOfInboundMappings(item);
+        IModel<List<ItemPathType>> itemPaths = new LoadableDetachableModel<>() {
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            protected List<ItemPathType> load() {
+                return getTargetsOfInboundMappings(panelCtx.unwrapWrapperModel());
+            }
+        };
 
         PopoverActionChoicePanel<ItemPathType> typePanel =
                 new PopoverActionChoicePanel<>(
                         panelCtx.getComponentId(),
                         panelCtx.getRealValueModel(),
-                        Model.ofList(itemPaths),
-                        true) {
+                        itemPaths,
+                        false) {
 
                     @Override
                     protected IModel<String> getChoicesIconCssModel() {
@@ -89,7 +98,10 @@ public class CorrelatorItemRefPanelFactory extends ItemPathPanelFactory implemen
                     protected void onChoiceSelected(
                             AjaxRequestTarget target,
                             PopoverActionChoicePanel<ItemPathType> component) {
-                        // Nothing else to refresh here.
+                        AbstractWizardBasicInitializer wizard = component.findParent(AbstractWizardBasicInitializer.class);
+                        if (wizard != null) {
+                            target.add(wizard.getFeedback());
+                        }
                     }
                 };
 
@@ -119,7 +131,7 @@ public class CorrelatorItemRefPanelFactory extends ItemPathPanelFactory implemen
 
         createMapping(target, pageBase,
                 () -> correlator,
-                ajaxTarget -> ajaxTarget.add(panel),
+                panel::refresh,
                 rowModel);
     }
 

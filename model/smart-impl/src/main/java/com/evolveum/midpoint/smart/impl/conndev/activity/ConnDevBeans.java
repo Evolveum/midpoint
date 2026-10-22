@@ -3,6 +3,7 @@ package com.evolveum.midpoint.smart.impl.conndev.activity;
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.model.api.ModelService;
 
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
@@ -12,13 +13,18 @@ import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstallationService;
 import com.evolveum.midpoint.repo.api.ClusterwideCacheInvalidationDispatcher;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 
+import com.evolveum.midpoint.repo.common.AuditHelper;
 import com.evolveum.midpoint.repo.common.SystemObjectCache;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.smart.impl.conndev.ConndevServiceCallAuditor;
 import com.evolveum.midpoint.smart.impl.conndev.ServiceClient;
-
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
-
 import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorDevelopmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
+
+import org.jetbrains.annotations.Nullable;
 
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
@@ -40,6 +46,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.nio.channels.Channels;
+import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
 @Component
@@ -56,6 +63,7 @@ public class ConnDevBeans {
     @Autowired public SystemObjectCache systemObjectCache;
     @Autowired public MidpointConfiguration configuration;
     @Autowired public Protector protector;
+    @Autowired public AuditHelper auditHelper;
     private CloseableHttpClient client;
 
     @PostConstruct
@@ -140,12 +148,40 @@ public class ConnDevBeans {
         return null;
     }
 
-    public ServiceClient client(String sessionId, ServiceClient.SessionRestoration restoration, ServiceClient.SessionRestoration synchronization, OperationResult result) {
+    public long getConnectorGenerationTransientErrorTimeoutMs(OperationResult result) {
+        try {
+            var systemConfiguration = systemObjectCache.getSystemConfigurationBean(result);
+            if (systemConfiguration != null && systemConfiguration.getSmartIntegration() != null) {
+                var timeout = systemConfiguration.getSmartIntegration().getConnectorGenerationTransientErrorTimeout();
+                if (timeout != null) {
+                    return timeout.getTimeInMillis(new Date());
+                }
+            }
+        } catch (SchemaException e) {
+            throw new SystemException("Could not get system configuration.", e);
+        }
+        return ServiceClient.DEFAULT_TRANSIENT_ERROR_TIMEOUT_MS;
+    }
+
+    public ServiceClient client(String sessionId, ServiceClient.SessionRestoration restoration, ServiceClient.SessionRestoration synchronization,
+            @Nullable Task task, OperationResult result, @Nullable PrismObject<ConnectorDevelopmentType> development) {
         var apiBase = getServiceUrl(result);
         if (apiBase == null) {
             throw new SystemException("Connector Generation Service  not configured.");
         }
-        return new ServiceClient(apiBase, getConnectorGeneratorApiKey(result), sessionId, restoration, synchronization, client);
+        return new ServiceClient(apiBase, getConnectorGeneratorApiKey(result), sessionId, restoration, synchronization, client,
+                getConnectorGenerationTransientErrorTimeoutMs(result), createAuditor(task, result, development));
+    }
+
+    private ConndevServiceCallAuditor createAuditor(@Nullable Task task, OperationResult result,
+            @Nullable PrismObject<ConnectorDevelopmentType> development) {
+        SystemConfigurationType systemConfiguration;
+        try {
+            systemConfiguration = systemObjectCache.getSystemConfigurationBean(result);
+        } catch (SchemaException e) {
+            throw new SystemException("Could not get system configuration.", e);
+        }
+        return new ConndevServiceCallAuditor(auditHelper, auditHelper.getAuditConfiguration(systemConfiguration), task, result, development);
     }
 
     public boolean isOffline() {

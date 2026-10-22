@@ -22,6 +22,7 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.QNameUtil;
@@ -74,6 +75,10 @@ public class PrismPropertyValueWrapper<T> extends PrismValueWrapperImpl<T> {
             }
         } else if (newRealValue instanceof ItemPath) {
             if (((ItemPath) newRealValue).equivalent((ItemPath) getRealValue())) {
+                return;
+            }
+        } else if (newRealValue instanceof ItemPathType) {
+            if (((ItemPathType) newRealValue).equivalent(getRealValue())) {
                 return;
             }
         } else {

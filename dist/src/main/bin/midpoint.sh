@@ -167,6 +167,41 @@ if [ "${1}" = "init-native" ]; then
     keytool -list -keystore ${MP_KEYSTORE} -storetype jceks -storepass:file ${keystorepw} 2>/dev/null
     echo "- - - - -"
   fi
+
+  # Import bundled Let's Encrypt root CA certificates into the keystore
+  LE_CERTS_DIR="${BASE_DIR}/certs/lets-encrypt-root-certs"
+  if [ -d "${LE_CERTS_DIR}" ]; then
+    echo "Importing Let's Encrypt root CA certificates."
+    keystorepw="${MP_PW:-${MP_PW_DEF:-}}"
+    if [ "${MP_KEYSTORE:-}" != "" ]; then
+      if [ "${keystorepw}" = "" ]; then
+        echo "Keystore path has been set, but keystore password file is not..."
+        exit 1
+      fi
+    fi
+
+    keystore="${MP_KEYSTORE:-${MIDPOINT_HOME}/${JAVA_def_trustStore}}"
+    if [ "${keystorepw}" = "" ]; then
+      # The keystore has not been explicitly defined and password file for new keystore is not defined either.
+      # We will use default password.
+      keystorepw="${MIDPOINT_HOME}/keystorepw"
+      echo -n "changeit" > "${keystorepw}"
+    fi
+    if [ ! -e "${keystore}" ]; then
+      keytool -genseckey -alias default -keystore "${keystore}" -storetype jceks -keypass midpoint -storepass:file "${keystorepw}" -keyalg AES -keysize 128 2>/dev/null
+    fi
+    for certFile in "${LE_CERTS_DIR}"/*.pem; do
+      [ -e "${certFile}" ] || continue
+      alias_name="$(basename "${certFile}" .pem)"
+      if keytool -list -keystore "${keystore}" -storetype jceks -storepass:file "${keystorepw}" 2>/dev/null | grep -q "${alias_name}"; then
+        echo "Let's Encrypt cert '${alias_name}' already in keystore - skipping." >&2
+      else
+        echo "Importing Let's Encrypt cert '${alias_name}' into keystore..." >&2
+        keytool -importcert -noprompt -trustcacerts -alias "${alias_name}" -file "${certFile}" -keystore "${keystore}" -storetype jceks -storepass:file "${keystorepw}" 2>/dev/null
+      fi
+    done
+  fi
+
   echo "All requested operation has been done - init files are ready on requested location..."
   if [ "${MP_CHECK:-}" != "" ]; then
     rm "${MP_CHECK}"

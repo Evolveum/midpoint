@@ -529,6 +529,16 @@ export default class MidPointTheme {
                     e.stopPropagation();
                 }
             });
+
+            // Menu links carry a tooltip, generic tooltip key handler would swallow Enter/Space
+            // and the link would never be activated from keyboard.
+            $(".sidebar-menu").on("keydown", "a.nav-link", function (e) {
+                if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    this.click();
+                }
+            });
         });
 
         jQuery(function ($) {
@@ -1560,8 +1570,9 @@ export default class MidPointTheme {
             return;
         }
 
-        const syncTitle = () => {
+        const syncState = () => {
             const isCompact = document.body.classList.contains('sidebar-collapse');
+            button.setAttribute('aria-expanded', isCompact ? 'false' : 'true');
             const title = button.getAttribute(isCompact ? 'data-title-collapsed' : 'data-title-expanded');
             if (title) {
                 button.setAttribute('title', title);
@@ -1582,14 +1593,14 @@ export default class MidPointTheme {
             }, 100);
         };
 
-        syncTitle();
+        syncState();
 
         document.addEventListener('collapsed.lte.push-menu', () => {
-            syncTitle();
+            syncState();
             announce(false);
         });
         document.addEventListener('opened.lte.push-menu', () => {
-            syncTitle();
+            syncState();
             announce(true);
         });
     }

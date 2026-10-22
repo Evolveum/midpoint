@@ -181,6 +181,7 @@ public abstract class ReloadableButton extends AjaxIconButton {
         return (task, result) -> pageBase.getModelInteractionService().submit(
                 createActivityDefinition(),
                 ActivitySubmissionOptions.create()
+                        .withSystemSubmitted(true)
                         .withTaskTemplate(new TaskType()
                                 .name(getTaskName())
                                 .cleanupAfterCompletion(XmlTypeConverter.createDuration("PT0S"))),

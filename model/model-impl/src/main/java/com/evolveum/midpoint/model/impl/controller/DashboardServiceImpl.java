@@ -414,7 +414,7 @@ public class DashboardServiceImpl implements DashboardService {
                 variablesMap.registerAlias(VAR_PROPORTIONAL, ExpressionConstants.VAR_INPUT);
             }
             if (policySituations != null) {
-                variablesMap.put(VAR_POLICY_SITUATIONS, policySituations, String.class);
+                variablesMap.put(VAR_POLICY_SITUATIONS, policySituations, Collection.class);
             }
             variables.addVariableDefinitions(variablesMap);
         }

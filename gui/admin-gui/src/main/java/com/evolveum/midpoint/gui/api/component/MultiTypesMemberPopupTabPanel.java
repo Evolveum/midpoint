@@ -9,6 +9,7 @@ package com.evolveum.midpoint.gui.api.component;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.ObjectTypeListUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.search.Search;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
@@ -83,7 +84,7 @@ public abstract class MultiTypesMemberPopupTabPanel<O extends ObjectType> extend
     }
 
     protected List<ObjectTypes> getSupportedTypesList(){
-        List<ObjectTypes> supportedTypes = ObjectTypeListUtil.createAssignmentHolderTypesList();
+        List<ObjectTypes> supportedTypes = ObjectTypeListUtil.createAssignmentHolderTypesList(getPageBase());
         supportedTypes.remove(ObjectTypes.USER);
         supportedTypes.remove(ObjectTypes.ROLE);
         supportedTypes.remove(ObjectTypes.SERVICE);

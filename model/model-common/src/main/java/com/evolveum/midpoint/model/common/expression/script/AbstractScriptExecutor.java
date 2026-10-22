@@ -125,7 +125,7 @@ public abstract class AbstractScriptExecutor implements ScriptExecutor {
             throws Exception;
 
     protected void checkProfileAndSafetyRestrictions(ScriptExecutionContext context) throws SecurityViolationException {
-        if (configuration.safeExpressionsOnly() && !isConsideredSafe()) {
+        if (configuration.safeScriptingLanguagesOnly() && !isConsideredSafe()) {
             throw new SecurityViolationException(
                     ("Script interpreter for language '%s' is not considered safe; script execution prohibited in %s").formatted(
                             getLanguageName(),
@@ -297,7 +297,7 @@ public abstract class AbstractScriptExecutor implements ScriptExecutor {
     /**
      * Safe script evaluators are those that execute untrusted scripts. Currently, only MEL and Safe Velocity have this property.
      *
-     * @see MidpointConfiguration#isSafeExpressionsOnly()
+     * @see MidpointConfiguration#isSafeScriptingLanguagesOnly()
      */
     protected boolean isConsideredSafe() {
         return false;

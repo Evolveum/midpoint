@@ -66,12 +66,13 @@ public class TogglePanel<O extends Serializable> extends BasePanel<List<Toggle<O
                 };
 
                 button.add(AttributeAppender.replace("class", getButtonCssClass()));
-                button.add(AttributeAppender.append("class", () -> item.getModelObject().isActive()
+                button.add(AttributeAppender.append("class", () -> isItemActive(item.getModelObject())
                         ? getActiveCssClass() : getInactiveCssClass()));
-                button.add(AttributeAppender.replace("aria-pressed", () -> item.getModelObject().isActive() ? "true" : "false"));
+                button.add(AttributeAppender.replace("aria-pressed", () -> isItemActive(item.getModelObject()) ? "true" : "false"));
                 button.add(AttributeAppender.append("title", getTitleModel(item)));
                 button.add(AttributeAppender.append("aria-label", getTitleModel(item)));
 
+                button.add(AttributeAppender.replace("data-bs-toggle", TogglePanel.this::getBootstrapToggle));
                 item.add(button);
 
                 Component content = createButtonContent(ID_CONTENT, item.getModel());
@@ -81,6 +82,14 @@ public class TogglePanel<O extends Serializable> extends BasePanel<List<Toggle<O
         buttons.setOutputMarkupId(true);
         buttons.add(AttributeAppender.append("class", getDefaultCssClass()));
         add(buttons);
+    }
+
+    protected boolean isItemActive(Toggle<O> item) {
+        return item.isActive();
+    }
+
+    protected String getBootstrapToggle() {
+        return "button";
     }
 
     public @NotNull String getActiveCssClass() {

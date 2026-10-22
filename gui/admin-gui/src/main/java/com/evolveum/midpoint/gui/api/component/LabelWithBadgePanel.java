@@ -9,6 +9,8 @@ package com.evolveum.midpoint.gui.api.component;
 
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
+import com.evolveum.midpoint.web.util.TooltipBehavior;
+
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -45,7 +47,13 @@ public class LabelWithBadgePanel extends BasePanel<Badge> {
         icon.add(new VisibleBehaviour(this::isIconVisible));
         add(icon);
 
-        BadgePanel badge = new BadgePanel(ID_BADGE, getModel());
+        BadgePanel badge = new BadgePanel(ID_BADGE, getModel()){
+            @Override
+            protected boolean isTooltipEnabled() {
+                return getModel().getObject().getTitle() != null;
+            }
+        };
+
         badge.setOutputMarkupId(true);
         badge.add(new VisibleBehaviour(this::isBadgeVisible));
         add(badge);

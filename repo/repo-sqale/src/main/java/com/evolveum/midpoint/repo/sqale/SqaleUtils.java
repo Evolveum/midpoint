@@ -63,7 +63,9 @@ public class SqaleUtils {
     public static final String OWNER_OID = "ownerOid";
     public static final String FULL_ID_PATH = "containerIdPath";
     public static final String REINDEX_NEEDED = "sqale.reindexNeeded";
-    public static final String PSQL_STATE_PROGRAM_LIMIT_EXCEEDED = "54000";
+
+    /** SQL state `program_limit_exceeded`, reported e.g. when value is too large for index row. */
+    private static final String PSQL_STATE_PROGRAM_LIMIT_EXCEEDED = "54000";
 
     /**
      * Returns version from midPoint object as a number.
@@ -169,20 +171,15 @@ public class SqaleUtils {
             }
         }
 
-        if (PSQL_STATE_PROGRAM_LIMIT_EXCEEDED.equals(state) ||
-                PSQLState.STRING_DATA_RIGHT_TRUNCATION.getState().equals(state)
-        ) {
-
-            var schemaException = new SchemaException(
+        if (PSQL_STATE_PROGRAM_LIMIT_EXCEEDED.equals(state)
+                || PSQLState.STRING_DATA_RIGHT_TRUNCATION.getState().equals(state)) {
+            throw new SchemaException(
                     new LocalizableMessageBuilder()
-                        .key("limitationValueSize.exceptionMessage")
-                        .build(),
-                    exception
-            );
-
-            schemaException.setTechnicalMessage("Value too long for repository");
-
-            throw schemaException;
+                            .key("limitationValueSize.exceptionMessage")
+                            .fallbackMessage("Some of the entered values are too long to be stored."
+                                    + " Shorten the value and try again.")
+                            .build(),
+                    exception);
         }
     }
 

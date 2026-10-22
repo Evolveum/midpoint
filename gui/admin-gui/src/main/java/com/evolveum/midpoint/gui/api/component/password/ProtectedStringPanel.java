@@ -63,18 +63,24 @@ public class ProtectedStringPanel extends BasePanel<PrismPropertyValueWrapper<Pr
 
     private final boolean showOneLinePasswordPanel;
     private final boolean useGlobalValuePolicy;
+    private final IModel<String> passwordPlaceholderModel;
+    private final IModel<String> repeatPasswordPlaceholderModel;
 
     public ProtectedStringPanel(
             String id,
             IModel<PrismPropertyValueWrapper<ProtectedStringType>> model,
             boolean showProviderPanel,
             boolean showOneLinePasswordPanel,
-            boolean useGlobalValuePolicy) {
+            boolean useGlobalValuePolicy,
+            IModel<String> passwordPlaceholderModel,
+            IModel<String> repeatPasswordPlaceholderModel) {
         super(id, model);
 
         this.showProviderPanel = showProviderPanel;
         this.showOneLinePasswordPanel = showOneLinePasswordPanel;
         this.useGlobalValuePolicy = useGlobalValuePolicy;
+        this.passwordPlaceholderModel = passwordPlaceholderModel;
+        this.repeatPasswordPlaceholderModel = repeatPasswordPlaceholderModel;
 
         if (!showProviderPanel) {
             currentState = Model.of(State.CLEAR_PASSWORD);
@@ -180,6 +186,21 @@ public class ProtectedStringPanel extends BasePanel<PrismPropertyValueWrapper<Pr
                 return super.isPasswordStrengthBarVisible() && useGlobalValuePolicy;
             }
 
+            @Override
+            protected IModel<String> getPasswordPlaceholder() {
+                if (passwordPlaceholderModel != null) {
+                    return passwordPlaceholderModel;
+                }
+                return super.getPasswordPlaceholder();
+            }
+
+            @Override
+            protected IModel<String> getRepeatPasswordPlaceholder() {
+                if (repeatPasswordPlaceholderModel != null) {
+                    return repeatPasswordPlaceholderModel;
+                }
+                return super.getPasswordPlaceholder();
+            }
         };
         panel.setOutputMarkupId(true);
         container.addOrReplace(panel);

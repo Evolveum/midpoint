@@ -37,7 +37,7 @@ import org.jetbrains.annotations.NotNull;
         containerPath = "empty")
 public class WaitingSchemaConnectorStepPanel extends WaitingConnectorStepPanel {
 
-    private static final String PANEL_TYPE = "cdw-connector-waiting-schema";
+    public static final String PANEL_TYPE = "cdw-connector-waiting-schema";
 
     public WaitingSchemaConnectorStepPanel(WizardPanelHelper<? extends Containerable, ConnectorDevelopmentDetailsModel> helper) {
         super(helper);

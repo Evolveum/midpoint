@@ -43,6 +43,14 @@
                 <decision>allow</decision>
             </evaluator>
             <evaluator>
+                <type>assignmentTargetSearch</type>
+                <decision>allow</decision>
+            </evaluator>
+            <evaluator>
+                <type>associationTargetSearch</type>
+                <decision>allow</decision>
+            </evaluator>
+            <evaluator>
                 <type>script</type>
                 <decision>deny</decision>
                 <script>

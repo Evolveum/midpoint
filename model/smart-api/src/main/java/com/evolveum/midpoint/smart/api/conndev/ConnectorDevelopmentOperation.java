@@ -10,6 +10,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import static com.evolveum.midpoint.smart.api.conndev.ConnectorDevelopmentArtifacts.KnownArtifactType.*;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.List;
 import java.util.function.Consumer;
 
@@ -38,6 +39,14 @@ public interface ConnectorDevelopmentOperation {
     StatusInfo<PrismContainer<ConnDevAuthInfoType>>  selectBaseApiInformation(String basicInfo);
 
     String submitCreateConnector(Task task, OperationResult result);
+
+    /**
+     * Copies the bundle of the existing low-code connector this development was imported from
+     * (see {@code connector/sourceConnectorRef}) to a new bundle directory with the development's
+     * connector coordinates (group, artifact, version) and installs the copy. Counterpart of
+     * {@link #submitCreateConnector} for the import flow - no framework template download.
+     */
+    String submitCopyConnector(Task task, OperationResult result);
 
     String submitExportConnector(Task task, OperationResult result);
 
@@ -215,6 +224,28 @@ public interface ConnectorDevelopmentOperation {
     void saveArtifact(ConnDevArtifactType endpoint, Task task, OperationResult result) throws IOException, CommonException;
 
     /**
+     * Saves the uploaded documentation file to disk (tmp-docs) and registers it as processed
+     * documentation of the development, so that the session restoration uploads it to the
+     * generation service - the same way the discovered schema documents are integrated.
+     *
+     * @param fileName original name of the uploaded file
+     * @param content file content
+     * @param contentType MIME type of the file
+     * @param task task of the operation
+     * @param result operation result
+     * @return generated UUID under which the file is stored
+     */
+    String saveDocumentationFile(String fileName, InputStream content, String contentType, Task task, OperationResult result)
+            throws IOException, CommonException;
+
+    /**
+     * Removes the processed documentation (and its stored file) of an uploaded documentation file,
+     * identified by its original file name, so that the session restoration stops uploading it to
+     * the generation service. A no-op when the development carries no such processed documentation.
+     */
+    void removeDocumentationFile(String fileName, Task task, OperationResult result) throws CommonException;
+
+    /**
      * Marks an already-deployed script as disabled in the manifest, so the connector skips it both
      * when initializing for real and when reloading siblings during script validation. Lets the
      * wizard offer a "Disable operation" action for a sibling script a schema change breaks,
@@ -222,7 +253,34 @@ public interface ConnectorDevelopmentOperation {
      */
     void disableArtifact(String filename, Task task, OperationResult result) throws IOException, CommonException;
 
+    /**
+     * Deletes the generated file backing an artifact whose model entry has already been (or is
+     * about to be) removed - e.g. by "Clear capability" removing the {@link ConnDevArtifactType}
+     * container itself. Unlike {@link #disableArtifact}, which keeps the file and only marks it
+     * disabled, this is for when the artifact's model reference is gone entirely: without also
+     * deleting the file, it survives on disk and gets picked back up by filename if the same
+     * capability is generated again later, silently reusing stale content instead of regenerating.
+     */
+    void deleteArtifactFile(String filename, Task task, OperationResult result) throws IOException, CommonException;
+
+    /**
+     * Rewrites the connector's manifest file from its current model state. {@link #saveArtifact}
+     * and {@link #disableArtifact} already do this themselves - call this directly only after a
+     * plain object save (e.g. removing an artifact's container value outside those two methods,
+     * as "Clear capability" does) that doesn't go through either and so wouldn't otherwise be
+     * reflected in the manifest.
+     */
+    void recomputeConnectorManifest(Task task, OperationResult result) throws IOException, CommonException;
+
     ConnDevArtifactValidationResult validateArtifact(ConnDevArtifactType artifact, Task task, OperationResult result);
+
+    /**
+     * Validates several candidate artifacts as one set, so none of them blocks on another one's
+     * own not-yet-saved content. Every artifact in the input is validated as its own "primary"
+     * (actually built), with every other artifact substituted in place of its own still-broken
+     * deployed version. Errors from every artifact are merged into one result.
+     */
+    ConnDevArtifactValidationResult validateArtifacts(List<ConnDevArtifactType> artifacts, Task task, OperationResult result);
 
 
     default void  saveNativeSchemaScript(ConnDevArtifactType artifact, Task task, OperationResult result) throws IOException, CommonException {

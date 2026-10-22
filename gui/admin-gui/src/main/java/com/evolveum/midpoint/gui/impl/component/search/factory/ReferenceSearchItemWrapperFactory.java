@@ -19,7 +19,8 @@ public class ReferenceSearchItemWrapperFactory extends AbstractSearchItemWrapper
                 (PrismReferenceDefinition)ctx.getItemDef(),
                 ctx.getPath(),
                 ctx.getParameterTargetType(),
-                ctx.getContainerClassType());
+                ctx.getContainerClassType(),
+                ctx.getModelServiceLocator());
     }
 
     @Override

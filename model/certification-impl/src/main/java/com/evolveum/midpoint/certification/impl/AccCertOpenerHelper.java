@@ -509,7 +509,7 @@ public class AccCertOpenerHelper {
             for (Duration beforeDeadline : stageDef.getNotifyBeforeDeadline()) {
                 final XMLGregorianCalendar beforeEnd = CloneUtil.clone(stageDeadline);
                 beforeEnd.add(beforeDeadline.negate());
-                if (XmlTypeConverter.toMillis(beforeEnd) > System.currentTimeMillis()) {
+                if (XmlTypeConverter.toMillis(beforeEnd) > clock.currentTimeMillis()) {
                     final TriggerType triggerBeforeEnd = new TriggerType();
                     triggerBeforeEnd.setHandlerUri(AccessCertificationCloseStageApproachingTriggerHandler.HANDLER_URI);
                     triggerBeforeEnd.setTimestamp(beforeEnd);

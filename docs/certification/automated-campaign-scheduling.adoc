@@ -4,7 +4,7 @@ doc-type: guide
 ---
 = Automated campaign scheduling
 :page-nav-title: Campaign scheduling
-:page-upkeep-status: orange
+:page-upkeep-status: green
 :experimental:
 :page-display-order: 300
 :page-toc: top

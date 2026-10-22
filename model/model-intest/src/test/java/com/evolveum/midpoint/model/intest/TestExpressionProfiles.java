@@ -14,9 +14,11 @@ import java.io.File;
 import java.io.IOException;
 
 import com.evolveum.midpoint.model.api.BulkActionExecutionOptions;
+import com.evolveum.midpoint.model.test.CommonInitialObjects;
 import com.evolveum.midpoint.prism.PrismObjectValue;
 import com.evolveum.midpoint.schema.expression.MidPointTrustDescriptor;
 import com.evolveum.midpoint.schema.expression.TrustDescriptorSetter;
+import com.evolveum.midpoint.test.DummyDefaultScenario;
 import com.evolveum.midpoint.util.exception.*;
 
 import org.jetbrains.annotations.NotNull;
@@ -46,6 +48,7 @@ import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ExecuteScriptType;
  * . `test1xx`: auto-assigned roles
  * . `test2xx`: various expressions in explicitly-assigned roles
  * . `test3xx`: bulk actions
+ * . `test4xx`: safety of various expressions: `assignmentTargetSearch`, `associationTargetSearch`, and so on
  *
  * Expression profiles:
  *
@@ -73,7 +76,8 @@ public class TestExpressionProfiles extends AbstractEmptyModelIntegrationTest {
             TEST_DIR, "function-library-two.xml", "f28e0119-5dfe-4e6f-92d7-3a1ad5b1cc91");
 
     private static final DummyTestResource RESOURCE_SIMPLE_TARGET = new DummyTestResource(
-            TEST_DIR, "resource-simple-target.xml", "2003a0c3-62a3-413d-9941-6fecaef84a16", "simple-target");
+            TEST_DIR, "resource-simple-target.xml", "2003a0c3-62a3-413d-9941-6fecaef84a16", "simple-target",
+            c -> DummyDefaultScenario.on(c).initialize());
 
     private static final TestObject<RoleType> METAROLE_DUMMY = TestObject.file(
             TEST_DIR, "metarole-dummy.xml", "d9a263b7-b272-46d8-84dc-cdf96d79128e");
@@ -87,8 +91,8 @@ public class TestExpressionProfiles extends AbstractEmptyModelIntegrationTest {
 
     private static final TestObject<ArchetypeType> ARCHETYPE_RESTRICTED_ROLE = TestObject.file(
             TEST_DIR, "archetype-restricted-role.xml", "a2242707-43cd-4f18-b986-573cb468693d");
-    private static final TestObject<ArchetypeType> ARCHETYPE_SAFE_ROLE = TestObject.file(
-            TEST_DIR, "archetype-safe-role.xml", "2a68ff58-b009-11f0-9b5e-236da66bcdb4");
+    private static final TestObject<ArchetypeType> ARCHETYPE_SAFE = TestObject.file(
+            TEST_DIR, "archetype-safe.xml", "2a68ff58-b009-11f0-9b5e-236da66bcdb4");
     private static final TestObject<ArchetypeType> ARCHETYPE_NO_PRIVILEGE_ELEVATION = TestObject.file(
             TEST_DIR, "archetype-no-privilege-elevation.xml", "f2d01dd2-50b4-4d4d-babd-e00671923f2c");
     private static final TestObject<ArchetypeType> ARCHETYPE_TRUSTED_ROLE = TestObject.file(
@@ -151,6 +155,11 @@ public class TestExpressionProfiles extends AbstractEmptyModelIntegrationTest {
     private static final TestObject<RoleType> ROLE_SAFE_BAD_MEL = TestObject.file(
             TEST_DIR, "role-safe-bad-mel.xml", "9f78c6e2-124d-11f1-a7ec-8f778e084091");
 
+    private static final TestObject<?> OBJECT_TEMPLATE_PERSON = TestObject.file(
+            TEST_DIR, "object-template-person.xml", "80ee6e76-21a7-4687-b051-25ae77e9c891");
+    private static final TestObject<?> ARCHETYPE_PERSON = TestObject.file(
+            TEST_DIR, "archetype-person.xml", "efab2dc9-8959-4f24-bc61-110b6589f40e");
+
     private static final File FILE_SCRIPTING_EXECUTE_SCRIPT = new File(TEST_DIR, "scripting-execute-script.xml");
     private static final File FILE_SCRIPTING_EXPRESSION_EXECUTE_SCRIPT = new File(TEST_DIR, "scripting-expression-execute-script.xml");
     private static final File FILE_SCRIPTING_NOTIFICATION_CUSTOM_HANDLER = new File(TEST_DIR, "scripting-notification-custom-handler.xml");
@@ -186,10 +195,15 @@ public class TestExpressionProfiles extends AbstractEmptyModelIntegrationTest {
 
         initTestObjects(initTask, initResult,
                 VALUE_POLICY_TEST,
+
                 FUNCTION_LIBRARY_ONE,
                 FUNCTION_LIBRARY_TWO,
+
+                CommonInitialObjects.ARCHETYPE_SINGLE_BULK_ACTION_TASK,
+                CommonInitialObjects.ARCHETYPE_USER_SUBMITTED_TASK,
+
                 ARCHETYPE_RESTRICTED_ROLE,
-                ARCHETYPE_SAFE_ROLE,
+                ARCHETYPE_SAFE,
                 ARCHETYPE_NO_PRIVILEGE_ELEVATION,
                 ARCHETYPE_TRUSTED_ROLE,
                 ARCHETYPE_LITTLE_TRUSTED_ROLE,
@@ -197,6 +211,9 @@ public class TestExpressionProfiles extends AbstractEmptyModelIntegrationTest {
                 ARCHETYPE_LITTLE_TRUSTED_VARIANT_TWO_ROLE,
                 ARCHETYPE_FORBIDDEN_GENERATE_VALUE_ACTION_ROLE,
                 ARCHETYPE_FORBIDDEN_GENERATE_VALUE_ACTION_ALT_ROLE,
+                OBJECT_TEMPLATE_PERSON,
+                ARCHETYPE_PERSON,
+
                 METAROLE_DUMMY,
                 ROLE_UNRESTRICTED,
                 ROLE_SCRIPTING,
@@ -211,6 +228,19 @@ public class TestExpressionProfiles extends AbstractEmptyModelIntegrationTest {
                 ROLE_SAFE_GOOD,
                 ROLE_SAFE_BAD_GROOVY,
                 ROLE_SAFE_BAD_MEL);
+
+        createRoleWithGroup(initTask, initResult);
+    }
+
+    private void createRoleWithGroup(Task task, OperationResult result) throws CommonException {
+        RoleType roleWithGroup = new RoleType()
+                .name("test-role")
+                .assignment(RESOURCE_SIMPLE_TARGET.assignmentWithConstructionOf(ShadowKindType.ENTITLEMENT, "group"));
+
+        var oid = addObject(roleWithGroup.asPrismObject(), task, result);
+
+        assertRole(oid, "")
+                .display();
     }
 
     @Override
@@ -774,13 +804,13 @@ public class TestExpressionProfiles extends AbstractEmptyModelIntegrationTest {
                 "expression profile 'no-privilege-elevation'");
     }
 
-    /** Executing script directly with the `trusted` origin. Should succeed. */
+    /** Executing bulk action with script directly with the `trusted` origin. Should succeed. */
     @Test
     public void test300BulkActionWithKnownOrigin() throws CommonException, IOException {
         runPositiveBulkActionTest(FILE_SCRIPTING_EXECUTE_SCRIPT, originForArchetype(ARCHETYPE_TRUSTED_ROLE));
     }
 
-    /** Executing script directly (with the default profile). Should fail. */
+    /** Executing bulk action with script directly from REST (with the default profile). Should fail. */
     @Test
     public void test310UntrustedBulkExecutingScriptDirectly() throws CommonException, IOException {
         runNegativeBulkActionTest(
@@ -790,7 +820,7 @@ public class TestExpressionProfiles extends AbstractEmptyModelIntegrationTest {
                 MSG_PROFILE_LEGACY_UNPRIVILEGED_BULK_ACTIONS);
     }
 
-    /** Executing script via expression (with the default profile). Should fail. */
+    /** Executing bulk action with script via expression from REST (with the default profile). Should fail. */
     @Test
     public void test315UntrustedBulkExecutingScriptViaExpression() throws CommonException, IOException {
         runNegativeBulkActionTest(
@@ -800,13 +830,13 @@ public class TestExpressionProfiles extends AbstractEmptyModelIntegrationTest {
                 MSG_PROFILE_LEGACY_UNPRIVILEGED_BULK_ACTIONS);
     }
 
-    /** Executing script via notification (with the default profile). Should fail. */
+    /** Executing bulk action with script via notification (with the default profile). Should fail. */
     @Test
     public void test320UntrustedBulkExecutingScriptViaNotification() throws CommonException, IOException {
         runNegativeNotificationBulkActionTest(FILE_SCRIPTING_NOTIFICATION_CUSTOM_HANDLER);
     }
 
-    /** Executing script via search filter (with the default profile). Should fail. */
+    /** Executing bulk action with script via search filter (with the default profile). Should fail. */
     @Test
     public void test325UntrustedBulkExecutingScriptViaSearchFilter() throws CommonException, IOException {
         runNegativeBulkActionTest(
@@ -816,7 +846,7 @@ public class TestExpressionProfiles extends AbstractEmptyModelIntegrationTest {
                 MSG_PROFILE_LEGACY_UNPRIVILEGED_BULK_ACTIONS);
     }
 
-    /** Executing script via filter in `unassign` action. Should fail. */
+    /** Executing bulk action with script via filter in `unassign` action (with the default profile). Should fail. */
     @Test
     public void test330UntrustedBulkExecutingScriptViaUnassignFilter() throws CommonException, IOException {
         runNegativeBulkActionTest(
@@ -827,8 +857,9 @@ public class TestExpressionProfiles extends AbstractEmptyModelIntegrationTest {
     }
 
     /**
-     * Executing script in "allowed" trusted library function (`simpleTrustedFunction` call is allowed
-     * by `little-trusted` profile. Should succeed.
+     * Executing bulk action with script in "allowed" trusted library function (`simpleTrustedFunction` call is allowed
+     * by `little-trusted` profile.) Should succeed.
+     *
      * This test is using `function` evaluator.
      */
     @Test
@@ -839,8 +870,9 @@ public class TestExpressionProfiles extends AbstractEmptyModelIntegrationTest {
     }
 
     /**
-     * Executing script in "allowed" trusted library function (`simpleTrustedFunction` call is allowed
-     * by `little-trusted` profile. Should succeed.
+     * Executing bulk action with script in "allowed" trusted library function (`simpleTrustedFunction` call is allowed
+     * by `little-trusted` profile.) Should succeed.
+     *
      * This test is using MEL script.
      */
     @Test
@@ -851,7 +883,7 @@ public class TestExpressionProfiles extends AbstractEmptyModelIntegrationTest {
     }
 
     /**
-     * Executing script containing invocation of denied function anotherTrustedFunction.
+     * Executing bulk action with script containing invocation of denied function anotherTrustedFunction.
      * This test is using `function` evaluator.
      */
     @Test
@@ -864,7 +896,7 @@ public class TestExpressionProfiles extends AbstractEmptyModelIntegrationTest {
     }
 
     /**
-     * Executing script containing invocation of denied function anotherTrustedFunction.
+     * Executing bulk action with script containing invocation of denied function anotherTrustedFunction.
      * This test is using `function` evaluator.
      */
     @Test
@@ -877,7 +909,7 @@ public class TestExpressionProfiles extends AbstractEmptyModelIntegrationTest {
     }
 
     /**
-     * Executing script containing invocation of denied function library `two`.
+     * Executing bulk action with script containing invocation of denied function library `two`.
      * This test is using `function` evaluator.
      */
     @Test
@@ -890,8 +922,8 @@ public class TestExpressionProfiles extends AbstractEmptyModelIntegrationTest {
     }
 
     /**
-     * Executing script in "not allowed" trusted library function (`simpleTrustedFunction` call is not allowed
-     * by `little-trusted-variant` profile. Should fail.
+     * Executing bulk action with script in "not allowed" trusted library function (`simpleTrustedFunction` call is not allowed
+     * by `little-trusted-variant` profile.) Should fail.
      */
     @Test
     public void test355LittleTrustedVariantLibraryCall() throws CommonException, IOException {
@@ -903,8 +935,8 @@ public class TestExpressionProfiles extends AbstractEmptyModelIntegrationTest {
     }
 
     /**
-     * Executing script in "not allowed" trusted library function (library `one` is not allowed
-     * by `little-trusted-variant-two` profile. Should fail.
+     * Executing bulk action with script in "not allowed" trusted library function (library `one` is not allowed
+     * by `little-trusted-variant-two` profile.) Should fail.
      */
     @Test
     public void test358LittleTrustedVariantTwoLibraryCall() throws CommonException, IOException {
@@ -914,7 +946,6 @@ public class TestExpressionProfiles extends AbstractEmptyModelIntegrationTest {
                 "Access to function library method simpleTrustedFunction",
                 "expression profile 'little-trusted-variant-two', libraries profile 'little-trusted-variant-two'");
     }
-
 
     /**
      * Executing `generate-value` is allowed by the default profile. Just a baseline test. Should succeed.
@@ -943,7 +974,7 @@ public class TestExpressionProfiles extends AbstractEmptyModelIntegrationTest {
     }
 
     /**
-     * Executing `generate-value` is forbidden by the `forbidden-generate-value-action` profile.
+     * Executing bulk action with `generate-value` that is forbidden by the `forbidden-generate-value-action` profile.
      */
     @Test
     public void test364GenerateValueForbidden() throws CommonException, IOException {
@@ -955,7 +986,7 @@ public class TestExpressionProfiles extends AbstractEmptyModelIntegrationTest {
     }
 
     /**
-     * Executing `generate-value` is forbidden by the `forbidden-generate-value-action-alt` profile.
+     * Executing bulk action with `generate-value` that is forbidden by the `forbidden-generate-value-action-alt` profile.
      */
     @Test
     public void test368GenerateValueForbiddenAlt() throws CommonException, IOException {
@@ -964,6 +995,206 @@ public class TestExpressionProfiles extends AbstractEmptyModelIntegrationTest {
                 originForArchetype(ARCHETYPE_FORBIDDEN_GENERATE_VALUE_ACTION_ALT_ROLE),
                 "Access to action 'generate-value' ('generateValue')",
                 "expression profile 'forbidden-generate-value-action-alt', actions profile 'forbidden-generate-value-action-alt'");
+    }
+
+    /**
+     * Executes bulk action in background as unprivileged user.
+     * No special archetype/profile for execution task.
+     * Bulk action run should be denied.
+     */
+    @Test
+    public void test370BulkActionInBackgroundUnprivileged() throws CommonException, IOException {
+        given("unprivileged user is logged in");
+        login(USER_JOE.getNameOrig());
+
+        runNegativeAsyncBulkActionTest(
+                FILE_SCRIPTING_EXECUTE_SCRIPT,
+                "Script interpreter for language 'Groovy' is not allowed in expression profile '##legacyUnprivilegedBulkActions'");
+    }
+
+    /**
+     * Executes bulk action in background as privileged user.
+     * No special archetype/profile for execution task.
+     * Bulk action run should be allowed.
+     */
+    @Test
+    public void test372BulkActionInBackgroundPrivileged() throws CommonException, IOException {
+        given("privileged user is logged in");
+        login(userAdministrator);
+
+        runPositiveAsyncBulkActionTest(FILE_SCRIPTING_EXECUTE_SCRIPT);
+    }
+
+    /**
+     * Executes bulk action in background as unprivileged user.
+     * But bulk actions as such have `trusted` expression profile (which is not recommended but possible).
+     * Bulk action run should be denied anyway.
+     */
+    @Test
+    public void test374BulkActionInBackgroundUnprivilegedWithTrustedTasks() throws CommonException, IOException {
+        setSingleRunBulkActionTaskProfile("trusted");
+        try {
+            when("unprivileged user is logged in");
+            login(USER_JOE.getNameOrig());
+            runNegativeAsyncBulkActionTest(
+                    FILE_SCRIPTING_EXECUTE_SCRIPT,
+                    "Script interpreter for language 'Groovy' is not allowed in expression profile '##legacyUnprivilegedBulkActions'");
+        } finally {
+            setSingleRunBulkActionTaskProfile(null);
+        }
+    }
+
+    private void setSingleRunBulkActionTaskProfile(String profileId) throws CommonException {
+        when("profile for single-run bulk action task is set to " + profileId);
+        login(userAdministrator);
+        executeChanges(
+                deltaFor(ArchetypeType.class)
+                        .item(ArchetypeType.F_ARCHETYPE_POLICY, ArchetypePolicyType.F_EXPRESSION_PROFILE)
+                        .replace(profileId)
+                        .asObjectDelta(CommonInitialObjects.ARCHETYPE_SINGLE_BULK_ACTION_TASK.oid),
+                null, getTestTask(), getTestOperationResult());
+    }
+
+    /**
+     * Executes bulk action in background as privileged user.
+     * But bulk actions as such have `safe` expression profile. So we are requesting an exception based on the privileges
+     * of the principal.
+     * Bulk action run should be allowed.
+     */
+    @Test
+    public void test376BulkActionInBackgroundPrivilegedWithUntrustedTasks() throws CommonException, IOException {
+        setSingleRunBulkActionTaskProfile("safe");
+        try {
+            when("privileged user is logged in");
+            login(userAdministrator);
+            runPositiveAsyncBulkActionTest(FILE_SCRIPTING_EXECUTE_SCRIPT);
+        } finally {
+            setSingleRunBulkActionTaskProfile(null);
+        }
+    }
+
+    private void runNegativeAsyncBulkActionTest(File file, String expectedMsg) throws IOException, CommonException {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+        resetBoomed();
+
+        when("dangerous bulk action is submitted to execution");
+        var script = parseScript(file, MidPointTrustDescriptor.forCurrentPrincipal());
+        var taskOid = modelInteractionService.submitScriptingExpression(script, task, result);
+
+        then("the task should be created but not successfully executed");
+        var taskAfter = waitForTaskFinish(taskOid, 10000L, true);
+        assertTask(taskAfter, "after")
+                .display()
+                .assertSuspended()
+                .assertFatalError()
+                .assertResultMessageContains(expectedMsg);
+
+        and("not boomed");
+        BOOMED_FLAG.assertNotSet();
+    }
+
+    private void runPositiveAsyncBulkActionTest(File file) throws IOException, CommonException {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+        resetBoomed();
+
+        when("dangerous bulk action is submitted to execution");
+        var script = parseScript(file, MidPointTrustDescriptor.forCurrentPrincipal());
+        var taskOid = modelInteractionService.submitScriptingExpression(script, task, result);
+
+        then("the task should be created and successfully executed");
+        var taskAfter = waitForTaskFinish(taskOid, 10000);
+        assertTask(taskAfter, "after")
+                .display()
+                .assertClosed()
+                .assertSuccess();
+
+        and("boomed");
+        BOOMED_FLAG.assertSet();
+    }
+
+    /** Are expressions in the search filter in `assignmentTargetSearch` treated correctly? */
+    @Test
+    public void test400AssignmentTargetSearchWithFilterExpression() throws CommonException {
+        testAddUserBlocked();
+    }
+
+    /** Are expressions in `populate` in `assignmentTargetSearch` treated correctly? */
+    @Test
+    public void test402AssignmentTargetSearchWithPopulateAssignmentItemExpression() throws CommonException {
+        testAddUserBlocked();
+    }
+
+    /** Are expressions in `populateObject` in `assignmentTargetSearch` treated correctly? */
+    @Test
+    public void test404AssignmentTargetSearchWithPopulateObjectItemExpression() throws CommonException {
+        testAddUserBlocked();
+    }
+
+    private void testAddUserBlocked() throws CommonException {
+        var task = getTestTask();
+        var result = task.getResult();
+
+        login(userAdministrator);
+
+        var userName = getTestNameShort();
+        var user = new UserType()
+                .name(userName)
+                .assignment(ARCHETYPE_PERSON.assignmentTo());
+
+        when("creating the user");
+        try {
+            addObject(user, task, result);
+            fail("unexpected success");
+        } catch (SecurityViolationException e) {
+            then("the exception should be thrown");
+            assertExpectedException(e)
+                    .hasMessageContaining("Script interpreter for language 'Groovy' is not allowed in expression profile 'safe'");
+        }
+        assertNoUserByUsername(userName);
+    }
+
+    /** Just checking that a range expression in `populate` in `assignmentTargetSearch` is not executed. */
+    @Test
+    public void test406AssignmentTargetSearchWithPopulateAssignmentItemRangeExpression() throws CommonException {
+        var task = getTestTask();
+        var result = task.getResult();
+
+        var userName = getTestNameShort();
+        var user = new UserType()
+                .name(userName)
+                .assignment(ARCHETYPE_PERSON.assignmentTo());
+
+        when("creating the user");
+        addObject(user, task, result);
+
+        then("the user should be created successfully - range expression is not used");
+        assertUserAfterByUsername(userName);
+    }
+
+    /** Are expressions in the search filter in `associationTargetSearch` treated correctly? */
+    @Test
+    public void test410AssociationTargetSearchWithSearchFilter() throws CommonException {
+        testAddUserBlocked();
+    }
+
+    /** Are expressions in `populate` in `associationTargetSearch` treated correctly? */
+    @Test
+    public void test412AssociationTargetSearchWithPopulateAssignmentItemExpression() throws CommonException {
+        testAddUserBlocked();
+    }
+
+    /** Are expressions in `populateObject` in `associationTargetSearch` treated correctly? */
+    @Test
+    public void test414AssociationTargetSearchWithPopulateObjectItemExpression() throws CommonException {
+        testAddUserBlocked();
+    }
+
+    /** Are expressions in `condition` for `associationTargetSearch` treated correctly? (Actually, it's outside of it.) */
+    @Test
+    public void test416AssociationTargetSearchWithCondition() throws CommonException {
+        testAddUserBlocked();
     }
 
     /**

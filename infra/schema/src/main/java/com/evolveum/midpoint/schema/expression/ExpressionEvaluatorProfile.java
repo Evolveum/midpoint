@@ -33,6 +33,20 @@ public interface ExpressionEvaluatorProfile extends Serializable {
     /** Returns the profile for a particular scripting language. */
     @NotNull ScriptLanguageExpressionProfile getScriptLanguageExpressionProfile(@NotNull String qualifiedLanguageUri);
 
+    /**
+     * Returns {@code true} if at least anything is allowed in the given language.
+     * Returns {@code false} if the language is completely forbidden.
+     *
+     * Doesn't need to be 100% correct: there may be situations that a language is de-facto completely forbidden,
+     * but it is not obvious at the first sight. We can return {@code true} in such cases. The important thing
+     * is that we never return {@code false} if the language is not completely forbidden.
+     *
+     * Useful e.g. to display sensible list of scripting options in the GUI.
+     *
+     * WARNING: Do not use for actual access control. Take the return value only as a hint.
+     */
+    boolean isNotCompletelyForbidden();
+
     /** Nothing is allowed. */
     ExpressionEvaluatorProfile NONE = new EmptyImpl(AccessDecision.DENY);
 
@@ -63,6 +77,11 @@ public interface ExpressionEvaluatorProfile extends Serializable {
         @Override
         public @NotNull ScriptLanguageExpressionProfile getScriptLanguageExpressionProfile(@NotNull String qualifiedLanguageUri) {
             return ScriptLanguageExpressionProfile.forDecision(decision);
+        }
+
+        @Override
+        public boolean isNotCompletelyForbidden() {
+            return decision == AccessDecision.ALLOW;
         }
     }
 

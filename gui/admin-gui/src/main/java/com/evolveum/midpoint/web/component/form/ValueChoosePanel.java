@@ -208,7 +208,7 @@ public class ValueChoosePanel<R extends Referencable> extends BasePanel<R> {
         ObjectFilter filter = createChooseQuery() == null ? null
                 : createChooseQuery().getFilter();
         if (CollectionUtils.isEmpty(supportedTypes)) {
-            supportedTypes = ObjectTypeListUtil.createObjectTypeList();
+            supportedTypes = ObjectTypeListUtil.createObjectTypeList(getPageBase());
         }
         Class<O> defaultType = getDefaultType(supportedTypes);
         ObjectBrowserPanel<O> objectBrowserPanel = new ObjectBrowserPanel<O>(
@@ -241,13 +241,13 @@ public class ValueChoosePanel<R extends Referencable> extends BasePanel<R> {
     }
 
     public List<QName> getSupportedTypes() {
-        return ObjectTypeListUtil.createObjectTypeList();
+        return ObjectTypeListUtil.createObjectTypeList(getPageBase());
     }
 
     protected <O extends ObjectType> Class<O> getDefaultType() {
         List<QName> supportedTypes = getSupportedTypes();
         if (CollectionUtils.isEmpty(supportedTypes)) {
-            supportedTypes = ObjectTypeListUtil.createObjectTypeList();
+            supportedTypes = ObjectTypeListUtil.createObjectTypeList(getPageBase());
         }
         return getDefaultType(supportedTypes);
     }

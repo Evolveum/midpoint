@@ -56,7 +56,7 @@ public abstract class WaitingScriptConnectorStepPanel extends WaitingConnectorSt
     }
 
     @Override
-    protected abstract ConnectorDevelopmentArtifacts.KnownArtifactType getScriptType();
+    public abstract ConnectorDevelopmentArtifacts.KnownArtifactType getScriptType();
 
     /**
      * The waiting screen shows the same documentation as the script screen it precedes.

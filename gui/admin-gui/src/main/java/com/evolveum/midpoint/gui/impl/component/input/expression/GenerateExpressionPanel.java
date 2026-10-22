@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.gui.impl.component.input.expression;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.web.component.form.ValueChoosePanel;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
@@ -36,10 +37,14 @@ public class GenerateExpressionPanel extends EvaluatorExpressionPanel {
     private static final String ID_VALUE_POLICY = "valuePolicy";
 
     public GenerateExpressionPanel(String id, IModel<ExpressionType> model) {
-        this(id, model, null);
+        this(id, model, null, null);
     }
 
-    public GenerateExpressionPanel(String id, IModel<ExpressionType> model, IModel<QName> expressionTargetTypeModel) {
+    public GenerateExpressionPanel(
+            String id,
+            IModel<ExpressionType> model,
+            IModel<PrismPropertyWrapper<ExpressionType>> property,
+            IModel<QName> expressionTargetTypeModel) {
         super(id, model, expressionTargetTypeModel);
         GenerateExpressionWrapper wrapper = getEvaluatorValue();
         if (wrapper == null || wrapper.isEmpty()) {

@@ -5,15 +5,18 @@
  */
 package com.evolveum.midpoint.model.common.expression.script.mel.extension;
 
+import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
 import com.evolveum.midpoint.model.common.expression.functions.BasicExpressionFunctions;
 import com.evolveum.midpoint.model.common.expression.script.mel.CelTypeMapper;
 import com.evolveum.midpoint.model.common.expression.script.mel.value.*;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
+import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
@@ -31,20 +34,25 @@ import dev.cel.common.CelOptions;
 import dev.cel.common.CelOverloadDecl;
 import dev.cel.common.internal.CelCodePointArray;
 import dev.cel.common.types.*;
+import dev.cel.common.values.CelValue;
 import dev.cel.common.values.NullValue;
 import dev.cel.extensions.CelExtensionLibrary;
 import dev.cel.common.Operator;
 import dev.cel.runtime.*;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Strings;
+import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.xml.namespace.QName;
 import java.time.*;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+
+import static com.evolveum.midpoint.model.common.expression.script.mel.extension.CelMidPointExtensions.toCelReference;
 
 import static java.lang.Math.max;
 import static java.lang.Math.min;
@@ -62,15 +70,18 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
     private final BasicExpressionFunctions basicExpressionFunctions;
     private final Protector protector;
     private final RuntimeEquality runtimeEquality;
+    private final MidpointFunctions midpointExpressionFunctions;
 
     public CelMelExtensions(
             CelOptions celOptions,
             Protector protector,
             BasicExpressionFunctions basicExpressionFunctions,
+            MidpointFunctions midpointExpressionFunctions,
             RuntimeEquality runtimeEquality) {
         this.celOptions = celOptions;
         this.protector = protector;
         this.basicExpressionFunctions = basicExpressionFunctions;
+        this.midpointExpressionFunctions = midpointExpressionFunctions;
         this.runtimeEquality = runtimeEquality;
         initialize();
     }
@@ -1045,6 +1056,21 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
 
             ),
 
+            // objectReference(oid, type)
+            new Function(
+                    CelFunctionDecl.newFunctionDeclaration(
+                            "objectReference",
+                            CelOverloadDecl.newGlobalOverload(
+                                    "mel-objectReference-string-qname",
+                                    "Creates an object reference with the given OID and target type.",
+                                    ReferenceCelValue.CEL_TYPE,
+                                    SimpleType.STRING, QNameCelValue.CEL_TYPE)),
+                    CelFunctionBinding.from(
+                            "mel-objectReference-string-qname", String.class, QNameCelValue.class,
+                            CelMelExtensions::objectReference,
+                            NullabilityProperties.NULLABLE)
+            ),
+
             // string.quote()
             new Function(
                     CelFunctionDecl.newFunctionDeclaration(
@@ -1911,9 +1937,31 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
                     CelFunctionBinding.from("polystring_upper_ascii",
                             PolyStringCelValue.class,
                             polystring -> Ascii.toUpperCase(polystring.getOrig()),
-                            NullabilityProperties.NULLABLE_NULL))
+                            NullabilityProperties.NULLABLE_NULL)),
+
+                // currentPrincipalRef() - TEMPORARY/EXPERIMENTAL - doesn't fit here, but there's no better place now
+                new Function(
+                        CelFunctionDecl.newFunctionDeclaration(
+                                "currentPrincipalRef",
+                                CelOverloadDecl.newGlobalOverload(
+                                        "currentPrincipalRef",
+                                        "Returns a reference to the principal representing the user whose identity is used to execute the expression.",
+                                        NullableType.create(ReferenceCelValue.CEL_TYPE))),
+                        CelFunctionBinding.from("currentPrincipalRef",
+                                ImmutableList.of(),
+                                this::getPrincipalRef,
+                                NullabilityProperties.NULLABLE)
+                )
 
         );
+    }
+
+    private CelValue getPrincipalRef(Object[] objects) {
+        try {
+            return toCelReference(midpointExpressionFunctions.getPrincipalRef());
+        } catch (CommonException e) {
+            throw createException(e);
+        }
     }
 
     private static ItemPathCelValue itemPath(String stringPath) {
@@ -2259,8 +2307,9 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
                 CelOptions celOptions,
                 Protector protector,
                 BasicExpressionFunctions basicExpressionFunctions,
+                MidpointFunctions midpointExpressionFunctions,
                 RuntimeEquality runtimeEquality) {
-            version0 = new CelMelExtensions(celOptions, protector, basicExpressionFunctions, runtimeEquality);
+            version0 = new CelMelExtensions(celOptions, protector, basicExpressionFunctions, midpointExpressionFunctions, runtimeEquality);
         }
 
         @Override
@@ -2278,8 +2327,9 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
             CelOptions celOptions,
             Protector protector,
             BasicExpressionFunctions basicExpressionFunctions,
+            MidpointFunctions midpointExpressionFunctions,
             RuntimeEquality runtimeEquality) {
-        return new Library(celOptions, protector, basicExpressionFunctions, runtimeEquality);
+        return new Library(celOptions, protector, basicExpressionFunctions, midpointExpressionFunctions, runtimeEquality);
     }
 
     @Override
@@ -2335,6 +2385,16 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
 
     private QNameCelValue qname(String localPart) {
         return QNameCelValue.create(localPart);
+    }
+
+    public static ReferenceCelValue objectReference(String oid, QNameCelValue type) {
+        Validate.notEmpty(oid, "Oid must not be null or empty.");
+        Validate.notNull(type, "Object type must not be null.");
+
+        QName typeName = Validate.notNull(type.getQName(), "Object type must not be null.");
+
+        return ReferenceCelValue.create(
+                PrismContext.get().itemFactory().createReferenceValue(oid, typeName));
     }
 
     private static Instant longAgo(Object[] args) {

@@ -36,6 +36,7 @@
                 <export>
                     <expression>
                         <script>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                             <code>object.oid</code>
                         </script>
                     </expression>
@@ -125,10 +126,9 @@
                 <export>
                     <expression>
                         <script>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                             <code>
-                                import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationMetricValuesType
-
-                                (metric as SimulationMetricValuesType)?.ref?.builtIn
+                                metric.ref.builtIn
                             </code>
                         </script>
                     </expression>
@@ -151,10 +151,9 @@
                 <export>
                     <expression>
                         <script>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                             <code>
-                                import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationMetricValuesType
-
-                                (metric as SimulationMetricValuesType)?.ref?.eventMarkRef
+                                metric.ref.eventMarkRef
                             </code>
                         </script>
                     </expression>
@@ -177,10 +176,9 @@
                 <export>
                     <expression>
                         <script>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                             <code>
-                                import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationMetricValuesType
-
-                                (metric as SimulationMetricValuesType)?.ref?.identifier
+                                metric.ref.identifier
                             </code>
                         </script>
                     </expression>
@@ -200,11 +198,8 @@
                 <export>
                     <expression>
                         <script>
-                            <code>
-                                import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationMetricValuesType
-
-                                (metric as SimulationMetricValuesType)?.aggregationFunction
-                            </code>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
+                            <code>metric.aggregationFunction</code>
                         </script>
                     </expression>
                 </export>
@@ -227,10 +222,9 @@
                 <export>
                     <expression>
                         <script>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                             <code>
-                                import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationMetricPartitionType
-
-                                (partition as SimulationMetricPartitionType)?.scope?.typeName
+                                partition.scope.typeName
                             </code>
                         </script>
                     </expression>
@@ -253,14 +247,13 @@
                 <export>
                     <expression>
                         <script>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                             <code>
-                                import com.evolveum.midpoint.schema.constants.ObjectTypes
-                                import com.evolveum.midpoint.schema.util.ObjectTypeUtil
-                                import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationMetricPartitionType
-
-                                (partition as SimulationMetricPartitionType)?.scope?.structuralArchetypeOid?.with {
-                                    ObjectTypeUtil.createObjectRef(it, ObjectTypes.ARCHETYPE)
-                                }
+                                isPresent(partition.scope.structuralArchetypeOid)
+                                    ? objectReference(
+                                        partition.scope.structuralArchetypeOid,
+                                        qname( 'http://midpoint.evolveum.com/xml/ns/public/common/common-3', 'ArchetypeType'))
+                                    : nil
                             </code>
                         </script>
                     </expression>
@@ -283,14 +276,13 @@
                 <export>
                     <expression>
                         <script>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                             <code>
-                                import com.evolveum.midpoint.schema.constants.ObjectTypes
-                                import com.evolveum.midpoint.schema.util.ObjectTypeUtil
-                                import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationMetricPartitionType
-
-                                (partition as SimulationMetricPartitionType)?.scope?.resourceOid?.with {
-                                    ObjectTypeUtil.createObjectRef(it, ObjectTypes.RESOURCE)
-                                }
+                                isPresent(partition.scope.resourceOid)
+                                    ? objectReference(
+                                        partition.scope.resourceOid,
+                                        qname( 'http://midpoint.evolveum.com/xml/ns/public/common/common-3', 'ResourceType'))
+                                    : nil
                             </code>
                         </script>
                     </expression>
@@ -313,10 +305,9 @@
                 <export>
                     <expression>
                         <script>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                             <code>
-                                import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationMetricPartitionType
-
-                                (partition as SimulationMetricPartitionType)?.scope?.kind
+                                partition.scope.kind
                             </code>
                         </script>
                     </expression>
@@ -339,10 +330,9 @@
                 <export>
                     <expression>
                         <script>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                             <code>
-                                import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationMetricPartitionType
-
-                                (partition as SimulationMetricPartitionType)?.scope?.intent
+                                partition.scope.intent
                             </code>
                         </script>
                     </expression>
@@ -365,11 +355,8 @@
                 <export>
                     <expression>
                         <script>
-                            <code>
-                                import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationMetricPartitionType
-
-                                (partition as SimulationMetricPartitionType)?.value
-                            </code>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
+                            <code>partition.value</code>
                         </script>
                     </expression>
                 </export>
@@ -393,11 +380,8 @@
                 <export>
                     <expression>
                         <script>
-                            <code>
-                                import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationMetricPartitionType
-
-                                (partition as SimulationMetricPartitionType)?.selectionSize
-                            </code>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
+                            <code>partition.selectionSize</code>
                         </script>
                     </expression>
                 </export>
@@ -419,11 +403,8 @@
                 <export>
                     <expression>
                         <script>
-                            <code>
-                                import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationMetricPartitionType
-
-                                (partition as SimulationMetricPartitionType)?.selectionTotalValue
-                            </code>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
+                            <code>partition.selectionTotalValue</code>
                         </script>
                     </expression>
                 </export>
@@ -445,11 +426,8 @@
                 <export>
                     <expression>
                         <script>
-                            <code>
-                                import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationMetricPartitionType
-
-                                (partition as SimulationMetricPartitionType)?.domainSize
-                            </code>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
+                            <code>partition.domainSize</code>
                         </script>
                     </expression>
                 </export>
@@ -471,11 +449,8 @@
                 <export>
                     <expression>
                         <script>
-                            <code>
-                                import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationMetricPartitionType
-
-                                (partition as SimulationMetricPartitionType)?.domainTotalValue
-                            </code>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
+                            <code>partition.domainTotalValue</code>
                         </script>
                     </expression>
                 </export>
@@ -487,6 +462,7 @@
             <type>SimulationMetricValuesType</type>
             <expression>
                 <script>
+                    <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                     <code>object.metric</code>
                 </script>
             </expression>
@@ -500,11 +476,8 @@
             <type>SimulationMetricPartitionType</type>
             <expression>
                 <script>
-                    <code>
-                        import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationMetricValuesType
-
-                        (metric as SimulationMetricValuesType)?.partition
-                    </code>
+                    <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
+                    <code>metric.partition</code>
                 </script>
             </expression>
             <order>20</order>

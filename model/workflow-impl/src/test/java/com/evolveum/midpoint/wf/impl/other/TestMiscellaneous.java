@@ -20,6 +20,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.audit.api.AuditEventStage;
+import com.evolveum.midpoint.model.test.CommonInitialObjects;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.OrFilter;
@@ -101,6 +102,8 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
 
     private static final TestObject<RoleType> ROLE_NOTIFICATIONS = TestObject.file(TEST_DIR, "role-notifications.xml", "5c097ab2-2413-49ba-8060-c8004901b5f9");
 
+    private static final TestObject<RoleType> ROLE_SIMPLE_APPROVAL = TestObject.file(TEST_DIR, "role-simple-approval.xml", "d6d03e9a-a9a8-418a-b796-fafcfee3d648");
+
     private static final TestObject<OrgType> ORG_APPROVERS = TestObject.file(
             TEST_DIR, "org-approvers.xml", "8b928d45-bb91-4a02-8418-6ae0d3b6a7d2");
     private static final TestObject<RoleType> ROLE_APPROVED_BY_ORG = TestObject.file(
@@ -146,6 +149,50 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
         USER_APPROVER_BY_MULTIPLE_RELATIONS.init(this, initTask, initResult);
 
         ROLE_APPROVE_WITH_SKIP_LAST_STAGE.init(this, initTask, initResult);
+
+        initTestObjects(initTask, initResult,
+                CommonInitialObjects.OBJECT_COLLECTION_MY_CASES,
+                ROLE_SIMPLE_APPROVAL);
+    }
+
+    /** Tests "my cases" collection. Must execute first to be not confused by cases from the other test methods. */
+    @Test
+    public void test010MyCasesCollection() throws Exception {
+        var task = getTestTask();
+        var result = task.getResult();
+        login(userAdministrator);
+
+        given("a user with assignment-to-approve is attempted to be created");
+        String userName = getTestNameShort();
+        UserType user = new UserType()
+                .name(userName)
+                .assignment(ROLE_SIMPLE_APPROVAL.assignmentTo());
+        addObject(user, task, result);
+        assertNoUserByUsername(userName);
+        CaseWorkItemType workItem = getWorkItem(task, result);
+        display("Work item", workItem);
+        CaseType aCase = getCase(CaseTypeUtil.getCaseRequired(workItem).getOid());
+        display("Case", aCase);
+
+        try {
+
+            when("stats for 'my cases' collection are evaluated");
+
+            var collectionRef = new CollectionRefSpecificationType()
+                    .type(CaseType.COMPLEX_TYPE)
+                    .collectionRef(CommonInitialObjects.OBJECT_COLLECTION_MY_CASES.ref());
+            var compiled = modelInteractionService.compileObjectCollectionView(collectionRef, CaseType.class, task, result);
+            compiled.setContainerType(CaseType.COMPLEX_TYPE); // strange but seems necessary
+
+            var stats = modelInteractionService.determineCollectionStats(compiled, task, result);
+
+            displayValue("statistics", stats);
+            assertThat(stats.getObjectCount()).as("objects").isEqualTo(1);
+
+        } finally {
+            // to not confuse the other tests
+            caseManager.cancelCase(aCase.getOid(), task, result);
+        }
     }
 
     @Test

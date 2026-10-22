@@ -19,7 +19,7 @@ They are defined per activity, so different activities in the same task may have
 If a policy has to evaluate an object that is being processed by clockwork (like provisioning, reconciliation, etc.), then
 xref:./thresholds[thresholds] or xref:/midpoint/reference/roles-policies/policies/policy-rules/[global policy rules] with proper constraints should be used instead.
 
-Since midPoint 4.11, focus policy rule constraints can also be applied to objects processed by an activity.
+Since midPoint 4.11.0, focus policy rule constraints can also be applied to objects processed by an activity.
 See xref:./focus-policies-in-activities[Focus policies in activities] for details.
 
 Policies are collected during activity initialization from the activity definition and its parent activity definitions (in case of composite activities).

@@ -211,7 +211,7 @@ public class CreateObjectForReferencePanel<R extends Referencable> extends BaseP
 
             @Override
             public List<QName> getSupportedTypes() {
-                List<QName> targetTypeList = getParentWrapper().getTargetTypes();
+                List<QName> targetTypeList = getParentWrapper().getTargetTypes(getPageBase());
                 if (targetTypeList == null || WebComponentUtil.isAllNulls(targetTypeList)) {
                     return Arrays.asList(ObjectType.COMPLEX_TYPE);
                 }
@@ -313,7 +313,7 @@ public class CreateObjectForReferencePanel<R extends Referencable> extends BaseP
     }
 
     private String getTypeTranslation() {
-        List<QName> types = getParentWrapper().getTargetTypes();
+        List<QName> types = getParentWrapper().getTargetTypes(getPageBase());
         ObjectTypes type = ObjectTypes.OBJECT;
         if (types.size() == 1 && !QNameUtil.match(types.get(0), ObjectType.COMPLEX_TYPE)) {
             type = ObjectTypes.getObjectTypeFromTypeQName(types.get(0));

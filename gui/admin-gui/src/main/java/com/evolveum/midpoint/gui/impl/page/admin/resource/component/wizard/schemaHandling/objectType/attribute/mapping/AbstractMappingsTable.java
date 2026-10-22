@@ -11,7 +11,6 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
-import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperColumn;
 import com.evolveum.midpoint.gui.impl.component.data.column.LifecycleStateColumn;
@@ -28,7 +27,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
-import com.evolveum.midpoint.web.component.data.column.IconColumn;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
@@ -38,16 +36,13 @@ import com.evolveum.midpoint.web.component.util.SerializableConsumer;
 import com.evolveum.midpoint.web.component.util.SerializableSupplier;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.VariableBindingDefinitionType;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
@@ -58,6 +53,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+
+import static com.evolveum.midpoint.web.component.data.column.ColumnUtils.createStrengthIconColumn;
 
 /**
  * @author lskublik
@@ -89,7 +86,7 @@ public abstract class AbstractMappingsTable<P extends Containerable> extends Abs
         IColumn<PrismContainerValueWrapper<MappingType>, String> iconColumns = createUsedIconColumn();
         Optional.ofNullable(iconColumns).ifPresent(columns::add);
 
-        IColumn<PrismContainerValueWrapper<MappingType>, String> strengthColumns = createStrengthIconColumn();
+        IColumn<PrismContainerValueWrapper<MappingType>, String> strengthColumns = createStrengthIconColumn("");
         Optional.ofNullable(strengthColumns).ifPresent(columns::add);
 
         columns.add(new PrismPropertyWrapperColumn<MappingType, String>(
@@ -111,34 +108,13 @@ public abstract class AbstractMappingsTable<P extends Containerable> extends Abs
         return columns;
     }
 
-    protected IColumn<PrismContainerValueWrapper<MappingType>, String> createStrengthIconColumn() {
-        return new IconColumn<>(Model.of()) {
-
-            @Override
-            public void populateItem(Item<ICellPopulator<PrismContainerValueWrapper<MappingType>>> cellItem, String componentId, IModel<PrismContainerValueWrapper<MappingType>> rowModel) {
-                super.populateItem(cellItem, componentId, rowModel);
-                cellItem.add(AttributeAppender.append("class", "text-center"));
-            }
-
-            @Override
-            protected DisplayType getIconDisplayType(IModel<PrismContainerValueWrapper<MappingType>> rowModel) {
-                return GuiDisplayTypeUtil.getDisplayTypeForStrengthOfMapping(rowModel, null);
-            }
-
-            @Override
-            public String getCssClass() {
-                return "px-0";
-            }
-        };
-    }
-
     protected IColumn<PrismContainerValueWrapper<MappingType>, String> createUsedIconColumn() {
         return null;
     }
 
     protected abstract Collection<? extends IColumn<PrismContainerValueWrapper<MappingType>, String>> createCustomColumns();
 
-    public static <IW extends ItemWrapper<?,?>> @NotNull IModel<Collection<VariableBindingDefinitionType>> createSourceMultiselectModel(
+    public static <IW extends ItemWrapper<?, ?>> @NotNull IModel<Collection<VariableBindingDefinitionType>> createSourceMultiselectModel(
             IModel<IW> rowModel, PageBase pageBase) {
         return new IModel<>() {
 
@@ -346,5 +322,20 @@ public abstract class AbstractMappingsTable<P extends Containerable> extends Abs
                 pageBase.showMainPopup(changePopup, target);
             }
         };
+    }
+
+    @Override
+    protected String getTableContainerAdditionalCssClasses() {
+        return super.getTableContainerAdditionalCssClasses() + " table-td-middle";
+    }
+
+    protected IColumn<PrismContainerValueWrapper<MappingType>, String> createTargetColumn() {
+        IModel<PrismContainerDefinition<MappingType>> mappingTypeDef =
+                getMappingTypeDefinition();
+        return new PrismPropertyWrapperColumn<MappingType, String>(
+                mappingTypeDef,
+                MappingType.F_TARGET,
+                AbstractItemWrapperColumn.ColumnType.VALUE,
+                getPageBase());
     }
 }

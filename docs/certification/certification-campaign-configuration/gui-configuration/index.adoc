@@ -5,7 +5,7 @@ doc-type: config
 = Certification campaigns GUI configuration
 :page-nav-title: GUI configuration
 :page-display-order: 50
-:page-upkeep-status: orange
+:page-upkeep-status: green
 :experimental:
 :page-description: This section describes options for configuration of certification campaigns in the GUI.
 :page-keywords: certification campaign, campaign definition, campaign configuration, gui

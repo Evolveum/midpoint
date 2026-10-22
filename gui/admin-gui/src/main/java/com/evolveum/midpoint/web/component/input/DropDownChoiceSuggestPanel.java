@@ -112,12 +112,13 @@ public class DropDownChoiceSuggestPanel<T> extends InputPanel implements Seriali
         add(suggestContainer);
 
         final ButtonHandlers<DataAccessPermission> dataAccessPermissionButtonHandlers = new ButtonHandlers<>(
-                target -> {},
+                target -> {
+                },
                 (target, confirmedOptions) -> onSuggestAction(target, confirmedOptions.getObject()));
         AjaxIconButton suggestButton = SmartSuggestButtonWithConfirmation.forBlockingActionWithIndication(ID_SUGGEST,
                 getSuggestButtonLabel(), getSuggestButtonIcon(), getSuggestProcessingStateButtonIcon(),
                 getSuggestProcessingStateButtonLabel(),
-                SuggestionOption.of(List.of(ConfirmationOption.selectedOf(DataAccessPermission.SCHEMA_ACCESS))),
+                getSuggestionOption(),
                 () -> dataAccessPermissionButtonHandlers,
                 getPageBase());
 
@@ -125,6 +126,10 @@ public class DropDownChoiceSuggestPanel<T> extends InputPanel implements Seriali
         suggestButton.setOutputMarkupId(true);
         suggestButton.showTitleAsLabel(true);
         suggestContainer.add(suggestButton);
+    }
+
+    public SuggestionOption getSuggestionOption() {
+        return SuggestionOption.empty();
     }
 
     @Override

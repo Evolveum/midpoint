@@ -273,6 +273,11 @@ public class MelScriptExecutor extends AbstractCachingScriptExecutor<CelRuntime,
             // This means error
             throw new ExpressionEvaluationException("CEL expression evaluation error: "+resultObject);
         }
+
+        // Can we return PrismValues? It was not the case for languages before MEL. But now we sometimes need that,
+        // especially for "midpoint.selectIdentityItemValues". So this is a kind of (ugly) magic. The caller must somehow
+        // cope with that. TODO re-think, see #12504.
+
         return CelTypeMapper.toJavaValue(resultObject);
     }
 

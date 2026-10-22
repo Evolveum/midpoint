@@ -39,7 +39,7 @@ public class ComplexTypeExtensionTypePanelFactory extends DropDownChoicePanelFac
 
     @Override
     protected List<QName> getTypesList(PrismPropertyPanelContext<QName> panelCtx) {
-        List<QName> types = new ArrayList<>(ObjectTypeListUtil.createObjectTypeList());
+        List<QName> types = new ArrayList<>(ObjectTypeListUtil.createObjectTypeList(panelCtx.getPageBase()));
         types.add(AssignmentType.COMPLEX_TYPE);
         return ObjectTypeListUtil.sortTypesList(types);
     }

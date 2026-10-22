@@ -202,7 +202,7 @@ public class ChooseFocusTypeAndRelationDialogPanel extends BasePanel<String> imp
     }
 
     protected List<QName> getSupportedObjectTypes() {
-        return ObjectTypeListUtil.createFocusTypeList(true);
+        return ObjectTypeListUtil.createFocusTypeList(true, getPageBase());
     }
 
     protected QName getDefaultObjectType() {

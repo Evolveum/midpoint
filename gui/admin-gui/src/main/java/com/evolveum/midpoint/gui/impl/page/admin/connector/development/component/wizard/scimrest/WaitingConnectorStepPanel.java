@@ -28,10 +28,12 @@ import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ExceptionUtil;
 import com.evolveum.midpoint.smart.api.conndev.ConnectorDevelopmentArtifacts;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
@@ -156,17 +158,18 @@ public abstract class WaitingConnectorStepPanel extends AbstractWizardStepPanel<
         initLayout();
     }
 
-    protected void resetToken() {
-        tokenModel.reset();
-    }
-
     /**
-     * Resets the panel so that a new background task is submitted instead of reusing
-     * the result of the previous one.
+     * Resets the panel so that a new background task is submitted instead of reusing the result of
+     * the previous one. The new task is submitted right here, synchronously, rather than deferring to
+     * {@link #statusModel}'s lazy load - that load can end up running in a later, separate request
+     * (the waiting panel's own polling), where the {@link #isReloaded} flag set below is no longer
+     * observed as {@code true}, silently falling back to reusing the old task instead of regenerating.
      */
     public void restartTask() {
-        restartedTaskToken = null;
-        resetToken();
+        Task task = getDetailsModel().getPageAssignmentHolder().createSimpleTask(OP_DETERMINE_STATUS);
+        String newToken = getNewTaskToken(task, task.getResult(), true);
+        restartedTaskToken = newToken;
+        tokenModel.setObject(newToken);
         if (getStatusModel() != null) {
             getStatusModel().detach();
         }
@@ -183,7 +186,13 @@ public abstract class WaitingConnectorStepPanel extends AbstractWizardStepPanel<
                 OperationResult result = task.getResult();
 
                 if (StringUtils.isEmpty(tokenModel.getObject())) {
-                    tokenModel.setObject(getNewTaskToken(task, result, isReloaded));
+                    String newToken;
+                    try {
+                        newToken = getNewTaskToken(task, result, isReloaded);
+                    } catch (RuntimeException e) {
+                        return reportSubmitFailure(e, result);
+                    }
+                    tokenModel.setObject(newToken);
                     if (isReloaded) {
                         restartedTaskToken = tokenModel.getObject();
                     }
@@ -214,13 +223,34 @@ public abstract class WaitingConnectorStepPanel extends AbstractWizardStepPanel<
                     };
                 }
 
-                PrismObject<TaskType> taskTypePrismObject = WebModelServiceUtils.loadObject(TaskType.class, tokenModel.getObject(), getDetailsModel().getPageAssignmentHolder(), task, result);
-                return new SmartGeneratingDto(statusInfoModel, () -> taskTypePrismObject){
+                LoadableModel<PrismObject<TaskType>> taskModel = new LoadableModel<>() {
+                    @Override
+                    protected PrismObject<TaskType> load() {
+                        Task freshTask = getDetailsModel().getPageAssignmentHolder().createSimpleTask(OP_DETERMINE_STATUS);
+                        return WebModelServiceUtils.loadObject(
+                                TaskType.class, tokenModel.getObject(), getDetailsModel().getPageAssignmentHolder(),
+                                freshTask, freshTask.getResult());
+                    }
+                };
+                return new SmartGeneratingDto(statusInfoModel, taskModel){
                     @Override
                     protected boolean rejectEmptyProgress() {
                         return false;
                     }
                 };
+            }
+        };
+    }
+
+    private SmartGeneratingDto reportSubmitFailure(RuntimeException e, OperationResult result) {
+        LoggingUtils.logUnexpectedException(LOGGER, "Couldn't submit task for {}", e, getActivityType());
+        CommonException cause = ExceptionUtil.findCause(e, CommonException.class);
+        result.recordFatalError(cause != null ? cause : e);
+        getPageBase().showResult(result);
+        return new SmartGeneratingDto() {
+            @Override
+            public boolean isFailed() {
+                return true;
             }
         };
     }
@@ -242,13 +272,11 @@ public abstract class WaitingConnectorStepPanel extends AbstractWizardStepPanel<
         getButtonContainer().add(AttributeAppender.append("class", isOnlyChildCentered() ? " only-child-centered" : ""));
         getFeedback().add(AttributeAppender.replace("class", "col-12 feedbackContainer"));
 
-        SmartGeneratingPanel waitingPanel = createWaitingPanel();
-        waitingPanel.setOutputMarkupId(true);
-        addOrReplace(waitingPanel);
+        addOrReplace(createWaitingPanel());
     }
 
     protected final @NotNull SmartGeneratingPanel createWaitingPanel() {
-        return new SmartGeneratingPanel(ID_PANEL, statusModel, true) {
+        SmartGeneratingPanel waitingPanel = new SmartGeneratingPanel(ID_PANEL, statusModel, true) {
             @Override
             protected void onFinishActionPerform(AjaxRequestTarget target) {
                 onNextPerformed(target);
@@ -267,6 +295,25 @@ public abstract class WaitingConnectorStepPanel extends AbstractWizardStepPanel<
             @Override
             protected boolean allowRerun() {
                 return true;
+            }
+
+            @Override
+            public void onReRunPerform(AjaxRequestTarget target) {
+                if (getModelObject().isFailed() && getModelObject().getTaskObject() != null) {
+                    getModelObject().removeExistingSuggestionTask(getPageBase());
+                    restartTask();
+                    target.add(WaitingConnectorStepPanel.this.getPanel());
+                    return;
+                }
+                if (getModelObject().getTaskObject() != null) {
+                    super.onReRunPerform(target);
+                    return;
+                }
+                tokenModel.reset();
+                statusModel.reset();
+                super.onReRunPerform(target);
+                target.add(this);
+                target.add(getPageBase().getFeedbackPanel());
             }
 
             @Override
@@ -294,6 +341,8 @@ public abstract class WaitingConnectorStepPanel extends AbstractWizardStepPanel<
                         AttributeAppender.replace("class", "text-center text-secondary mb-2 col-6 lh-2"));
             }
         };
+        waitingPanel.setOutputMarkupId(true);
+        return waitingPanel;
     }
 
     @Override
@@ -327,7 +376,11 @@ public abstract class WaitingConnectorStepPanel extends AbstractWizardStepPanel<
             if (statusModel == null || !statusModel.isLoaded()) {
                 return !isCompleted();
             }
-            return !statusModel.getObject().isFinished();
+            if (!statusModel.getObject().isFinished()) {
+                return true;
+            }
+
+            return statusModel.getObject().isFailed();
         };
     }
 

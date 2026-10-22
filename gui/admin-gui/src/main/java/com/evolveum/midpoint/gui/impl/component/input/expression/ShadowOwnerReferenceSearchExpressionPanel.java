@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.gui.impl.component.input.expression;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
 import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.impl.util.RelationUtil;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -42,11 +43,14 @@ public class ShadowOwnerReferenceSearchExpressionPanel extends EvaluatorExpressi
     private static final String ID_RELATION_EXPRESSION_LABEL = "relationExpressionLabel";
 
     public ShadowOwnerReferenceSearchExpressionPanel(String id, IModel<ExpressionType> model) {
-        this(id, model, null);
+        this(id, model, null, null);
     }
 
     public ShadowOwnerReferenceSearchExpressionPanel(
-            String id, IModel<ExpressionType> model, IModel<QName> expressionTargetTypeModel) {
+            String id,
+            IModel<ExpressionType> model,
+            IModel<PrismPropertyWrapper<ExpressionType>> property,
+            IModel<QName> expressionTargetTypeModel) {
         super(id, model, expressionTargetTypeModel);
         updateEvaluatorValue();
     }

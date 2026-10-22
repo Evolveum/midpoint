@@ -30,12 +30,14 @@ public class WebApplicationConfiguration implements Serializable {
     private String importFolder;
     private String exportFolder;
     private boolean abortEnabled; // should the "Abort" for async operations be enabled? (requires progress reporting to be enabled)
+    private long maxReportImportFileSize; // maximum report import file size in bytes (-1 = unlimited)
 
     public WebApplicationConfiguration(Configuration config) {
         importFolder = config.getString("importFolder");
         exportFolder = config.getString("exportFolder");
         progressRefreshInterval = config.getInt("progressRefreshInterval", 400);
         abortEnabled = config.getBoolean("abortEnabled", true);
+        maxReportImportFileSize = config.getLong("maxReportImportFileSize", -1L);
 
         if (abortEnabled && !isProgressReportingEnabled()) {
             LOGGER.warn("Abort functionality requires progress reporting to be enabled - set progressRefreshInterval in '" + MidpointConfiguration.WEB_APP_CONFIGURATION + "' section to a non-zero value");
@@ -78,5 +80,9 @@ public class WebApplicationConfiguration implements Serializable {
 
     public boolean isAbortEnabled() {
         return abortEnabled;
+    }
+
+    public long getMaxReportImportFileSize() {
+        return maxReportImportFileSize;
     }
 }

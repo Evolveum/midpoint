@@ -731,7 +731,14 @@ public interface ModelInteractionService {
             @NotNull Task task,
             @NotNull OperationResult result) throws CommonException;
 
-    /** A convenience method, moved here from the {@link BulkActionsService} (and bulk action executor). */
+    /**
+     * A convenience method used to start bulk actions.
+     *
+     * NOTE: This method does not check authorizations.
+     * This is why it adds {@link SystemObjectsType#ARCHETYPE_USER_SUBMITTED_TASK} to the list of archetypes.
+     * It is a special archetype that forces the "current principal" expression profile for all expressions and bulk actions
+     * in that task.
+     */
     default @NotNull String submitScriptingExpression(
             @NotNull ExecuteScriptType executeScriptCommand,
             @NotNull Task task,
@@ -743,7 +750,10 @@ public interface ModelInteractionService {
                         .work(new WorkDefinitionsType()
                                 .nonIterativeScripting(new NonIterativeScriptingWorkDefinitionType()
                                         .scriptExecutionRequest(executeScriptCommand))),
-                ActivitySubmissionOptions.create(),
+                ActivitySubmissionOptions.create()
+                        .withArchetypes(
+                                SystemObjectsType.ARCHETYPE_SINGLE_BULK_ACTION_TASK.value(),
+                                SystemObjectsType.ARCHETYPE_USER_SUBMITTED_TASK.value()),
                 task, result);
     }
 

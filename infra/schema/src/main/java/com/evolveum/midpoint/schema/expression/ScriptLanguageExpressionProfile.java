@@ -104,6 +104,23 @@ public interface ScriptLanguageExpressionProfile extends Serializable {
         return permissionDecision;
     }
 
+    /**
+     * Returns {@code true} if at least anything is allowed in the given language.
+     * Returns {@code false} if the language is completely forbidden.
+     *
+     * Doesn't need to be 100% correct: there may be situations that a language is de-facto completely forbidden,
+     * but it is not obvious at the first sight. We can return {@code true} in such cases. The important thing
+     * is that we never return {@code false} if the language is not completely forbidden.
+     *
+     * Useful e.g. to display sensible list of scripting options in the GUI.
+     *
+     * WARNING: Do not use for actual access control. Take the return value only as a hint.
+     */
+    default boolean isNotCompletelyForbidden() {
+        return hasRestrictions() // we assume that there is at least something allowed in this case
+                || getDefaultDecision() == AccessDecision.ALLOW; // TODO what about AccessDefision#DEFAULT?
+    }
+
     static ScriptLanguageExpressionProfile forDecision(AccessDecision decision) {
         return switch (decision) {
             case ALLOW -> full();
