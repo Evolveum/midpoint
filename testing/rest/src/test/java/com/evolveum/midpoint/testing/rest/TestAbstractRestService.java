@@ -23,6 +23,7 @@ import org.apache.cxf.jaxrs.client.WebClient;
 import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
+import com.evolveum.midpoint.gui.test.TestMidPointSpringApplication;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -1908,5 +1909,48 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
         CaseType changed = modelService.getObject(CaseType.class, c.getOid(), null, task, task.getResult()).asObjectable();
         CaseWorkItemType changedWorkItem = changed.getWorkItem().get(0);
         AssertJUnit.assertEquals(2, changedWorkItem.getAssigneeRef().size());
+    }
+
+    /**
+     * Unknown path outside the REST base mappings is served by Spring's static resource handler.
+     * It must produce 404, not 500 (issue 12566).
+     */
+    @Test
+    public void test800UnknownStaticResourceReturns404() {
+        WebClient client = prepareRootClient(null, null);
+        client.path("/static/nonexistent.css");
+
+        when();
+        Response response = client.get();
+
+        then();
+        displayResponse(response);
+        displayValue("response body", response.readEntity(String.class));
+        assertStatus(response, 404);
+    }
+
+    /**
+     * Unknown actuator sub-path, authenticated, must produce 404, not 500. Issue 12566.
+     */
+    @Test
+    public void test805UnknownActuatorPathReturns404() {
+        WebClient client = prepareRootClient(USER_ADMINISTRATOR_USERNAME, USER_ADMINISTRATOR_PASSWORD);
+        client.path("/actuator/nonexistent");
+
+        when();
+        Response response = client.get();
+
+        then();
+        displayResponse(response);
+        displayValue("response body", response.readEntity(String.class));
+        assertStatus(response, 404);
+    }
+
+    /** Client for the server root (outside /ws/rest), without midPoint providers. */
+    private WebClient prepareRootClient(String username, String password) {
+        WebClient client = WebClient.create("http://localhost:" + TestMidPointSpringApplication.DEFAULT_PORT);
+        client.accept(getAcceptHeader());
+        createAuthorizationHeader(client, username, password);
+        return client;
     }
 }
