@@ -43,6 +43,7 @@ Moreover, midPoint 4.11.0 made a significant leap towards secure-by-default conf
 ** The wizard can be used in a limited offline mode, i.e., without AI.
 ** The wizard is disabled by default for security reasons.
 Access to the wizard is protected by xrefv:/midpoint/reference/support-4.11/connector-generator/enable/[separate authorization and deployment configuration].
+** See xrefv:/midpoint/reference/support-4.11/connector-generator/[].
 
 * New xrefv:/midpoint/reference/support-4.11/smart-integration/[**midPilot smart integration**] features:
 ** Use of AI and local heuristics for recommending various resource configurations, such as:
