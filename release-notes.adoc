@@ -33,6 +33,9 @@ Moreover, midPoint 4.11.0 made a significant leap towards secure-by-default conf
 {% include release-dedication.html content=dedicationContent %}
 ++++
 
+== Changes With Respect to Version 4.11
+
+
 == Changes With Respect to Version 4.10
 
 === New Features and Major Improvements
