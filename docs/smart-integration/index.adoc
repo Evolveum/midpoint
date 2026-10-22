@@ -37,8 +37,8 @@ Setting relevant to Smart Integration are configured globally in the midPoint sy
 
 == Advanced topics
 
-* xref:advanced/automatic-ranges.adoc[Automatic ranges]
-* xref:advanced/iterators.adoc[Iterators configuration]
+* xref:advanced/automatic-ranges.adoc[Automatic ranges] - Automatic selection of mapping ranges in supported GUI editors based on the mapping context and target cardinality.
+* xref:advanced/iterators.adoc[Iterators configuration] - Object type-level iteration settings for mappings that use `iterationToken`: editing in the resource wizard, settings proposed with recommended mappings and removal of unused settings.
 
 == Security
 

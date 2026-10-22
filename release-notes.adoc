@@ -56,7 +56,7 @@ Moreover, midPoint 4.11.0 made a significant leap towards secure-by-default conf
 === Bug Fixes
 
 * bug:MID-11658[] Fixed inconsistency in help  for ninja export command
-
+* Fixed distributed task workers incorrectly completing when their coordinator is suspended, preventing the task from resuming. See bug:MID-12627[]
 // TODO
 
 === Other changes
