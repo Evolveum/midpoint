@@ -1608,6 +1608,105 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
     }
 
     @Test
+    public void test220AsIsKeptWhenAIScriptFailsInAllAttempts() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        modifyUserReplace(USER1.oid, ItemPath.create(UserType.F_PERSONAL_NUMBER), "11111");
+        modifyUserReplace(USER2.oid, ItemPath.create(UserType.F_PERSONAL_NUMBER), "22222");
+        modifyUserReplace(USER3.oid, ItemPath.create(UserType.F_PERSONAL_NUMBER), "33333");
+
+        modifyShadowReplace("user1", PERSONAL_NUMBER, "xyz11111");
+        modifyShadowReplace("user2", PERSONAL_NUMBER, "22222");
+        modifyShadowReplace("user3", PERSONAL_NUMBER, "33333");
+
+        refreshShadows();
+
+        String invalidScript = "input.repalceAll('-', '')";
+        var mockClient = createClient(
+                new MockMapping(ItemPath.create(UserType.F_PERSONAL_NUMBER), PERSONAL_NUMBER.path(), invalidScript, invalidScript)
+        );
+        TestServiceClientFactory.mockServiceClient(clientFactoryMock, mockClient);
+        var ctx = TypeOperationContext.init(mockClient, RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, null, task, result);
+
+        var op = MappingsSuggestionOperation.init(
+                ctx,
+                new MappingsQualityAssessor(new MappingScriptValidator(expressionFactory)),
+                new MappingScriptValidator(expressionFactory),
+                new ShadowsWithOwnersCorrelatingProvider(correlationService, samplerProvider),
+                samplerProvider,
+                wellKnownSchemaService,
+                heuristicRuleMatcher,
+                new CategoricalAttributeRegistry(),
+                true,
+                true,
+                null,
+                1);
+
+        var match = smartIntegrationService.computeSchemaMatch(RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, true, task, result);
+        MappingsSuggestionType suggestion = op.suggestMappings(result, match, null);
+
+        assertThat(suggestion.getAttributeMappings())
+                .as("Failing AI script must not discard a valid as-is candidate")
+                .hasSize(1);
+        AttributeMappingsSuggestionType mapping = suggestion.getAttributeMappings().get(0);
+        assertThat(mapping.getDefinition().getInbound().get(0).getExpression())
+                .as("As-is mapping should be used => no expression")
+                .isNull();
+        assertThat(mapping.getExpectedQuality())
+                .isCloseTo(0.66F, Offset.offset(0.01F));
+    }
+
+    @Test
+    public void test221HeuristicKeptWhenAIScriptFailsInAllAttempts() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        modifyUserReplace(USER1.oid, ItemPath.create(UserType.F_PERSONAL_NUMBER), "AAAA");
+        modifyUserReplace(USER2.oid, ItemPath.create(UserType.F_PERSONAL_NUMBER), "BBBB");
+        modifyUserReplace(USER3.oid, ItemPath.create(UserType.F_PERSONAL_NUMBER), "CCCC");
+
+        modifyShadowReplace("user1", PERSONAL_NUMBER, "aaaa");
+        modifyShadowReplace("user2", PERSONAL_NUMBER, "bbbb");
+        modifyShadowReplace("user3", PERSONAL_NUMBER, "cccc");
+
+        refreshShadows();
+
+        String invalidScript = "input.repalceAll('-', '')";
+        var mockClient = createClient(
+                new MockMapping(ItemPath.create(UserType.F_PERSONAL_NUMBER), PERSONAL_NUMBER.path(), invalidScript, invalidScript)
+        );
+        TestServiceClientFactory.mockServiceClient(clientFactoryMock, mockClient);
+        var ctx = TypeOperationContext.init(mockClient, RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, null, task, result);
+
+        var op = MappingsSuggestionOperation.init(
+                ctx,
+                new MappingsQualityAssessor(new MappingScriptValidator(expressionFactory)),
+                new MappingScriptValidator(expressionFactory),
+                new ShadowsWithOwnersCorrelatingProvider(correlationService, samplerProvider),
+                samplerProvider,
+                wellKnownSchemaService,
+                heuristicRuleMatcher,
+                new CategoricalAttributeRegistry(),
+                true,
+                true,
+                null,
+                1);
+
+        var match = smartIntegrationService.computeSchemaMatch(RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, true, task, result);
+        MappingsSuggestionType suggestion = op.suggestMappings(result, match, null);
+
+        assertThat(suggestion.getAttributeMappings())
+                .as("Failing AI script must not discard a valid heuristic candidate")
+                .hasSize(1);
+        AttributeMappingsSuggestionType mapping = suggestion.getAttributeMappings().get(0);
+        assertThat(mapping.getExpectedQuality()).isEqualTo(1.0f);
+        assertThat(mapping.getDefinition().getInbound().get(0).getExpression())
+                .as("Heuristic expression should be used")
+                .isNotNull();
+    }
+
+    @Test
     public void test300HeuristicCombinedTrimAndLowerCaseOrder2() throws Exception {
         Task task = getTestTask();
         OperationResult result = task.getResult();
