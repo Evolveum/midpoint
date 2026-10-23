@@ -25,6 +25,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiObjectDetailsPage
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 
+import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
@@ -128,6 +129,9 @@ public abstract class PageBaseSystemConfiguration extends PageAssignmentHolderDe
                     }
 
                     return applyArchetypePolicy(defaultPageConfig);
+                } catch (RestartResponseException ex) {
+                    // object couldn't be loaded (e.g. no read access), let the redirect happen
+                    throw ex;
                 } catch (Exception ex) {
                     LOGGER.error("Couldn't create default gui object details page and apply archetype policy", ex);
                 }
