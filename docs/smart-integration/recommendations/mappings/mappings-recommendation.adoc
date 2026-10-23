@@ -334,6 +334,7 @@ Such value pairs show what a mapping has to do, and they are also used to test w
 .. as-is mapping (the baseline),
 .. the best matching <<Heuristic mappings,heuristic rule>>,
 .. with `RAW_DATA_ACCESS`, an <<AI-generated script mappings,AI-generated script>> obtained with retries (see <<Retry of AI-generated scripts>>).
+The microservice is not called if the as-is mapping or a heuristic rule already reaches quality `1.0`.
 
 When a result is selected, midPoint checks it against the minimum quality.
 If the expected quality is known and lower than `0.4`, the pair is skipped.
@@ -358,7 +359,7 @@ Evaluate on validation samples ──OK→ AI candidate (quality compared with o
     ↓ ERROR
 Attempts left? ──YES→ Call again with errorLog + previousScript
     ↓ NO
-FAILURE of the whole pair
+No AI candidate (best of as-is and heuristic is kept)
 ----
 
 The maximum number of attempts is `1 + mappingSuggestionRetryCount` (by default 2 attempts in total).
@@ -375,7 +376,8 @@ The evaluation uses a restricted expression profile for safe evaluation.
 . Depending on the result:
 ** the script evaluates successfully - it becomes the AI candidate, and its quality is compared with the other candidates,
 ** the evaluation fails with an expression evaluation or security violation error, and attempts remain - the error message is stored as `errorLog` and the next attempt starts,
-** the evaluation fails in the last attempt - the error is propagated and the whole pair ends with `FAILURE`,
+** the evaluation fails in the last attempt - the error is logged and no AI candidate is created.
+The pair is still evaluated with the as-is and heuristic candidates.
 
 Setting `mappingSuggestionRetryCount` to `0` disables retries, so only one attempt is made.
 
@@ -469,7 +471,7 @@ The winning rule is used only if its quality is higher than the as-is quality.
 
 === AI-generated script mappings
 
-If no simple transformation fits, midPoint asks the AI microservice to write a script.
+If no simple transformation fits perfectly (the as-is and heuristic quality is below `1.0`), midPoint asks the AI microservice to write a script.
 This requires the `RAW_DATA_ACCESS` permission, because sample values are sent to the microservice.
 
 midPoint calls the `SUGGEST_MAPPING` method with:
