@@ -383,4 +383,9 @@ public class ReportObjectsListPanel<C extends Serializable> extends Containerabl
     protected boolean isFulltextEnabled() {
         return false;
     }
+
+    @Override
+    protected String getTableContainerAdditionalCssClasses() {
+        return "overflow-auto";
+    }
 }
