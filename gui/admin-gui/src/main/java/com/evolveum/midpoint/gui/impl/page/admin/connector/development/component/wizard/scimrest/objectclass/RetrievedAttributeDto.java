@@ -3,13 +3,13 @@
  *
  * Licensed under the EUPL-1.2 or later.
  */
-package com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.search;
+package com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass;
 
 import java.io.Serial;
 import java.io.Serializable;
 
 /**
- * One attribute of the object returned by the GET operation.
+ * One attribute of a retrieved object.
  */
 public class RetrievedAttributeDto implements Serializable {
 

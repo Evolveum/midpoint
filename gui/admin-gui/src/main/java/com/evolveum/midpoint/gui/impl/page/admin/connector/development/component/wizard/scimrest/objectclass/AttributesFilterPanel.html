@@ -6,10 +6,7 @@
 
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
-<wicket:extend>
-    <div wicket:id="feedbackContainer" class="col-12 feedbackContainer">
-        <div wicket:id="feedback" class="messagePanel"/>
-    </div>
+<wicket:panel>
     <div class="col-12 p-0 mb-3 d-flex flex-wrap align-items-center gap-2">
         <form wicket:id="searchForm" class="me-auto">
             <div class="input-group">
@@ -21,12 +18,11 @@
             </div>
         </form>
         <div class="form-check mb-0">
-            <input type="checkbox" class="form-check-input" wicket:id="showMarkedOnly"/>
-            <label class="form-check-label" wicket:for="showMarkedOnly">
-                <wicket:message key="SearchByIdResultConnectorStepPanel.showMarkedOnly"/>
+            <input type="checkbox" class="form-check-input" wicket:id="filter"/>
+            <label class="form-check-label" wicket:for="filter">
+                <span wicket:id="filterLabel"/>
             </label>
         </div>
     </div>
-    <div class="col-12 p-0" wicket:id="table"/>
-</wicket:extend>
+</wicket:panel>
 </html>

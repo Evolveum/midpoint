@@ -51,6 +51,10 @@ public abstract class ScriptConfirmationPanel extends AbstractWizardStepPanel<Co
 
     protected abstract List<ConnectorDevelopmentArtifacts.KnownArtifactType> getScriptClassifications();
 
+    protected final void nextWithoutConfirmationPerformed(AjaxRequestTarget target) {
+        super.onNextPerformed(target);
+    }
+
     @Override
     public boolean onNextPerformed(AjaxRequestTarget target) {
         // This detach & reload fixes desync between GUI and actual state of edit

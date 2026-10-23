@@ -10,10 +10,8 @@ import java.io.Serial;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
 import org.apache.commons.lang3.StringUtils;
@@ -33,20 +31,16 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismReferenceWrapper;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.data.provider.SelectableBeanObjectDataProvider;
 import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardStepPanel;
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
-import com.evolveum.midpoint.gui.impl.component.wizard.withnavigation.WizardModelWithParentSteps;
-import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.ConnectorDevelopmentDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.ConnectorDevelopmentWizardUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.gui.impl.util.TableUtil;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
@@ -71,7 +65,6 @@ import com.evolveum.midpoint.web.component.input.EnumCardChoicePanel;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnDevObjectClassInfoType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnDevTestingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorDevelopmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
@@ -210,12 +203,7 @@ public class SearchByIdObjectConnectorStepPanel extends AbstractWizardStepPanel<
 
     private ResourceDetailsModel createTestingResourceModel() {
         try {
-            PrismReferenceWrapper<Referencable> resource = getDetailsModel().getObjectWrapper().findReference(
-                    ItemPath.create(ConnectorDevelopmentType.F_TESTING, ConnDevTestingType.F_TESTING_RESOURCE));
-
-            ObjectDetailsModels objectDetailsModel = resource.getValue().getNewObjectModel(
-                    getContainerConfiguration(PANEL_TYPE), getPageBase(), new OperationResult("getResourceModel"));
-            return (ResourceDetailsModel) objectDetailsModel;
+            return (ResourceDetailsModel) ConnectorDevelopmentWizardUtil.getTestingResourceModel(getDetailsModel(), PANEL_TYPE);
         } catch (SchemaException e) {
             throw new RuntimeException(e);
         }
@@ -324,13 +312,7 @@ public class SearchByIdObjectConnectorStepPanel extends AbstractWizardStepPanel<
         if (row == null || row.getValue() == null) {
             return null;
         }
-        return formatValues(ShadowUtil.getAttributeValues(row.getValue(), attributeName));
-    }
-
-    static String formatValues(Collection<?> values) {
-        return values.stream()
-                .map(String::valueOf)
-                .collect(Collectors.joining(", "));
+        return ConnectorDevelopmentWizardUtil.formatValues(ShadowUtil.getAttributeValues(row.getValue(), attributeName));
     }
 
     private ResourceObjectDefinition getObjectClassDefinition() {
@@ -363,7 +345,8 @@ public class SearchByIdObjectConnectorStepPanel extends AbstractWizardStepPanel<
             result.computeStatusIfUnknown();
         }
 
-        reportConnectorResults(result, target);
+        ConnectorDevelopmentWizardUtil.reportConnectorResults(
+                this, SearchByIdScriptConnectorStepPanel.PANEL_TYPE, result, target);
 
         if (!result.isSuccess()) {
             retrievedObjectModel.setObject(null);
@@ -405,15 +388,6 @@ public class SearchByIdObjectConnectorStepPanel extends AbstractWizardStepPanel<
         List<PrismObject<ShadowType>> shadows = getPageBase().getModelService()
                 .searchObjects(ShadowType.class, query, null, task, result);
         return shadows.isEmpty() ? null : shadows.get(0).asObjectable();
-    }
-
-    private void reportConnectorResults(OperationResult result, AjaxRequestTarget target) {
-        if (getWizard() instanceof WizardModelWithParentSteps wizardModel) {
-            ConnectorDevelopmentWizardUtil.collectConnectorResults(result, connIdResult ->
-                    wizardModel.addOperationResult(getStepId(), SearchByIdScriptConnectorStepPanel.PANEL_TYPE, connIdResult,
-                            ConnectorDevelopmentWizardUtil.fixScriptAction(this, SearchByIdScriptConnectorStepPanel.PANEL_TYPE)));
-            ConnectorDevelopmentWizardUtil.reportConnectorLogs(this, getStepId(), result, target);
-        }
     }
 
     @Override

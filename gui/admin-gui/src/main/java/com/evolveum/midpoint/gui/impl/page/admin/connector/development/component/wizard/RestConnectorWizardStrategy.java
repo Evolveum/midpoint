@@ -31,7 +31,10 @@ import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.ObjectClassSelectConnectorStepPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.create.CreateEndpointsConnectorStepPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.create.CreateObjectClassConnectorStepPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.create.CreateCleanupConnectorStepPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.create.CreateResultConnectorStepPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.create.CreateScriptConnectorStepPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.create.CreateTestObjectConnectorStepPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.create.WaitingCreateConnectorStepPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.delete.DeleteEndpointsConnectorStepPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.delete.DeleteObjectClassConnectorStepPanel;
@@ -162,12 +165,17 @@ public class RestConnectorWizardStrategy implements ConnectorWizardStrategy {
     public List<WizardStep> createObjectClassSteps(
             WizardPanelHelper<? extends Containerable, ConnectorDevelopmentDetailsModel> helper,
             IModel<PrismContainerValueWrapper<ConnDevObjectClassInfoType>> objectClassModel) {
+        IModel<ShadowType> createdObjectModel = Model.of();
+        IModel<ShadowType> retrievedObjectModel = Model.of();
         return List.of(
                 new CreateEndpointsConnectorStepPanel(helper, objectClassModel),
                 new WaitingCreateConnectorStepPanel(helper, objectClassModel),
                 new WaitingFixObjectClassConnectorStepPanel(helper, objectClassModel, CreateObjectClassConnectorStepPanel.PANEL_TYPE),
                 new FixObjectClassReviewConnectorStepPanel(helper, objectClassModel, CreateObjectClassConnectorStepPanel.PANEL_TYPE),
-                new CreateScriptConnectorStepPanel(helper, objectClassModel));
+                new CreateScriptConnectorStepPanel(helper, objectClassModel),
+                new CreateTestObjectConnectorStepPanel(helper, objectClassModel, createdObjectModel, retrievedObjectModel),
+                new CreateResultConnectorStepPanel(helper, objectClassModel, createdObjectModel, retrievedObjectModel),
+                new CreateCleanupConnectorStepPanel(helper, objectClassModel));
     }
 
     @Override
