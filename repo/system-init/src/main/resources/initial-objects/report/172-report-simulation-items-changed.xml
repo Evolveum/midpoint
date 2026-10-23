@@ -154,7 +154,7 @@
                     <expression>
                         <script>
                             <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
-                            <code>itemDelta.path</code>
+                            <code>list(itemDelta).map(d, d.path)</code>
                         </script>
                     </expression>
                 </export>
@@ -174,7 +174,7 @@
                     <expression>
                         <script>
                             <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
-                            <code>itemDelta.realValuesBefore</code>
+                            <code>list(itemDelta).map(d, d.realValuesBefore).flatten()</code>
                         </script>
                     </expression>
                 </export>
@@ -194,7 +194,7 @@
                     <expression>
                         <script>
                             <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
-                            <code>itemDelta.realValuesAfter</code>
+                            <code>list(itemDelta).map(d, d.realValuesAfter).flatten()</code>
                         </script>
                     </expression>
                 </export>
@@ -214,7 +214,7 @@
                     <expression>
                         <script>
                             <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
-                            <code>itemDelta.realValuesAdded</code>
+                            <code>list(itemDelta).map(d, d.realValuesAdded).flatten()</code>
                         </script>
                     </expression>
                 </export>
@@ -234,7 +234,7 @@
                     <expression>
                         <script>
                             <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
-                            <code>itemDelta.realValuesDeleted</code>
+                            <code>list(itemDelta).map(d, d.realValuesDeleted).flatten()</code>
                         </script>
                     </expression>
                 </export>
@@ -274,7 +274,7 @@
                     <expression>
                         <script>
                             <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
-                            <code>relatedAssignment.id</code>
+                            <code>list(relatedAssignment).map(a, a.id)</code>
                         </script>
                     </expression>
                 </export>
@@ -294,7 +294,7 @@
                     <expression>
                         <script>
                             <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
-                            <code>relatedAssignment.targetRef</code>
+                            <code>list(relatedAssignment).map(a, a.targetRef)</code>
                         </script>
                     </expression>
                 </export>
@@ -315,7 +315,7 @@
                         <script>
                             <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                             <code>
-                                relatedAssignment.targetRef.relation
+                                list(relatedAssignment).map(a, a.targetRef.relation)
                             </code>
                         </script>
                     </expression>
@@ -337,7 +337,7 @@
                         <script>
                             <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                             <code>
-                                relatedAssignment.construction.resourceRef
+                                list(relatedAssignment).map(a, a.construction.resourceRef)
                             </code>
                         </script>
                     </expression>
@@ -359,7 +359,7 @@
                         <script>
                             <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                             <code>
-                                relatedAssignment.construction.kind
+                                list(relatedAssignment).map(a, a.construction.kind)
                             </code>
                         </script>
                     </expression>
@@ -381,7 +381,7 @@
                         <script>
                             <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                             <code>
-                                relatedAssignment.construction.intent
+                                list(relatedAssignment).map(a, a.construction.intent)
                             </code>
                         </script>
                     </expression>
@@ -506,7 +506,7 @@
             <expression>
                 <script>
                     <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
-                    <code>isPresent(itemDelta) ? itemDelta.relatedAssignment() : nil</code>
+                    <code>list(itemDelta).map(d, d.relatedAssignment()).filter(a, isPresent(a))</code>
                 </script>
             </expression>
             <order>30</order>
