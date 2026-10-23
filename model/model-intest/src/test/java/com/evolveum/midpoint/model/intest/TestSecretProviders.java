@@ -31,6 +31,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ExternalDataType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
+import org.apache.commons.lang3.StringUtils;
+
 @ContextConfiguration(locations = { "classpath:ctx-model-intest-test-main.xml" })
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class TestSecretProviders extends AbstractInitializedModelIntegrationTest {
@@ -222,7 +224,8 @@ public class TestSecretProviders extends AbstractInitializedModelIntegrationTest
         String expected = Files.readString(FILE_SECRET_FILE.toPath());
         assertThat(protector.decryptString(valueForEvaluation))
                 .as("decrypted configuration value")
-                .isEqualTo(expected);
+                .isEqualTo(StringUtils.chomp(expected));
+
 
         and("unknown key is reported as missing secret");
         ProtectedStringType unknown = createProtectedString(CUSTOM_PROVIDER_IDENTIFIER, "unknown");
