@@ -11,7 +11,7 @@ services:
      - midpoint_data:/var/lib/postgresql/data
 
   data_init:
-    image: evolveum/midpoint:${MP_VER:-latest}-alpine
+    image: evolveum/midpoint:${MP_VER:-alpine}-latest
     command: >
       bash -c "
       cd /opt/midpoint ;
@@ -38,7 +38,7 @@ services:
      - midpoint_home:/opt/midpoint/var
 
   midpoint_server:
-    image: evolveum/midpoint:${MP_VER:-latest}-alpine
+    image: evolveum/midpoint:${MP_VER:-alpine}-latest
     depends_on:
       data_init:
         condition: service_completed_successfully
