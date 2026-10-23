@@ -35,6 +35,7 @@ import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.model.IModel;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -74,6 +75,10 @@ public class GlobalPolicyRuleContentPanel extends MultivalueContainerListPanelWi
 
     @Override
     protected List<IColumn<PrismContainerValueWrapper<GlobalPolicyRuleType>, String>> createDefaultColumns() {
+        if (getContainerModel().getObject() == null) {
+            return new ArrayList<>();
+        }
+
         return Arrays.asList(
                 new PrismPropertyWrapperColumn<>(getContainerModel(), GlobalPolicyRuleType.F_NAME,
                         AbstractItemWrapperColumn.ColumnType.LINK, getPageBase()) {
@@ -96,7 +101,7 @@ public class GlobalPolicyRuleContentPanel extends MultivalueContainerListPanelWi
 
     @Override
     protected boolean isCreateNewObjectVisible() {
-        return true;
+        return getContainerModel().getObject() != null;
     }
 
     @Override
