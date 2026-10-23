@@ -78,7 +78,7 @@ class MappingsSuggestionOperation {
     private static final Trace LOGGER = TraceManager.getTrace(MappingsSuggestionOperation.class);
 
     private static final float MISSING_DATA_THRESHOLD = 0.05f;
-    private static final float MINIMUM_QUALITY_THRESHOLD = 0.1f;
+    private static final float MINIMUM_QUALITY_THRESHOLD = 0.4f;
 
     private static final String ID_SHADOWS_COLLECTION = "collectingShadowsWithOwners";
     private static final String ID_MAPPINGS_SUGGESTION = "mappingsSuggestion";

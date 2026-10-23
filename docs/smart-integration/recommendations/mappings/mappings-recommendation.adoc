@@ -300,7 +300,7 @@ Pick the best of:
   - best heuristic rule
   - AI script (RAW_DATA_ACCESS only, with retry)
     ↓
-Quality < 0.1? ──YES→ SKIP (low quality)
+Quality < 0.4? ──YES→ SKIP (low quality)
     ↓ NO
 Mapping recommendation (SUCCESS)
 ----
@@ -336,7 +336,7 @@ Such value pairs show what a mapping has to do, and they are also used to test w
 .. with `RAW_DATA_ACCESS`, an <<AI-generated script mappings,AI-generated script>> obtained with retries (see <<Retry of AI-generated scripts>>).
 
 When a result is selected, midPoint checks it against the minimum quality.
-If the expected quality is known and lower than `0.1`, the pair is skipped.
+If the expected quality is known and lower than `0.4`, the pair is skipped.
 Otherwise midPoint builds the recommendation and marks its provenance (see <<Provenance>>):
 
 * `SYSTEM` if the recommendation was made entirely without an LLM,
@@ -385,12 +385,11 @@ After all pairs are processed, midPoint has a pool of candidates from steps 3 an
 Before a candidate enters the pool:
 
 * it is dropped if its target is excluded (see step 2),
-* it is dropped if its expected quality is low,
 * if the same mapping is already in the pool (the same source, target and script, where the script is empty for as-is mappings), only one of them is kept.
 A `SYSTEM` mapping replaces an `AI` one; otherwise the mapping that is already in the pool is kept.
 
 Well-known mappings from step 3 are subject only to the first check (excluded targets).
-They skip the quality threshold and deduplication.
+They skip deduplication.
 
 The same target can get more than one recommendation if the recommendations differ in source or script, for example a well-known mapping and an AI mapping for the same focus property.
 The final list is grouped by target path and, within each target, ordered by expected quality from highest to lowest.
