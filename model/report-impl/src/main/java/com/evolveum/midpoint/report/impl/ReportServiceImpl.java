@@ -318,6 +318,14 @@ public class ReportServiceImpl implements ReportService {
         inputVariables.putAll(variables);
         for (SubreportParameterType subreport : sortedSubreports) {
             VariablesMap resultVariables = evaluateSubreport(reportObject, inputVariables, subreport, task, result);
+            // Like in CollectionExportController, "no values" is represented by null, not by an empty collection
+            // (empty collection is not converted to a list and e.g. MEL cannot iterate over it).
+            for (String name : List.copyOf(resultVariables.keySet())) {
+                TypedValue<?> value = resultVariables.get(name);
+                if (value != null && value.getValue() instanceof Collection<?> c && c.isEmpty()) {
+                    resultVariables.put(name, null, Object.class);
+                }
+            }
 
             inputVariables.putAll(resultVariables);
             subreportVariable.putAll(resultVariables);
