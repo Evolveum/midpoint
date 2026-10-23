@@ -1,0 +1,32 @@
+<!--
+  ~ Copyright (C) 2010-2026 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:extend>
+    <div wicket:id="feedbackContainer" class="col-12 feedbackContainer">
+        <div wicket:id="feedback" class="messagePanel"/>
+    </div>
+    <div wicket:id="errorBannersContainer" class="col-12">
+        <div wicket:id="errorBanners">
+            <span wicket:id="errorBannerText"/>
+        </div>
+    </div>
+    <div class="col-12 d-flex align-items-center gap-2 mb-2 flex-wrap">
+        <div wicket:id="typeSelect"/>
+        <div wicket:id="sourceSelect"/>
+        <div wicket:id="languageSelect"/>
+        <div class="form-check ms-2">
+            <input type="checkbox" class="form-check-input" wicket:id="enabledToggle" id="fixReviewEnabledToggle"/>
+            <label class="form-check-label" for="fixReviewEnabledToggle">
+                <wicket:message key="FixObjectClassReviewConnectorStepPanel.enabled"/>
+            </label>
+        </div>
+    </div>
+    <div class="col-12 p-0" wicket:id="editor"/>
+</wicket:extend>
+</html>

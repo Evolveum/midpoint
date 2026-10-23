@@ -6,6 +6,9 @@ doc-type: intro
 :page-nav-title: Null Values
 :page-upkeep-status: yellow
 :page-toc: top
+:page-display-order: 500
+:page-keywords: mel, midpoint expression language, null, null-safety
+:page-description: This article describes how null-safety works in MEL.
 
 MEL data structures and functions are generally null-safe.
 I.e. expression authors do not need to worry about passing `null` values into functions, or even invoking member functions on `null` values.
@@ -24,6 +27,8 @@ No additional null checks are needed.
 givenName.substring(0,1)
 ----
 
+{empty}
+
 [source,mel]
 ----
 substring(givenName,0,1)
@@ -32,14 +37,14 @@ substring(givenName,0,1)
 Other string functions are also null-safe, including functions returning boolean values.
 For example, following expression returns `false` in case the `fullName` variable is `null`.
 
-NOTE: There is a `has()` macro in CEL, which can be used to check for presence of a particular element in structured data.
-However, the `has()` macro has limitations, which makes it difficult to use in some cases.
-The use of `isNil()` and `isPresent()` functions is recommended instead of use of `has()` macro, especially for new users.
-
 [source,mel]
 ----
 fullName.contains('TEST')
 ----
+
+NOTE: There is a `has()` macro in CEL, which can be used to check for presence of a particular element in structured data.
+However, the `has()` macro has limitations, which makes it difficult to use in some cases.
+The use of `isNil()` and `isPresent()` functions is recommended instead of use of `has()` macro, especially for new users.
 
 == Null-Safe Navigation
 

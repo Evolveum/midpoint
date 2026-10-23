@@ -26,9 +26,7 @@ import org.testng.annotations.Test;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.Comparator;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -43,7 +41,9 @@ import static org.assertj.core.api.Assertions.assertThat;
  *
  * <p>The source low-code bundle is built from the SCIM/REST framework template (a
  * {@code ManifestBasedConnector} with development-mode support) plus a generated
- * {@code connector.manifest.yaml}. No AI / connector-generation microservice is involved.
+ * {@code connector.manifest.yaml}. The template is the {@code connector-scimrest-generic}
+ * Maven artifact, copied into {@code target/dependency} by the build
+ * (see {@link ScimRestTemplateJar}). No AI / connector-generation microservice is involved.
  */
 @ContextConfiguration(locations = { "classpath:ctx-model-intest-test-main.xml" })
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
@@ -51,15 +51,15 @@ public class ConnectorImportStoryTest extends AbstractEmptyModelIntegrationTest 
 
     private static final int TIMEOUT = 300_000;
 
-    private static final String TEMPLATE_JAR = System.getProperty("conndev.import.template.jars",
-            System.getProperty("user.home") + File.separator
-                    + ".m2/repository/com/evolveum/polygon/scimrest/connector-scimrest-generic/0.1-SNAPSHOT/connector-scimrest-generic-0.1-SNAPSHOT.jar");
+    // The SCIM/REST framework template bundle, obtained from Maven (see ScimRestTemplateJar).
+    private static final File TEMPLATE_JAR = ScimRestTemplateJar.get();
 
     private static final String BUNDLE_NAME = "com.evolveum.polygon.scimrest.connector-scimrest-generic";
     private static final String GROUP_ID = "com.evolveum.polygon.scimrest";
     private static final String ARTIFACT_ID = "connector-scimrest-generic";
-    private static final String SOURCE_VERSION = "0.1-SNAPSHOT";
-    private static final String TARGET_VERSION = "0.2-SNAPSHOT";
+    private static final String SOURCE_VERSION = ScimRestTemplateJar.VERSION;
+    // ConnectorVersionUtil.bumpMinor(SOURCE_VERSION)
+    private static final String TARGET_VERSION = "0.3.0";
 
     private static final String MANIFEST_YAML = """
             application:
@@ -167,7 +167,7 @@ public class ConnectorImportStoryTest extends AbstractEmptyModelIntegrationTest 
     @Test
     public void test050IsManifestBased() throws CommonException {
         var connector = getObject(ConnectorType.class, sourceConnectorOid).asObjectable();
-        assertThat(connectorService.isManifestBasedConnector(connector, getTestOperationResult()))
+        assertThat(connectorService.isManifestBasedConnector(connector))
                 .as("the source bundle carries a connector.manifest.yaml").isTrue();
     }
 
@@ -207,9 +207,10 @@ public class ConnectorImportStoryTest extends AbstractEmptyModelIntegrationTest 
         assertThat(user.getNativeSchemaScript()).isNotNull();
         assertThat(user.getNativeSchemaScript().getContent()).contains("native schema for User");
 
-        assertThat(development.getApplication().getDetectedSchema().getObjectClass())
-                .extracting(ConnDevObjectClassInfoType::getName)
-                .contains("User");
+        // The application's detected schema is still empty here - the object classes prefilled on
+        // the connector item are enriched into it by the discovery steps.
+        assertThat(development.getApplication().getDetectedSchema()).isNotNull();
+        assertThat(development.getApplication().getDetectedSchema().getObjectClass()).isEmpty();
     }
 
     @Test(dependsOnMethods = "test100StartFromExisting")

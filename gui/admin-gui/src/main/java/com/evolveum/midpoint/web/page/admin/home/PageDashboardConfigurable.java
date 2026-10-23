@@ -7,10 +7,13 @@
 package com.evolveum.midpoint.web.page.admin.home;
 
 import java.io.Serial;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -291,13 +294,13 @@ public class PageDashboardConfigurable extends PageDashboard {
     }
 
     @Nullable
-    static final NativeOnlySupportedException findNativeOnlyException(Exception e) {
-        Throwable next = e;
-        while (next != null) {
+    static NativeOnlySupportedException findNativeOnlyException(Exception e) {
+        // cause chains can be cyclic, never walk one twice
+        Set<Throwable> seen = Collections.newSetFromMap(new IdentityHashMap<>());
+        for (Throwable next = e; next != null && seen.add(next); next = next.getCause()) {
             if (next instanceof NativeOnlySupportedException nativeOnly) {
                 return nativeOnly;
             }
-            next = e.getCause();
         }
         return null;
     }

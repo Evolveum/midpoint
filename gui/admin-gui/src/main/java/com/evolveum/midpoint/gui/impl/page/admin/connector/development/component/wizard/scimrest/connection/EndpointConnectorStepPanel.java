@@ -10,11 +10,15 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.gui.impl.component.message.FeedbackLabels;
+import com.evolveum.midpoint.web.component.input.validator.NotNullValidator;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormChoiceComponentUpdatingBehavior;
 import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.feedback.ComponentFeedbackMessageFilter;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Radio;
@@ -82,6 +86,7 @@ public class EndpointConnectorStepPanel extends AbstractWizardStepPanel<Connecto
     private static final String ID_MANUAL_ITEM = "manualItem";
     private static final String ID_MANUAL_RADIO = "manualRadio";
     private static final String ID_MANUAL_URL = "manualUrl";
+    private static final String ID_FEEDBACK = "feedback";
     private static final String ID_MANUAL_BADGE = "manualBadge";
 
     private LoadableModel<List<ConnDevHttpEndpointType>> endpointsModel;
@@ -207,6 +212,9 @@ public class EndpointConnectorStepPanel extends AbstractWizardStepPanel<Connecto
         manualItem.add(manualRadio);
 
         TextField<String> manualUrl = new TextField<>(ID_MANUAL_URL, manualUrlModel);
+        NotNullValidator<String> validator = new NotNullValidator<>("EndpointConnectorStepPanel.manual.fail.required");
+        validator.setUseModel(true);
+        manualUrl.add(validator);
         manualUrl.setOutputMarkupId(true);
         manualUrl.setOutputMarkupPlaceholderTag(true);
         manualUrl.add(AttributeAppender.append("onclick", "event.stopPropagation()"));
@@ -214,10 +222,15 @@ public class EndpointConnectorStepPanel extends AbstractWizardStepPanel<Connecto
         manualUrl.add(new AjaxFormComponentUpdatingBehavior("change") {
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
-                // model updated automatically
+                target.add(getManualInputFeedback());
             }
         });
         manualItem.add(manualUrl);
+
+        FeedbackLabels feedback = new FeedbackLabels(ID_FEEDBACK);
+        feedback.setOutputMarkupId(true);
+        feedback.setFilter(new ComponentFeedbackMessageFilter(manualUrl));
+        manualItem.add(feedback);
 
         WebMarkupContainer manualBadge = new WebMarkupContainer(ID_MANUAL_BADGE);
         manualBadge.setOutputMarkupPlaceholderTag(true);
@@ -285,11 +298,15 @@ public class EndpointConnectorStepPanel extends AbstractWizardStepPanel<Connecto
     }
 
     private void testConnection(AjaxRequestTarget target) {
+        target.add(getManualInputFeedback());
+
         String url = getSelectedUrl();
         if (StringUtils.isEmpty(url)) {
-            target.add(getFeedback());
+            TextField<String> input = getManualInput();
+            input.validate();
             return;
         }
+
         try {
             setRestTestEndpoint(url);
         } catch (SchemaException e) {
@@ -313,6 +330,14 @@ public class EndpointConnectorStepPanel extends AbstractWizardStepPanel<Connecto
     public boolean onNextPerformed(AjaxRequestTarget target) {
         testConnection(target);
         return false;
+    }
+
+    private TextField<String> getManualInput() {
+        return (TextField<String>) get(createComponentPath(ID_RADIO_GROUP, ID_MANUAL_ITEM, ID_MANUAL_URL));
+    }
+
+    private FeedbackLabels getManualInputFeedback() {
+        return (FeedbackLabels) get(createComponentPath(ID_RADIO_GROUP, ID_MANUAL_ITEM, ID_FEEDBACK));
     }
 
     @Override

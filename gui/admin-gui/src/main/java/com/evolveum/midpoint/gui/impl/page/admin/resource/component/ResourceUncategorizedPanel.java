@@ -259,7 +259,7 @@ public class ResourceUncategorizedPanel extends AbstractResourceObjectPanel {
 
             @Override
             public PageStorage getPageStorage() {
-                return getPageBase().getBrowserTabSessionStorage().getResourceContentStorage(null);
+                return ResourceUncategorizedPanel.this.getPageStorage();
             }
 
             @Override
@@ -328,12 +328,25 @@ public class ResourceUncategorizedPanel extends AbstractResourceObjectPanel {
             }
 
             @Override
+            public void refreshTable(AjaxRequestTarget target) {
+                super.refreshTable(target);
+                ResourceUncategorizedPanel.this.onTableSearchPerformed(target);
+            }
+
+            @Override
             public Component getFeedbackPanel() {
                 return ResourceUncategorizedPanel.this.getPageBase().getFeedbackPanel();
             }
         };
         shadowTablePanel.setOutputMarkupId(true);
         add(shadowTablePanel);
+    }
+
+    protected void onTableSearchPerformed(AjaxRequestTarget target) {
+    }
+
+    protected PageStorage getPageStorage() {
+        return getPageBase().getBrowserTabSessionStorage().getResourceContentStorage(null);
     }
 
     protected boolean allwaysProvideResult() {

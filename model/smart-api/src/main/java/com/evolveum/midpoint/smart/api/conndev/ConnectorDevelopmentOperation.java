@@ -274,6 +274,14 @@ public interface ConnectorDevelopmentOperation {
 
     ConnDevArtifactValidationResult validateArtifact(ConnDevArtifactType artifact, Task task, OperationResult result);
 
+    /**
+     * Validates several candidate artifacts as one set, so none of them blocks on another one's
+     * own not-yet-saved content. Every artifact in the input is validated as its own "primary"
+     * (actually built), with every other artifact substituted in place of its own still-broken
+     * deployed version. Errors from every artifact are merged into one result.
+     */
+    ConnDevArtifactValidationResult validateArtifacts(List<ConnDevArtifactType> artifacts, Task task, OperationResult result);
+
 
     default void  saveNativeSchemaScript(ConnDevArtifactType artifact, Task task, OperationResult result) throws IOException, CommonException {
         saveArtifact(artifact, task, result);

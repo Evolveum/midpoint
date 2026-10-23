@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.smart.impl;
 
+import com.evolveum.midpoint.schema.processor.AssociationPair;
+import java.util.Set;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
@@ -1165,6 +1167,17 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
             OperationResult parentResult)
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
             ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
+        return suggestAssociations(resourceOid, null, task, parentResult);
+    }
+
+    @Override
+    public AssociationsSuggestionType suggestAssociations(
+            String resourceOid,
+            Set<AssociationPair> configuredAssociations,
+            Task task,
+            OperationResult parentResult)
+            throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
+            ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
         var result = parentResult.subresult(OP_SUGGEST_ASSOCIATIONS)
                 .addParam("resourceOid", resourceOid)
                 .build();
@@ -1174,7 +1187,7 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
 
             LOGGER.trace("Suggesting associations for resourceOid {}", resourceOid);
 
-            return new SmartAssociationImpl().suggestSmartAssociation(resource.asObjectable());
+            return new SmartAssociationImpl().suggestSmartAssociation(resource.asObjectable(), configuredAssociations);
         } catch (CommonException e) {
             result.recordException(e);
             throw e;
@@ -1189,6 +1202,15 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
             Task task,
             OperationResult parentResult) throws CommonException {
 
+        return submitSuggestAssociationsOperation(resourceOid, null, task, parentResult);
+    }
+
+    @Override
+    public String submitSuggestAssociationsOperation(
+            String resourceOid,
+            Set<AssociationPair> configuredAssociations,
+            Task task,
+            OperationResult parentResult) throws CommonException {
         var result = parentResult.subresult(OP_SUBMIT_SUGGEST_ASSOCIATIONS_OPERATION)
                 .addParam("resourceOid", resourceOid)
                 .build();
@@ -1197,6 +1219,10 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
             authorizeSmartIntegration(task, result);
             var workDef = new AssociationSuggestionWorkDefinitionType()
                     .resourceRef(resourceOid, ResourceType.COMPLEX_TYPE);
+            if (configuredAssociations != null) {
+                configuredAssociations.stream().map(AssociationPair::asBean)
+                        .forEach(workDef.getConfiguredAssociationPair()::add);
+            }
 
             var oid = modelInteractionService.submit(
                     new ActivityDefinitionType()

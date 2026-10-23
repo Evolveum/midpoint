@@ -100,7 +100,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-dependencies</artifactId>
-        <version>4.1.1</version>
+        <version>4.1.2</version>
         <!-- This parent also declares dependencies listed here:
         https://docs.spring.io/spring-boot/appendix/dependency-versions/coordinates.html
         -->
@@ -108,7 +108,7 @@
 
     <groupId>com.evolveum.midpoint</groupId>
     <artifactId>midpoint</artifactId>
-    <version>4.11-SNAPSHOT</version>
+    <version>4.12.0-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <name>midPoint Project</name>
@@ -237,12 +237,9 @@
         <cel.version>0.14.0e</cel.version>
 
         <!-- START of Spring Boot dependencies overrides (temporary/security fixes, revise regularly!) -->
-        <tomcat.version>11.0.25</tomcat.version>
         <maven-javadoc-plugin.version>3.11.2</maven-javadoc-plugin.version>
         <log4j2.version>2.26.1</log4j2.version>
-        <rabbit-amqp-client.version>5.34.0</rabbit-amqp-client.version>
-        <jackson-bom.version>3.1.7</jackson-bom.version>
-        <jackson-2-bom.version>2.21.7</jackson-2-bom.version>
+        <rabbit-amqp-client.version>5.37.0</rabbit-amqp-client.version>
         <!-- END of Spring Boot dependencies overrides -->
 
         <!-- security fix for CVE-2025-48976 -->
@@ -255,7 +252,7 @@
         <xmlsec.version>2.2.6</xmlsec.version>
         <!-- NOTE: also update the version number in TestConnectorManager -->
         <connid.version>1.7.0.0-M0</connid.version>
-        <conndev.version>0.2.0-RC2</conndev.version>
+        <conndev.version>0.2.0</conndev.version>
 
         <poi.version>5.5.1</poi.version>
         <tika.version>3.3.2</tika.version>
@@ -273,8 +270,8 @@
         <bouncycastle.version>1.85.2</bouncycastle.version>
         <bouncycastle.bcpkix.version>1.85</bouncycastle.bcpkix.version>
         <javax.persistence.version>2.2</javax.persistence.version>
-        <keycloak.version>26.0.6</keycloak.version>
-        <keycloak.client.version>26.0.4</keycloak.client.version>
+        <keycloak.version>26.8.1</keycloak.version>
+        <keycloak.client.version>26.0.12</keycloak.client.version>
         <maven.api.version>3.8.5</maven.api.version>
         <!-- With M6 we get [WARNING] Corrupted channel by directly writing to native stream in forked JVM 1,
         but M5 doesn't work for us anymore either (failing test initialization). -->
@@ -1067,7 +1064,7 @@
             <dependency>
                 <groupId>com.evolveum.polygon</groupId>
                 <artifactId>connector-csv</artifactId>
-                <version>2.10-SNAPSHOT</version>
+                <version>2.10</version>
                 <exclusions>
                     <!-- Connectors may have dependencies on various versions of connector-common,
                          as they can be built against various versions of polygon.
@@ -1086,7 +1083,7 @@
                 <groupId>com.evolveum.polygon</groupId>
                 <artifactId>connector-ldap</artifactId>
                 <!-- Do not forget to update provisioning/ucf-impl-connid/src/test/resources/connector-ldap.xml when changing connector version. -->
-                <version>3.10-SNAPSHOT</version>
+                <version>3.10</version>
                 <exclusions>
                     <!-- Needed otherwise the JDK14 SLF4J binding can override the midpoint's logback binding -->
                     <exclusion>
@@ -1138,6 +1135,14 @@
                 <artifactId>connector-sql-docs</artifactId>
                 <version>${conndev.version}</version>
                 <scope>runtime</scope>
+            </dependency>
+            <!-- Test template of a low-code (manifest-based) scimrest connector bundle; used by
+                 the connector-development story tests in model-intest (copied to
+                 target/dependency by maven-dependency-plugin). -->
+            <dependency>
+                <groupId>com.evolveum.polygon.scimrest</groupId>
+                <artifactId>connector-scimrest-generic</artifactId>
+                <version>${conndev.version}</version>
             </dependency>
             <!-- End connectors -->
 

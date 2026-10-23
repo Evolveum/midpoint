@@ -8,6 +8,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.sche
 
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.attribute.mapping.AbstractMappingsTable.createSourceMultiselectModel;
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.attribute.mapping.InboundAttributeMappingsTable.getMappingUsedIconColumn;
+import static com.evolveum.midpoint.web.component.data.column.ColumnUtils.createStrengthIconColumn;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -25,27 +26,22 @@ import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.markup.html.panel.EmptyPanel;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
-import com.evolveum.midpoint.gui.api.util.MappingAuthorityDisplayResolver;
 import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperColumn;
 import com.evolveum.midpoint.gui.impl.component.data.column.LifecycleStateColumn;
 import com.evolveum.midpoint.gui.impl.component.data.column.MappingExpressionColumn;
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapperColumn;
-import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapperColumnPanel;
 import com.evolveum.midpoint.gui.impl.component.input.FocusDefinitionsMappingProvider;
 import com.evolveum.midpoint.gui.impl.component.input.Select2MultiChoiceColumnPanel;
-import com.evolveum.midpoint.web.component.data.column.IconColumn;
 
 /**
  * Builds column definitions for {@link SmartMappingTable}.
@@ -72,7 +68,7 @@ final class SmartMappingColumns<P extends Containerable> implements Serializable
             columns.add(getMappingUsedIconColumn("tile-column-icon"));
         }
 
-        columns.add(createStrengthIconColumn());
+        columns.add(createStrengthIconColumn("col-auto px-0 tile-column-icon"));
         columns.add(createNameColumn());
 
         if (table.isOutbound()) {
@@ -89,21 +85,6 @@ final class SmartMappingColumns<P extends Containerable> implements Serializable
         return columns;
     }
 
-    private IColumn<PrismContainerValueWrapper<MappingType>, String> createStrengthIconColumn() {
-        return new IconColumn<>(Model.of()) {
-            @Override
-            protected DisplayType getIconDisplayType(
-                    IModel<PrismContainerValueWrapper<MappingType>> rowModel) {
-                return MappingAuthorityDisplayResolver.resolveDisplay(rowModel.getObject().getRealValue(), "");
-            }
-
-            @Override
-            public String getCssClass() {
-                return "col-auto px-0 tile-column-icon";
-            }
-        };
-    }
-
     private IColumn<PrismContainerValueWrapper<MappingType>, String> createNameColumn() {
         return new PrismPropertyWrapperColumn<>(
                 table.getMappingTypeDefinition(),
@@ -113,7 +94,7 @@ final class SmartMappingColumns<P extends Containerable> implements Serializable
 
             @Override
             public @NotNull String getCssClass() {
-                return "col-2 header-border-end";
+                return "col-2 header-border-end px-2";
             }
 
             @Override
@@ -145,7 +126,7 @@ final class SmartMappingColumns<P extends Containerable> implements Serializable
 
             @Override
             public @NotNull String getCssClass() {
-                return "col-2 header-border-end";
+                return "col-2 header-border-end px-2";
             }
         };
     }
@@ -159,7 +140,7 @@ final class SmartMappingColumns<P extends Containerable> implements Serializable
 
             @Override
             public @NotNull String getCssClass() {
-                return "col-2 header-border-end";
+                return "col-2 header-border-end px-2";
             }
 
             @SuppressWarnings("rawtypes")
@@ -236,7 +217,7 @@ final class SmartMappingColumns<P extends Containerable> implements Serializable
                         createSourceMultiselectModel(rowModel, table.getPageBase());
                 FocusDefinitionsMappingProvider provider =
                         new FocusDefinitionsMappingProvider(
-                                (IModel<PrismPropertyWrapper<VariableBindingDefinitionType>>) rowModel){
+                                (IModel<PrismPropertyWrapper<VariableBindingDefinitionType>>) rowModel) {
                             @Override
                             protected boolean showContainerChoices() {
                                 return true;
@@ -253,7 +234,7 @@ final class SmartMappingColumns<P extends Containerable> implements Serializable
 
             @Override
             public String getCssClass() {
-                return "col-2 header-border-end";
+                return "col-2 header-border-end px-2";
             }
         };
     }
@@ -269,23 +250,6 @@ final class SmartMappingColumns<P extends Containerable> implements Serializable
                 super.populateItem(cellItem, componentId, rowModel);
             }
 
-            @SuppressWarnings("unchecked")
-            @Override
-            protected <IW extends ItemWrapper> Component createColumnPanel(String componentId, IModel<IW> rowModel) {
-                return new PrismPropertyWrapperColumnPanel<>(
-                        componentId, (IModel<PrismPropertyWrapper<String>>) rowModel, getColumnType()) {
-                    @Override
-                    protected AjaxEventBehavior createEventBehavior(Component formComponent) {
-                        return new AjaxFormComponentUpdatingBehavior("change") {
-                            @Override
-                            protected void onUpdate(AjaxRequestTarget target) {
-                                table.refreshAndDetach(target);
-                            }
-                        };
-                    }
-                };
-            }
-
             @Override
             public String getSortProperty() {
                 return MappingType.F_TARGET.getLocalPart();
@@ -298,7 +262,7 @@ final class SmartMappingColumns<P extends Containerable> implements Serializable
 
             @Override
             public String getCssClass() {
-                return "col-2 header-border-end";
+                return "col-2 header-border-end px-2";
             }
         };
     }

@@ -91,11 +91,13 @@
                             <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                             <objectVariableMode>prismReference</objectVariableMode>
                             <code>
-                                !isPresent(data) ? 'Unknown owner' : cel.bind(owner,
-                                        midpoint.resolveReferenceIfExists(
-                                            data.provenance.assignmentPath.sourceRef),
-                                        cel.bind(name, owner.name.orig,
-                                            default(name, '') != '' ? name : 'Unknown owner'))
+                                cel.bind(values, list(data),
+                                    values.size() == 0 ? list('Unknown owner') : values.map(d,
+                                        cel.bind(owner,
+                                            midpoint.resolveReferenceIfExists(
+                                                d.provenance.assignmentPath.sourceRef),
+                                            cel.bind(name, owner.name.orig,
+                                                default(name, '') != '' ? name : 'Unknown owner'))))
                             </code>
                         </script>
                     </expression>
@@ -188,14 +190,15 @@
                             <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                             <objectVariableMode>prismReference</objectVariableMode>
                             <code>
-                                !isPresent(data) ||
-                                data.provenance.assignmentPath.segment.size() == 0
-                                    ? '?' : cel.bind(path,
-                                        data.provenance.assignmentPath.segment
-                                            .map(segment, midpoint.resolveReferenceIfExists(segment.targetRef))
-                                            .map(target, stringify(target.name.orig, 'null'))
-                                            .join(' -> '),
-                                        path != '' ? path : '?')
+                                cel.bind(values, list(data),
+                                    values.size() == 0 ? list('?') : values.map(d,
+                                        d.provenance.assignmentPath.segment.size() == 0
+                                            ? '?' : cel.bind(path,
+                                                d.provenance.assignmentPath.segment
+                                                    .map(segment, midpoint.resolveReferenceIfExists(segment.targetRef))
+                                                    .map(target, stringify(target.name.orig, 'null'))
+                                                    .join(' -> '),
+                                                path != '' ? path : '?')))
                             </code>
                         </script>
                     </expression>
@@ -219,14 +222,15 @@
                             <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                             <objectVariableMode>prismReference</objectVariableMode>
                             <code>
-                                !isPresent(data) ||
-                                data.provenance.assignmentPath.segment.size() == 0
-                                    ? '?' : data.provenance.assignmentPath.segment.size() == 1
-                                        ? 'Direct' : cel.bind(parent,
-                                            midpoint.resolveReferenceIfExists(
-                                                data.provenance.assignmentPath.segment[
-                                                    data.provenance.assignmentPath.segment.size() - 2].targetRef),
-                                            parent.name.orig)
+                                cel.bind(values, list(data),
+                                    values.size() == 0 ? list('?') : values.map(d,
+                                        d.provenance.assignmentPath.segment.size() == 0
+                                            ? '?' : d.provenance.assignmentPath.segment.size() == 1
+                                                ? 'Direct' : cel.bind(parent,
+                                                    midpoint.resolveReferenceIfExists(
+                                                        d.provenance.assignmentPath.segment[
+                                                            d.provenance.assignmentPath.segment.size() - 2].targetRef),
+                                                    parent.name.orig)))
                             </code>
                         </script>
                     </expression>
@@ -250,13 +254,14 @@
                             <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                             <objectVariableMode>prismReference</objectVariableMode>
                             <code>
-                                !isPresent(data) ? nil : cel.bind(path, data.provenance.assignmentPath,
+                                list(data).map(d,
+                                    cel.bind(path, d.provenance.assignmentPath,
                                         path.segment.size() == 0 ? nil : cel.bind(owner,
-                                                midpoint.resolveReferenceIfExists(path.sourceRef),
-                                                !isPresent(owner) ? nil : cel.bind(assignments,
-                                                        owner.assignment.filter(assignment,
-                                                            assignment.id == path.segment[0].assignmentId),
-                                                        assignments.size() == 0 ? nil : assignments[0].activation.effectiveStatus)))
+                                            midpoint.resolveReferenceIfExists(path.sourceRef),
+                                            !isPresent(owner) ? nil : cel.bind(assignments,
+                                                owner.assignment.filter(assignment,
+                                                    assignment.id == path.segment[0].assignmentId),
+                                                assignments.size() == 0 ? nil : assignments[0].activation.effectiveStatus))))
                             </code>
                         </script>
                     </expression>
@@ -279,13 +284,14 @@
                             <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                             <objectVariableMode>prismReference</objectVariableMode>
                             <code>
-                                !isPresent(data) ? nil : cel.bind(path, data.provenance.assignmentPath,
+                                list(data).map(d,
+                                    cel.bind(path, d.provenance.assignmentPath,
                                         path.segment.size() == 0 ? nil : cel.bind(owner,
-                                                midpoint.resolveReferenceIfExists(path.sourceRef),
-                                                !isPresent(owner) ? nil : cel.bind(assignments,
-                                                        owner.assignment.filter(assignment,
-                                                            assignment.id == path.segment[0].assignmentId),
-                                                        assignments.size() == 0 ? nil : assignments[0].activation.validTo)))
+                                            midpoint.resolveReferenceIfExists(path.sourceRef),
+                                            !isPresent(owner) ? nil : cel.bind(assignments,
+                                                owner.assignment.filter(assignment,
+                                                    assignment.id == path.segment[0].assignmentId),
+                                                assignments.size() == 0 ? nil : assignments[0].activation.validTo))))
                             </code>
                         </script>
                     </expression>
@@ -308,7 +314,7 @@
                             <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                             <objectVariableMode>prismReference</objectVariableMode>
                             <code>
-                                data.storage.createTimestamp
+                                list(data).map(d, d.storage.createTimestamp)
                             </code>
                         </script>
                     </expression>
@@ -331,19 +337,21 @@
                             <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                             <objectVariableMode>prismReference</objectVariableMode>
                             <code>
-                                !isPresent(data) ? nil : cel.bind(path, data.provenance.assignmentPath,
-                                        path.segment.size() == 0 ? nil : cel.bind(owner,
-                                                midpoint.resolveReferenceIfExists(path.sourceRef),
-                                                !isPresent(owner) ? nil : cel.bind(assignments,
-                                                        owner.assignment.filter(assignment,
-                                                            assignment.id == path.segment[0].assignmentId),
-                                                        assignments.size() == 0 ||
-                                                        !isPresent(assignments[0].metadata.createChannel)
-                                                            ? nil : cel.bind(channel,
-                                                                assignments[0].metadata.createChannel,
-                                                                cel.bind(parts, channel.split('#'),
-                                                                    midpoint.translateKeyInCurrentLocale(
-                                                                        'Channel.' + parts[parts.size() - 1]))))))
+                                list(data).map(d,
+                                    cel.bind(path, d.provenance.assignmentPath,
+                                        isEmpty(path.segment) ? nil : cel.bind(owner,
+                                            midpoint.resolveReferenceIfExists(path.sourceRef),
+                                            !isPresent(owner) ? nil : cel.bind(assignments,
+                                                // Find the originating assignment for this path.
+                                                owner.assignment.filter(assignment,
+                                                    assignment.id == path.segment[0].assignmentId),
+                                                isEmpty(assignments) ? nil : cel.bind(assignment, assignments[0],
+                                                    // Prefer modern value metadata, falling back to legacy metadata.
+                                                    cel.bind(channels,
+                                                        default(assignment.containerValueMetadata().map(m, isPresent(m.storage.createChannel), m.storage.createChannel),
+                                                            list(assignment.metadata.createChannel)),
+                                                        isEmpty(channels) ? nil : cel.bind(parts, channels[0].split('#'),
+                                                            format.translateKeyInCurrentLocale('Channel.' + parts[parts.size() - 1]))))))))
                             </code>
                         </script>
                     </expression>

@@ -6,18 +6,17 @@
 
 package com.evolveum.midpoint.repo.sqale.qmodel.accesscert;
 
-import static com.evolveum.midpoint.util.MiscUtil.asXMLGregorianCalendar;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationWorkItemType.*;
 import static com.querydsl.core.types.dsl.Expressions.stringTemplate;
 
+import static com.evolveum.midpoint.util.MiscUtil.asXMLGregorianCalendar;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationWorkItemType.*;
+
+import java.lang.reflect.Modifier;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.SelectorOptions;
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.querydsl.core.Tuple;
 import org.jetbrains.annotations.NotNull;
 
@@ -32,20 +31,14 @@ import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
 import com.evolveum.midpoint.repo.sqlbase.mapping.ResultListRowTransformer;
 import com.evolveum.midpoint.repo.sqlbase.mapping.TableRelationResolver;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkItemOutputType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationWorkItemType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ArchetypeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ServiceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
  * Mapping between {@link QAccessCertificationWorkItem} and {@link AccessCertificationWorkItemType}.
@@ -357,25 +350,26 @@ public class QAccessCertificationWorkItemMapping
             if (type == null) {
                 return null;
             }
+            ObjectTypes objectType = ObjectTypes.getObjectTypeFromTypeQNameIfKnown(type);
+            if (objectType == null) {
+                return null;
+            }
+            Class<? extends ObjectType> clazz = objectType.getClassDefinition();
+            if (Modifier.isAbstract(clazz.getModifiers())) {
+                return null;
+            }
             ObjectType obj;
-            if (UserType.COMPLEX_TYPE.equals(type)) {
-                UserType user = new UserType();
-                if (displayName != null) {
-                    user.setFullName(PolyStringType.fromOrig(displayName));
-                }
-                obj = user;
-            } else if (RoleType.COMPLEX_TYPE.equals(type)
-                    || ServiceType.COMPLEX_TYPE.equals(type)
-                    || ArchetypeType.COMPLEX_TYPE.equals(type)
-                    || OrgType.COMPLEX_TYPE.equals(type)) {
-                // For AbstractRole types, set displayName
-                RoleType role = new RoleType();
-                if (displayName != null) {
+            try {
+                obj = clazz.getDeclaredConstructor().newInstance();
+            } catch (ReflectiveOperationException e) {
+                return null;
+            }
+            if (displayName != null) {
+                if (obj instanceof UserType user) {
+                    user.setDisplayName(PolyStringType.fromOrig(displayName));
+                } else if (obj instanceof AbstractRoleType role) {
                     role.setDisplayName(PolyStringType.fromOrig(displayName));
                 }
-                obj = role;
-            } else {
-                obj = new ObjectType() {};
             }
             // Always set name to prevent NPE when getName() is called
             if (name != null) {

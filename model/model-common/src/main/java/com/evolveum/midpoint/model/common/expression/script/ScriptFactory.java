@@ -53,7 +53,7 @@ public class ScriptFactory {
 
     private static final Trace LOGGER = TraceManager.getTrace(ScriptFactory.class);
 
-    /** Indexed by full language URL, always non-null. Values are non-null as well. Concurrency is just for sure. */
+    /** Indexed by full (lowercased) language URL, always non-null. Values are non-null as well. Concurrency is just for sure. */
     @NotNull private final Map<String, ScriptExecutor> executorMap = new ConcurrentHashMap<>();
 
     @NotNull private final ObjectResolver objectResolver;
@@ -106,7 +106,8 @@ public class ScriptFactory {
         registerExecutor(evaluator.getLanguageUrl(), evaluator);
     }
 
-    private void registerExecutor(@NotNull String language, @NotNull ScriptExecutor evaluator) {
+    private void registerExecutor(@NotNull String languageUriRaw, @NotNull ScriptExecutor evaluator) {
+        var language = lowercaseLanguageUri(languageUriRaw);
         if (executorMap.containsKey(language)) {
             throw new IllegalArgumentException("Evaluator for language " + language + " already registered");
         }
@@ -115,7 +116,7 @@ public class ScriptFactory {
 
     @VisibleForTesting
     public void replaceExecutor(@NotNull ScriptExecutor evaluator) {
-        executorMap.put(evaluator.getLanguageUrl(), evaluator);
+        executorMap.put(lowercaseLanguageUri(evaluator.getLanguageUrl()), evaluator);
     }
 
     @VisibleForTesting
@@ -171,7 +172,8 @@ public class ScriptFactory {
         }
     }
 
-    private @NotNull ScriptExecutor getExecutor(String languageUri, String shortDesc) throws ExpressionSyntaxException {
+    private @NotNull ScriptExecutor getExecutor(String languageUriRaw, String shortDesc) throws ExpressionSyntaxException {
+        var languageUri = lowercaseLanguageUri(languageUriRaw);
         ScriptExecutor executor = getExecutorSimple(languageUri);
         if (executor != null) {
             return executor;
@@ -191,9 +193,14 @@ public class ScriptFactory {
         throw new ExpressionSyntaxException("Unsupported language " + languageUri + " used in script in " + shortDesc);
     }
 
+    private static String lowercaseLanguageUri(String languageUriRaw) {
+        // Shouldn't be null, but to be 100% safe let's treat it gracefully
+        return languageUriRaw != null ? languageUriRaw.toLowerCase() : null;
+    }
+
     @VisibleForTesting
     public @Nullable ScriptExecutor getExecutorSimple(String languageUri) {
-        return executorMap.get(languageUri);
+        return executorMap.get(lowercaseLanguageUri(languageUri));
     }
 
     private @NotNull String determineLanguage(ScriptExpressionEvaluatorType expressionBean, OperationResult result) {

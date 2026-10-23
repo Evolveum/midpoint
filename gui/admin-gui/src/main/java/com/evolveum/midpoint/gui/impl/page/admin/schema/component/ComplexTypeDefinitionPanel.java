@@ -371,6 +371,15 @@ public class ComplexTypeDefinitionPanel<AH extends AssignmentHolderType, ADM ext
                         protected boolean isCreateNewObjectVisible() {
                             return isVisibleNewItemDefinitionOrEnumValueButton();
                         }
+
+                        @Override
+                        public String getTableContainerAdditionalCssClasses() {
+                            // Opts this (many-column) table out of the global rule that forces
+                            // overflow: visible on .table-responsive from 992px up (added to keep
+                            // dropdown menus from clipping) - without it, this table has no way to
+                            // scroll horizontally and just overflows its container.
+                            return "overflow-auto";
+                        }
                     };
                     table.setOutputMarkupId(true);
                     return table;
@@ -387,6 +396,11 @@ public class ComplexTypeDefinitionPanel<AH extends AssignmentHolderType, ADM ext
                         @Override
                         protected boolean isCreateNewObjectVisible() {
                             return isVisibleNewItemDefinitionOrEnumValueButton();
+                        }
+
+                        @Override
+                        public String getTableContainerAdditionalCssClasses() {
+                            return "overflow-auto";
                         }
                     };
                     table.setOutputMarkupId(true);

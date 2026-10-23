@@ -50,9 +50,12 @@ public class ConstructionWizardPanel<AR extends AbstractRoleType> extends Abstra
             IModel<PrismContainerValueWrapper<AssignmentType>> valueModel,
             String stepId) {
         WizardModelBasic wizardModelBasic = new WizardModelBasic(createConstructionSteps(valueModel));
+
         if (StringUtils.isNotEmpty(stepId)) {
-            wizardModelBasic.setActiveStepById(stepId);
+            getPageBase().getPageParameters()
+                    .set(WizardModelBasic.PARAM_STEP, stepId);
         }
+
         showWizardFragment(
                 target,
                 new WizardPanel(getIdOfWizardPanel(), wizardModelBasic));

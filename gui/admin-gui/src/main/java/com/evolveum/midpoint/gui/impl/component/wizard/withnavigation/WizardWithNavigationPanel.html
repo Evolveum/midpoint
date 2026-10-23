@@ -12,7 +12,7 @@
         <div class="d-flex flex-column">
             <div wicket:id="header"></div>
             <div class="d-flex flex-row card shadow-sm mb-3 w-100 h-100" style="min-height: 78vh;">
-                <div class="wizard-navigation-menu py-3" wicket:id="navigation">
+                <div class="wizard-navigation-menu pt-2 pb-3" wicket:id="navigation">
                     <div class="border-bottom mb-2">
                         <a class="btn py-2 px-4 mx-3 mb-2 d-flex flex-row " wicket:id="summary">
                             <span>
@@ -22,24 +22,46 @@
                         </a>
                     </div>
                     <div class="d-flex flex-column px-3">
-                        <div wicket:id="card" class="d-flex flex-column card shadow-sm mb-3 gen-menu-card">
-                            <div class="pb-1" wicket:id="stepLabel"></div>
-                            <div>
-                                <span wicket:id="stepBadge"></span>
+                        <div wicket:id="parentCardContainer">
+                            <div wicket:id="parentCard" class="d-flex flex-column card shadow-sm mb-3 gen-menu-card">
+                                <div class="pb-1" wicket:id="stepLabel"></div>
+                                <div>
+                                    <span wicket:id="stepBadge"></span>
+                                </div>
+                            </div>
+
+                            <div wicket:id="parentEditContainer" class="d-flex flex-column gen-menu-group">
+                                <div class="d-flex flex-row align-items-center">
+                                    <div>
+                                        <span class="rounded-circle bg-info text-center me-2 d-block align-items-center gen-menu-icon">
+                                            <i class="fa-xs fas fa-pen-to-square text-white"></i>
+                                        </span>
+                                    </div>
+                                    <div wicket:id="parentEditStepLabel"></div>
+                                </div>
+                                <div class="d-flex flex-column ps-3 border-start" style="margin-left: 10px;">
+                                    <div wicket:id="editCard" class="d-flex flex-column card shadow-sm mb-3 gen-menu-card">
+                                        <div class="pb-1" wicket:id="stepLabel"></div>
+                                        <div>
+                                            <span wicket:id="stepBadge"></span>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
                     <div wicket:id="stepInProgress" class="d-flex flex-column px-3 pt-3 gen-menu-group">
                         <div class="d-flex flex-row align-items-center">
                             <div>
-                        <span class="rounded-circle bg-info text-center me-2 d-block align-items-center gen-menu-icon">
-                            <i class="fa-xs fa fa-spinner text-white"></i>
-                        </span>
+                                <span class="rounded-circle bg-info text-center me-2 d-block align-items-center gen-menu-icon">
+                                    <i class="fa-xs fa fa-spinner text-white"></i>
+                                </span>
                             </div>
-                            <div wicket:id="parentStepLabel"></div>
+                            <div wicket:id="parentInProgressStepLabel"></div>
                         </div>
                         <div class="d-flex flex-column ps-3 border-start" style="margin-left: 10px;">
-                            <div wicket:id="card" class="d-flex flex-column card shadow-sm mb-3 gen-menu-card">
+                            <div wicket:id="moreInProgressStepsLabel" class="text-primary mt-1 mb-2"></div>
+                            <div wicket:id="inProgressCard" class="d-flex flex-column card shadow-sm mb-3 gen-menu-card">
                                 <div class="pb-1" wicket:id="stepLabel"></div>
                                 <div>
                                     <span wicket:id="stepBadge"></span>

@@ -211,7 +211,7 @@ $aa$);
 
 -- Application Type
 -- @change: Adds application object type value.
--- @since: 4.11
+-- @since: 4.11.0
 -- @affects: enum ObjectType | Modified enum type | Adds `APPLICATION`.
 call apply_audit_change(11, $aa$
     ALTER TYPE ObjectType ADD VALUE IF NOT EXISTS 'APPLICATION' AFTER 'ACCESS_CERTIFICATION_DEFINITION';
@@ -219,7 +219,7 @@ $aa$);
 
 -- Connector Development Type
 -- @change: Adds `CONNECTOR_DEVELOPMENT` object type value.
--- @since: 4.11
+-- @since: 4.11.0
 -- @affects: enum ObjectType | Modified enum type | Adds `CONNECTOR_DEVELOPMENT`.
 call apply_audit_change(12, $aa$
    ALTER TYPE ObjectType ADD VALUE IF NOT EXISTS 'CONNECTOR_DEVELOPMENT' AFTER 'CONNECTOR';
@@ -227,14 +227,14 @@ $aa$);
 
 -- Projection Holder Type
 -- @change: Adds `PROJECTION_HOLDER` object type value.
--- @since: 4.11
+-- @since: 4.11.0
 -- @affects: enum ObjectType | Modified enum type | Adds `PROJECTION_HOLDER`.
 call apply_audit_change(13, $aa$
     ALTER TYPE ObjectType ADD VALUE IF NOT EXISTS 'PROJECTION_HOLDER' AFTER 'POLICY';
 $aa$);
 
 -- @change: Adds `WORK` shadow kind value.
--- @since: 4.11
+-- @since: 4.11.0
 -- @affects: enum ShadowKindType | Modified enum type | Adds `WORK` shadow kind value.
 call apply_audit_change(14, $aa$
     ALTER TYPE ShadowKindType ADD VALUE IF NOT EXISTS 'WORK' AFTER 'GENERIC';
@@ -242,7 +242,7 @@ $aa$);
 
 -- Audit payloads
 -- @change: Adds generic audit payload persistence.
--- @since: 4.11
+-- @since: 4.11.0
 -- @affects: enum AuditEventTypeType | Modified enum type | Adds `EXTERNAL_SERVICE_CALL`.
 -- @affects: table ma_audit_payload | New table | Stores payloads attached to audit events.
 -- @affects: table ma_audit_payload_default | New default partition | Stores payloads outside monthly partitions.
@@ -376,7 +376,7 @@ $aa$);
 
 -- Smart integration artifact
 -- @change: Adds `SMART_INTEGRATION_ARTIFACT` object type value.
--- @since: 4.11
+-- @since: 4.11.0
 -- @affects: enum ObjectType | Modified enum type | Adds `SMART_INTEGRATION_ARTIFACT`.
 call apply_audit_change(16, $aa$
     ALTER TYPE ObjectType ADD VALUE IF NOT EXISTS 'SMART_INTEGRATION_ARTIFACT' AFTER 'SIMULATION_RESULT';

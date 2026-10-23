@@ -18,9 +18,12 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityDefinitionType;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 import org.jetbrains.annotations.NotNull;
@@ -40,6 +43,8 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskSchedulin
  * Currently limited to their submissions in the form of background tasks.
  */
 public class ActivityExecutor {
+
+    private static final Trace LOGGER = TraceManager.getTrace(ActivityExecutor.class);
 
     @NotNull private final ActivityDefinitionType activityDefinitionBean;
     @NotNull private final ActivitySubmissionOptions options;
@@ -98,10 +103,28 @@ public class ActivityExecutor {
 
         getArchetypeRefsToAdd().forEach(
                 ref -> newTask.assignment(ObjectTypeUtil.createAssignmentTo(ref)));
+        if (options.systemSubmitted()) {
+            addAuxiliaryArchetypeIfNeeded(newTask, SystemObjectsType.ARCHETYPE_SYSTEM_SUBMITTED_TASK.value());
+        }
 
         return newTask;
     }
 
+    private static void addAuxiliaryArchetypeIfNeeded(TaskType newTask, String oid) {
+        if (ObjectTypeUtil.getAssignedArchetypeOids(newTask).contains(oid)) {
+            LOGGER.trace("Archetype {} is already assigned to {} - ignoring", oid, newTask);
+            return;
+        }
+        if (!ObjectTypeUtil.hasAssignedArchetype(newTask)) {
+            LOGGER.warn("Could not add auxiliary archetype {} to {} because there is no structural archetype yet"
+                    + " - continuing without it", oid, newTask);
+            return;
+        }
+        newTask.assignment(
+                ObjectTypeUtil.createAssignmentTo(oid, ObjectTypes.ARCHETYPE));
+    }
+
+    /** Returns all archetypes except "system-submitted task" (if applicable). */
     private List<ObjectReferenceType> getArchetypeRefsToAdd() throws SchemaException, ConfigurationException {
 
         // Explicitly via the option

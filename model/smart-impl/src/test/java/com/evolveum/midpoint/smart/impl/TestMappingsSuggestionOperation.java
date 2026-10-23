@@ -385,7 +385,52 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
         MappingsSuggestionType suggestion = op.suggestMappings(result, match, null);
 
         assertThat(suggestion.getAttributeMappings())
-                .as("Low quality mapping (below 10% threshold) should be skipped")
+                .as("Low quality mapping (below 40% threshold) should be skipped")
+                .hasSize(0);
+    }
+
+    @Test
+    public void test007MappingBelowQualityThresholdShouldBeSkipped() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        modifyShadowReplace("user1", PERSONAL_NUMBER, "1-1-1-1-1");
+        modifyShadowReplace("user2", PERSONAL_NUMBER, "2-222-2");
+        modifyShadowReplace("user3", PERSONAL_NUMBER, "33-3-33");
+
+        modifyUserReplace(USER1.oid, ItemPath.create(UserType.F_PERSONAL_NUMBER), "11111");
+        modifyUserReplace(USER2.oid, ItemPath.create(UserType.F_PERSONAL_NUMBER), "88888");
+        modifyUserReplace(USER3.oid, ItemPath.create(UserType.F_PERSONAL_NUMBER), "77777");
+
+        refreshShadows();
+
+        String script = "input.replace('-', '')";
+        var mockClient = createClient(
+                new MockMapping(ItemPath.create(UserType.F_PERSONAL_NUMBER), PERSONAL_NUMBER.path(), script)
+        );
+
+        TestServiceClientFactory.mockServiceClient(clientFactoryMock, mockClient);
+        var ctx = TypeOperationContext.init(mockClient, RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, null, task, result);
+
+        var op = MappingsSuggestionOperation.init(
+                ctx,
+                new MappingsQualityAssessor(new MappingScriptValidator(expressionFactory)),
+                new MappingScriptValidator(expressionFactory),
+                new ShadowsWithOwnersCorrelatingProvider(correlationService, samplerProvider),
+                samplerProvider,
+                wellKnownSchemaService,
+                heuristicRuleMatcher,
+                new CategoricalAttributeRegistry(),
+                true,
+                true,
+                null,
+                0);
+
+        var match = smartIntegrationService.computeSchemaMatch(RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, true, task, result);
+        MappingsSuggestionType suggestion = op.suggestMappings(result, match, null);
+
+        assertThat(suggestion.getAttributeMappings())
+                .as("Mapping with quality ~33% (below 40% threshold) should be skipped")
                 .hasSize(0);
     }
 

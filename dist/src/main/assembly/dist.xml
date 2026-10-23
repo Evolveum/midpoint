@@ -92,6 +92,10 @@
             </excludes>
         </fileSet>
         <fileSet>
+            <directory>${project.basedir}/src/main/certs</directory>
+            <outputDirectory>certs</outputDirectory>
+        </fileSet>
+        <fileSet>
             <directory>${project.basedir}/src/main/var</directory>
             <outputDirectory>var</outputDirectory>
         </fileSet>

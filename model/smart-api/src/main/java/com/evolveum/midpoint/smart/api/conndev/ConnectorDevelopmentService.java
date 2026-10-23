@@ -4,8 +4,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommonException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import java.io.IOException;
@@ -13,6 +11,15 @@ import java.io.InputStream;
 import java.util.List;
 
 public interface ConnectorDevelopmentService {
+
+    /**
+     * Message reported when an operation is rejected because the connector development tools are
+     * disabled by the deployment configuration
+     * ({@code midpoint.connectors/developmentToolsEnabled} in {@code config.xml}).
+     *
+     * <p>Rejected operations fail with an {@code AuthorizationException} carrying this message.
+     */
+    String ERROR_CONNECTOR_DEVELOPMENT_DISABLED = "Connector development is disabled by deployment configuration";
 
     ConnectorDevelopmentOperation startFromNew(ConnDevApplicationInfoType basicInfo, OperationResult result);
 
@@ -37,12 +44,15 @@ public interface ConnectorDevelopmentService {
             throws CommonException;
 
     /**
-     * Whether the local bundle of the given connector is a low-code (manifest-based) connector,
-     * i.e. its bundle directory carries a {@code connector.manifest.yaml} or
-     * {@code connector.manifest.json} file. Such connectors can be imported into the connector
-     * development (see {@link #startFromExisting}); anything else returns {@code false}.
+     * Whether the given connector is a low-code (manifest-based) connector, judged solely from
+     * the {@code connectorType} (the connector class the bundle declares in its
+     * {@code META-INF/MANIFEST.MF}) - true only for the supported low-code framework classes.
+     * Holds for such connectors no matter how their bundle is installed (directory or JAR).
+     * Actual importability (the bundle being local and carrying a
+     * {@code connector.manifest.yaml} or {@code connector.manifest.json} file) is verified by
+     * {@link #startFromExisting}; anything else returns {@code false}.
      */
-    boolean isManifestBasedConnector(ConnectorType connector, OperationResult result);
+    boolean isManifestBasedConnector(ConnectorType connector);
 
     /**
      * Whether the connector-generation service is configured
@@ -52,6 +62,16 @@ public interface ConnectorDevelopmentService {
      * are generated locally as skeletons the user edits manually.
      */
     boolean isOffline();
+
+    /**
+     * Whether a connector with the given coordinates already exists - either as a discovered
+     * {@link ConnectorType} (matching {@code connectorBundle = groupId + "." + artifactId} and
+     * {@code connectorVersion = version}) or as a leftover bundle directory
+     * ({@code groupId + "." + artifactId + "." + version}) under the connector scan directory,
+     * which would be rediscovered on the next restart.
+     */
+    boolean isConnectorAlreadyPresent(String groupId, String artifactId, String version, Task task, OperationResult result)
+            throws CommonException;
 
     StatusInfo<ConnDevCreateConnectorResultType> getCreateConnectorStatus(String token, Task task, OperationResult result) throws CommonException;
 

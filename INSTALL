@@ -7,7 +7,7 @@ https://docs.evolveum.com/midpoint/install/source/
 
 1. Prerequisites:
 
-    1. Java (JDK) 17 or 21
+    1. Java (JDK) 25 or 21
     2. Apache Maven 3
     3. midPoint source code retrieved via Git
 
@@ -57,4 +57,4 @@ spaces, so it is enclosed with double quotes. Do not forget to remove quotes.
 
 For more information about initial administrator password, please see:
 
-https://docs.evolveum.com/midpoint/reference/support-4.10/security/authentication/administrator-initial-password/
+https://docs.evolveum.com/midpoint/reference/support-4.11/security/authentication/administrator-initial-password/

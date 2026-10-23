@@ -243,7 +243,7 @@ public abstract class ColumnTileTable<O extends ColumnValueProvider<PV>, PV exte
 
             @Override
             public String getCssClass() {
-                return "inline-menu-column col";
+                return "inline-menu-column col px-2";
             }
 
             @Override
@@ -287,7 +287,7 @@ public abstract class ColumnTileTable<O extends ColumnValueProvider<PV>, PV exte
 
     @Override
     protected String getTileCssClasses() {
-        return "col-12 h-100 justify-content-center mb-2 p-0 bg-white rounded";
+        return "w-100 mb-2 p-0 bg-white rounded d-flex";
     }
 
     protected String getTileContainerCssClass() {

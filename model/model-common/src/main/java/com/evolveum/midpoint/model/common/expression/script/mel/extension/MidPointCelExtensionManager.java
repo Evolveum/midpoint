@@ -72,8 +72,8 @@ public class MidPointCelExtensionManager {
         registerLibrary(MEL_EXTENSION_REGEX_NAME, CelExtensions.regex());
         registerLibrary(MEL_EXTENSION_COMPREHENSIONS_NAME, CelExtensions.comprehensions());
 
-        registerLibrary(CelMelExtensions.library(celOptions, protector, basicExpressionFunctions, runtimeEquality));
-        registerLibrary(CelFormatExtensions.library(basicExpressionFunctions));
+        registerLibrary(CelMelExtensions.library(celOptions, protector, basicExpressionFunctions, midpointExpressionFunctions, runtimeEquality));
+        registerLibrary(CelFormatExtensions.library(basicExpressionFunctions, midpointExpressionFunctions));
         registerLibrary(CelLdapExtensions.library(basicExpressionFunctions));
         registerLibrary(CelObjectExtensions.library(midpointExpressionFunctions));
         registerLibrary(CelSimulationExtensions.library(midpointExpressionFunctions));

@@ -6,6 +6,7 @@
 
 package com.evolveum.midpoint.web.page.admin.reports.component;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -28,7 +29,6 @@ import com.evolveum.midpoint.gui.impl.component.search.SearchContext;
 import com.evolveum.midpoint.gui.impl.component.search.panel.SearchPanel;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.model.common.util.DefaultColumnUtils;
-import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -38,6 +38,7 @@ import com.evolveum.midpoint.prism.query.OrderDirection;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
+import com.evolveum.midpoint.schema.expression.TypedValue;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -58,13 +59,17 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 public class ReportObjectsListPanel<C extends Serializable> extends ContainerableListPanel<C, SelectableBean<C>> {
 
-    private static final long serialVersionUID = 1L;
+    @Serial private static final long serialVersionUID = 1L;
     private static final Trace LOGGER = TraceManager.getTrace(ReportObjectsListPanel.class);
 
     private final IModel<ReportType> report;
     private CompiledObjectCollectionView view;
     private CompiledObjectCollectionView guiView;
-    private Map<String, Object> variables = new HashMap<>();
+    /**
+     * Variables (including evaluated subreports) of the last processed row. Columns of one row are evaluated one after
+     * another (also in CSV/XLSX export), so this avoids evaluating the subreports for each column again.
+     */
+    private transient RowVariables lastRowVariables;
     private ObjectListStorage pageStorage;
 
     public ReportObjectsListPanel(String id, IModel<ReportType> report) {
@@ -89,7 +94,8 @@ public class ReportObjectsListPanel<C extends Serializable> extends Containerabl
         try {
             Task task = getPageBase().createSimpleTask("create compiled view");
             view = getPageBase().getReportManager().createCompiledView(getReport().getObjectCollection(), true, task, task.getResult());
-            view.getOptions().addAll(getDefaultOptions());
+            // Merge per selector path, collection may already define root options (issue 12812).
+            view.setOptions(GetOperationOptions.merge(view.getOptions(), getDefaultOptions()));
             guiView = getPageBase().getCompiledGuiProfile().findObjectCollectionView(
                     view.getContainerType() == null ? ObjectType.COMPLEX_TYPE : view.getContainerType(), null);
         } catch (Exception e) {
@@ -242,19 +248,41 @@ public class ReportObjectsListPanel<C extends Serializable> extends Containerabl
         return Boolean.TRUE.equals(disableSorting);
     }
 
-    private void processVariables(VariablesMap variablesMap) {
-        for (Map.Entry<String, Object> entry : variables.entrySet()) {
+    private void processVariables(VariablesMap variablesMap, C rowValue) {
+        for (Map.Entry<String, TypedValue<?>> entry : getRowVariables(rowValue).entrySet()) {
             if (!variablesMap.containsKey(entry.getKey())) {
-                if (entry.getValue() == null) {
-                    variablesMap.put(entry.getKey(), null, String.class);
-                } else if (entry.getValue() instanceof Item) {
-                    variablesMap.put(entry.getKey(), entry.getValue(), ((Item) entry.getValue()).getDefinition());
-                } else {
-                    variablesMap.put(entry.getKey(), entry.getValue(), entry.getValue().getClass());
-                }
+                variablesMap.put(entry.getKey(), entry.getValue());
             }
         }
         processReferenceVariables(variablesMap);
+    }
+
+    private VariablesMap getRowVariables(C rowValue) {
+        RowVariables cached = lastRowVariables;
+        if (cached != null && cached.row() == rowValue) {
+            return cached.variables();
+        }
+        VariablesMap variables = createRowVariables(rowValue);
+        lastRowVariables = new RowVariables(rowValue, variables);
+        return variables;
+    }
+
+    private VariablesMap createRowVariables(C rowValue) {
+        VariablesMap variables = getSearchModel().getObject().getFilterVariables(null, getPageBase());
+        variables.put(ExpressionConstants.VAR_OBJECT, rowValue, rowValue.getClass());
+        if (getReport().getObjectCollection() != null
+                && getReport().getObjectCollection().getSubreport() != null
+                && !getReport().getObjectCollection().getSubreport().isEmpty()) {
+            Task task = getPageBase().createSimpleTask("evaluate subreports");
+            processReferenceVariables(variables);
+            VariablesMap subreportsVariables = getPageBase().getReportManager().evaluateSubreportParameters(
+                    getReport().asPrismObject(), variables, task, task.getResult());
+            variables.putAll(subreportsVariables);
+        }
+        return variables;
+    }
+
+    private record RowVariables(Object row, VariablesMap variables) {
     }
 
     @Override
@@ -287,28 +315,6 @@ public class ReportObjectsListPanel<C extends Serializable> extends Containerabl
         return null;
     }
 
-    @Override
-    protected void customProcessNewRowItem(org.apache.wicket.markup.repeater.Item<SelectableBean<C>> item, IModel<SelectableBean<C>> model) {
-        if (model == null || model.getObject() == null || model.getObject().getValue() == null) {
-            return;
-        }
-        VariablesMap variables = getSearchModel().getObject().getFilterVariables(null, getPageBase());
-        variables.put(ExpressionConstants.VAR_OBJECT, model.getObject().getValue(), model.getObject().getValue().getClass());
-        if (getReport().getObjectCollection() != null
-                && getReport().getObjectCollection().getSubreport() != null
-                && !getReport().getObjectCollection().getSubreport().isEmpty()) {
-            Task task = getPageBase().createSimpleTask("evaluate subreports");
-            processReferenceVariables(variables);
-            VariablesMap subreportsVariables = getPageBase().getReportManager().evaluateSubreportParameters(
-                    getReport().asPrismObject(), variables, task, task.getResult());
-            variables.putAll(subreportsVariables);
-        }
-        this.variables.clear();
-        for (String key : variables.keySet()) {
-            this.variables.put(key, variables.get(key).getValue());
-        }
-    }
-
     private void processReferenceVariables(VariablesMap variablesMap) {
         if (variablesMap.isEmpty()) {
             return;
@@ -331,8 +337,8 @@ public class ReportObjectsListPanel<C extends Serializable> extends Containerabl
         return new ReportExpressionColumn<>(columnDisplayModel, getSortProperty(customColumn, expression), customColumn, expression, getPageBase()) {
 
             @Override
-            protected void processReportSpecificVariables(VariablesMap variablesMap) {
-                ReportObjectsListPanel.this.processVariables(variablesMap);
+            protected void processVariables(VariablesMap variablesMap, C rowValue) {
+                ReportObjectsListPanel.this.processVariables(variablesMap, rowValue);
             }
 
             @Override
@@ -376,5 +382,10 @@ public class ReportObjectsListPanel<C extends Serializable> extends Containerabl
     @Override
     protected boolean isFulltextEnabled() {
         return false;
+    }
+
+    @Override
+    protected String getTableContainerAdditionalCssClasses() {
+        return "overflow-auto";
     }
 }

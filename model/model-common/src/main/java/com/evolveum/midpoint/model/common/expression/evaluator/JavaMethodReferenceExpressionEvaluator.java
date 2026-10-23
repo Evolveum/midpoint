@@ -109,11 +109,6 @@ public class JavaMethodReferenceExpressionEvaluator<V extends PrismValue, D exte
 
     private Class<?> getClass(@Nullable String className) throws ClassNotFoundException, ConfigurationException {
 
-        if (className == null) {
-            // TEMPORARY WORKAROUND for missing MEL methods
-            return DefaultJavaMethodReferenceLibrary.class;
-        }
-
         // Deferring the static initialization of the class until we are sure that it is in an allowed package.
         // (It will get executed automatically when we access the class below.)
         var clazz = Class.forName(className, false, JavaMethodReferenceExpressionEvaluator.class.getClassLoader());

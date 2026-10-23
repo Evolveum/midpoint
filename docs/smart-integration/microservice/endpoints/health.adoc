@@ -1,0 +1,76 @@
+= Health check endpoint
+:page-toc: top
+:page-since: "4.11.0"
+:page-upkeep-status: green
+
+== Overview
+
+`GET /health`
+
+The endpoint checks that the microservice and its dependencies work.
+Unlike the operation endpoints, it is not under the `/api/v1` base path.
+
+MidPoint calls it to get the AI provider name and model, which the GUI shows when the user starts a recommendation.
+It can also be used by monitoring or by container health checks.
+
+== Checks
+
+[cols="20%,80%",options="header"]
+|===
+| Check | Description
+
+| `server`
+| The microservice is running.
+
+| `llm`
+| The LLM provider is reachable with the configured API key, and the configured model is in its list of models.
+The check does not call the model itself.
+It times out after 5 seconds.
+
+| `langfuse`
+| Langfuse accepts the configured keys.
+`DISABLED` when Langfuse tracing is disabled.
+|===
+
+== Response
+
+[cols="20%,80%",options="header"]
+|===
+| Field | Description
+
+| `status`
+| `OK` if no check failed, `ERROR` otherwise.
+
+| `version`
+| Version of the microservice, with the Git commit if it is known.
+
+| `metadata`
+| AI provider name and model, see xref:index.adoc#_response_metadata[Response metadata].
+
+| `checks`
+| Results of the checks, each with `name`, `status` (`OK`, `ERROR` or `DISABLED`) and `error` with the error message if the check failed.
+|===
+
+If the status is `ERROR`, the response has the HTTP status `503`.
+
+Successful health checks are logged only at the debug level, see xref:../logging.adoc[].
+
+== Example
+
+.Response
+[source,json]
+----
+{
+    "status": "OK",
+    "version": "1.0.0 (fcc34c5)",
+    "metadata": {
+        "provider": "openrouter",
+        "model": "openai/gpt-oss-20b"
+    },
+    "checks": [
+        { "name": "server", "status": "OK", "error": null },
+        { "name": "llm", "status": "OK", "error": null },
+        { "name": "langfuse", "status": "DISABLED", "error": null }
+    ]
+}
+----

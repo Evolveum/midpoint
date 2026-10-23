@@ -18,6 +18,7 @@ import com.evolveum.midpoint.gui.api.component.wizard.WizardModel;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardStep;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismReferenceWrapper;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardStepPanel;
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 import com.evolveum.midpoint.gui.impl.component.wizard.withnavigation.WizardModelWithParentSteps;
@@ -129,7 +130,8 @@ public class ResourceTestConnectorStepPanel extends AbstractWizardStepPanel<Conn
 
             @Override
             protected void customizeTask(Task task) {
-                ConnectorDevelopmentWizardUtil.enableConnectorLogCapture(task);
+                ConnectorDevelopmentWizardUtil.configureConnectorDevelopmentTask(
+                        task, WebModelServiceUtils.isEnableExperimentalFeature(getPageBase()));
             }
 
             @Override

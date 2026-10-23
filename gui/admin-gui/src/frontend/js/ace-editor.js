@@ -19,6 +19,15 @@ export default class MidPointAceEditor {
         editor.session.setMode(mode);
     }
 
+    setValue(textAreaId, value) {
+        var editorId = textAreaId + ACE_EDITOR_POSTFIX;
+
+        var editor = $.aceEditors[editorId];
+        if (editor) {
+            editor.setValue(value, -1);
+        }
+    }
+
     initEditor(textAreaId, readonly, resize, height, minHeight, mode, dark) {
         console.info("Initializing editor " + textAreaId + " readonly: " + readonly + " mode: " + mode + " dark: " + dark);
 

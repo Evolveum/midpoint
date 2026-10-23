@@ -8,6 +8,52 @@ This page contains the upgrade instructions and incompatibility changes that cou
 
 The upgrade instructions between releases are in the https://docs.evolveum.com/midpoint/release/[release notes].
 
+== 4.11.0
+
+=== 2026-10-15 Default expression profiles and "Groovy-free" configuration
+
+Task: https://support.evolveum.com/wp/10946[10946]
+
+Description:
+
+Default expression profiles (`safe`, `templating`, `configuration`) are now provided in the initial system configuration.
+
+Also, the initial `config.xml` now contains `safeScriptingLanguagesOnly` set to `true` and `connectors/developmentToolsEnabled` set to `false`.
+These two settings ensure that the system does not allow executing arbitrary code on the underlying OS.
+
+Required upgrade steps:
+
+- None are strictly required.
+But you can adapt your existing configuration to make it more secure using the changes presented in this commit.
+
+Notes & References:
+
+* Related commits: <this one>
+* Docs: To be specified
+
+=== 2026-10-15 Initial objects were changed (javaMethodReference -> MEL)
+
+Task: https://support.evolveum.com/wp/10946[10946]
+
+Description:
+
+Expressions in:
+
+* `016-object-collection-audit.xml`
+* `100-report-reconciliation.xml`
+* `140-report-certification-campaigns.xml`
+
+were changed from `javaMethodReference` to use MEL.
+
+Require upgrade steps:
+
+- Reimport these initial objects (if you use them as-is), or merge the selected changes into your existing objects.
+
+Notes & References:
+
+* Related commits: <this one>
+* Docs: To be specified
+
 == 4.11-RC2
 
 === 2026-09-30 Smart Integration: dedicated authorization added
@@ -42,7 +88,7 @@ https://github.com/Evolveum/midpoint/commit/9f0e268bc00353edde7bb6c45aca143c53b1
 https://github.com/Evolveum/midpoint/commit/ff54cfcbc9a1e9e24e2951891c3b33c0dcacc4d8[ff54cfcb],
 https://github.com/Evolveum/midpoint/commit/e577b418dee1cf0a70798173d848db49c2944a26[e577b418],
 https://github.com/Evolveum/midpoint/commit/37499c3a1ec528aedc57bfe30fee0d878f6bb64b[37499c3a]
-* Docs: xref:/midpoint/reference/smart-integrations/authorization/[Smart Integration Authorization]
+* Docs: xref:/midpoint/reference/smart-integration/security/authorization/[Smart Integration Authorization]
 
 === 2026-09-25 Smart Integration: common "c:" namespace prefix removed from service requests
 
@@ -65,7 +111,7 @@ Required Upgrade Steps:
 Notes & References:
 
 * Related commits: https://github.com/Evolveum/midpoint/commit/e7b95080a87c06110a8c47491b27a84598af8d73[e7b95080]
-* Docs: xref:/midpoint/reference/smart-integrations/service-item-paths/[Item Paths and Type Names in Smart Integration Service Requests]
+* Docs: xref:/midpoint/reference/smart-integration/service-item-paths/[Item Paths and Type Names in Smart Integration Service Requests]
 
 === 2026-09-24 Safe Velocity mode introduced
 

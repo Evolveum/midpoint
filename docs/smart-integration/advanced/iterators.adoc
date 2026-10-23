@@ -1,0 +1,111 @@
+= Iterators configuration
+:page-toc: top
+:page-since: "4.11.0"
+:page-upkeep-status: green
+:page-description: Iteration settings for mappings in the resource wizard and in mapping recommendations
+
+== Overview
+
+When a generated value, such as a username, is already taken, midPoint can try again with a modified value until it finds a free one, for example `jsmith`, then `jsmith2`, then `jsmith3`.
+This mechanism is called xref:../../concepts/iteration/index.adoc[iteration].
+Mapping scripts use the iteration variables to build such values:
+
+* `iteration` - number of the current attempt,
+* `attempt` - alias for `iteration`,
+* `iterationToken` - string that changes in each attempt, for example a numeric suffix.
+
+The iteration settings are defined once per resource object type, in `schemaHandling/objectType/iteration`.
+They apply to every mapping of the object type that uses the iteration variables.
+For the full semantics, see xref:../../concepts/iteration/unique-account-username.adoc[Unique account username HOWTO].
+
+The resource wizard lets you edit the iteration settings next to the mappings, proposes them together with recommended mappings that use the iteration variables, and removes them when no mapping needs them.
+
+== Iteration settings
+
+[cols="30%,70%",options="header"]
+|===
+| Item | Meaning
+
+| `start`
+| Number of the first attempt.
+The first attempt, before any conflict, is also an iteration and uses this value.
+Default is `0` if `maxIterations` is set, and `1` otherwise.
+
+| `end`
+| Number of the last attempt (inclusive).
+If both `end` and `maxIterations` are set, `end` takes precedence.
+
+| `maxIterations`
+| Maximum number of attempts after `start`.
+Used if `end` is not set.
+
+| `tokenExpression`
+| Expression that formats `iterationToken` from the iteration number.
+Without it, the token is the iteration number.
+
+| `useTokenOnlyOnConflict`
+| If `true` (default), `iterationToken` is empty in the first attempt and the token is used only after a conflict.
+If `false`, the token is used in every attempt including the first one.
+
+| `preIterationCondition`, `postIterationCondition`
+| Conditions evaluated before and after each attempt.
+If a condition returns `false`, the value from that attempt is rejected and midPoint continues with the next attempt, as if the value had caused a conflict.
+|===
+
+If no attempt up to the last one succeeds, the operation fails with a conflict error.
+
+== Edit iteration settings in the resource wizard
+
+You can open the iteration settings of the object type in two places:
+
+* *Mappings table:* in the settings menu in the header of the inbound or outbound mappings table, select *Iteration settings*.
+* *Expression editor:* when a mapping uses the *Script* evaluator, the expression drawer contains an *Iteration settings* item.
+
+Both places edit the same object type-level settings.
+Changing them affects every mapping script in the object type that uses `iterationToken`.
+
+== Iteration in recommended mappings
+
+=== Proposed iteration settings
+
+When a recommended mapping script uses `iteration`, `attempt` or `iterationToken`, the mappings recommendation adds iteration settings to its result:
+
+* If the object type already has iteration settings, they are used unchanged.
+* Otherwise, midPoint proposes default settings:
+
+[source,xml]
+----
+<iteration>
+    <start>1</start>
+    <end>10</end>
+    <useTokenOnlyOnConflict>true</useTokenOnlyOnConflict>
+</iteration>
+----
+
+With these settings, a script that appends `iterationToken` to the username tries `jsmith` first, then `jsmith2` up to `jsmith10`.
+
+=== Accepting a recommended mapping
+
+When you accept a recommended mapping that uses the iteration variables, and the proposed iteration settings differ from the current settings of the object type, midPoint asks for confirmation:
+
+[cols="35%,65%",options="header"]
+|===
+| Button | Effect
+
+| *Accept mapping & apply iteration*
+| The mapping is accepted, and the proposed settings replace the current iteration settings of the object type.
+
+| *Accept mapping only*
+| The mapping is accepted, and the current iteration settings are kept.
+|===
+
+If the settings are the same, or the mapping does not use the iteration variables, the mapping is accepted without confirmation.
+
+=== Quality assessment
+
+When midPoint evaluates the quality of a recommended mapping on sample values, it evaluates the script as the first attempt: `iteration` and `attempt` are `0`, and `iterationToken` is empty.
+
+== Removal of unused iteration settings
+
+If the object type has iteration settings, but no inbound or outbound mapping uses the iteration variables, the mappings step of the resource wizard shows the warning *Unused iteration settings will be removed*.
+When you save the resource, midPoint removes the iteration settings to prevent an inconsistent configuration.

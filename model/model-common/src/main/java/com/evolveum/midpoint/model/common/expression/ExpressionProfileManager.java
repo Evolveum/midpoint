@@ -201,7 +201,7 @@ public class ExpressionProfileManager {
                 } else {
                     // This is not a good default, but we have to return something.
                     // The legacy default is to allow everything for privileged users and very little for unprivileged users.
-                    // This is the same behavior as it was before 4.11.
+                    // This is the same behavior as it was before 4.11.0.
                     return isPrivilegedSupplier.get() ?
                             ExpressionProfile.legacyDefaultForPrivilegedBulkActions() :
                             ExpressionProfile.legacyDefaultForUnprivilegedBulkActions();

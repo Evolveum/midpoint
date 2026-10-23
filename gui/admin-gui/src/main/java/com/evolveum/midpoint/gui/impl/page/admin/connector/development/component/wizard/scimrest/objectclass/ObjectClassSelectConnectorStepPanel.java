@@ -13,6 +13,7 @@ import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormChoiceComponentUpdatingBehavior;
@@ -26,6 +27,8 @@ import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.model.StringResourceModel;
+import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
@@ -42,6 +45,7 @@ import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
+import com.evolveum.midpoint.web.component.dialog.HelpInfoPanel;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -336,10 +340,11 @@ public class ObjectClassSelectConnectorStepPanel extends AbstractWizardStepPanel
     @Override
     public boolean onNextPerformed(AjaxRequestTarget target) {
         AtomicReference<String> objectClassName = new AtomicReference<>();
+        AtomicReference<PrismContainerValueWrapper<ConnDevObjectClassInfoType>> createdValue = new AtomicReference<>();
+        PrismContainerWrapper<ConnDevObjectClassInfoType> parentWrapper;
 
         try {
-            PrismContainerWrapper<ConnDevObjectClassInfoType> parentWrapper =
-                    getDetailsModel().getObjectWrapper().findContainer(
+            parentWrapper = getDetailsModel().getObjectWrapper().findContainer(
                             ItemPath.create(ConnectorDevelopmentType.F_CONNECTOR, ConnDevConnectorType.F_OBJECT_CLASS));
 
             if (hasNoCandidates()) {
@@ -367,7 +372,12 @@ public class ObjectClassSelectConnectorStepPanel extends AbstractWizardStepPanel
                 //noinspection unchecked
                 parentWrapper.getItem().add(valueWrapper.getRealValue().asPrismContainerValue());
                 parentWrapper.getValues().add(valueWrapper);
+                createdValue.set(valueWrapper);
             } else {
+                if (valuesModel.getObject().stream().noneMatch(PrismContainerValueWrapper::isSelected)) {
+                    showNoSelectedObjectClassPopup(target);
+                    return false;
+                }
                 valuesModel.getObject().stream()
                         .filter(PrismContainerValueWrapper::isSelected)
                         .map(detectedValue -> {
@@ -389,6 +399,7 @@ public class ObjectClassSelectConnectorStepPanel extends AbstractWizardStepPanel
                                 throw new RuntimeException(e);
                             }
                             parentWrapper.getValues().add(valueWrapper);
+                            createdValue.set(valueWrapper);
                         });
             }
 
@@ -415,9 +426,42 @@ public class ObjectClassSelectConnectorStepPanel extends AbstractWizardStepPanel
 //            target.add(getWizard().getPanel());
             super.onNextPerformed(target);
         } else {
+            if (createdValue.get() != null) {
+                PrismContainerValueWrapper<ConnDevObjectClassInfoType> created = createdValue.get();
+                parentWrapper.getValues().remove(created);
+                if (created.getNewValue() != null) {
+                    parentWrapper.getItem().remove(created.getNewValue());
+                }
+            }
             target.add(getFeedback());
         }
         return false;
+    }
+
+    private void showNoSelectedObjectClassPopup(AjaxRequestTarget target) {
+        HelpInfoPanel popup = new HelpInfoPanel(
+                getPageBase().getMainPopupBodyId(),
+                createStringResource("ObjectClassSelectConnectorStepPanel.select.required")) {
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            public StringResourceModel getTitle() {
+                return createStringResource("ObjectClassSelectConnectorStepPanel.select.title");
+            }
+
+            @Override
+            protected @NotNull Label initLabel(IModel<String> messageModel) {
+                Label label = super.initLabel(messageModel);
+                label.add(AttributeModifier.append("class", "alert alert-warning"));
+                return label;
+            }
+
+            @Override
+            public int getHeight() {
+                return 180;
+            }
+        };
+        getPageBase().showMainPopup(popup, target);
     }
 
     @Override
@@ -427,6 +471,11 @@ public class ObjectClassSelectConnectorStepPanel extends AbstractWizardStepPanel
         }
 
         return valueModel.getObject().getStatus() != ValueStatus.ADDED;
+    }
+
+    @Override
+    public IModel<Boolean> isStepVisible() {
+        return () -> !isCompleted();
     }
 
     @Override

@@ -8,6 +8,7 @@ package com.evolveum.midpoint.gui.impl.component.tile;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Supplier;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 
@@ -100,7 +101,21 @@ public abstract class EnumTileChoicePanel<T extends TileEnum> extends BasePanel<
             protected void onClick(AjaxRequestTarget target) {
                 onTemplateChosePerformed(tileModel.getObject().getValue(), target);
             }
+
+            @Override
+            protected boolean isDisabled() {
+                return isTileDisabled(getModel().getObject().getValue());
+            }
         };
+    }
+
+    /**
+     * Whether the given tile should be rendered disabled (greyed out and non-clickable).
+     * Evaluated dynamically, so a cached panel reflects the current state on each render.
+     * Defaults to "never disabled".
+     */
+    protected boolean isTileDisabled(T type) {
+        return false;
     }
 
     protected abstract void onTemplateChosePerformed(T view, AjaxRequestTarget target);

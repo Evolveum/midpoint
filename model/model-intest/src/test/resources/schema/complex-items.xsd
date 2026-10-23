@@ -20,7 +20,7 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <!-- These were planned to be in FocusType (in 4.11) but ended up in extension only because of the lack of time. -->
+            <!-- These were planned to be in FocusType (in 4.11.0) but ended up in extension only because of the lack of time. -->
             <xsd:element name="email" type="c:EmailAddressType" minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="phoneNumber" type="c:PhoneNumberType" minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="physicalAddress" type="c:PhysicalMailingAddressType" minOccurs="0" maxOccurs="unbounded"/>

@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.smart.impl.activities.associationsSuggestion;
 
 import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinitionFactory.WorkDefinitionInfo;
+import com.evolveum.midpoint.schema.processor.AssociationPair;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssociationSuggestionWorkStateType;
@@ -31,6 +32,8 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssociationSuggestionWorkDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkDefinitionsType;
+
+import java.util.Set;
 
 @Component
 public class AssociationSuggestionActivityHandler
@@ -101,9 +104,11 @@ public class AssociationSuggestionActivityHandler
         protected @NotNull ActivityRunResult runLocally(OperationResult result) throws CommonException {
             var task = getRunningTask();
             var resourceOid = getWorkDefinition().getResourceOid();
+            var configuredAssociations = getWorkDefinition().getConfiguredAssociations();
 
             var suggestedAssociations =
-                    SmartIntegrationBeans.get().smartIntegrationService.suggestAssociations(resourceOid, task, result);
+                    SmartIntegrationBeans.get().smartIntegrationService.suggestAssociations(
+                            resourceOid, configuredAssociations, task, result);
 
             var state = getActivityState();
 

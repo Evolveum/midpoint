@@ -116,7 +116,10 @@
                     <expression>
                         <script>
                             <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
-                            <code>workItems.iteration</code>
+                            <code>
+                                cel.bind(items, list(workItems),
+                                    items.size() == 0 ? nil : items[0].iteration)
+                            </code>
                         </script>
                     </expression>
                 </export>
@@ -136,7 +139,10 @@
                     <expression>
                         <script>
                             <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
-                            <code>workItems.stageNumber</code>
+                            <code>
+                                cel.bind(items, list(workItems),
+                                    items.size() == 0 ? nil : items[0].stageNumber)
+                            </code>
                         </script>
                     </expression>
                 </export>
@@ -157,8 +163,9 @@
                         <script>
                             <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                             <code>
-                                cel.bind(ref, workItems.originalAssigneeRef,
-                                default(ref.targetName.orig, ref.oid))
+                                cel.bind(items, list(workItems),
+                                    items.size() == 0 ? nil : cel.bind(ref, items[0].originalAssigneeRef,
+                                        default(ref.targetName.orig, ref.oid)))
                             </code>
                         </script>
                     </expression>
@@ -179,7 +186,10 @@
                     <expression>
                         <script>
                             <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
-                            <code>workItems.deadline</code>
+                            <code>
+                                cel.bind(items, list(workItems),
+                                    items.size() == 0 ? nil : items[0].deadline)
+                            </code>
                         </script>
                     </expression>
                 </export>
@@ -200,8 +210,9 @@
                         <script>
                             <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                             <code>
-                                workItems.assigneeRef.map(ref,
-                                default(ref.targetName.orig, ref.oid))
+                                cel.bind(items, list(workItems),
+                                    items.size() == 0 ? nil : items[0].assigneeRef.map(ref,
+                                        default(ref.targetName.orig, ref.oid)))
                             </code>
                         </script>
                     </expression>
@@ -223,7 +234,8 @@
                         <script>
                             <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                             <code>
-                                workItems.escalationLevel.number
+                                cel.bind(items, list(workItems),
+                                    items.size() == 0 ? nil : items[0].escalationLevel.number)
                             </code>
                         </script>
                     </expression>
@@ -245,8 +257,9 @@
                         <script>
                             <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                             <code>
-                                cel.bind(ref, workItems.performerRef,
-                                default(ref.targetName.orig, ref.oid))
+                                cel.bind(items, list(workItems),
+                                    items.size() == 0 ? nil : cel.bind(ref, items[0].performerRef,
+                                        default(ref.targetName.orig, ref.oid)))
                             </code>
                         </script>
                     </expression>
@@ -268,7 +281,8 @@
                         <script>
                             <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                             <code>
-                                format.certificationOutcome(workItems.output.outcome)
+                                cel.bind(items, list(workItems),
+                                    items.size() == 0 ? nil : format.certificationOutcome(items[0].output.outcome))
                             </code>
                         </script>
                     </expression>
@@ -290,7 +304,8 @@
                         <script>
                             <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                             <code>
-                                workItems.output.comment
+                                cel.bind(items, list(workItems),
+                                    items.size() == 0 ? nil : items[0].output.comment)
                             </code>
                         </script>
                     </expression>
@@ -311,7 +326,10 @@
                     <expression>
                         <script>
                             <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
-                            <code>workItems.outputChangeTimestamp</code>
+                            <code>
+                                cel.bind(items, list(workItems),
+                                    items.size() == 0 ? nil : items[0].outputChangeTimestamp)
+                            </code>
                         </script>
                     </expression>
                 </export>
@@ -331,7 +349,10 @@
                     <expression>
                         <script>
                             <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
-                            <code>workItems.closeTimestamp</code>
+                            <code>
+                                cel.bind(items, list(workItems),
+                                    items.size() == 0 ? nil : items[0].closeTimestamp)
+                            </code>
                         </script>
                     </expression>
                 </export>
