@@ -202,7 +202,7 @@ public abstract class SmartAlertGeneratingPanel extends BasePanel<SmartGeneratin
         buttonsView.add(showSuggestionsButton);
 
         AjaxIconButton stopSuggestionButton = new AjaxIconButton(buttonsView.newChildId(),
-                Model.of("fa fa-stop text-purple"),
+                Model.of("fa fa-stop"),
                 createStringResource("SmartGeneratingPanel.button.stop")) {
             @Override
             public void onClick(@NotNull AjaxRequestTarget target) {
@@ -212,6 +212,7 @@ public abstract class SmartAlertGeneratingPanel extends BasePanel<SmartGeneratin
                 onRefresh(target);
             }
         };
+        stopSuggestionButton.add(AttributeModifier.append("class", "btn-outline-purple"));
         stopSuggestionButton.showTitleAsLabel(true);
         stopSuggestionButton.setOutputMarkupId(true);
         stopSuggestionButton.add(new VisibleBehaviour(() -> {
