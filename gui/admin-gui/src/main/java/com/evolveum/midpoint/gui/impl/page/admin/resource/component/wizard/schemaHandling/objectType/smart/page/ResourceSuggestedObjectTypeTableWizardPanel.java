@@ -14,6 +14,7 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.api.component.button.DropdownButtonDto;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.table.SmartObjectTypeSuggestionTable;
@@ -110,6 +111,20 @@ public abstract class ResourceSuggestedObjectTypeTableWizardPanel<P extends Cont
                     QName objectClassName) {
                 return loadExistingAssociatedObjectTypes(objectClassName);
             }
+
+            @Override
+            protected void onRadioTileSelected(
+                    IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> selectedTileModel,
+                    AjaxRequestTarget target) {
+                super.onRadioTileSelected(selectedTileModel, target);
+                target.add(ResourceSuggestedObjectTypeTableWizardPanel.this);
+            }
+
+            @Override
+            public void refresh(AjaxRequestTarget target) {
+                super.refresh(target);
+                target.add(ResourceSuggestedObjectTypeTableWizardPanel.this);
+            }
         };
         smartObjectTypeSuggestionTable.setOutputMarkupId(true);
         add(smartObjectTypeSuggestionTable);
@@ -189,15 +204,20 @@ public abstract class ResourceSuggestedObjectTypeTableWizardPanel<P extends Cont
         };
     }
 
+    @Override
+    protected boolean isSubmitButtonEnabled() {
+        var selected = selectedModel.getObject();
+        return selected != null && selected.getRealValue() != null;
+    }
+
     @SuppressWarnings("unchecked")
     @Override
     protected void onSubmitPerformed(AjaxRequestTarget target) {
-        removeLastBreadcrumb();
         var suggestionValueWrapper = selectedModel.getObject();
         if (suggestionValueWrapper == null || suggestionValueWrapper.getRealValue() == null) {
-            getPageBase().warn(getPageBase().createStringResource("Smart.suggestion.noSelection")
+            warn(createStringResource("Smart.suggestion.noSelection")
                     .getString());
-            target.add(getPageBase().getFeedbackPanel());
+            WebComponentUtil.refreshFeedbacks(getPageBase(), target);
             return;
         }
 
@@ -206,9 +226,9 @@ public abstract class ResourceSuggestedObjectTypeTableWizardPanel<P extends Cont
         var intent = suggestion.getIntent();
 
         if (kind == null || intent == null || intent.isBlank()) {
-            getPageBase().error(getPageBase().createStringResource("Smart.suggestion.missingKindIntent")
+            error(createStringResource("Smart.suggestion.missingKindIntent")
                     .getString());
-            target.add(getPageBase().getFeedbackPanel());
+            WebComponentUtil.refreshFeedbacks(getPageBase(), target);
             return;
         }
 
