@@ -177,6 +177,15 @@ public abstract class WaitingConnectorStepPanel extends AbstractWizardStepPanel<
         addOrReplace(createWaitingPanel());
     }
 
+    /** Token of the task this panel waited for, or null unless the task has already finished successfully. */
+    protected final String getFinishedTaskToken() {
+        if (statusModel == null || !statusModel.isLoaded()) {
+            return null;
+        }
+        SmartGeneratingDto status = statusModel.getObject();
+        return status.isFinished() && !status.isFailed() ? tokenModel.getObject() : null;
+    }
+
     private void createStatusModel() {
         statusModel = new LoadableModel<>() {
             @Override
