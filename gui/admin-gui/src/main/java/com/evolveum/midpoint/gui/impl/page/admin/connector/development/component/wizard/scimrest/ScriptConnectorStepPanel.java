@@ -20,7 +20,6 @@ import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.cycle.RequestCycle;
 
 import com.evolveum.midpoint.gui.api.component.button.DropdownButtonDto;
@@ -51,7 +50,6 @@ import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.page.admin.reports.component.SimpleAceEditorPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnDevArtifactType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnDevGenerateArtifactResultType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkDefinitionsType;
 
 /**
  * @author lskublik
@@ -62,15 +60,19 @@ public abstract class ScriptConnectorStepPanel extends AbstractWizardStepPanel<C
     private static final String ID_LANGUAGE_SELECT = "languageSelect";
     private static final String ID_SUGGESTED_SCRIPT_ALERT = "suggestedScriptAlert";
 
-    /** {@code getHelper().putVariable} key for the editor's live content - survives valueModel's own detach. */
-    private static final String VAR_LIVE_SCRIPT = "liveScript";
+    /** {@code getHelper().putVariable} key prefix for the editor's live content - survives valueModel's own detach. */
+    private static final String VAR_LIVE_SCRIPT_PREFIX = "liveScript:";
 
     private static final String CLASS_DOT = ScriptConnectorStepPanel.class.getName() + ".";
     private static final String OP_LOAD_SCRIPT = CLASS_DOT + "loadScript";
     private static final String OP_SAVE_SCRIPT = CLASS_DOT + "saveScript";
 
     private LoadableModel<ConnDevArtifactType> valueModel;
-    private boolean isReloaded = false;
+    private LoadableModel<String> savedContentModel;
+
+    /** Token of the finished generation task whose result is waiting for the user to save or discard it. */
+    private String generatedScriptToken;
+    private String generatedScriptObjectClass;
 
     /** Guards the auto-validate-on-arrival check in {@link #createModels()} to run once per fresh script. */
     private boolean autoValidationDone = false;
@@ -104,6 +106,9 @@ public abstract class ScriptConnectorStepPanel extends AbstractWizardStepPanel<C
 
     /** Mode last pushed to the live editor - a step panel is reused across navigations, so a plain re-render alone never pushes a {@link #languageModel} change. */
     private AceEditor.Mode lastPushedMode;
+
+    /** The editor's raw submitted value for the current request - see {@link #rawEditedScriptContent()}. */
+    private String pendingEditorValue;
 
     public ScriptConnectorStepPanel(
             WizardPanelHelper<? extends Containerable, ConnectorDevelopmentDetailsModel> helper) {
@@ -146,87 +151,111 @@ public abstract class ScriptConnectorStepPanel extends AbstractWizardStepPanel<C
         valueModel = new LoadableModel<>() {
             @Override
             protected ConnDevArtifactType load() {
-                PrismContainerValueWrapper<ConnDevArtifactType> deployedWrapper = deployedScriptWrapper();
-                boolean deployedActive = deployedWrapper != null
-                        && !Boolean.TRUE.equals(deployedWrapper.getRealValue().isDisabled());
+                ConnDevArtifactType generated = loadGeneratedScript();
+                if (generated != null) {
+                    return generated;
+                }
 
-                if (!isReloaded && deployedActive) {
+                PrismContainerValueWrapper<ConnDevArtifactType> deployedWrapper = deployedScriptWrapper();
+                if (deployedWrapper != null && !Boolean.TRUE.equals(deployedWrapper.getRealValue().isDisabled())) {
                     ConnDevArtifactType artifactType = deployedWrapper.getRealValue();
                     Task task = getDetailsModel().getPageAssignmentHolder().createSimpleTask(OP_LOAD_SCRIPT);
-                    OperationResult result = task.getResult();
                     try {
-                        String content = getDetailsModel().getConnectorDevelopmentOperation().getArtifactContent(artifactType, task, result);
-                        artifactType.setContent(content);
-                        return artifactType;
+                        artifactType.setContent(getDetailsModel().getConnectorDevelopmentOperation()
+                                .getArtifactContent(artifactType, task, task.getResult()));
                     } catch (IOException e) {
                         // The script entry exists in the model, but its file cannot be read (e.g. it
                         // was removed out-of-band). Don't fail the page render - show a blank script.
                         getPageBase().error("Couldn't load " + artifactType.getFilename() + ": " + e.getMessage());
                         artifactType.setContent(null);
-                        return artifactType;
                     }
+                    return artifactType;
                 }
 
-                String token = getTaskToken();
+                return getScriptType().create(getObjectClassName());
+            }
+        };
 
-                if (StringUtils.isEmpty(token)) {
-                    return getScriptType().create(getObjectClassName());
-                }
-
-                Task task = getDetailsModel().getPageAssignmentHolder().createSimpleTask(OP_LOAD_SCRIPT);
-                OperationResult result = task.getResult();
-
-                StatusInfo<ConnDevGenerateArtifactResultType> statusInfo;
-                try {
-                    statusInfo = getDetailsModel().getServiceLocator().getConnectorService().getGenerateArtifactStatus(token, task, result);
-                } catch (CommonException e) {
-                    throw new RuntimeException(e);
-                }
-                ConnDevGenerateArtifactResultType artifactResultType = statusInfo.getResult();
-
-                if (artifactResultType == null || artifactResultType.getArtifact() == null) {
-                    return getScriptType().create(getObjectClassName());
-                }
-
-                ConnDevArtifactType artifact = artifactResultType.getArtifact();
-
-                if (!autoValidationDone) {
-                    autoValidationDone = true;
-                    boolean skipValidation = isScriptOptional() && StringUtils.isBlank(artifact.getContent());
-                    ConnDevArtifactValidationResult validation = skipValidation
-                            ? ConnDevArtifactValidationResult.success()
-                            : getDetailsModel().getConnectorDevelopmentOperation().validateArtifact(artifact, task, result);
-
-                    if (validation.ok()) {
-                        if (hasPendingValidationError()) {
-                            ConnectorDevelopmentWizardUtil.clearScriptValidationErrors(
-                                    ScriptConnectorStepPanel.this, getStepId());
-                        }
-                    } else {
-                        getPageBase().error(ConnectorDevelopmentWizardUtil.scriptValidationErrorMessage(
-                                validation, artifact.getFilename(), getPageBase()));
-                        scriptEditedSinceError = false;
-                        ConnectorDevelopmentWizardUtil.reportScriptValidationErrors(
-                                ScriptConnectorStepPanel.this, getStepId(), validation, artifact.getFilename());
-                    }
-                }
-
-                return artifact;
+        savedContentModel = new LoadableModel<>() {
+            @Override
+            protected String load() {
+                return savedScriptContent();
             }
         };
     }
 
-    private String getTaskToken() {
+    private ConnDevArtifactType loadGeneratedScript() {
+        String token = generatedScriptToken();
+        if (token == null) {
+            return null;
+        }
+
+        Task task = getDetailsModel().getPageAssignmentHolder().createSimpleTask(OP_LOAD_SCRIPT);
+        OperationResult result = task.getResult();
+
+        StatusInfo<ConnDevGenerateArtifactResultType> statusInfo;
         try {
-            return ConnectorDevelopmentWizardUtil.getTaskToken(
-                    WorkDefinitionsType.F_GENERATE_CONNECTOR_ARTIFACT,
-                    getObjectClassName(),
-                    getScriptType(),
-                    getDetailsModel().getObjectWrapper().getOid(),
-                    getDetailsModel().getPageAssignmentHolder());
+            statusInfo = getDetailsModel().getServiceLocator().getConnectorService().getGenerateArtifactStatus(token, task, result);
         } catch (CommonException e) {
             throw new RuntimeException(e);
         }
+        ConnDevGenerateArtifactResultType generatedResult = statusInfo.getResult();
+        if (generatedResult == null || generatedResult.getArtifact() == null) {
+            return null;
+        }
+
+        ConnDevArtifactType artifact = generatedResult.getArtifact();
+        String saved = savedScriptContent();
+        if (saved != null && StringUtils.equals(saved, artifact.getContent())) {
+            generatedScriptToken = null;
+            generatedScriptObjectClass = null;
+            return null;
+        }
+
+        if (!autoValidationDone) {
+            autoValidationDone = true;
+            boolean skipValidation = isScriptOptional() && StringUtils.isBlank(artifact.getContent());
+            ConnDevArtifactValidationResult validation = skipValidation
+                    ? ConnDevArtifactValidationResult.success()
+                    : getDetailsModel().getConnectorDevelopmentOperation().validateArtifact(artifact, task, result);
+
+            if (validation.ok()) {
+                if (hasPendingValidationError()) {
+                    ConnectorDevelopmentWizardUtil.clearScriptValidationErrors(
+                            ScriptConnectorStepPanel.this, getStepId());
+                }
+            } else {
+                getPageBase().error(ConnectorDevelopmentWizardUtil.scriptValidationErrorMessage(
+                        validation, artifact.getFilename(), getPageBase()));
+                scriptEditedSinceError = false;
+                ConnectorDevelopmentWizardUtil.reportScriptValidationErrors(
+                        ScriptConnectorStepPanel.this, getStepId(), validation, artifact.getFilename());
+            }
+        }
+
+        return artifact;
+    }
+
+    private String generatedScriptToken() {
+        return StringUtils.equals(generatedScriptObjectClass, getObjectClassName()) ? generatedScriptToken : null;
+    }
+
+    private String savedScriptContent() {
+        PrismContainerValueWrapper<ConnDevArtifactType> deployed = deployedScriptWrapper();
+        if (deployed == null || Boolean.TRUE.equals(deployed.getRealValue().isDisabled())) {
+            return null;
+        }
+        Task task = getDetailsModel().getPageAssignmentHolder().createSimpleTask(OP_LOAD_SCRIPT);
+        try {
+            return getDetailsModel().getConnectorDevelopmentOperation()
+                    .getArtifactContent(deployed.getRealValue().clone(), task, task.getResult());
+        } catch (IOException e) {
+            return null;
+        }
+    }
+
+    private String liveScriptKey() {
+        return VAR_LIVE_SCRIPT_PREFIX + getStepId() + ":" + getObjectClassName();
     }
 
     abstract protected ConnectorDevelopmentArtifacts.KnownArtifactType getScriptType();
@@ -249,8 +278,25 @@ public abstract class ScriptConnectorStepPanel extends AbstractWizardStepPanel<C
         suggestedScriptAlert.add(new VisibleBehaviour(this::isShowingSuggestedScript));
         add(suggestedScriptAlert);
 
-        SimpleAceEditorPanel editorPanel = new SimpleAceEditorPanel(
-                ID_PANEL, new PropertyModel<>(valueModel, ConnDevArtifactType.F_CONTENT.getLocalPart()), 400) {
+        IModel<String> editorContentModel = new IModel<>() {
+            @Override
+            public String getObject() {
+                return currentLiveScriptContent();
+            }
+
+            @Override
+            public void setObject(String value) {
+                pendingEditorValue = value;
+            }
+
+            @Override
+            public void detach() {
+                valueModel.detach();
+                savedContentModel.detach();
+            }
+        };
+
+        SimpleAceEditorPanel editorPanel = new SimpleAceEditorPanel(ID_PANEL, editorContentModel, 400) {
 
             protected AceEditor createEditor(String id, IModel<String> model, int minSize) {
                 AceEditor editor = new AceEditor(id, model);
@@ -272,7 +318,7 @@ public abstract class ScriptConnectorStepPanel extends AbstractWizardStepPanel<C
         editorPanel.getBaseFormComponent().add(new AjaxFormComponentUpdatingBehavior("blur") {
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
-                getHelper().putVariable(VAR_LIVE_SCRIPT, scriptEditor.getModelObject());
+                getHelper().putVariable(liveScriptKey(), rawEditedScriptContent());
                 target.add(getFeedback());
             }
         });
@@ -286,7 +332,7 @@ public abstract class ScriptConnectorStepPanel extends AbstractWizardStepPanel<C
 
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
-                getHelper().putVariable(VAR_LIVE_SCRIPT, scriptEditor.getModelObject());
+                getHelper().putVariable(liveScriptKey(), rawEditedScriptContent());
                 scriptEditedSinceError = true;
             }
         });
@@ -348,6 +394,27 @@ public abstract class ScriptConnectorStepPanel extends AbstractWizardStepPanel<C
 
     @Override
     public boolean onNextPerformed(AjaxRequestTarget target) {
+        if (!saveUnsavedStepChanges(target)) {
+            return false;
+        }
+        onAfterSave(target);
+        super.onNextPerformed(target);
+        return false;
+    }
+
+    /**
+     * Commits the live script (and the rest of this object's pending changes - this does the
+     * generic object save itself too, the caller doesn't need to repeat it) exactly like clicking
+     * Next would, without actually advancing to the next step. Used by {@link #onNextPerformed}
+     * itself, and by the "Save" choice on an unsaved-changes confirmation when leaving via Back or
+     * the navigation menu (plain {@code getHelper().onSaveObjectPerformed} alone wouldn't do, since
+     * the live script lives in a wizard variable, not any Prism wrapper's delta).
+     *
+     * @return false if validation or saving failed - an error is already shown, and the caller
+     * should NOT navigate away.
+     */
+    @Override
+    public boolean saveUnsavedStepChanges(AjaxRequestTarget target) {
         Task task = getPageBase().createSimpleTask(OP_SAVE_SCRIPT);
         ConnectorDevelopmentWizardUtil.clearScriptValidationErrors(this, getStepId());
         ConnectorDevelopmentWizardUtil.refreshDrawerPanel(this, target);
@@ -362,9 +429,7 @@ public abstract class ScriptConnectorStepPanel extends AbstractWizardStepPanel<C
             WebPrismUtil.cleanupEmptyContainerValue(script.asPrismContainerValue());
             if (isScriptOptional() && StringUtils.isBlank(script.getContent())) {
                 scriptFileToDelete = removeDeployedScriptEntry();
-                valueModel.detach();
-                languageModel.detach();
-                getHelper().removeVariable(VAR_LIVE_SCRIPT);
+                dropGeneratedScript();
             } else {
                 ConnDevArtifactValidationResult validation = getDetailsModel().getConnectorDevelopmentOperation()
                         .validateArtifact(script, task, task.getResult());
@@ -384,9 +449,7 @@ public abstract class ScriptConnectorStepPanel extends AbstractWizardStepPanel<C
                     target.add(getFeedback());
                     return false;
                 }
-                valueModel.detach();
-                languageModel.detach();
-                getHelper().removeVariable(VAR_LIVE_SCRIPT);
+                dropGeneratedScript();
             }
         } catch (IOException | CommonException e) {
             throw new RuntimeException(e);
@@ -405,14 +468,33 @@ public abstract class ScriptConnectorStepPanel extends AbstractWizardStepPanel<C
             }
         }
 
-        onAfterSave(target);
-        if (result != null && !result.isError()) {
-            isReloaded = false;
-            super.onNextPerformed(target);
-        } else {
+        if (result == null || result.isError()) {
             target.add(getFeedback());
+            return false;
         }
-        return false;
+        return true;
+    }
+
+    /**
+     * Forgets a generated script nobody has saved yet, together with the live editor content, so the
+     * step shows the saved script (or a blank editor) next time. Called when the user discards the
+     * generated script, saves, or when a new generation replaces it.
+     */
+    public void dropGeneratedScript() {
+        generatedScriptToken = null;
+        generatedScriptObjectClass = null;
+        autoValidationDone = false;
+        valueModel.detach();
+        savedContentModel.detach();
+        languageModel.detach();
+        getHelper().removeVariable(liveScriptKey());
+    }
+
+    /** Remembers the finished generation task whose result this step shows until it is saved or discarded. */
+    public void setGeneratedScriptToken(String token) {
+        dropGeneratedScript();
+        generatedScriptToken = token;
+        generatedScriptObjectClass = getObjectClassName();
     }
 
     protected void onAfterSave(AjaxRequestTarget target) {
@@ -429,9 +511,7 @@ public abstract class ScriptConnectorStepPanel extends AbstractWizardStepPanel<C
 
     /** Forces {@link #valueModel} to reload from disk, e.g. after {@link RepairObjectClassButton} saved a fixed script directly. */
     public void detachLoadedScript() {
-        valueModel.detach();
-        autoValidationDone = false;
-        getHelper().removeVariable(VAR_LIVE_SCRIPT);
+        dropGeneratedScript();
     }
 
     /** Triggers the same regeneration as the "Regenerate" dropdown item, for a caller outside this step (e.g. the drawer's "Fix it"). */
@@ -511,20 +591,15 @@ public abstract class ScriptConnectorStepPanel extends AbstractWizardStepPanel<C
         return List.of(discardItem, regenerateItem, deleteItem);
     }
 
-    /** Whether {@link #valueModel} is showing a generated suggestion rather than the deployed script. */
+    /** Whether the editor content differs from the saved script (or there is no saved script and the editor is not blank). */
     private boolean isShowingSuggestedScript() {
-        if (hasActiveDeployedScript()) {
-            return false;
-        }
-        ConnDevArtifactType current = valueModel.getObject();
-        boolean result = current != null && StringUtils.isNotBlank(current.getContent());
-        return result;
+        return differsFromSavedScript();
     }
 
-    private boolean hasActiveDeployedScript() {
-        PrismContainerValueWrapper<ConnDevArtifactType> deployed = deployedScriptWrapper();
-        boolean result = deployed != null && !Boolean.TRUE.equals(deployed.getRealValue().isDisabled());
-        return result;
+    private boolean differsFromSavedScript() {
+        String current = StringUtils.defaultString(currentLiveScriptContent());
+        String saved = savedContentModel.getObject();
+        return saved == null ? StringUtils.isNotBlank(current) : !saved.equals(current);
     }
 
     /** The deployed script's wrapper, or null - filters out the empty placeholder value an as-yet-nonexistent container gets. */
@@ -570,11 +645,7 @@ public abstract class ScriptConnectorStepPanel extends AbstractWizardStepPanel<C
             }
             getDetailsModel().reloadPrismObjectByOid();
         }
-        autoValidationDone = false;
-        valueModel.detach();
-        languageModel.detach();
-        getHelper().removeVariable(VAR_LIVE_SCRIPT);
-        isReloaded = false;
+        dropGeneratedScript();
         super.onNextPerformed(target);
     }
 
@@ -594,18 +665,11 @@ public abstract class ScriptConnectorStepPanel extends AbstractWizardStepPanel<C
         }
     }
 
-    /**
-     * Reverts to the deployed script if there is one, or clears the editor to blank otherwise.
-     * The blank case sets {@link #valueModel} directly rather than detaching it: load() would
-     * just re-fetch the same completed generation task's result again.
-     */
+    /** Reverts to the deployed script if there is one, or clears the editor to blank otherwise. */
     private void onDiscardSuggestedScriptPerformed(AjaxRequestTarget target) {
         PrismContainerValueWrapper<ConnDevArtifactType> deployed = deployedScriptWrapper();
         if (deployed == null || deployed.getRealValue() == null) {
-            autoValidationDone = false;
-            valueModel.setObject(getScriptType().create(getObjectClassName()));
-            languageModel.detach();
-            getHelper().removeVariable(VAR_LIVE_SCRIPT);
+            dropGeneratedScript();
             target.add(this);
             if (scriptEditor != null) {
                 scriptEditor.updateValue(target, "");
@@ -630,9 +694,7 @@ public abstract class ScriptConnectorStepPanel extends AbstractWizardStepPanel<C
             target.add(getFeedback());
             return;
         }
-        autoValidationDone = false;
-        valueModel.detach();
-        languageModel.detach();
+        dropGeneratedScript();
         target.add(this);
         if (scriptEditor != null) {
             scriptEditor.updateValue(target, content);
@@ -649,12 +711,31 @@ public abstract class ScriptConnectorStepPanel extends AbstractWizardStepPanel<C
         return !parentWizardModel.getOperationResultsForFixStep(getStepId()).isEmpty();
     }
 
-    /** The script content currently in the editor, not necessarily what was last saved - read from {@link #VAR_LIVE_SCRIPT}. */
+    /** The script content currently in the editor, not necessarily what was last saved. */
     private String currentLiveScriptContent() {
-        String liveScript = getHelper().getVariable(VAR_LIVE_SCRIPT);
+        String liveScript = getHelper().getVariable(liveScriptKey());
         return liveScript != null
                 ? liveScript
                 : (valueModel.getObject() != null ? valueModel.getObject().getContent() : null);
+    }
+
+    /**
+     * The value the browser just submitted for the editor - set by the editor's own model
+     * ({@code setObject}) moments earlier in this same request. Deliberately NOT written into
+     * {@link #valueModel}: that artifact stays untouched by the editor.
+     */
+    private String rawEditedScriptContent() {
+        return pendingEditorValue;
+    }
+
+    @Override
+    public boolean hasUnsavedStepChanges() {
+        return differsFromSavedScript();
+    }
+
+    @Override
+    public void discardUnsavedStepChanges() {
+        dropGeneratedScript();
     }
 
     private List<ConnDevArtifactType> currentScriptsForRepair() {
@@ -694,16 +775,11 @@ public abstract class ScriptConnectorStepPanel extends AbstractWizardStepPanel<C
                     }
                 } else if (StringUtils.isNotEmpty(idOfFound)) {
                     setActiveStepById(target, parentWizardModel, idOfFound);
-                    isReloaded = true;
-                    autoValidationDone = false;
-                    valueModel.detach();
-                    languageModel.detach();
+                    dropGeneratedScript();
                     return;
                 }
             }
-            autoValidationDone = false;
-            valueModel.detach();
-            languageModel.detach();
+            dropGeneratedScript();
         }
     }
 
