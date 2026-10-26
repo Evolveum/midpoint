@@ -1785,10 +1785,15 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
 
     /**
      * Unknown actuator sub-path, authenticated, must produce 404, not 500. Issue 12566.
+     *
+     * The actuator channel supports only HTTP basic, so the header is built here directly
+     * instead of via {@link #createAuthorizationHeader}, which subclasses override (e.g. SecQ).
      */
     @Test
     public void test805UnknownActuatorPathReturns404() {
-        WebClient client = prepareRootClient(USER_ADMINISTRATOR_USERNAME, USER_ADMINISTRATOR_PASSWORD);
+        WebClient client = prepareRootClient(null, null);
+        client.header("Authorization", "Basic " + org.apache.cxf.common.util.Base64Utility.encode(
+                (USER_ADMINISTRATOR_USERNAME + ":" + USER_ADMINISTRATOR_PASSWORD).getBytes()));
         client.path("/actuator/nonexistent");
 
         when();
