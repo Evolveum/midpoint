@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.table;
 
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
+
 import com.evolveum.midpoint.gui.api.component.button.DropdownButtonDto;
 import com.evolveum.midpoint.gui.api.component.button.DropdownButtonPanel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
@@ -283,7 +285,7 @@ public abstract class SmartObjectTypeSuggestionPanel<C extends PrismContainerVal
         return new ButtonInlineMenuItem(createStringResource("SmartSuggestObjectTypeTilePanel.discard.suggestion")) {
             @Override
             public CompositedIconBuilder getIconCompositedBuilder() {
-                return new CompositedIconBuilder();
+                return getDefaultCompositedIconBuilder(GuiStyleConstants.CLASS_ICON_TRASH);
             }
 
             @Override
