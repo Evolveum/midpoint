@@ -92,6 +92,29 @@ public interface WizardStep extends Serializable {
         return false;
     }
 
+    /**
+     * Whether the step holds pending edits outside any Prism wrapper (e.g. a live script editor), which a
+     * delta check of the main object cannot detect. Consulted before leaving the step through Back or the
+     * navigation menu.
+     */
+    default boolean hasUnsavedStepChanges() {
+        return false;
+    }
+
+    /**
+     * Persists what {@link #hasUnsavedStepChanges()} flagged, like Next would, without advancing. Includes
+     * the generic object save.
+     *
+     * @return false if saving failed (an error is already shown) and the wizard must stay on this step.
+     */
+    default boolean saveUnsavedStepChanges(AjaxRequestTarget target) {
+        return true;
+    }
+
+    /** Throws away what {@link #hasUnsavedStepChanges()} flagged. */
+    default void discardUnsavedStepChanges() {
+    }
+
     default boolean isStatusStep() {
         return false;
     }

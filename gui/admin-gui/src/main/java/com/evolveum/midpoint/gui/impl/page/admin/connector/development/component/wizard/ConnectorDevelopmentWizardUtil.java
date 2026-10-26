@@ -566,6 +566,49 @@ public class ConnectorDevelopmentWizardUtil {
                 config, detailsModel.getPageAssignmentHolder(), new OperationResult("getResourceModel"));
     }
 
+    /**
+     * Whether the testing resource (see {@link #getTestingResourceModel}) has unsaved changes,
+     * regardless of which wizard step is currently active. The testing resource is a separate
+     * wrapper from the main object wrapper, so it isn't covered by {@code detailsModel.hasDelta()} -
+     * any step that edits it (connection/base URL/credentials/schema/search steps, ...) needs this
+     * check too before letting the user navigate away without saving or discarding.
+     * <p>
+     * Only looks at an ALREADY created testing resource model (doesn't force-create one just to
+     * check it) - a step that never touched the testing resource can't have unsaved changes in it,
+     * and creating it on demand here could itself fail for a connector whose schema isn't resolvable.
+     */
+    public static boolean hasUnsavedTestingResourceChanges(ConnectorDevelopmentDetailsModel detailsModel) {
+        try {
+            PrismReferenceWrapper<Referencable> resource = detailsModel.getObjectWrapper().findReference(
+                    ItemPath.create(ConnectorDevelopmentType.F_TESTING, ConnDevTestingType.F_TESTING_RESOURCE));
+            if (resource == null || resource.getValue() == null || !resource.getValue().isNewObjectModelCreated()) {
+                return false;
+            }
+            return resource.getValue().getNewObjectModel(
+                    null, detailsModel.getPageAssignmentHolder(), new OperationResult("hasUnsavedTestingResourceChanges"))
+                    .hasDelta();
+        } catch (SchemaException e) {
+            return false;
+        }
+    }
+
+    /**
+     * Throws away any unsaved changes in the testing resource (see {@link #getTestingResourceModel}),
+     * forcing it to be rebuilt from scratch (or reloaded from the repository, if already persisted)
+     * on next access. Used when the user picks "Discard" on the unsaved-changes confirmation.
+     */
+    public static void discardTestingResourceChanges(ConnectorDevelopmentDetailsModel detailsModel) {
+        try {
+            PrismReferenceWrapper<Referencable> resource = detailsModel.getObjectWrapper().findReference(
+                    ItemPath.create(ConnectorDevelopmentType.F_TESTING, ConnDevTestingType.F_TESTING_RESOURCE));
+            if (resource != null && resource.getValue() != null) {
+                resource.getValue().resetNewObjectModel();
+            }
+        } catch (SchemaException e) {
+            // nothing to discard if the reference can't even be resolved
+        }
+    }
+
     public static boolean existScript(ConnectorDevelopmentDetailsModel detailsModel, ConnDevArtifactType artifact) {
         if (artifact == null) {
             return false;

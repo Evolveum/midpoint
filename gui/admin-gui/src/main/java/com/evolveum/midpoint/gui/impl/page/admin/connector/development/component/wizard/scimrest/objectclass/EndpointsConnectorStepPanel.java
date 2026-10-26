@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Optional;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormChoiceComponentUpdatingBehavior;
@@ -28,7 +29,8 @@ import org.apache.wicket.markup.html.navigation.paging.PagingNavigator;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
-import com.evolveum.midpoint.gui.api.component.wizard.WizardStep;
+import com.evolveum.midpoint.gui.api.component.button.DropdownButtonDto;
+import com.evolveum.midpoint.gui.api.component.button.DropdownButtonPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
@@ -47,7 +49,10 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.smart.api.conndev.ConnectorDevelopmentArtifacts;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
@@ -92,6 +97,17 @@ public abstract class EndpointsConnectorStepPanel extends AbstractWizardStepPane
         initLayout();
     }
 
+    /**
+     * This step panel is reused across visits (it's only constructed once, on the first visit to
+     * its parent part), so {@link #onInitialize()} - and the selection it set up from whatever was
+     * confirmed back then - only ever runs once. Without re-syncing here, coming back to this step
+     * later would keep showing a stale selection instead of the actually confirmed endpoint.
+     */
+    @Override
+    public void applyState() {
+        initSelectionModels();
+    }
+
     private void createValuesModel() {
         valuesModel = new LoadableModel<>() {
             @Override
@@ -132,26 +148,42 @@ public abstract class EndpointsConnectorStepPanel extends AbstractWizardStepPane
      * as selected.
      */
     private void initSelectionModels() {
-        manualOperationModel = Model.of(ConnDevHttpOperationType.GET);
-        manualUriModel = Model.of("");
+        // Reuse the existing Model instances (just change their value) rather than replacing them -
+        // initLayout() hands the ORIGINAL instances to the RadioGroup/form components once, at
+        // construction time, and they keep that exact reference forever. Assigning a brand new
+        // Model.of(...) to the field here (as applyState()'s repeat calls would) would silently
+        // disconnect the already-built UI from this panel's state - it'd keep showing/writing to
+        // the stale original instance while this method's own checks work against the new one.
+        if (manualOperationModel == null) {
+            manualOperationModel = Model.of(ConnDevHttpOperationType.GET);
+        } else {
+            manualOperationModel.setObject(ConnDevHttpOperationType.GET);
+        }
+        if (manualUriModel == null) {
+            manualUriModel = Model.of("");
+        } else {
+            manualUriModel.setObject("");
+        }
 
         List<PrismContainerValueWrapper<ConnDevHttpEndpointType>> candidates = valuesModel.getObject();
         Optional<ConnDevHttpEndpointType> confirmed = getConfirmedEndpoint();
-        String initial = MANUAL_OPTION;
+        String initial = null;
         if (confirmed.isPresent()) {
             boolean matchesCandidate = candidates.stream()
                     .anyMatch(candidate -> StringUtils.equals(candidate.getRealValue().getName(), confirmed.get().getName()));
             if (matchesCandidate) {
                 initial = confirmed.get().getName();
             } else {
-                // confirmed endpoint isn't among the current candidates - it was entered manually
+                initial = MANUAL_OPTION;
                 manualOperationModel.setObject(confirmed.get().getOperation());
                 manualUriModel.setObject(confirmed.get().getUri());
             }
-        } else if (!candidates.isEmpty()) {
-            initial = candidates.get(0).getRealValue().getName();
         }
-        selectedModel = Model.of(initial);
+        if (selectedModel == null) {
+            selectedModel = Model.of(initial);
+        } else {
+            selectedModel.setObject(initial);
+        }
     }
 
     private Optional<ConnDevHttpEndpointType> getConfirmedEndpoint() {
@@ -311,14 +343,27 @@ public abstract class EndpointsConnectorStepPanel extends AbstractWizardStepPane
 
     @Override
     public boolean onNextPerformed(AjaxRequestTarget target) {
-        boolean manual = MANUAL_OPTION.equals(selectedModel.getObject());
-        if (manual && StringUtils.isBlank(manualUriModel.getObject())) {
+        if (!saveEndpoint(target)) {
+            return false;
+        }
+        markScriptForRegeneration();
+        super.onNextPerformed(target);
+        return false;
+    }
+
+    private boolean saveEndpoint(AjaxRequestTarget target) {
+        String selected = selectedModel.getObject();
+        if (selected == null) {
+            getPageBase().error(getString("EndpointsConnectorStepPanel.noEndpointSelected"));
             target.add(getFeedback());
             return false;
         }
-
-        Optional<ConnDevHttpEndpointType> previousConfirmed = getConfirmedEndpoint();
-        boolean endpointChanged = isEndpointChange(previousConfirmed, manual);
+        boolean manual = MANUAL_OPTION.equals(selected);
+        if (manual && StringUtils.isBlank(manualUriModel.getObject())) {
+            getPageBase().error(getString("EndpointsConnectorStepPanel.manualUriEmpty"));
+            target.add(getFeedback());
+            return false;
+        }
 
         try {
             PrismContainerWrapper<ConnDevHttpEndpointType> container =
@@ -356,7 +401,7 @@ public abstract class EndpointsConnectorStepPanel extends AbstractWizardStepPane
                 addManualEndpoint(finalContainer);
             } else {
                 valuesModel.getObject().stream()
-                        .filter(value -> StringUtils.equals(value.getRealValue().getName(), selectedModel.getObject()))
+                        .filter(value -> StringUtils.equals(value.getRealValue().getName(), selected))
                         .findFirst()
                         .ifPresent(value -> addClonedEndpoint(finalContainer, value));
             }
@@ -366,74 +411,70 @@ public abstract class EndpointsConnectorStepPanel extends AbstractWizardStepPane
         }
 
         OperationResult result = getHelper().onSaveObjectPerformed(target);
-        getDetailsModel().getConnectorDevelopmentOperation();
         if (result == null || result.isError()) {
             target.add(getFeedback());
             return false;
         }
-
-        if (endpointChanged) {
-            markScriptForRegeneration();
-        }
-        super.onNextPerformed(target);
-        return false;
+        return true;
     }
 
-    /**
-     * Whether the endpoint being submitted actually differs from what was confirmed before -
-     * comparing operation+uri (the pair that ends up baked into the generated script), not the
-     * descriptive name. Also true when there was no confirmed endpoint at all yet (first
-     * confirmation), since that's exactly the situation the "waiting" step normally handles by
-     * generating for the first time.
-     */
-    private boolean isEndpointChange(Optional<ConnDevHttpEndpointType> previousConfirmed, boolean manual) {
-        String newUri;
-        ConnDevHttpOperationType newOperation;
-        if (manual) {
-            newUri = manualUriModel.getObject();
-            newOperation = manualOperationModel.getObject();
-        } else {
-            Optional<PrismContainerValueWrapper<ConnDevHttpEndpointType>> selected = valuesModel.getObject().stream()
-                    .filter(value -> StringUtils.equals(value.getRealValue().getName(), selectedModel.getObject()))
-                    .findFirst();
-            newUri = selected.map(value -> value.getRealValue().getUri()).orElse(null);
-            newOperation = selected.map(value -> value.getRealValue().getOperation()).orElse(null);
-        }
-
-        return previousConfirmed.isEmpty()
-                || !StringUtils.equals(previousConfirmed.get().getUri(), newUri)
-                || previousConfirmed.get().getOperation() != newOperation;
-    }
-
-    /**
-     * If this flow has a {@link WaitingScriptConnectorStepPanel} for *this* operation among its
-     * sibling steps, mark it for regeneration: whatever was generated against the old endpoint no
-     * longer matches what will actually be called. The normal linear "next" navigation
-     * ({@link #onNextPerformed}'s call to {@code super.onNextPerformed}) already lands on that
-     * waiting step right after this one - it only needs {@link WaitingScriptConnectorStepPanel#resetScript}
-     * called first, since otherwise its own {@code isCompleted()} shortcut (true whenever a script
-     * already exists for this object class, e.g. on an existing connector) would make the wizard
-     * skip straight past it instead of actually regenerating anything. Matched by
-     * {@link #getScriptType()} rather than just "the nearest waiting step of any kind" - a single
-     * object class's flow can have several (schema, create, update, delete, search, ...), and the
-     * nearest one isn't necessarily this operation's. A no-op if no matching step exists (e.g.
-     * this step was reached directly from the object class's own menu, bypassing "waiting"
-     * entirely).
-     */
-    private void markScriptForRegeneration() {
+    private Optional<WaitingScriptConnectorStepPanel> findWaitingPanel() {
         if (!(getWizard() instanceof WizardModelWithParentSteps parentWizardModel)) {
-            return;
+            return Optional.empty();
         }
-        List<WizardStep> steps = parentWizardModel.getActiveChildrenSteps();
-        int activeStepIndex = parentWizardModel.getActiveStepIndex();
-        for (int i = activeStepIndex + 1; i < steps.size(); i++) {
-            WizardStep step = steps.get(i);
-            if (step instanceof WaitingScriptConnectorStepPanel waitingPanel
-                    && waitingPanel.getScriptType() == getScriptType()) {
-                waitingPanel.resetScript(getPageBase());
-                return;
+        return parentWizardModel.getActiveChildrenSteps().stream()
+                .filter(step -> step instanceof WaitingScriptConnectorStepPanel waitingPanel
+                        && waitingPanel.getScriptType() == getScriptType())
+                .map(step -> (WaitingScriptConnectorStepPanel) step)
+                .findFirst();
+    }
+
+    private void markScriptForRegeneration() {
+        findWaitingPanel().ifPresent(waitingPanel -> waitingPanel.resetScript(getPageBase()));
+    }
+
+    @Override
+    public VisibleEnableBehaviour getNextBehaviour() {
+        return new VisibleEnableBehaviour(
+                () -> true,
+                () -> findWaitingPanel().map(waitingPanel -> !waitingPanel.isGenerationRunning()).orElse(true));
+    }
+
+    private boolean existSavedScript() {
+        return ConnectorDevelopmentWizardUtil.existScript(
+                getDetailsModel(), getScriptType(), objectClassModel.getObject().getRealValue().getName());
+    }
+
+    @Override
+    protected Component createCustomButtonsAnchor(String id) {
+        InlineMenuItem skipItem = new InlineMenuItem(createStringResource("EndpointsConnectorStepPanel.skipGeneration")) {
+            @Override
+            public InlineMenuItemAction initAction() {
+                return new InlineMenuItemAction() {
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        onSkipGenerationPerformed(target);
+                    }
+                };
             }
-        }
+        };
+        DropdownButtonPanel menu = new DropdownButtonPanel(id, new DropdownButtonDto(null, null, null, List.of(skipItem))) {
+            @Override
+            protected String getSpecialButtonClass() {
+                return "btn btn-light border";
+            }
+        };
+        menu.add(new VisibleBehaviour(this::existSavedScript));
+        return menu;
+    }
+
+    private void onSkipGenerationPerformed(AjaxRequestTarget target) {
+        findWaitingPanel().flatMap(WaitingScriptConnectorStepPanel::followingScriptPanel).ifPresent(scriptPanel -> {
+            scriptPanel.dropGeneratedScript();
+            getWizard().setActiveStepById(scriptPanel.getStepId());
+            getWizard().fireActiveStepChanged(getWizard().getActiveStep());
+            target.add(getWizard().getPanel());
+        });
     }
 
     private void addClonedEndpoint(PrismContainerWrapper<ConnDevHttpEndpointType> finalContainer,

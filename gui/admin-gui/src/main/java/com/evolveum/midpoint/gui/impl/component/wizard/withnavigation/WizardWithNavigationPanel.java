@@ -344,10 +344,15 @@ public class WizardWithNavigationPanel<AH extends AssignmentHolderType, ADM exte
         parent.add(new AjaxEventBehavior("click") {
             @Override
             protected void onEvent(AjaxRequestTarget target) {
-                if (!Strings.CS.equals(listItem.getModelObject().getStepId(), getController().getActiveStep().getStepId())) {
-                    getController().setActiveStepById(listItem.getModelObject().getStepId());
-                    getController().fireActiveStepChanged(getController().getActiveStep());
-                    target.add(getController().getPanel());
+                String targetStepId = listItem.getModelObject().getStepId();
+                String activeStepId = getController().getActiveStep().getStepId();
+                boolean hasChanges = getController().hasUnsavedChanges();
+                if (!Strings.CS.equals(targetStepId, activeStepId)) {
+                    if (hasChanges) {
+                        getController().showUnsavedStepChangesConfirmation(target, t -> jumpToStep(targetStepId, t));
+                        return;
+                    }
+                    jumpToStep(targetStepId, target);
                 }
             }
         });
@@ -393,11 +398,21 @@ public class WizardWithNavigationPanel<AH extends AssignmentHolderType, ADM exte
         return controller;
     }
 
+    private void jumpToStep(String targetStepId, AjaxRequestTarget target) {
+        getController().setActiveStepById(targetStepId);
+        getController().fireActiveStepChanged(getController().getActiveStep());
+        target.add(getController().getPanel());
+    }
+
     @Override
     public void onStepChanged(WizardStep newStep) {
         WizardStep step = getController().getActiveStep();
         ((Component) step).add(AttributeAppender.append("class", () -> getController().getActiveStep().appendCssToWizard()));
 
         ((MidpointForm) get(ID_MAIN_FORM)).addOrReplace((Component) step);
+        // Only now is onInitialize() guaranteed to have run (on a first-ever visit, it fires as a
+        // side effect of addOrReplace adding the component to the live page tree) - applyState()
+        // may depend on fields onInitialize() sets up.
+        step.applyState();
     }
 }
