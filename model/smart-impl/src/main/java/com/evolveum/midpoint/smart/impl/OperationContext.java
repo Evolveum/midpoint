@@ -36,7 +36,8 @@ class OperationContext {
     final ResourceType resource;
     final ResourceSchema resourceSchema;
     final ResourceObjectClassDefinition objectClassDefinition;
-    final ServiceClient serviceClient;
+    /** May be null when the AI service is not used by the operation (system suggestions only). */
+    @Nullable final ServiceClient serviceClient;
 
     /** State of the activity that is executing this operation, if the operation runs in the background. */
     @Nullable private final CurrentActivityState<?> activityState;
@@ -49,7 +50,7 @@ class OperationContext {
             ResourceType resource,
             ResourceSchema resourceSchema,
             ResourceObjectClassDefinition objectClassDefinition,
-            ServiceClient serviceClient,
+            @Nullable ServiceClient serviceClient,
             @Nullable CurrentActivityState<?> activityState,
             Task task) {
         this.resource = resource;
@@ -61,14 +62,14 @@ class OperationContext {
     }
 
     static OperationContext init(
-            ServiceClient serviceClient, String resourceOid, QName objectClassName, Task task, OperationResult result)
+            @Nullable ServiceClient serviceClient, String resourceOid, QName objectClassName, Task task, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
             ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
         return init(serviceClient, resourceOid, objectClassName, null, task, result);
     }
 
     static OperationContext init(
-            ServiceClient serviceClient, String resourceOid, QName objectClassName,
+            @Nullable ServiceClient serviceClient, String resourceOid, QName objectClassName,
             Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
             ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {

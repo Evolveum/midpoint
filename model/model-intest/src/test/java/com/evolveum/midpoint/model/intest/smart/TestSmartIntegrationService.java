@@ -334,7 +334,7 @@ public class TestSmartIntegrationService extends AbstractEmptyModelIntegrationTe
         var token = smartIntegrationService.submitSuggestCorrelationOperation(
                 RESOURCE_DUMMY_FOR_SUGGEST_CORRELATION_AND_MAPPINGS.oid, ACCOUNT_DEFAULT,
                 List.of(DataAccessPermissionType.SCHEMA_ACCESS),
-                false, task, result);
+                false, true, task, result);
 
         then("returned token is not null");
         assertThat(token).isNotNull();
@@ -379,7 +379,7 @@ public class TestSmartIntegrationService extends AbstractEmptyModelIntegrationTe
         var token = smartIntegrationService.submitSuggestMappingsOperation(
                 RESOURCE_DUMMY_FOR_SUGGEST_CORRELATION_AND_MAPPINGS.oid, ACCOUNT_DEFAULT, true, null, List.of(
                         DataAccessPermissionType.SCHEMA_ACCESS, DataAccessPermissionType.RAW_DATA_ACCESS),
-                false, task, result);
+                false, true, task, result);
 
         then("returned token is not null");
         assertThat(token).isNotNull();
@@ -437,7 +437,7 @@ public class TestSmartIntegrationService extends AbstractEmptyModelIntegrationTe
         var token = smartIntegrationService.submitSuggestMappingsOperation(
                 RESOURCE_DUMMY_FOR_SUGGEST_CORRELATION_AND_MAPPINGS.oid, ACCOUNT_DEFAULT, true, null, List.of(
                         DataAccessPermissionType.SCHEMA_ACCESS, DataAccessPermissionType.RAW_DATA_ACCESS),
-                false, task, result);
+                false, true, task, result);
 
         then("returned token is not null");
         assertThat(token).isNotNull();
@@ -505,7 +505,7 @@ public class TestSmartIntegrationService extends AbstractEmptyModelIntegrationTe
                 List.of(DataAccessPermissionType.SCHEMA_ACCESS,
                         DataAccessPermissionType.STATISTICS_ACCESS,
                         DataAccessPermissionType.RAW_DATA_ACCESS),
-                false, task, result);
+                false, true, task, result);
 
         then("returned token is not null");
         assertThat(token).isNotNull();
@@ -572,7 +572,7 @@ public class TestSmartIntegrationService extends AbstractEmptyModelIntegrationTe
                 RESOURCE_DUMMY_FOR_SUGGEST_CATEGORICAL_MAPPINGS.oid, ACCOUNT_DEFAULT, true, null,
                 List.of(DataAccessPermissionType.SCHEMA_ACCESS,
                         DataAccessPermissionType.STATISTICS_ACCESS),
-                false, task, result);
+                false, true, task, result);
 
         then("returned token is not null");
         assertThat(token).isNotNull();

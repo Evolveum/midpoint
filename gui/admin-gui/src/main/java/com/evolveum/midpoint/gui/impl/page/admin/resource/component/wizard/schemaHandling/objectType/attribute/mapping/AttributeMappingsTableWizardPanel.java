@@ -857,6 +857,7 @@ public abstract class AttributeMappingsTableWizardPanel<P extends Containerable>
                             getTargetPathsToIgnore(),
                             permissions,
                             forceRecomputeSchemaMatch,
+                            true,
                             task, result);
                 });
     }

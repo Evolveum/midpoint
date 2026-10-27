@@ -362,7 +362,7 @@ public abstract class CorrelationItemsTableWizardPanel extends AbstractResourceW
                                 .withHideInProgress(true))
                         .runVoid((task, result) -> service
                                 .submitSuggestCorrelationOperation(resourceOid, objectTypeIdentification, permissions,
-                                        forceRecomputeSchemaMatch, task, result));
+                                        forceRecomputeSchemaMatch, true, task, result));
             }
 
             @Override

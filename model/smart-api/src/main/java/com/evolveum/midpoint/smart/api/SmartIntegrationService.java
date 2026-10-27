@@ -247,6 +247,7 @@ public interface SmartIntegrationService {
             ResourceObjectTypeIdentification typeIdentification,
             List<DataAccessPermissionType> permissions,
             boolean forceRecomputeSchemaMatch,
+            Boolean useAiService,
             Task task,
             OperationResult result)
             throws CommonException;
@@ -317,6 +318,7 @@ public interface SmartIntegrationService {
             List<ItemPathType> targetPathsToIgnore,
             List<DataAccessPermissionType> permissions,
             boolean forceRecomputeSchemaMatch,
+            Boolean useAiService,
             Task task,
             OperationResult result)
             throws CommonException;

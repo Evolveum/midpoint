@@ -114,6 +114,7 @@ public class SmartIntegrationRestController extends AbstractRestController {
                         ),
                         correlationSuggestionWorkDefinitionType.getPermissions(),
                         correlationSuggestionWorkDefinitionType.getForceRecomputeSchemaMatch(),
+                        correlationSuggestionWorkDefinitionType.getUseAiService(),
                         task,
                         result
                 )
@@ -161,6 +162,7 @@ public class SmartIntegrationRestController extends AbstractRestController {
                         mappingsSuggestionWorkDefinitionType.getTargetPathsToIgnore(),
                         mappingsSuggestionWorkDefinitionType.getPermissions(),
                         mappingsSuggestionWorkDefinitionType.getForceRecomputeSchemaMatch(),
+                        mappingsSuggestionWorkDefinitionType.getUseAiService(),
                         task,
                         result
                 )
