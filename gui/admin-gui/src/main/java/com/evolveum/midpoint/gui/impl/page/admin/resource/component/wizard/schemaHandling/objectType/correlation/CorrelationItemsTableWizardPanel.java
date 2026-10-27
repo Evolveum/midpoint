@@ -16,6 +16,7 @@ import static com.evolveum.midpoint.web.session.UserProfileStorage.TableId.TABLE
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.web.component.dialog.ConfirmationResult;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.web.component.dialog.SuggestionOption;
@@ -219,8 +220,8 @@ public abstract class CorrelationItemsTableWizardPanel extends AbstractResourceW
 
             @Override
             public void onSuggestNewPerformed(AjaxRequestTarget target,
-                    IModel<List<ConfirmationOption<DataAccessPermission>>> confirmedOptions) {
-                super.onSuggestNewPerformed(target, confirmedOptions);
+                    IModel<ConfirmationResult<DataAccessPermission>> confirmationResult) {
+                super.onSuggestNewPerformed(target, confirmationResult);
                 restartTime.accept(target);
             }
 
@@ -337,21 +338,22 @@ public abstract class CorrelationItemsTableWizardPanel extends AbstractResourceW
         SmartAlertGeneratingPanel aiPanel = new SmartAlertGeneratingPanel(ID_AI_PANEL, suggestionModel) {
             @Override
             protected void performSuggestOperation(AjaxRequestTarget target,
-                    IModel<List<ConfirmationOption<DataAccessPermission>>> confirmedOptions) {
-                submitSuggestCorrelation(target, confirmedOptions, false);
+                    IModel<ConfirmationResult<DataAccessPermission>> confirmationResult) {
+                submitSuggestCorrelation(target, confirmationResult, false);
             }
 
             @Override
             protected void performRegenerateSuggestOperation(AjaxRequestTarget target,
-                    IModel<List<ConfirmationOption<DataAccessPermission>>> confirmedOptions) {
-                submitSuggestCorrelation(target, confirmedOptions, true);
+                    IModel<ConfirmationResult<DataAccessPermission>> confirmationResult) {
+                submitSuggestCorrelation(target, confirmationResult, true);
             }
 
             private void submitSuggestCorrelation(AjaxRequestTarget target,
-                    IModel<List<ConfirmationOption<DataAccessPermission>>> confirmedOptions,
+                    IModel<ConfirmationResult<DataAccessPermission>> confirmationResult,
                     boolean forceRecomputeSchemaMatch) {
-                final List<DataAccessPermissionType> permissions = confirmedOptions.getObject().stream()
-                        .map(ConfirmationOption::option)
+                ConfirmationResult<DataAccessPermission> confirmed = confirmationResult.getObject();
+                final List<DataAccessPermissionType> permissions = confirmed.selectedOptions().stream()
+
                         .map(DataAccessPermission::toSchemaType)
                         .toList();
                 ResourceObjectTypeIdentification objectTypeIdentification = getResourceObjectTypeIdentification();
@@ -362,7 +364,7 @@ public abstract class CorrelationItemsTableWizardPanel extends AbstractResourceW
                                 .withHideInProgress(true))
                         .runVoid((task, result) -> service
                                 .submitSuggestCorrelationOperation(resourceOid, objectTypeIdentification, permissions,
-                                        forceRecomputeSchemaMatch, true, task, result));
+                                        forceRecomputeSchemaMatch, confirmed.aiServiceRequested(), task, result));
             }
 
             @Override

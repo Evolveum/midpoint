@@ -8,8 +8,8 @@
 package com.evolveum.midpoint.web.component.input;
 
 import java.io.Serializable;
-import java.util.List;
 
+import com.evolveum.midpoint.web.component.dialog.ConfirmationResult;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationWithOptionsPopupPanel;
 import com.evolveum.midpoint.web.component.dialog.steper.*;
 
@@ -21,7 +21,6 @@ import org.apache.wicket.model.Model;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
-import com.evolveum.midpoint.web.component.dialog.ConfirmationOption;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationWithOptionsDto;
 import com.evolveum.midpoint.web.component.util.Describable;
 import com.evolveum.midpoint.web.component.util.SerializableConsumer;
@@ -67,8 +66,8 @@ public class ButtonWithConfirmationOptionsDialog<T extends Describable> extends 
 
             @Override
             public void confirmationPerformed(AjaxRequestTarget target,
-                    IModel<List<ConfirmationOption<T>>> confirmedOptions) {
-                onDialogConfirmed(target, confirmedOptions);
+                    IModel<ConfirmationResult<T>> confirmationResult) {
+                onDialogConfirmed(target, confirmationResult);
             }
 
             @Override
@@ -91,10 +90,10 @@ public class ButtonWithConfirmationOptionsDialog<T extends Describable> extends 
      * outside of this package.
      */
     void onDialogConfirmed(AjaxRequestTarget target,
-            IModel<List<ConfirmationOption<T>>> confirmedOptions) {
+            IModel<ConfirmationResult<T>> confirmationResult) {
         final ButtonHandlers<T> onClickHandlers = handlers.getObject();
         if (onClickHandlers.confirmHandler() != null) {
-            onClickHandlers.confirmHandler().accept(target, confirmedOptions);
+            onClickHandlers.confirmHandler().accept(target, confirmationResult);
         }
     }
 
@@ -107,7 +106,7 @@ public class ButtonWithConfirmationOptionsDialog<T extends Describable> extends 
 
     public record ButtonHandlers<T extends Describable>(
             SerializableConsumer<AjaxRequestTarget> cancelHandler,
-            SerializableBiConsumer<AjaxRequestTarget, IModel<List<ConfirmationOption<T>>>> confirmHandler)
+            SerializableBiConsumer<AjaxRequestTarget, IModel<ConfirmationResult<T>>> confirmHandler)
             implements Serializable {
     }
 

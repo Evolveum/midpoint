@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.page;
 
+import com.evolveum.midpoint.web.component.dialog.ConfirmationResult;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
@@ -360,8 +361,8 @@ public abstract class ResourceSuggestedObjectTypeTableWizardPanel<P extends Cont
                 new ConfirmationWithOptionsPopupPanel<>(getPageBase().getMainPopupBodyId(), Model.of(confirmationDto)) {
             @Override
             public void confirmationPerformed(AjaxRequestTarget target,
-                    IModel<List<ConfirmationOption<DataAccessPermission>>> confirmedOptions) {
-                refreshSuggestionPerform(target, confirmedOptions, regenerateMode);
+                    IModel<ConfirmationResult<DataAccessPermission>> confirmationResult) {
+                refreshSuggestionPerform(target, confirmationResult, regenerateMode);
             }
         };
 
@@ -395,7 +396,7 @@ public abstract class ResourceSuggestedObjectTypeTableWizardPanel<P extends Cont
     }
 
     public abstract void refreshSuggestionPerform(AjaxRequestTarget target,
-            IModel<List<ConfirmationOption<DataAccessPermission>>> confirmedOptions,
+            IModel<ConfirmationResult<DataAccessPermission>> confirmationResult,
             RegenerateMode regenerateMode);
 
     @Override
