@@ -10733,6 +10733,17 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="useAiService" type="xsd:boolean" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                If false, the AI (smart integration) service is not used: no service client is
+                                created and only system-provided (heuristic) suggestions are generated.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>ObjectTypeRelatedSuggestionWorkDefinitionType.useAiService</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>

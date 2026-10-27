@@ -47,7 +47,7 @@ class TypeOperationContext extends OperationContext {
             ResourceType resource,
             ResourceSchema resourceSchema,
             ResourceObjectTypeDefinition typeDefinition,
-            ServiceClient serviceClient,
+            @Nullable ServiceClient serviceClient,
             @Nullable CurrentActivityState<?> activityState,
             Task task) {
         super(resource, resourceSchema, typeDefinition.getObjectClassDefinition(), serviceClient, activityState, task);
@@ -55,7 +55,7 @@ class TypeOperationContext extends OperationContext {
     }
 
     static TypeOperationContext init(
-            ServiceClient serviceClient,
+            @Nullable ServiceClient serviceClient,
             String resourceOid,
             ResourceObjectTypeIdentification typeIdentification,
             @Nullable CurrentActivityState<?> activityState,
@@ -67,7 +67,7 @@ class TypeOperationContext extends OperationContext {
     }
 
     static TypeOperationContext init(
-            ServiceClient serviceClient,
+            @Nullable ServiceClient serviceClient,
             String resourceOid,
             ResourceObjectTypeIdentification typeIdentification,
             Collection<SelectorOptions<GetOperationOptions>> options,

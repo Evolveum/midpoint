@@ -69,7 +69,8 @@ public class MappingsSuggestionSchemaMatchingActivityRun extends LocalActivityRu
         var resourceOid = workDef.getResourceOid();
         var typeIdentification = workDef.getTypeIdentification();
 
-        boolean useAi = workDef.getPermissions().contains(DataAccessPermissionType.SCHEMA_ACCESS);
+        boolean useAi = workDef.getPermissions().contains(DataAccessPermissionType.SCHEMA_ACCESS)
+                && workDef.isAiServiceRequested();
 
         if (!workDef.isForceRecomputeSchemaMatch()) {
             if (useAi) {
