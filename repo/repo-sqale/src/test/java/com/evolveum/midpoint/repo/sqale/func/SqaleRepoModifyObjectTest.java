@@ -67,6 +67,7 @@ import com.evolveum.midpoint.repo.sqale.qmodel.object.QObject;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.MReference;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.QObjectReference;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.QObjectReferenceMapping;
+import com.evolveum.midpoint.repo.sqale.qmodel.report.QReport;
 import com.evolveum.midpoint.repo.sqale.qmodel.role.MService;
 import com.evolveum.midpoint.repo.sqale.qmodel.role.QRole;
 import com.evolveum.midpoint.repo.sqale.qmodel.role.QService;
@@ -89,6 +90,7 @@ import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+import com.fasterxml.jackson.core.StreamReadConstraints;
 
 public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
 
@@ -4800,5 +4802,54 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
 
         and("operation is fatal error");
         assertThatOperationResult(result).isFatalError();
+    }
+
+    /**
+     * Verifies that a description exceeding Jackson's JSON string length limit
+     * is rejected without modifying the existing repository object.
+     */
+    @Test
+    public void test996OversizedDescriptionDoesNotCorruptObject() throws Exception {
+        OperationResult result = createOperationResult();
+        String oid = null;
+        String shortDescription = "Readable description";
+
+        try {
+            given("a report with a short, readable description");
+            oid = repositoryService.addObject(
+                    new ReportType()
+                            .name("report-" + getTestName())
+                            .description(shortDescription)
+                            .asPrismObject(),
+                    null, result);
+            String reportOid = oid;
+
+            ReportType report = repositoryService.getObject(ReportType.class, oid, null, result).asObjectable();
+            assertThat(report.getDescription()).isEqualTo(shortDescription);
+            int originalVersion = selectObjectByOid(QReport.class, oid).version;
+
+            when("the description is replaced with a value exceeding Jackson's default limit");
+            String oversizedDescription = "x".repeat(StreamReadConstraints.defaults().getMaxStringLength() + 1);
+            ObjectDelta<ReportType> delta = prismContext.deltaFor(ReportType.class)
+                    .item(ReportType.F_DESCRIPTION).replace(oversizedDescription)
+                    .asObjectDelta(oid);
+            OperationResult modifyResult = OperationResult.newResult(getTestName())
+                    .notRecordingValues()
+                    .build();
+            assertThatThrownBy(() -> repositoryService.modifyObject(
+                    ReportType.class, reportOid, delta.getModifications(), modifyResult))
+                    .isInstanceOf(SchemaException.class)
+                    .hasMessageContaining("String value length");
+
+            then("the original object remains readable and unchanged");
+            report = repositoryService.getObject(ReportType.class, oid, null, createOperationResult())
+                    .asObjectable();
+            assertThat(report.getDescription()).isEqualTo(shortDescription);
+            assertThat(selectObjectByOid(QReport.class, oid).version).isEqualTo(originalVersion);
+        } finally {
+            if (oid != null) {
+                repositoryService.deleteObject(ReportType.class, oid, createOperationResult());
+            }
+        }
     }
 }
