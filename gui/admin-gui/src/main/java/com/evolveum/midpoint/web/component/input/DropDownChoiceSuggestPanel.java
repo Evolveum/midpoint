@@ -11,6 +11,7 @@ import java.io.Serializable;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.web.component.dialog.ConfirmationResult;
 import com.evolveum.midpoint.web.component.dialog.SuggestionOption;
 
 import org.apache.wicket.AttributeModifier;
@@ -25,7 +26,6 @@ import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.component.SmartSuggestButtonWithConfirmation;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
-import com.evolveum.midpoint.web.component.dialog.ConfirmationOption;
 import com.evolveum.midpoint.web.component.dialog.privacy.DataAccessPermission;
 import com.evolveum.midpoint.web.component.input.ButtonWithConfirmationOptionsDialog.ButtonHandlers;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
@@ -114,7 +114,7 @@ public class DropDownChoiceSuggestPanel<T> extends InputPanel implements Seriali
         final ButtonHandlers<DataAccessPermission> dataAccessPermissionButtonHandlers = new ButtonHandlers<>(
                 target -> {
                 },
-                (target, confirmedOptions) -> onSuggestAction(target, confirmedOptions.getObject()));
+                (target, confirmationResult) -> onSuggestAction(target, confirmationResult.getObject()));
         AjaxIconButton suggestButton = SmartSuggestButtonWithConfirmation.forBlockingActionWithIndication(ID_SUGGEST,
                 getSuggestButtonLabel(), getSuggestButtonIcon(), getSuggestProcessingStateButtonIcon(),
                 getSuggestProcessingStateButtonLabel(),
@@ -139,7 +139,7 @@ public class DropDownChoiceSuggestPanel<T> extends InputPanel implements Seriali
     }
 
     protected void onSuggestAction(AjaxRequestTarget target,
-            List<ConfirmationOption<DataAccessPermission>> confirmedOptions) {
+            ConfirmationResult<DataAccessPermission> confirmationResult) {
 
     }
 

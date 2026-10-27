@@ -35,6 +35,7 @@ import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import com.evolveum.midpoint.web.component.dialog.ConfirmationResult;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.LabelWithBadgePanel;
 import com.evolveum.midpoint.gui.api.component.result.OpResult;
@@ -70,7 +71,6 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
-import com.evolveum.midpoint.web.component.dialog.ConfirmationOption;
 import com.evolveum.midpoint.web.component.dialog.privacy.DataAccessPermission;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
@@ -581,13 +581,12 @@ public abstract class SmartCorrelationTable
 
     @Override
     protected void onSuggestNewPerformed(AjaxRequestTarget target,
-            IModel<List<ConfirmationOption<DataAccessPermission>>> confirmedOptions) {
+            IModel<ConfirmationResult<DataAccessPermission>> confirmationResult) {
         getSwitchToggleModel().setObject(Boolean.TRUE);
-        final List<DataAccessPermissionType> permissions = confirmedOptions.getObject().stream()
-                .map(ConfirmationOption::option)
+        ConfirmationResult<DataAccessPermission> confirmed = confirmationResult.getObject();
+        final List<DataAccessPermissionType> permissions = confirmed.selectedOptions().stream()
                 .map(DataAccessPermission::toSchemaType)
                 .toList();
-        PageBase pageBase = getPageBase();
 
         PrismContainerValueWrapper<? extends Containerable> parentWrapper = findAssociatedParentContainerWrapper();
         if (parentWrapper == null
@@ -599,6 +598,7 @@ public abstract class SmartCorrelationTable
         ResourceObjectTypeDefinitionType realValue = (ResourceObjectTypeDefinitionType) parentWrapper.getRealValue();
         var objectTypeIdentification = ResourceObjectTypeIdentification.of(realValue);
 
+        PageBase pageBase = getPageBase();
         SmartIntegrationService service = pageBase.getSmartIntegrationService();
         pageBase.taskAwareExecutor(target, OP_SUGGEST_CORRELATION_RULES)
                 .withOpResultOptions(OpResult.Options.create()
@@ -606,7 +606,7 @@ public abstract class SmartCorrelationTable
                         .withHideInProgress(true))
                 .runVoid((task, result) -> {
                     service.submitSuggestCorrelationOperation(getResourceOid(), objectTypeIdentification, permissions,
-                            false, true, task, result);
+                            false, confirmed.aiServiceRequested(), task, result);
                     refreshAndDetach(target);
                 });
     }

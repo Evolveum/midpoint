@@ -96,7 +96,7 @@ public class ConfirmationWithOptionsDto<T extends Describable> implements Serial
     public boolean isAiServiceAvailable() {
         return getAiInfo() != null
                 && getAiInfo().getObject() != null
-                && getAiInfo().getObject().status().equals(HealthStatus.OK);
+                && HealthStatus.OK.equals(getAiInfo().getObject().status());
     }
 
     public IModel<String> getErrorMessage() {

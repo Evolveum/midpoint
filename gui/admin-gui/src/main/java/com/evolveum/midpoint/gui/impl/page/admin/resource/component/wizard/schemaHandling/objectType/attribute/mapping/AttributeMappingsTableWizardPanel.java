@@ -18,6 +18,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 
+import com.evolveum.midpoint.web.component.dialog.ConfirmationResult;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.result.MessagePanel;
 import com.evolveum.midpoint.gui.api.component.result.OpResult;
@@ -431,8 +432,8 @@ public abstract class AttributeMappingsTableWizardPanel<P extends Containerable>
                 () -> new ButtonWithConfirmationOptionsDialog.ButtonHandlers<>(
                         target -> {
                         },
-                        (target, confirmedOptions) -> {
-                            performSuggestOperation(target, confirmedOptions, false);
+                        (target, confirmationResult) -> {
+                            performSuggestOperation(target, confirmationResult, false);
                             refreshAfterSuggestionOperationSubmitted(target);
                         }),
                 getPageBase());
@@ -825,11 +826,12 @@ public abstract class AttributeMappingsTableWizardPanel<P extends Containerable>
 
     private void performSuggestOperation(
             AjaxRequestTarget target,
-            IModel<List<ConfirmationOption<DataAccessPermission>>> confirmedOptions,
+            IModel<ConfirmationResult<DataAccessPermission>> confirmationResult,
             boolean forceRecomputeSchemaMatch) {
 
-        List<DataAccessPermissionType> permissions = confirmedOptions.getObject().stream()
-                .map(ConfirmationOption::option)
+        ConfirmationResult<DataAccessPermission> confirmed = confirmationResult.getObject();
+
+        List<DataAccessPermissionType> permissions = confirmed.selectedOptions().stream()
                 .map(DataAccessPermission::toSchemaType)
                 .toList();
 
@@ -857,7 +859,7 @@ public abstract class AttributeMappingsTableWizardPanel<P extends Containerable>
                             getTargetPathsToIgnore(),
                             permissions,
                             forceRecomputeSchemaMatch,
-                            true,
+                            confirmed.aiServiceRequested(),
                             task, result);
                 });
     }
@@ -897,18 +899,18 @@ public abstract class AttributeMappingsTableWizardPanel<P extends Containerable>
             @Override
             protected void performSuggestOperation(
                     AjaxRequestTarget target,
-                    IModel<List<ConfirmationOption<DataAccessPermission>>> confirmedOptions) {
+                    IModel<ConfirmationResult<DataAccessPermission>> confirmationResult) {
 
-                AttributeMappingsTableWizardPanel.this.performSuggestOperation(target, confirmedOptions, false);
+                AttributeMappingsTableWizardPanel.this.performSuggestOperation(target, confirmationResult, false);
                 refreshAfterSuggestionOperationSubmitted(target);
             }
 
             @Override
             protected void performRegenerateSuggestOperation(
                     AjaxRequestTarget target,
-                    IModel<List<ConfirmationOption<DataAccessPermission>>> confirmedOptions) {
+                    IModel<ConfirmationResult<DataAccessPermission>> confirmationResult) {
 
-                AttributeMappingsTableWizardPanel.this.performSuggestOperation(target, confirmedOptions, true);
+                AttributeMappingsTableWizardPanel.this.performSuggestOperation(target, confirmationResult, true);
                 refreshAfterSuggestionOperationSubmitted(target);
             }
 

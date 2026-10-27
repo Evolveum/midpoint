@@ -6,6 +6,7 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component;
 
+import com.evolveum.midpoint.web.component.dialog.ConfirmationResult;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
@@ -140,13 +141,13 @@ public abstract class SchemaHandlingObjectsPanel<C extends Containerable> extend
         SmartAlertGeneratingPanel aiPanel = new SmartAlertGeneratingPanel(idAiPanel, suggestionModel) {
             @Override
             protected void performSuggestOperation(AjaxRequestTarget target,
-                    IModel<List<ConfirmationOption<DataAccessPermission>>> confirmedOptions) {
+                    IModel<ConfirmationResult<DataAccessPermission>> confirmationResult) {
                 // We override the generate button, so this method should not be called at all.
             }
 
             @Override
             protected void performRegenerateSuggestOperation(AjaxRequestTarget target,
-                    IModel<List<ConfirmationOption<DataAccessPermission>>> confirmedOptions) {
+                    IModel<ConfirmationResult<DataAccessPermission>> confirmationResult) {
                 // We override the generate button, so this method should not be called at all.
             }
 

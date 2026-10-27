@@ -24,7 +24,6 @@ import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.Serial;
-import java.util.List;
 
 public class ConfirmationWithOptionsPopupPanel<T extends Describable>
         extends BasePanel<ConfirmationWithOptionsDto<T>>
@@ -61,7 +60,7 @@ public class ConfirmationWithOptionsPopupPanel<T extends Describable>
 
     private void detachAiInfo() {
         IModel<AiInfo> aiInfo = getPanelConfig().getAiInfo();
-        if(aiInfo != null) {
+        if (aiInfo != null) {
             aiInfo.detach();
         }
     }
@@ -99,21 +98,26 @@ public class ConfirmationWithOptionsPopupPanel<T extends Describable>
     }
 
     private void createConfirmationButton(@NotNull Fragment footer) {
-        final IModel<List<ConfirmationOption<T>>> confirmedOptions = () ->
+        final IModel<ConfirmationResult<T>> confirmationResult = () -> new ConfirmationResult<>(
                 getModelObject().getConfirmationOptions().stream()
                         .filter(ConfirmationOption::isSelected)
-                        .toList();
+                        .map(ConfirmationOption::option)
+                        .toList(),
+                getPanelConfig().isAiServiceAvailable());
+
         AjaxButton confirmButton = new AjaxButton(ID_YES, getPanelConfig().getConfirmationButtonLabel()) {
             @Override
             public void onClick(AjaxRequestTarget target) {
 
                 if (getPanelConfig().hasAiInfo() && !getPanelConfig().isAiServiceAvailable()) {
                     // Clear any previously selected permissions so they are not submitted.
-                    confirmedOptions.getObject().forEach(option -> option.setSelected(false));
+                    getPanelConfig().getConfirmationOptions().stream()
+                            .filter(ConfirmationOption::isSelected)
+                            .forEach(option -> option.setSelected(false));
                 }
 
                 getPageBase().hideMainPopup(target);
-                confirmationPerformed(target, confirmedOptions);
+                confirmationPerformed(target, confirmationResult);
             }
         };
 
@@ -144,7 +148,7 @@ public class ConfirmationWithOptionsPopupPanel<T extends Describable>
 
     protected void confirmationPerformed(
             AjaxRequestTarget target,
-            IModel<List<ConfirmationOption<T>>> confirmedOptions) {
+            IModel<ConfirmationResult<T>> confirmationResult) {
     }
 
     @Override
