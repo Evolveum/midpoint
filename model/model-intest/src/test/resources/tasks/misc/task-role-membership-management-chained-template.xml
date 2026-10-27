@@ -1,0 +1,23 @@
+<!--
+  ~ Copyright (C) 2010-2026 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        oid="c4cf05e2-e581-46b4-8bf3-10a7cc2cd73f">
+    <name>role-membership-management-chained-template</name>
+    <ownerRef oid="00000000-0000-0000-0000-000000000002" type="UserType"/>
+    <executionState>runnable</executionState>
+    <activity>
+        <work>
+            <roleMembershipManagement>
+                <roleRef oid="b48628a2-a032-47c2-947d-adc51940e920" type="RoleType"/>
+                <members>
+                    <objectRef oid="db653dc1-58a8-4544-a167-246a999b8e61" type="UserType"/>
+                    <objectRef oid="bd58c480-c60a-41b1-980b-8567286b98e7" type="UserType"/>
+                </members>
+            </roleMembershipManagement>
+        </work>
+    </activity>
+</task>
