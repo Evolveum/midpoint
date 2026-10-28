@@ -38,8 +38,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 /**
  * Activity run responsible for computing object type statistics before the mapping suggestion step.
  *
- * Skipped when RAW_DATA_ACCESS is not granted, since
- * the statistics are only used for categorical mapping suggestions which require that permission.
+ * The statistics are computed regardless of the granted data access permissions,
+ * as this is a purely local computation not related to the LLM-based suggestion.
  *
  * If suitable statistics already exist they are reused; otherwise new ones are computed.
  */
@@ -82,12 +82,6 @@ public class MappingsSuggestionStatisticsComputationActivityRun
 
     @Override
     public boolean beforeRun(OperationResult result) throws ActivityRunException, CommonException {
-        if (!getWorkDefinition().getPermissions().contains(DataAccessPermissionType.RAW_DATA_ACCESS)) {
-            LOGGER.debug("Skipping statistics computation: {} permission not granted",
-                    DataAccessPermissionType.RAW_DATA_ACCESS);
-            return false;
-        }
-
         if (!super.beforeRun(result)) {
             return false;
         }
