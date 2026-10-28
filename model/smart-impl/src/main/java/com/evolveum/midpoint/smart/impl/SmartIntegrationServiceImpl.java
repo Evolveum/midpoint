@@ -163,12 +163,13 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
     }
 
     @Override
-    public Optional<AiInfo> getAiInfo(Task task, OperationResult result) throws CommonException {
+    public @NotNull AiInfo getAiInfo(Task task, OperationResult result) throws CommonException {
         authorizeSmartIntegration(task, result);
         try (var client = clientFactory.getServiceClient(result)) {
             return client.getAiInfo();
         } catch (Exception e) {
-            throw new SystemException("Failed to retrieve AI info: " + e.getMessage(), e);
+            LOGGER.warn("Smart integration service is not available: {}", e.getMessage());
+            return AiInfo.unavailable();
         }
     }
 
