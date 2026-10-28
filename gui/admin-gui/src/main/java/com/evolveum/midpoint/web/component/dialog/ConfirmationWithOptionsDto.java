@@ -9,23 +9,13 @@ package com.evolveum.midpoint.web.component.dialog;
 import java.io.Serializable;
 import java.util.List;
 
-import com.evolveum.midpoint.smart.api.info.AiInfo;
-
-import com.evolveum.midpoint.smart.api.info.HealthStatus;
-
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.StringResourceModel;
 
 import com.evolveum.midpoint.web.component.util.Describable;
 
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import static com.evolveum.midpoint.gui.api.util.LocalizationUtil.translate;
-
 /**
- * Configuration of the {@link ConfirmationWithOptionsContentPanel}, holding various messages and a list of confirmation
- * confirmationOptions.
+ * Configuration of the {@link ConfirmationWithOptionsContentPanel}, holding various messages and a list of confirmation options.
  */
 public class ConfirmationWithOptionsDto<T extends Describable> implements Serializable {
 
@@ -43,8 +33,6 @@ public class ConfirmationWithOptionsDto<T extends Describable> implements Serial
     private final List<ConfirmationOption<T>> confirmationOptions;
     private final IModel<String> errorMessage;
     private final IModel<String> warningMessage;
-    private final boolean requireAiService;
-    private final IModel<AiInfo> aiInfo;
 
     private ConfirmationWithOptionsDto(Builder<T> builder) {
         confirmationTitle = builder.confirmationTitle;
@@ -61,8 +49,6 @@ public class ConfirmationWithOptionsDto<T extends Describable> implements Serial
         confirmationOptions = builder.confirmationOptions;
         errorMessage = builder.errorMessage;
         warningMessage = builder.warningMessage;
-        aiInfo = builder.aiInfo;
-        requireAiService = builder.requireAiService;
     }
 
     public IModel<String> getConfirmationTitle() {
@@ -89,68 +75,12 @@ public class ConfirmationWithOptionsDto<T extends Describable> implements Serial
         return confirmationOptions;
     }
 
-    public IModel<AiInfo> getAiInfo() {
-        return aiInfo;
-    }
-
-    public boolean isAiServiceAvailable() {
-        return getAiInfo() != null
-                && getAiInfo().getObject() != null
-                && getAiInfo().getObject().status().equals(HealthStatus.OK);
-    }
-
     public IModel<String> getErrorMessage() {
         return errorMessage;
     }
 
     public IModel<String> getWarningMessage() {
         return warningMessage;
-    }
-
-    public boolean isRequireAiService() {
-        return requireAiService;
-    }
-
-    public boolean isOptionVisible() {
-        return !hasAiInfo() || isAiAvailable();
-    }
-
-    protected boolean isAiAvailable() {
-        if(getAiInfo() == null || getAiInfo().getObject() == null) {
-            return false;
-        }
-
-        AiInfo aiInfo = getAiInfo().getObject();
-        return HealthStatus.OK.equals(aiInfo.status());
-    }
-
-    protected String getAiStatusText() {
-        return isAiAvailable()
-                ? translate("ConfirmationWithOptionsPanel.confirmationOptions.ai.status.ok")
-                : translate("ConfirmationWithOptionsPanel.confirmationOptions.ai.status.error");
-    }
-
-    protected @Nullable AiInfo getAiInfoObject() {
-        IModel<AiInfo> model = getAiInfo();
-        return model != null ? model.getObject() : null;
-    }
-
-    protected boolean hasAiInfo() {
-        return getAiInfo() != null;
-    }
-
-    protected String getAiProviderText() {
-        AiInfo aiInfo = getAiInfoObject();
-        return aiInfo != null && aiInfo.provider() != null ? aiInfo.provider() : "";
-    }
-
-    protected String getAiModelText() {
-        AiInfo aiInfo = getAiInfoObject();
-        return aiInfo != null && aiInfo.model() != null ? aiInfo.model() : "";
-    }
-
-    protected @NotNull String getAiStatusCss() {
-        return isAiAvailable() ? " text-success" : " text-warning";
     }
 
     public boolean hasError() {
@@ -188,24 +118,20 @@ public class ConfirmationWithOptionsDto<T extends Describable> implements Serial
     public static final class Builder<T extends Describable> {
         private StringResourceModel confirmationTitle;
         private String titleIconCssClass = "text-info";
-        private StringResourceModel confirmationSubtitle =
-                new StringResourceModel("SmartSuggestConfirmationPanel.subtitle");
+        private StringResourceModel confirmationSubtitle;
         private StringResourceModel confirmationInfoMessage;
-        private StringResourceModel externalLinkButtonLabel =
-                new StringResourceModel("SmartSuggestConfirmationPanel.learnMore");
-        private String externalLinkUrl = "https://docs.evolveum.com/";
+        private StringResourceModel externalLinkButtonLabel;
+        private String externalLinkUrl;
         private StringResourceModel confirmationButtonLabel =
-                new StringResourceModel("SmartSuggestConfirmationPanel.allowAndContinue");
+                new StringResourceModel("Button.ok");
         private String confirmationButtonClass = "btn btn-primary";
         private StringResourceModel cancelButtonLabel =
-                new StringResourceModel("SmartSuggestConfirmationPanel.cancel");
+                new StringResourceModel("Button.cancel");
         private String cancelButtonClass = "btn btn-light border";
         private StringResourceModel confirmationOptionsTitle;
-        private List<ConfirmationOption<T>> confirmationOptions;
-        private IModel<AiInfo> aiInfo;
+        private List<ConfirmationOption<T>> confirmationOptions = List.of();
         private IModel<String> errorMessage;
         private IModel<String> warningMessage;
-        private boolean requireAiService;
 
         /**
          * Used as a confirmation popup title.
@@ -303,16 +229,6 @@ public class ConfirmationWithOptionsDto<T extends Describable> implements Serial
          */
         public Builder<T> confirmationOptions(List<ConfirmationOption<T>> confirmationOptions) {
             this.confirmationOptions = confirmationOptions;
-            return this;
-        }
-
-        public Builder<T> infoEntries(IModel<AiInfo> infoEntries) {
-            this.aiInfo = infoEntries;
-            return this;
-        }
-
-        public Builder<T> requireAiService(boolean requireAiService) {
-            this.requireAiService = requireAiService;
             return this;
         }
 

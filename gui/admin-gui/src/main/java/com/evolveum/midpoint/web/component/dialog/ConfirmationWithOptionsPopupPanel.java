@@ -8,7 +8,6 @@ package com.evolveum.midpoint.web.component.dialog;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.smart.api.info.AiInfo;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.util.Describable;
 
@@ -36,7 +35,7 @@ public class ConfirmationWithOptionsPopupPanel<T extends Describable>
     private static final String ID_BUTTONS = "buttons";
     private static final String ID_NO = "no";
     private static final String ID_YES = "yes";
-    private static final String ID_REFRESH = "refresh";
+    private static final String ID_ADDITIONAL_BUTTONS = "additionalButtons";
 
     private Fragment footer;
 
@@ -51,19 +50,20 @@ public class ConfirmationWithOptionsPopupPanel<T extends Describable>
     protected void onInitialize() {
         super.onInitialize();
 
-        detachAiInfo();
-
-        ConfirmationWithOptionsContentPanel<T> content = new ConfirmationWithOptionsContentPanel<>(ID_CONTENT, getModel());
-        add(content);
+        add(createContentPanel(ID_CONTENT));
 
         initFooter();
     }
 
-    private void detachAiInfo() {
-        IModel<AiInfo> aiInfo = getPanelConfig().getAiInfo();
-        if(aiInfo != null) {
-            aiInfo.detach();
-        }
+    protected Component createContentPanel(String id) {
+        return new ConfirmationWithOptionsContentPanel<>(id, getModel());
+    }
+
+    protected Component createAdditionalFooterControl(String id) {
+        return new WebMarkupContainer(id).setVisible(false);
+    }
+
+    protected void prepareConfirmation(IModel<List<ConfirmationOption<T>>> confirmedOptions) {
     }
 
     private void initFooter() {
@@ -72,7 +72,7 @@ public class ConfirmationWithOptionsPopupPanel<T extends Describable>
 
         initCancel(footer);
         createConfirmationButton(footer);
-        createRefreshButton(footer);
+        footer.add(createAdditionalFooterControl(ID_ADDITIONAL_BUTTONS));
 
         add(footer);
     }
@@ -100,17 +100,14 @@ public class ConfirmationWithOptionsPopupPanel<T extends Describable>
 
     private void createConfirmationButton(@NotNull Fragment footer) {
         final IModel<List<ConfirmationOption<T>>> confirmedOptions = () ->
-                getModelObject().getConfirmationOptions().stream()
+                getConfirmationOptions().stream()
                         .filter(ConfirmationOption::isSelected)
                         .toList();
         AjaxButton confirmButton = new AjaxButton(ID_YES, getPanelConfig().getConfirmationButtonLabel()) {
             @Override
             public void onClick(AjaxRequestTarget target) {
 
-                if (getPanelConfig().hasAiInfo() && !getPanelConfig().isAiServiceAvailable()) {
-                    // Clear any previously selected permissions so they are not submitted.
-                    confirmedOptions.getObject().forEach(option -> option.setSelected(false));
-                }
+                prepareConfirmation(confirmedOptions);
 
                 getPageBase().hideMainPopup(target);
                 confirmationPerformed(target, confirmedOptions);
@@ -122,21 +119,9 @@ public class ConfirmationWithOptionsPopupPanel<T extends Describable>
         footer.add(confirmButton);
     }
 
-    private void createRefreshButton(@NotNull Fragment footer) {
-        AjaxButton refreshButton = new AjaxButton(ID_REFRESH,
-                createStringResource("ConfirmationWithOptionsPopupPanel.refresh")) {
-            @Override
-            public void onClick(@NotNull AjaxRequestTarget target) {
-                detachAiInfo();
-                target.add(footer);
-                target.add(ConfirmationWithOptionsPopupPanel.this);
-                MainPopupDialog mainPopup = getPageBase().getMainPopup();
-                mainPopup.refreshHeader(target);
-            }
-        };
-
-        refreshButton.add(new VisibleBehaviour(() -> getPanelConfig().hasAiInfo() && !getPanelConfig().isAiServiceAvailable()));
-        footer.add(refreshButton);
+    private List<ConfirmationOption<T>> getConfirmationOptions() {
+        List<ConfirmationOption<T>> options = getPanelConfig().getConfirmationOptions();
+        return options != null ? options : List.of();
     }
 
     protected void cancelPerformed(AjaxRequestTarget target) {
@@ -151,10 +136,6 @@ public class ConfirmationWithOptionsPopupPanel<T extends Describable>
     public IModel<String> getTitle() {
         return () -> {
             ConfirmationWithOptionsDto<T> config = getPanelConfig();
-
-            if (config.hasAiInfo() && !config.isAiServiceAvailable()) {
-                return createStringResource("ConfirmationWithOptionsDto.aiServiceUnavailable").getString();
-            }
 
             IModel<String> title = config.getConfirmationTitle();
             return title != null ? title.getObject() : null;

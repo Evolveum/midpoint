@@ -11,7 +11,6 @@ import java.io.Serializable;
 import java.util.List;
 
 import com.evolveum.midpoint.web.component.dialog.ConfirmationWithOptionsPopupPanel;
-import com.evolveum.midpoint.web.component.dialog.steper.*;
 
 import com.evolveum.midpoint.web.component.util.SerializableBiConsumer;
 
@@ -59,28 +58,34 @@ public class ButtonWithConfirmationOptionsDialog<T extends Describable> extends 
         final ButtonConfig<T> cfg = this.config.getObject();
         final PageBase pageBase = cfg.pageBase().getObject();
 
-        final ConfirmationWithOptionsPopupPanel<T> dialog = new ConfirmationWithOptionsPopupPanel<>(
+        ConfirmationWithOptionsPopupPanel<T> dialog = createConfirmationDialog(
                 pageBase.getMainPopupBodyId(),
-                // Capture a snapshot of the DTO to prevent changes after the dialog is shown.
-                // Note: Models inside the DTO (e.g., infoEntries) can still be evaluated lazily.
-                Model.of(cfg.confirmationDialogConfig().getObject())) {
+                Model.of(cfg.confirmationDialogConfig().getObject()),
+                new ButtonHandlers<>(
+                        request -> {
+                            SerializableConsumer<AjaxRequestTarget> cancel = handlers.getObject().cancelHandler();
+                            if (cancel != null) {
+                                cancel.accept(request);
+                            }
+                        },
+                        this::onDialogConfirmed));
+        pageBase.showMainPopup(dialog, target);
+    }
 
+    protected ConfirmationWithOptionsPopupPanel<T> createConfirmationDialog(
+            String id, IModel<ConfirmationWithOptionsDto<T>> dialogConfig, ButtonHandlers<T> dialogHandlers) {
+        return new ConfirmationWithOptionsPopupPanel<>(id, dialogConfig) {
             @Override
-            public void confirmationPerformed(AjaxRequestTarget target,
+            protected void confirmationPerformed(AjaxRequestTarget target,
                     IModel<List<ConfirmationOption<T>>> confirmedOptions) {
-                onDialogConfirmed(target, confirmedOptions);
+                dialogHandlers.confirmHandler().accept(target, confirmedOptions);
             }
 
             @Override
-            public void cancelPerformed(AjaxRequestTarget target) {
-                final ButtonHandlers<T> onClickHandlers = handlers.getObject();
-                if (onClickHandlers.cancelHandler() != null) {
-                    onClickHandlers.cancelHandler().accept(target);
-                }
+            protected void cancelPerformed(AjaxRequestTarget target) {
+                dialogHandlers.cancelHandler().accept(target);
             }
         };
-        pageBase.showMainPopup(dialog, target);
-
     }
 
     /**
