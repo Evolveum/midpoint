@@ -7,8 +7,9 @@
 
 package com.evolveum.midpoint.smart.api;
 
-import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+
+import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.smart.api.info.AiInfo;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -42,10 +43,10 @@ public interface ServiceClient extends AutoCloseable {
 
     /**
      * Returns AI provider and model info fetched from the remote service health endpoint.
-     * Returns empty Optional if the information is unavailable.
+     * Returns AI info with error status if the information is unavailable.
      */
-    default Optional<AiInfo> getAiInfo() {
-        return Optional.empty();
+    default @NotNull AiInfo getAiInfo() {
+        return AiInfo.unavailable();
     }
 
     @Override
