@@ -58,8 +58,9 @@ Moreover, midPoint 4.11.0 made a significant leap towards secure-by-default conf
 * bug:MID-11658[] Fixed inconsistency in help  for ninja export command
 * Fixed distributed task workers incorrectly completing when their coordinator is suspended, preventing the task from resuming. See bug:MID-12627[]
 * Requests for unknown paths outside the REST API (for example under /actuator or /static) now return HTTP 404 instead of 500 with a stack trace. See bug:MID-12566[].
+* Fixed misleading messages after certification campaign actions and prevented an already closed campaign from being closed again. See bug:MID-12832[]
 // TODO
-* bug:MID-12832[] Close already closed campaign
+
 
 === Other changes
 
