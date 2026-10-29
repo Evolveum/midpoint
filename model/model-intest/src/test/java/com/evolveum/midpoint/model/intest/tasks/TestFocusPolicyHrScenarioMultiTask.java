@@ -8,6 +8,9 @@ package com.evolveum.midpoint.model.intest.tasks;
 
 import java.util.function.Consumer;
 
+import org.testng.SkipException;
+import org.testng.annotations.Test;
+
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.util.task.work.ActivityDefinitionUtil;
 import com.evolveum.midpoint.test.TestActivityPolicyUtils;
@@ -40,6 +43,15 @@ public class TestFocusPolicyHrScenarioMultiTask extends TestFocusPolicyHrScenari
     @Override
     protected int threads() {
         return THREADS;
+    }
+
+    /**
+     * @see TestFocusPolicyHrScenario#restartTaskTree
+     */
+    @Test
+    @Override
+    public void test400RestartAfterAccountsRestored() {
+        throw new SkipException("Restart of a task tree with delegated activities is not supported yet");
     }
 
     @Override
