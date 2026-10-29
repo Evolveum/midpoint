@@ -10,7 +10,9 @@
             xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
             xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
             xmlns:xsd="http://www.w3.org/2001/XMLSchema">
-
+    <xsd:import
+            namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+            schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-3"/>
     <xsd:complexType name="UserTypeExtensionType">
         <xsd:annotation>
             <xsd:appinfo>
@@ -32,6 +34,19 @@
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="sea" type="xsd:string"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="AssignmentTypeExtensionType">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <a:extension ref="c:AssignmentType"/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="roleRef"
+                    type="c:ObjectReferenceType"
+                    minOccurs="0"/>
         </xsd:sequence>
     </xsd:complexType>
 

@@ -51,6 +51,7 @@ Moreover, midPoint 4.11.0 made a significant leap towards secure-by-default conf
 
 === Other Areas
 
+* Assignment approval expressions can now access the assignment being approved directly through the `assignment` variable, without manually extracting it from `objectDelta`. See bug:MID-11000[]
 // TODO
 
 === Bug Fixes
