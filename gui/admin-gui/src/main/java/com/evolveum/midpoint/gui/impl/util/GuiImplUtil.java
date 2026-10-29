@@ -6,20 +6,19 @@
 
 package com.evolveum.midpoint.gui.impl.util;
 
+import java.lang.reflect.Field;
+import javax.xml.namespace.QName;
+
+import org.apache.commons.lang3.reflect.FieldUtils;
+import org.jetbrains.annotations.NotNull;
+
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ShadowWrapper;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractFormItemType;
-
-import org.apache.commons.lang3.reflect.FieldUtils;
-import org.checkerframework.checker.units.qual.C;
-import org.jetbrains.annotations.NotNull;
-
-import javax.xml.namespace.QName;
-import java.lang.reflect.Field;
 
 /**
  * Class for misc GUI util methods (impl).

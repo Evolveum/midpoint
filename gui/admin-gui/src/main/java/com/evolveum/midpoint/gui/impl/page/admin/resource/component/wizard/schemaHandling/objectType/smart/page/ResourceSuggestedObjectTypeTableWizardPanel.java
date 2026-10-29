@@ -29,7 +29,8 @@ import com.evolveum.midpoint.smart.api.info.StatusInfo;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationOption;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationWithOptionsDto;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationWithOptionsPopupPanel;
@@ -70,6 +71,8 @@ import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizar
         applicableForOperation = OperationTypeType.WIZARD,
         display = @PanelDisplay(label = "ResourceSuggestedObjectTypeTableWizardPanel.headerLabel", icon = "fa fa-solid fa-wand-magic-sparkles"))
 public abstract class ResourceSuggestedObjectTypeTableWizardPanel<P extends Containerable> extends AbstractResourceWizardBasicPanel<P> {
+
+    private static final Trace LOGGER = TraceManager.getTrace(ResourceSuggestedObjectTypeTableWizardPanel.class);
 
     private static final String CLASS_DOT = ResourceSuggestedObjectTypeTableWizardPanel.class.getName() + ".";
     private static final String OP_DETERMINE_STATUS = CLASS_DOT + ".determineStatus";
@@ -375,9 +378,9 @@ public abstract class ResourceSuggestedObjectTypeTableWizardPanel<P extends Cont
                 try {
                     var task = getPageBase().createSimpleTask("getAiInfo");
                     return getPageBase().getSmartIntegrationService()
-                            .getAiInfo(task, task.getResult())
-                            .orElse(null);
-                } catch (CommonException | SystemException e) {
+                            .getAiInfo(task, task.getResult());
+                } catch (CommonException e) {
+                    LOGGER.warn("Couldn't get AI info: {}", e.getMessage());
                     return null;
                 }
             }

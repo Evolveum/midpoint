@@ -21,4 +21,8 @@ import java.io.Serializable;
  * status: The operational status of the AI provider.
  */
 public record AiInfo(String provider, String model, HealthStatus status) implements Serializable {
+
+    public static AiInfo unavailable() {
+        return new AiInfo(null, null, HealthStatus.ERROR);
+    }
 }

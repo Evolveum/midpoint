@@ -18,7 +18,8 @@ import org.apache.wicket.model.Model;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.util.exception.CommonException;
-import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationWithOptionsDto;
 import com.evolveum.midpoint.web.component.dialog.privacy.DataAccessPermission;
 import com.evolveum.midpoint.web.component.input.ActivityIndicationInteractionsPair;
@@ -36,6 +37,8 @@ import com.evolveum.midpoint.web.component.util.Describable;
  */
 public class SmartSuggestButtonWithConfirmation<T extends Describable>
         extends ButtonWithConfirmationOptionsDialog<T> {
+
+    private static final Trace LOGGER = TraceManager.getTrace(SmartSuggestButtonWithConfirmation.class);
 
     public SmartSuggestButtonWithConfirmation(String id, IModel<ButtonConfig<T>> buttonConfig,
             IModel<ButtonHandlers<T>> clickHandlers) {
@@ -85,9 +88,9 @@ public class SmartSuggestButtonWithConfirmation<T extends Describable>
                 try {
                     var task = pageBase.createSimpleTask("getAiInfo");
                     return pageBase.getSmartIntegrationService()
-                            .getAiInfo(task, task.getResult())
-                            .orElse(null);
-                } catch (CommonException | SystemException e) {
+                            .getAiInfo(task, task.getResult());
+                } catch (CommonException e) {
+                    LOGGER.warn("Couldn't get AI info: {}", e.getMessage());
                     return null;
                 }
             }
