@@ -12,10 +12,8 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
-
 import javax.xml.datatype.DatatypeFactory;
 
-import com.evolveum.midpoint.test.TestActivityPolicyUtils;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.BeforeMethod;
@@ -30,10 +28,7 @@ import com.evolveum.midpoint.schema.util.task.ActivityItemProcessingStatisticsUt
 import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.schema.util.task.work.ActivityDefinitionUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.DummyObjectsCreator;
-import com.evolveum.midpoint.test.DummyResourceContoller;
-import com.evolveum.midpoint.test.DummyTestResource;
-import com.evolveum.midpoint.test.TestTask;
+import com.evolveum.midpoint.test.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
@@ -52,7 +47,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  * the preview delete counter, so a resume lets the same suspended task keep processing before it trips again.
  *
  * A variant of the task with the "execute" child not guarded by any policy covers the customer scenario:
- * once "simulate" is halted by the policy, resuming the task must not let "execute" start.
+ * once "simulate" is halted by the policy, resuming the task must not let "execute" start. And once the removed
+ * accounts are restored on the source, a restart of the halted task (new realization) must pass the simulation
+ * and delete nobody; neither must a plain full reconciliation run afterwards.
  */
 @ContextConfiguration(locations = { "classpath:ctx-model-intest-test-main.xml" })
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
@@ -71,6 +68,8 @@ public abstract class TestFocusPolicyHrScenario extends AbstractEmptyModelIntegr
             TestTask.file(TEST_DIR, "hr-reconciliation-unguarded-execute.xml", "e4f00000-0000-0000-0000-000000000003");
     private static final TestTask TASK_HR_IMPORT =
             TestTask.file(TEST_DIR, "hr-import.xml", "e4f00000-0000-0000-0000-0000000000ff");
+    private static final TestTask TASK_HR_RECONCILIATION_FULL =
+            TestTask.file(TEST_DIR, "hr-reconciliation-full.xml", "e4f00000-0000-0000-0000-000000000004");
 
     private static final int ACCOUNTS = 20;
     private static final String PATTERN = "a%02d";
@@ -98,6 +97,7 @@ public abstract class TestFocusPolicyHrScenario extends AbstractEmptyModelIntegr
         initDummyResource(RESOURCE, initTask, initResult);
         createAccounts();
         TASK_HR_IMPORT.init(this, initTask, initResult);
+        TASK_HR_RECONCILIATION_FULL.init(this, initTask, initResult);
 
         // clockwork (focus) policy-rule notifier, redirected to a dummy transport
         SimplePolicyRuleNotifierType policyNotifier = new SimplePolicyRuleNotifierType();
@@ -193,6 +193,27 @@ public abstract class TestFocusPolicyHrScenario extends AbstractEmptyModelIntegr
                             .eqPoly(String.format(PATTERN, i)).matchingNorm().build(), null, result);
         }
         return count;
+    }
+
+    private int countDeadShadows() throws Exception {
+        return repositoryService.countObjects(ShadowType.class,
+                prismContext.queryFor(ShadowType.class)
+                        .item(ShadowType.F_RESOURCE_REF).ref(RESOURCE.oid)
+                        .and().item(ShadowType.F_DEAD).eq(true)
+                        .build(), null, getTestOperationResult());
+    }
+
+    /**
+     * What the GUI "Restart" task action does: deletes the activity state of the (suspended) task tree, including
+     * its worker subtasks, and resumes it, so the next run starts a new realization from the beginning.
+     *
+     * TODO fix [viliam]
+     * Not usable for subtask-delegated activities: the deletion only purges the delegation state and leaves the
+     * delegate subtasks, so a resumed delegate fails on its missing state and the root waits forever.
+     */
+    protected void restartTaskTree(String oid, OperationResult result) throws Exception {
+        activityManager.deleteActivityStateAndWorkers(oid, true, TIMEOUT, result);
+        taskManager.resumeTaskTree(oid, result);
     }
 
     /** Replaces the simulate activity's max-deleted policy action with notification + a delayed restartActivity. */
@@ -428,16 +449,17 @@ public abstract class TestFocusPolicyHrScenario extends AbstractEmptyModelIntegr
                 .allSatisfy(halt -> {
                     assertThat(halt.getPolicyName()).as("halting policy name").isEqualTo("max-deleted");
                     assertThat(halt.getPolicyIdentifier()).as("halting policy identifier").isEqualTo(counterId);
+                    assertThat(halt.getPolicyIdentifier()).as("halting policy identifier").isEqualTo(counterId);
                 });
         assertThat(countUsers()).as("users (nothing really deleted)").isEqualTo(ACCOUNTS);
         return counter;
     }
 
     /**
-     * Removes the given number of accounts, lets the simulate activity of the "unguarded execute" task trip the policy,
-     * and resumes the suspended task. The resumed task must be halted again, without doing any work.
+     * Removes the given number of accounts and lets the simulate activity of the "unguarded execute" task trip the policy.
+     * Returns the identifier of the tripped policy.
      */
-    private void tripSimulateAndResume(int removedAccounts) throws Exception {
+    private String tripSimulate(int removedAccounts) throws Exception {
         OperationResult result = getTestOperationResult();
         TestTask task = TASK_HR_UNGUARDED_EXECUTE;
 
@@ -453,6 +475,19 @@ public abstract class TestFocusPolicyHrScenario extends AbstractEmptyModelIntegr
 
         then("the simulate activity suspends on the delete threshold; nothing is really deleted");
         String id = TestActivityPolicyUtils.buildPolicyIdentifier(getTask(task.oid), SIMULATE, "max-deleted", true);
+        assertSimulateHalted(id, DELETE_THRESHOLD);
+        return id;
+    }
+
+    /**
+     * Removes the given number of accounts, lets the simulate activity of the "unguarded execute" task trip the policy,
+     * and resumes the suspended task. The resumed task must be halted again, without doing any work.
+     */
+    private void tripSimulateAndResume(int removedAccounts) throws Exception {
+        OperationResult result = getTestOperationResult();
+        TestTask task = TASK_HR_UNGUARDED_EXECUTE;
+
+        String id = tripSimulate(removedAccounts);
         int counterAfterFirst = assertSimulateHalted(id, DELETE_THRESHOLD);
         int processedAtFirstSuspend = simulateItemsProcessed(task.oid);
         long runStartAtFirstSuspend = latestRunStart(task.oid);
@@ -663,6 +698,78 @@ public abstract class TestFocusPolicyHrScenario extends AbstractEmptyModelIntegr
                 .assertClosed()
                 .assertSuccess();
         assertThat(countUsers()).as("users after the acknowledged halt").isEqualTo(ACCOUNTS - DELETE_THRESHOLD);
+    }
+
+    /**
+     * The halt is caused by accounts that are later restored on the source, and the administrator restarts the task
+     * (GUI "Restart": delete the activity state, then resume). The restarted simulation must not count the restored
+     * accounts as deleted: the task passes the simulation, executes, and deletes nobody.
+     *
+     * The preview marked the shadows of the removed accounts dead (shadow-level changes are persistent even in preview
+     * mode) and did not record their full synchronization timestamp (preview never does), so the restarted simulation
+     * reports them as deleted again. The DELETE reaction is skipped when the owner has a live compatible shadow linked,
+     * but the preview's first stage only simulated the links of the restored accounts. The reaction must therefore also
+     * recognize the live (not yet linked) shadow of the restored account by its identifier
+     * ({@code SynchronizationActionExecutor.isDeleteReactionApplicable}); before that, the deletions were counted again
+     * and the policy tripped.
+     */
+    @Test
+    public void test400RestartAfterAccountsRestored() throws Exception {
+        OperationResult result = getTestOperationResult();
+        TestTask task = TASK_HR_UNGUARDED_EXECUTE;
+        int removed = DELETE_THRESHOLD + 3;
+
+        given("simulate halted by " + removed + " removed accounts");
+        tripSimulate(removed);
+        // the halt comes at the threshold, so not all removed accounts have been processed (and marked dead) yet
+        assertThat(countDeadShadows())
+                .as("dead shadows left by the preview")
+                .isBetween(DELETE_THRESHOLD, removed);
+
+        when("all removed accounts are restored on the source and the task is restarted");
+        addAccounts(0, removed);
+        int notificationsBeforeRestart = policyNotifications();
+        restartTaskTree(task.oid, result);
+        waitForTaskCloseOrSuspend(task.oid, TIMEOUT);
+
+        then("the fresh simulation finds nothing to delete, execute runs, and no user is deleted");
+        assertTaskTree(task.oid, "after restart")
+                .display()
+                .assertClosed()
+                .assertSuccess();
+        assertThat(haltingInformation(task.oid))
+                .as("recorded halts after restart").isEmpty();
+        assertThat(countUsers())
+                .as("users after restart with all accounts restored")
+                .isEqualTo(ACCOUNTS);
+        assertThat(policyNotifications())
+                .as("no policy fired on the restart")
+                .isEqualTo(notificationsBeforeRestart);
+    }
+
+    /**
+     * Control case for {@link #test400RestartAfterAccountsRestored}. She same halted preview, the accounts restored, the
+     * halted task discarded, and a plain reconciliation in full execution mode run instead. It deletes nobody: the first
+     * stage links the restored accounts for real, so when the remaining-shadows stage reports the dead shadows as
+     * deleted, the DELETE reaction is skipped because the owner has a live compatible shadow
+     * ({@code SynchronizationActionExecutor.isDeleteReactionApplicable}). The preview skip this, as it does not
+     * persist the links.
+     */
+    @Test
+    public void test410PlainReconciliationAfterPreviewHaltAndRestore() throws Exception {
+        OperationResult result = getTestOperationResult();
+        int removed = DELETE_THRESHOLD + 3;
+
+        given("simulate halted by " + removed + " removed accounts, the accounts restored, the halted task discarded");
+        tripSimulate(removed);
+        addAccounts(0, removed);
+        taskManager.suspendAndDeleteTasks(List.of(TASK_HR_UNGUARDED_EXECUTE.oid), TIMEOUT, true, result);
+
+        when("a plain full reconciliation runs");
+        TASK_HR_RECONCILIATION_FULL.rerun(result);
+
+        then("no user is deleted, as every account exists on the source");
+        assertThat(countUsers()).as("users after a full reconciliation of a complete source").isEqualTo(ACCOUNTS);
     }
 
     //endregion
