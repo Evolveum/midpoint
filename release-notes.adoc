@@ -315,6 +315,13 @@ See bug:MID-11230[].
 * SQL functional tracing now correctly work for the native (PostgreSQL) repository. See bug:MID-10936[].
 * Fixed handling of admin assign/unassign governance/member authorization. See bug:MID-11850[].
 * Fixed object marks not being removed immediately after unassigning the policy that induces them. See bug:MID-10641[].
+* bug:MID-11658[] Fixed inconsistency in help  for ninja export command
+* Fixed distributed task workers incorrectly completing when their coordinator is suspended, preventing the task from resuming. See bug:MID-12627[]
+* Requests for unknown paths outside the REST API (for example under /actuator or /static) now return HTTP 404 instead of 500 with a stack trace. See bug:MID-12566[].
+* Prevented oversized string values from corrupting persisted object data and making objects unreadable. See bug:MID-12813[]
+* Fixed statistics regeneration tasks displaying the resource OID instead of its name. See bug:MID-11518[]
+* Fixed misleading messages after certification campaign actions and prevented an already closed campaign from being closed again. See bug:MID-12832[]
+// TODO
 
 === Other changes
 
@@ -372,7 +379,7 @@ Even though midPoint may work well on mobile devices, the support for small scre
 Partial support for small screens (e.g. only for self-service purposes) may be provided, but it has to be explicitly negotiated in a subscription contract.
 
 * There are several add-ons and extensions for midPoint that are not explicitly distributed with midPoint.
-This includes xrefv:/midpoint/reference/support-4.11/interfaces/midpoint-client-java/[Java client library],
+This includes xrefv:/midpoint/reference/master/interfaces/midpoint-client-java/[Java client library],
 various https://github.com/Evolveum/midpoint-samples[samples], scripts, connectors and other non-bundled items.
 Support for these non-bundled items is limited.
 Generally speaking, those non-bundled items are supported only for platform subscribers and those that explicitly negotiated the support in their contract.
