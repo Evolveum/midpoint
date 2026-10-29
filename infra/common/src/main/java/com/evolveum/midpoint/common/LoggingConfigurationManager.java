@@ -24,6 +24,7 @@ import com.evolveum.midpoint.prism.util.PrismUtil;
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.VisibleForTesting;
 import org.slf4j.bridge.SLF4JBridgeHandler;
 
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
@@ -53,6 +54,14 @@ public class LoggingConfigurationManager {
     private static final LoggingLevelType DEFAULT_PROFILING_LEVEL = LoggingLevelType.INFO;
 
     private static final String OP_CONFIGURE = LoggingConfigurationManager.class.getName() + ".configure";
+
+    /** Encoder used for {@link AppenderLayoutType#JSON}. Referenced by name, so there is no compile-time dependency. */
+    private static final String JSON_ENCODER_CLASS_NAME = "net.logstash.logback.encoder.LogstashEncoder";
+    /**
+     * Used by ALT and TRACING appenders when the root appender has no pattern (e.g. it uses JSON layout).
+     * Same as the pattern of MIDPOINT_LOG in the default system configuration.
+     */
+    private static final String DEFAULT_ROOT_APPENDER_PATTERN = "%date [%X{subsystem}] [%thread] %level \\(%logger\\): %msg%n";
 
     /** Determines whether we apply the new configuration. */
     private static LoggingConfigurationType currentlyUsedConfiguration;
@@ -334,21 +343,25 @@ public class LoggingConfigurationManager {
         }
     }
 
+    private static String getPatternOrDefault(AppenderConfigurationType appender) {
+        return StringUtils.isNotBlank(appender.getPattern()) ? appender.getPattern() : DEFAULT_ROOT_APPENDER_PATTERN;
+    }
     private static void prepareAltAppenderConfiguration(StringBuilder sb, AppenderConfigurationType appender,
             MidpointConfiguration midpointConfiguration) {
         String altFilename = getAltAppenderFilename(midpointConfiguration);
         String altPrefix = getAltAppenderPrefix(midpointConfiguration);
+        String pattern = getPatternOrDefault(appender);
         if (StringUtils.isNotEmpty(altFilename)) {
             sb.append("\t<appender name=\"" + ALT_APPENDER_NAME + "\" class=\"ch.qos.logback.core.FileAppender\">\n")
                     .append("\t\t\t\t<file>").append(altFilename).append("</file>\n")
                     .append("\t\t\t\t<layout class=\"ch.qos.logback.classic.PatternLayout\">\n")
-                    .append("\t\t\t\t\t<pattern>").append(altPrefix).append(appender.getPattern()).append("</pattern>\n")
+                    .append("\t\t\t\t\t<pattern>").append(altPrefix).append(pattern).append("</pattern>\n")
                     .append("\t\t\t\t</layout>\n")
                     .append("\t\t\t</appender>\n");
         } else {
             sb.append("\t<appender name=\"" + ALT_APPENDER_NAME + "\" class=\"ch.qos.logback.core.ConsoleAppender\">\n")
                     .append("\t\t\t\t<layout class=\"ch.qos.logback.classic.PatternLayout\">\n")
-                    .append("\t\t\t\t\t<pattern>").append(altPrefix).append(appender.getPattern()).append("</pattern>\n")
+                    .append("\t\t\t\t\t<pattern>").append(altPrefix).append(pattern).append("</pattern>\n")
                     .append("\t\t\t\t</layout>\n")
                     .append("\t\t\t</appender>\n");
         }
@@ -369,7 +382,7 @@ public class LoggingConfigurationManager {
         return config != null ? config.getString(MidpointConfiguration.MIDPOINT_LOGGING_ALT_FILENAME_PROPERTY) : null;
     }
 
-    private static void prepareFileAppenderConfiguration(StringBuilder sb, FileAppenderConfigurationType appender, LoggingConfigurationType config) {
+    private static void prepareFileAppenderConfiguration(StringBuilder sb, FileAppenderConfigurationType appender, LoggingConfigurationType config) throws  SchemaException {
         String fileName = appender.getFileName();
         String filePattern = appender.getFilePattern();
         boolean isPrudent = Boolean.TRUE.equals(appender.isPrudent());
@@ -407,8 +420,11 @@ public class LoggingConfigurationManager {
         prepareCommonAppenderFooter(sb, appender);
     }
 
-    private static void prepareSyslogAppenderConfiguration(StringBuilder sb, SyslogAppenderConfigurationType appender, LoggingConfigurationType config) {
+    private static void prepareSyslogAppenderConfiguration(StringBuilder sb, SyslogAppenderConfigurationType appender, LoggingConfigurationType config) throws  SchemaException {
 
+        if (appender.getLayout() == AppenderLayoutType.JSON) {
+            throw new SchemaException("JSON layout is not supported for syslog appender '" + appender.getName() + "'.");
+        }
         prepareCommonAppenderHeader(sb, appender, config, "ch.qos.logback.classic.net.SyslogAppender");
 
         appendProp(sb, "syslogHost", appender.getSyslogHost());
@@ -432,7 +448,7 @@ public class LoggingConfigurationManager {
     private static void prepareTracingAppenderConfiguration(StringBuilder sb, AppenderConfigurationType appender) {
         sb.append("\t<appender name=\"" + TRACING_APPENDER_NAME + "\" class=\"").append(TRACING_APPENDER_CLASS_NAME).append("\">\n")
                 .append("\t\t<layout class=\"ch.qos.logback.classic.PatternLayout\">\n")
-                .append("\t\t\t<pattern>").append(appender.getPattern()).append("</pattern>\n")
+                .append("\t\t\t<pattern>").append(getPatternOrDefault(appender)).append("</pattern>\n")
                 .append("\t\t</layout>\n")
                 .append("\t</appender>\n");
     }
@@ -451,14 +467,17 @@ public class LoggingConfigurationManager {
             }
         }
     }
+    private static void checkJsonEncoderAvailable() throws SchemaException {
+        try {
+            Class.forName(JSON_ENCODER_CLASS_NAME, false, LoggingConfigurationManager.class.getClassLoader());
+        } catch (ClassNotFoundException e) {
+            throw new SchemaException("JSON layout requires " + JSON_ENCODER_CLASS_NAME
+                    + " on the classpath, but it was not found.", e);
+        }
+    }
+    @VisibleForTesting
+   static void prepareCommonAppenderFooter(StringBuilder sb, AppenderConfigurationType appender)  throws SchemaException{
 
-    public static void prepareCommonAppenderFooter(StringBuilder sb, AppenderConfigurationType appender) {
-       /* sb.append("\t\t<encoder>\n");
-        sb.append("\t\t\t<pattern>");
-        sb.append(appender.getPattern());
-        sb.append("</pattern>\n");
-        sb.append("\t\t</encoder>\n");
-        sb.append("\t</appender>\n");*/
 
         AppenderLayoutType layout = appender.getLayout();
         if (layout == null) {
@@ -466,7 +485,8 @@ public class LoggingConfigurationManager {
         }
 
         if (layout == AppenderLayoutType.JSON) {
-            sb.append("        <encoder class=\"net.logstash.logback.encoder.LogstashEncoder\"/>\n");
+            checkJsonEncoderAvailable();
+            sb.append("         <encoder class=\"").append(JSON_ENCODER_CLASS_NAME).append("\"/>\n");
         } else {
 
             sb.append("        <encoder>\n");

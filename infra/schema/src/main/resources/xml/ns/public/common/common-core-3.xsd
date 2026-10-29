@@ -16160,7 +16160,7 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="pattern" type="xsd:string">
+            <xsd:element name="pattern" type="xsd:string" minOccurs="0">
                 <xsd:annotation>
                     <xsd:appinfo>
                         <a:displayName>AppenderConfigurationType.pattern</a:displayName>

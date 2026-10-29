@@ -90,6 +90,14 @@ public class AppendersContentPanel extends MultivalueContainerListPanelWithDetai
                         AppendersContentPanel.this.itemDetailsPerformed(target, model);
                     }
                 },
+                new PrismPropertyWrapperColumn<>(getContainerModel(), AppenderConfigurationType.F_LAYOUT,
+                        AbstractItemWrapperColumn.ColumnType.STRING, getPageBase()) {
+
+                    @Override
+                    protected void onClick(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<AppenderConfigurationType>> model) {
+                        AppendersContentPanel.this.itemDetailsPerformed(target, model);
+                    }
+                },
                 new PrismPropertyWrapperColumn<>(getContainerModel(), AppenderConfigurationType.F_PATTERN,
                         AbstractItemWrapperColumn.ColumnType.STRING, getPageBase()) {
 
