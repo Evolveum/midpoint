@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2026 Evolveum and contributors
  *
  * Licensed under the EUPL-1.2 or later.
  */
@@ -278,6 +278,32 @@ public class TestCertificationBasic extends AbstractCertificationTest {
     }
 
     // TODO test with bob's full deputy
+
+    @Test
+    public void test215CloseAlreadyClosedCampaign() throws Exception {
+        login(userAdministrator.asPrismObject());
+
+        given();
+        Task task = getTestTask();
+        task.setOwner(userAdministrator.asPrismObject());
+        OperationResult result = task.getResult();
+
+        AccessCertificationCampaignType campaignBefore = getCampaignWithCases(campaignOid);
+        assertEquals("wrong campaign state", CLOSED, campaignBefore.getState());
+        XMLGregorianCalendar endTimestampBefore = campaignBefore.getEndTimestamp();
+
+        when();
+        certificationService.closeCampaign(campaignOid, task, result);
+
+        then();
+        result.computeStatus();
+        display("result", result);
+        assertFailure(result);
+
+        AccessCertificationCampaignType campaignAfter = getCampaignWithCases(campaignOid);
+        assertEquals("wrong campaign state", CLOSED, campaignAfter.getState());
+        assertEquals("end timestamp was changed", endTimestampBefore, campaignAfter.getEndTimestamp());
+    }
 
     @Test
     public void test021OpenFirstStageAllowed() throws Exception {
