@@ -205,13 +205,9 @@ public abstract class TestFocusPolicyHrScenario extends AbstractEmptyModelIntegr
 
     /**
      * What the GUI "Restart" task action does: deletes the activity state of the (suspended) task tree, including
-     * its worker subtasks, and resumes it, so the next run starts a new realization from the beginning.
-     *
-     * TODO fix [viliam]
-     * Not usable for subtask-delegated activities: the deletion only purges the delegation state and leaves the
-     * delegate subtasks, so a resumed delegate fails on its missing state and the root waits forever.
+     * its worker and delegate subtasks, and resumes it, so the next run starts a new realization from the beginning.
      */
-    protected void restartTaskTree(String oid, OperationResult result) throws Exception {
+    private void restartTaskTree(String oid, OperationResult result) throws Exception {
         activityManager.deleteActivityStateAndWorkers(oid, true, TIMEOUT, result);
         taskManager.resumeTaskTree(oid, result);
     }
