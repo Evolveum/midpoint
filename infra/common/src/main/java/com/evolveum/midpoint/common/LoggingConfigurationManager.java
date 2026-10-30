@@ -18,9 +18,6 @@ import ch.qos.logback.classic.LoggerContext;
 import ch.qos.logback.classic.joran.JoranConfigurator;
 import ch.qos.logback.core.joran.spi.JoranException;
 import ch.qos.logback.core.util.StatusPrinter;
-
-import com.evolveum.midpoint.prism.util.PrismUtil;
-
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.Nullable;
@@ -29,6 +26,7 @@ import org.slf4j.bridge.SLF4JBridgeHandler;
 
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.common.configuration.api.ProfilingMode;
+import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -346,6 +344,7 @@ public class LoggingConfigurationManager {
     private static String getPatternOrDefault(AppenderConfigurationType appender) {
         return StringUtils.isNotBlank(appender.getPattern()) ? appender.getPattern() : DEFAULT_ROOT_APPENDER_PATTERN;
     }
+
     private static void prepareAltAppenderConfiguration(StringBuilder sb, AppenderConfigurationType appender,
             MidpointConfiguration midpointConfiguration) {
         String altFilename = getAltAppenderFilename(midpointConfiguration);
@@ -382,7 +381,7 @@ public class LoggingConfigurationManager {
         return config != null ? config.getString(MidpointConfiguration.MIDPOINT_LOGGING_ALT_FILENAME_PROPERTY) : null;
     }
 
-    private static void prepareFileAppenderConfiguration(StringBuilder sb, FileAppenderConfigurationType appender, LoggingConfigurationType config) throws  SchemaException {
+    private static void prepareFileAppenderConfiguration(StringBuilder sb, FileAppenderConfigurationType appender, LoggingConfigurationType config) throws SchemaException {
         String fileName = appender.getFileName();
         String filePattern = appender.getFilePattern();
         boolean isPrudent = Boolean.TRUE.equals(appender.isPrudent());
@@ -420,7 +419,7 @@ public class LoggingConfigurationManager {
         prepareCommonAppenderFooter(sb, appender);
     }
 
-    private static void prepareSyslogAppenderConfiguration(StringBuilder sb, SyslogAppenderConfigurationType appender, LoggingConfigurationType config) throws  SchemaException {
+    static void prepareSyslogAppenderConfiguration(StringBuilder sb, SyslogAppenderConfigurationType appender, LoggingConfigurationType config) throws SchemaException {
 
         if (appender.getLayout() == AppenderLayoutType.JSON) {
             throw new SchemaException("JSON layout is not supported for syslog appender '" + appender.getName() + "'.");
@@ -444,8 +443,8 @@ public class LoggingConfigurationManager {
             sb.append("</").append(name).append(">\n");
         }
     }
-
-    private static void prepareTracingAppenderConfiguration(StringBuilder sb, AppenderConfigurationType appender) {
+    @VisibleForTesting
+     static void prepareTracingAppenderConfiguration(StringBuilder sb, AppenderConfigurationType appender) {
         sb.append("\t<appender name=\"" + TRACING_APPENDER_NAME + "\" class=\"").append(TRACING_APPENDER_CLASS_NAME).append("\">\n")
                 .append("\t\t<layout class=\"ch.qos.logback.classic.PatternLayout\">\n")
                 .append("\t\t\t<pattern>").append(getPatternOrDefault(appender)).append("</pattern>\n")
@@ -467,6 +466,7 @@ public class LoggingConfigurationManager {
             }
         }
     }
+
     private static void checkJsonEncoderAvailable() throws SchemaException {
         try {
             Class.forName(JSON_ENCODER_CLASS_NAME, false, LoggingConfigurationManager.class.getClassLoader());
@@ -475,9 +475,9 @@ public class LoggingConfigurationManager {
                     + " on the classpath, but it was not found.", e);
         }
     }
-    @VisibleForTesting
-   static void prepareCommonAppenderFooter(StringBuilder sb, AppenderConfigurationType appender)  throws SchemaException{
 
+    @VisibleForTesting
+    static void prepareCommonAppenderFooter(StringBuilder sb, AppenderConfigurationType appender) throws SchemaException {
 
         AppenderLayoutType layout = appender.getLayout();
         if (layout == null) {
@@ -491,6 +491,11 @@ public class LoggingConfigurationManager {
 
             sb.append("        <encoder>\n");
             String pattern = appender.getPattern();
+
+            if (StringUtils.isBlank(pattern)) {
+                throw new SchemaException("Pattern is required for appender '" + appender.getName()
+                        + "' unless its layout is JSON.");
+            }
 
             if (StringUtils.isNotEmpty(pattern)) {
                 sb.append("            <pattern>").append(pattern).append("</pattern>\n");

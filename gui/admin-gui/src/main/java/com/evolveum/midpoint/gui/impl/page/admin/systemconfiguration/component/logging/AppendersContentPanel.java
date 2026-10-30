@@ -6,6 +6,23 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.systemconfiguration.component.logging;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import javax.xml.namespace.QName;
+
+import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.Component;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.list.ListItem;
+import org.apache.wicket.markup.repeater.Item;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
+
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
@@ -31,19 +48,6 @@ import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.apache.wicket.AttributeModifier;
-import org.apache.wicket.Component;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.markup.html.list.ListItem;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
-
-import javax.xml.namespace.QName;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -90,12 +94,23 @@ public class AppendersContentPanel extends MultivalueContainerListPanelWithDetai
                         AppendersContentPanel.this.itemDetailsPerformed(target, model);
                     }
                 },
-                new PrismPropertyWrapperColumn<>(getContainerModel(), AppenderConfigurationType.F_LAYOUT,
-                        AbstractItemWrapperColumn.ColumnType.STRING, getPageBase()) {
+                new AbstractColumn<PrismContainerValueWrapper<AppenderConfigurationType>, String>(
+                        createStringResource("AppenderConfigurationType.layout")) {
 
                     @Override
-                    protected void onClick(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<AppenderConfigurationType>> model) {
-                        AppendersContentPanel.this.itemDetailsPerformed(target, model);
+                    public void populateItem(
+                            Item<ICellPopulator<PrismContainerValueWrapper<AppenderConfigurationType>>> item,
+                            String componentId,
+                            IModel<PrismContainerValueWrapper<AppenderConfigurationType>> rowModel) {
+
+                        item.add(new Label(componentId, () -> {
+                            AppenderConfigurationType appender = rowModel.getObject().getRealValue();
+                            AppenderLayoutType layout = appender != null ? appender.getLayout() : null;
+                            if (layout == null) {
+                                layout = AppenderLayoutType.PATTERN;
+                            }
+                            return getString("AppenderLayoutType." + layout.name());
+                        }));
                     }
                 },
                 new PrismPropertyWrapperColumn<>(getContainerModel(), AppenderConfigurationType.F_PATTERN,
@@ -200,4 +215,5 @@ public class AppendersContentPanel extends MultivalueContainerListPanelWithDetai
         PrismContainerValueWrapper<AppenderConfigurationType> newAppenderContainerWrapper = createNewItemContainerValueWrapper(container, model.getObject(), target);
         itemDetailsPerformed(target, Collections.singletonList(newAppenderContainerWrapper));
     }
+
 }
