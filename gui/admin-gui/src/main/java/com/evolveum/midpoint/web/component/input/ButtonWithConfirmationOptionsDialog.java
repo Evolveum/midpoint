@@ -8,11 +8,9 @@
 package com.evolveum.midpoint.web.component.input;
 
 import java.io.Serializable;
-import java.util.List;
 
 import com.evolveum.midpoint.web.component.dialog.ConfirmationResult;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationWithOptionsPopupPanel;
-import com.evolveum.midpoint.web.component.dialog.steper.*;
 
 import com.evolveum.midpoint.web.component.util.SerializableBiConsumer;
 
@@ -22,7 +20,6 @@ import org.apache.wicket.model.Model;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
-import com.evolveum.midpoint.web.component.dialog.ConfirmationOption;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationWithOptionsDto;
 import com.evolveum.midpoint.web.component.util.Describable;
 import com.evolveum.midpoint.web.component.util.SerializableConsumer;
@@ -79,8 +76,8 @@ public class ButtonWithConfirmationOptionsDialog<T extends Describable> extends 
         return new ConfirmationWithOptionsPopupPanel<>(id, dialogConfig) {
             @Override
             protected void confirmationPerformed(AjaxRequestTarget target,
-                    IModel<ConfirmationResult<T>> confirmedOptions) {
-                dialogHandlers.confirmHandler().accept(target, confirmedOptions);
+                    IModel<ConfirmationResult<T>> confirmationResult) {
+                dialogHandlers.confirmHandler().accept(target, confirmationResult);
             }
 
             @Override

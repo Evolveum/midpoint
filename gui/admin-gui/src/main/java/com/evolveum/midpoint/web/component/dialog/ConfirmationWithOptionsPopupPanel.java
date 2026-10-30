@@ -99,18 +99,21 @@ public class ConfirmationWithOptionsPopupPanel<T extends Describable>
     }
 
     private void createConfirmationButton(@NotNull Fragment footer) {
+
         final IModel<List<ConfirmationOption<T>>> confirmedOptions = () ->
                 getConfirmationOptions().stream()
                         .filter(ConfirmationOption::isSelected)
                         .toList();
+
         AjaxButton confirmButton = new AjaxButton(ID_YES, getPanelConfig().getConfirmationButtonLabel()) {
             @Override
             public void onClick(AjaxRequestTarget target) {
 
                 prepareConfirmation(confirmedOptions);
 
+                IModel<ConfirmationResult<T>> confirmationResult = Model.of(createConfirmationResult());
                 getPageBase().hideMainPopup(target);
-                confirmationPerformed(target, confirmedOptions);
+                confirmationPerformed(target, confirmationResult);
             }
         };
 
@@ -124,12 +127,22 @@ public class ConfirmationWithOptionsPopupPanel<T extends Describable>
         return options != null ? options : List.of();
     }
 
+    /** Captures the selected values after confirmation preparation has completed. */
+    protected ConfirmationResult<T> createConfirmationResult() {
+        return new ConfirmationResult<>(
+                getConfirmationOptions().stream()
+                        .filter(ConfirmationOption::isSelected)
+                        .map(ConfirmationOption::option)
+                        .toList(),
+                false);
+    }
+
     protected void cancelPerformed(AjaxRequestTarget target) {
     }
 
     protected void confirmationPerformed(
             AjaxRequestTarget target,
-            IModel<List<ConfirmationOption<T>>> confirmedOptions) {
+            IModel<ConfirmationResult<T>> confirmationResult) {
     }
 
     @Override
