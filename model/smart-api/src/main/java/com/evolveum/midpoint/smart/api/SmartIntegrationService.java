@@ -35,7 +35,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
-import java.util.Optional;
 
 /**
  * Provides methods for suggesting parts of the integration solution, like inbound/outbound mappings.
@@ -44,9 +43,10 @@ public interface SmartIntegrationService {
 
     /**
      * Returns AI provider and model info fetched from the microservice health endpoint.
-     * Returns empty Optional if the information is unavailable.
+     * Returns AI info with error status if the service
+     * is not available. Throws an exception if the caller is not authorized.
      */
-    Optional<AiInfo> getAiInfo(Task task, OperationResult result) throws CommonException;
+    @NotNull AiInfo getAiInfo(Task task, OperationResult result) throws CommonException;
 
     /**
      * Creates a new resource with the given connector and the given connector configuration.

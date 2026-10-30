@@ -23,14 +23,23 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.PartialProces
 import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.datatype.XMLGregorianCalendar;
+import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.cases.api.temporary.ComputationMode;
 import com.evolveum.midpoint.model.api.ObjectTreeDeltas;
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.SearchResultList;
+import com.evolveum.midpoint.schema.constants.ExpressionConstants;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
+import com.evolveum.midpoint.schema.util.SimpleExpressionUtil;
 import com.evolveum.midpoint.schema.util.ValueMetadataTypeUtil;
 import com.evolveum.midpoint.test.TestDir;
+import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.util.exception.CommonException;
 
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -40,7 +49,11 @@ import com.evolveum.midpoint.wf.impl.AbstractWfTestPolicy;
 import com.evolveum.midpoint.wf.impl.ApprovalInstruction;
 import com.evolveum.midpoint.wf.impl.ExpectedTask;
 import com.evolveum.midpoint.wf.impl.ExpectedWorkItem;
+import com.evolveum.midpoint.wf.impl.processes.common.StageComputeHelper;
+import com.evolveum.midpoint.wf.impl.processors.primary.policy.PolicyRuleBasedAspect;
+import com.evolveum.midpoint.wf.impl.util.ComputationResult;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -94,6 +107,8 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
     private static final TestObject<RoleType> ROLE_ROLE27 = TEST_DIR.object("role-role27-modifications-and.xml", "00000001-d34d-b33f-f00d-000000000027");
     private static final TestObject<RoleType> ROLE_ROLE28 = TEST_DIR.object("role-role28-modifications-or.xml", "00000001-d34d-b33f-f00d-000000000028");
     private static final TestObject<RoleType> ROLE_ROLE29 = TEST_DIR.object("role-role29-modifications-no-items.xml", "00000001-d34d-b33f-f00d-000000000029");
+    private static final TestObject<RoleType> ROLE_ROLE30 = TEST_DIR.object("role-role30-assignment-variable.xml", "00000001-d34d-b33f-f00d-000000000030");
+    private static final TestObject<RoleType> ROLE_ROLE31 = TEST_DIR.object("role-role31-assignment-variable.xml", "00000001-d34d-b33f-f00d-000000000031");
     private static final TestObject<RoleType> ROLE_EXTENSION_PROPERTY_MOD_APPROVAL = TEST_DIR.object("role-extension-property-mod-approval.xml", "60459cec-7bdb-4872-99ae-65063c9c2e82");
 
     private static final TestObject<RoleType> ROLE_SKIPPED = TEST_DIR.object("role-skipped.xml", "66134203-f023-4986-bb5c-a350941909eb");
@@ -127,6 +142,10 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
     private static final TestObject<RoleType> ROLE_SELECTIVE_A = TEST_DIR.object("role-selective-a.xml", "e67e973e-cc54-47da-9369-8b483b677aaa");
     private static final TestObject<RoleType> ROLE_SELECTIVE_B = TEST_DIR.object("role-selective-b.xml", "81f4f09c-263b-45fe-b2a7-e09f02de6348");
 
+    private static final QName EXT_ASSIGNMENT_ROLE_REF = new QName(NS_PIRACY, "roleRef");
+
+    @Autowired private StageComputeHelper stageComputeHelper;
+
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
@@ -139,7 +158,7 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
 
         initTestObjectsRaw(initResult,
                 ROLE_ROLE21, ROLE_ROLE22, ROLE_ROLE23, ROLE_ROLE24, ROLE_ROLE25,
-                ROLE_ROLE26, ROLE_ROLE27, ROLE_ROLE28, ROLE_ROLE29,
+                ROLE_ROLE26, ROLE_ROLE27, ROLE_ROLE28, ROLE_ROLE29, ROLE_ROLE30, ROLE_ROLE31,
                 ROLE_IDEMPOTENT, ROLE_WITH_IDEMPOTENT_METAROLE, ROLE_SKIPPED, ROLE_APPROVE_UNASSIGN,
                 ORG_LEADS2122);
 
@@ -1550,6 +1569,381 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
                 assignmentCreated1, assignmentCreated2);
     }
 
+    /** MID-11000: exercises assignment reconstruction in a real, factored approval request. */
+    @Test
+    public void test980AssignmentVariableInFactoredAddition() throws Exception {
+        login(userAdministrator);
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        given("a user and two assignments without container IDs");
+        UserType user = new UserType().name(getTestNameShort());
+        addObject(user, task, result);
+        AssignmentType role30Assignment = assignmentWithRoleRef(ROLE_ROLE30.oid, ROLE_ROLE21.oid, null, "role30 request");
+        AssignmentType role31Assignment = assignmentWithRoleRef(ROLE_ROLE31.oid, ROLE_ROLE22.oid, null, "role31 request");
+
+        when("both assignments are requested together");
+        executeChanges(
+                prismContext.deltaFor(UserType.class)
+                        .item(UserType.F_ASSIGNMENT)
+                        .add(role30Assignment, role31Assignment)
+                        .asObjectDelta(user.getOid()),
+                null, task, result);
+
+        then("the request is factored and both old and new expressions select the same expected approvers");
+        assertInProgress(result);
+        String rootCaseOid = OperationResult.referenceToCaseOid(result.findAsynchronousOperationReference());
+        List<CaseType> subcases = getSubcases(rootCaseOid, null, result);
+        assertThat(subcases).as("assignment approval subcases").hasSize(2);
+
+        Map<String, CaseType> casesByTarget = subcases.stream()
+                .collect(Collectors.toMap(aCase -> aCase.getTargetRef().getOid(), aCase -> aCase));
+        CaseType role30Case = casesByTarget.get(ROLE_ROLE30.oid);
+        CaseType role31Case = casesByTarget.get(ROLE_ROLE31.oid);
+        assertApprovers(role30Case, USER_LEAD21.oid, USER_LEAD23.oid);
+        assertApprovers(role31Case, USER_LEAD22.oid, USER_LEAD23.oid);
+        assertPersistedAssignmentAddition(role30Case, user.getOid(), ROLE_ROLE30.oid, ROLE_ROLE21.oid, "role30 request");
+        assertPersistedAssignmentAddition(role31Case, user.getOid(), ROLE_ROLE31.oid, ROLE_ROLE22.oid, "role31 request");
+
+        when("all work items are approved");
+        for (CaseType subcase : subcases) {
+            for (CaseWorkItemType workItem : subcase.getWorkItem()) {
+                approveWorkItem(workItem, task, result);
+            }
+        }
+        waitForCaseClose(rootCaseOid);
+
+        then("the original approved delta is executed");
+        PrismObject<UserType> userAfter = getUser(user.getOid());
+        AssignmentType role30After = findAssignmentByTargetRequired(userAfter, ROLE_ROLE30.oid);
+        AssignmentType role31After = findAssignmentByTargetRequired(userAfter, ROLE_ROLE31.oid);
+        assertEquals("Wrong role30 assignment description", "role30 request", role30After.getDescription());
+        assertEquals("Wrong role31 assignment description", "role31 request", role31After.getDescription());
+        assertEquals("Wrong role30 assignment roleRef", ROLE_ROLE21.oid, getAssignmentRoleRefOid(role30After));
+        assertEquals("Wrong role31 assignment roleRef", ROLE_ROLE22.oid, getAssignmentRoleRefOid(role31After));
+    }
+
+    /** MID-11000: old objectDelta navigation and the convenience variable must select identical approvers. */
+    @Test
+    public void test990AssignmentVariableForAddition() throws Exception {
+        String userOid = "00000001-d34d-b33f-f00d-110000000990";
+        PrismObject<UserType> object = new UserType().oid(userOid).name(getTestNameShort()).asPrismObject();
+        AssignmentType assignment = assignmentWithRoleRef(ROLE_ROLE30.oid, ROLE_ROLE21.oid, null, "added assignment");
+        ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
+                .item(UserType.F_ASSIGNMENT)
+                .add(assignment)
+                .asObjectDelta(userOid);
+
+        Set<String> oldApprovers = computeApproverOids(
+                assignmentApprovalCase(ROLE_ROLE30.oid), object, delta, ComputationMode.EXECUTION,
+                oldCompleteAssignmentExpression("getValuesToAdd()", "added assignment", ROLE_ROLE21.oid, USER_LEAD21.oid));
+        Set<String> newApprovers = computeApproverOids(
+                assignmentApprovalCase(ROLE_ROLE30.oid), object, delta, ComputationMode.EXECUTION,
+                assignmentExpression(
+                        ROLE_ROLE30.oid, "added assignment", "null", ROLE_ROLE21.oid, USER_LEAD21.oid));
+        Set<String> previewApprovers = computeApproverOids(
+                assignmentApprovalCase(ROLE_ROLE30.oid), object, delta, ComputationMode.PREVIEW,
+                assignmentExpression(
+                        ROLE_ROLE30.oid, "added assignment", "null", ROLE_ROLE21.oid, USER_LEAD21.oid));
+
+        assertThat(oldApprovers).containsExactlyInAnyOrder(USER_LEAD21.oid);
+        assertThat(newApprovers).isEqualTo(oldApprovers);
+        assertThat(previewApprovers).isEqualTo(oldApprovers);
+        assertNull("The requested assignment unexpectedly acquired an ID", assignment.getId());
+    }
+
+    /** MID-11000: deletion exposes the complete value that was already present in the factored delta. */
+    @Test
+    public void test1000AssignmentVariableForDeletion() throws Exception {
+        String userOid = "00000001-d34d-b33f-f00d-110000001000";
+        AssignmentType assignment = assignmentWithRoleRef(ROLE_ROLE30.oid, ROLE_ROLE21.oid, 1000L, "deleted assignment");
+        PrismObject<UserType> object = new UserType()
+                .oid(userOid)
+                .name(getTestNameShort())
+                .assignment(assignment.clone())
+                .asPrismObject();
+        ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
+                .item(UserType.F_ASSIGNMENT)
+                .delete(assignment.clone())
+                .asObjectDelta(userOid);
+
+        Set<String> oldApprovers = computeApproverOids(
+                assignmentApprovalCase(ROLE_ROLE30.oid), object, delta, ComputationMode.EXECUTION,
+                oldCompleteAssignmentExpression("getValuesToDelete()", "deleted assignment", ROLE_ROLE21.oid,
+                        USER_LEAD21.oid));
+        Set<String> newApprovers = computeApproverOids(
+                assignmentApprovalCase(ROLE_ROLE30.oid), object, delta, ComputationMode.EXECUTION,
+                assignmentExpression(
+                        ROLE_ROLE30.oid, "deleted assignment", "1000", ROLE_ROLE21.oid, USER_LEAD21.oid));
+
+        assertThat(oldApprovers).containsExactlyInAnyOrder(USER_LEAD21.oid);
+        assertThat(newApprovers).isEqualTo(oldApprovers);
+    }
+
+    /** MID-11000: subitem changes are applied to a clone, retaining unchanged assignment content. */
+    @Test
+    public void test1010AssignmentVariableForModification() throws Exception {
+        String userOid = "00000001-d34d-b33f-f00d-110000001010";
+        AssignmentType assignment = assignmentWithRoleRef(
+                ROLE_ROLE30.oid, ROLE_ROLE21.oid, 1010L, "before").lifecycleState("old-state");
+        PrismObject<UserType> object = new UserType()
+                .oid(userOid)
+                .name(getTestNameShort())
+                .assignment(assignment)
+                .asPrismObject();
+        ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
+                .item(ItemPath.create(UserType.F_ASSIGNMENT, 1010L, AssignmentType.F_DESCRIPTION))
+                .replace("after")
+                .item(ItemPath.create(UserType.F_ASSIGNMENT, 1010L, AssignmentType.F_LIFECYCLE_STATE))
+                .replace("new-state")
+                .asObjectDelta(userOid);
+        PrismObject<UserType> objectBefore = object.clone();
+        ObjectDelta<UserType> deltaBefore = delta.clone();
+
+        ExpressionType oldExpression = groovyExpression("""
+                import com.evolveum.midpoint.prism.path.ItemPath
+
+                def changed = objectDelta.computeChangedObject(object.asPrismObject())
+                def value = com.evolveum.midpoint.schema.util.ObjectTypeUtil.getAssignment(changed.asObjectable(), 1010L)
+                assert value.description == 'after'
+                assert value.lifecycleState == 'new-state'
+                assert value.targetRef.oid == '%s'
+                def roleReference = value.asPrismContainerValue().find(ItemPath.fromString('extension/roleRef'))
+                assert roleReference.realValue.oid == '%s'
+                '%s'
+                """.formatted(ROLE_ROLE30.oid, ROLE_ROLE21.oid, USER_LEAD21.oid));
+        ExpressionType newExpression = assignmentExpression(
+                ROLE_ROLE30.oid, "after", "1010", ROLE_ROLE21.oid, USER_LEAD21.oid,
+                "assert assignment.lifecycleState == 'new-state'");
+
+        Set<String> oldApprovers = computeApproverOids(
+                assignmentApprovalCase(ROLE_ROLE30.oid), object, delta, ComputationMode.EXECUTION, oldExpression);
+        Set<String> newApprovers = computeApproverOids(
+                assignmentApprovalCase(ROLE_ROLE30.oid), object, delta, ComputationMode.EXECUTION, newExpression);
+
+        assertThat(oldApprovers).containsExactlyInAnyOrder(USER_LEAD21.oid);
+        assertThat(newApprovers).isEqualTo(oldApprovers);
+        assertEquals("Approver evaluation modified the current focus object", objectBefore, object);
+        assertEquals("Approver evaluation modified the approval delta", deltaBefore, delta);
+    }
+
+    /** MID-11000: each expression gets a clone and existing variable precedence is retained. */
+    @Test
+    public void test1020AssignmentVariableIsolationAndPrecedence() throws Exception {
+        String userOid = "00000001-d34d-b33f-f00d-110000001020";
+        PrismObject<UserType> object = new UserType().oid(userOid).name(getTestNameShort()).asPrismObject();
+        ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
+                .item(UserType.F_ASSIGNMENT)
+                .add(assignmentWithRoleRef(ROLE_ROLE30.oid, ROLE_ROLE21.oid, null, "original"))
+                .asObjectDelta(userOid);
+        ObjectDelta<UserType> deltaBefore = delta.clone();
+        CaseType aCase = assignmentApprovalCase(ROLE_ROLE30.oid);
+
+        ExpressionType mutatingExpression = groovyExpression("""
+                assert assignment.description == 'original'
+                assignment.description = 'changed by first expression'
+                '%s'
+                """.formatted(USER_LEAD21.oid));
+        ExpressionType observingExpression = groovyExpression("""
+                assert assignment.description == 'original'
+                '%s'
+                """.formatted(USER_LEAD22.oid));
+        assertThat(computeApproverOids(
+                aCase, object, delta, ComputationMode.EXECUTION, mutatingExpression, observingExpression))
+                .containsExactlyInAnyOrder(USER_LEAD21.oid, USER_LEAD22.oid);
+        assertEquals("An expression modified the assignment in the approval delta", deltaBefore, delta);
+
+        List<String> evaluationOrder = new ArrayList<>();
+        VariablesMap orderVariables = variablesFor(object, delta);
+        orderVariables.put("evaluationOrder", evaluationOrder, List.class);
+        assertThat(computeApproverOids(
+                aCase, orderVariables, ComputationMode.EXECUTION,
+                groovyExpression("""
+                        evaluationOrder.add('first')
+                        '%s'
+                        """.formatted(USER_LEAD21.oid)),
+                groovyExpression("""
+                        assert evaluationOrder == ['first']
+                        evaluationOrder.add('second')
+                        '%s'
+                        """.formatted(USER_LEAD22.oid))))
+                .containsExactlyInAnyOrder(USER_LEAD21.oid, USER_LEAD22.oid);
+        assertThat(evaluationOrder).containsExactly("first", "second");
+
+        ExpressionType declaringExpression = groovyExpression("""
+                assert assignment == 'declared value'
+                '%s'
+                """.formatted(USER_LEAD23.oid));
+        declaringExpression.variable(new ExpressionVariableDefinitionType()
+                .name(new QName(ExpressionConstants.VAR_ASSIGNMENT))
+                .value("declared value"));
+        ExpressionType generatedAfterDeclaredExpression = groovyExpression("""
+                assert assignment.description == 'original'
+                assert assignment.targetRef.oid == '%s'
+                '%s'
+                """.formatted(ROLE_ROLE30.oid, USER_LEAD24.oid));
+        assertThat(computeApproverOids(
+                aCase, object, delta, ComputationMode.EXECUTION,
+                declaringExpression, generatedAfterDeclaredExpression))
+                .containsExactlyInAnyOrder(USER_LEAD23.oid, USER_LEAD24.oid);
+
+        VariablesMap callerVariables = variablesFor(object, delta);
+        callerVariables.put(ExpressionConstants.VAR_ASSIGNMENT,
+                new AssignmentType().description("caller value"), AssignmentType.class);
+        assertThat(computeApproverOids(
+                aCase, callerVariables, ComputationMode.EXECUTION,
+                groovyExpression("""
+                        assert assignment.description == 'caller value'
+                        '%s'
+                        """.formatted(USER_ADMINISTRATOR_OID))))
+                .containsExactlyInAnyOrder(USER_ADMINISTRATOR_OID);
+    }
+
+    /** MID-11000: unsupported complete-value deltas omit the convenience variable and remain non-fatal. */
+    @Test
+    public void test1030AmbiguousCompleteAssignmentDeltas() throws Exception {
+        String userOid = "00000001-d34d-b33f-f00d-110000001030";
+        PrismObject<UserType> object = new UserType().oid(userOid).name(getTestNameShort()).asPrismObject();
+        AssignmentType first = assignmentWithRoleRef(ROLE_ROLE30.oid, ROLE_ROLE21.oid, null, "first");
+        AssignmentType second = assignmentWithRoleRef(ROLE_ROLE31.oid, ROLE_ROLE22.oid, null, "second");
+
+        ObjectDelta<UserType> multipleValues = prismContext.deltaFor(UserType.class)
+                .item(UserType.F_ASSIGNMENT).add(first.clone(), second.clone())
+                .asObjectDelta(userOid);
+
+        ObjectDelta<UserType> mixedAddDelete = prismContext.deltaFor(UserType.class)
+                .item(UserType.F_ASSIGNMENT).add(first.clone())
+                .asObjectDelta(userOid);
+        @SuppressWarnings("unchecked")
+        ContainerDelta<AssignmentType> mixedDelta =
+                (ContainerDelta<AssignmentType>) mixedAddDelete.getModifications().iterator().next();
+        mixedDelta.addValueToDelete(second.asPrismContainerValue().clone());
+
+        ObjectDelta<UserType> emptyReplacement = prismContext.deltaFactory().object()
+                .createModificationReplaceContainer(UserType.class, userOid, UserType.F_ASSIGNMENT, new AssignmentType[0]);
+
+        ObjectDelta<UserType> assignmentAndUnrelated = prismContext.deltaFor(UserType.class)
+                .item(UserType.F_ASSIGNMENT).add(first.clone())
+                .item(UserType.F_DESCRIPTION).replace("unrelated")
+                .asObjectDelta(userOid);
+
+        ObjectDelta<UserType> duplicateExactPath = prismContext.deltaFor(UserType.class)
+                .item(UserType.F_ASSIGNMENT).add(first.clone())
+                .asObjectDelta(userOid);
+        ObjectDelta<UserType> secondExactPath = prismContext.deltaFor(UserType.class)
+                .item(UserType.F_ASSIGNMENT).delete(second.clone())
+                .asObjectDelta(userOid);
+        // addModification would merge equal paths, this deliberately represents malformed persisted input
+        @SuppressWarnings({ "rawtypes", "unchecked" })
+        Collection<ItemDelta<?, ?>> duplicateModifications = (Collection) duplicateExactPath.getModifications();
+        duplicateModifications.add(secondExactPath.getModifications().iterator().next());
+
+        assertThat(multipleValues.getModifications()).hasSize(1);
+        assertCompleteAssignmentDelta(multipleValues, true, false, false, 2, 0, 0);
+        assertThat(mixedAddDelete.getModifications()).hasSize(1);
+        assertCompleteAssignmentDelta(mixedAddDelete, true, true, false, 1, 1, 0);
+        assertThat(emptyReplacement.getModifications()).hasSize(1);
+        assertCompleteAssignmentDelta(emptyReplacement, false, false, true, 0, 0, 0);
+        assertThat(assignmentAndUnrelated.getModifications()).hasSize(2);
+        assertThat(countExactAssignmentDeltas(assignmentAndUnrelated)).isEqualTo(1);
+        assertThat(duplicateExactPath.getModifications()).hasSize(2);
+        assertThat(countExactAssignmentDeltas(duplicateExactPath)).isEqualTo(2);
+
+        for (ObjectDelta<UserType> unsupported : List.of(
+                multipleValues, mixedAddDelete, emptyReplacement, assignmentAndUnrelated, duplicateExactPath)) {
+            assertAssignmentVariableAbsentAndExpressionUnaffected(object, unsupported);
+        }
+    }
+
+    /** MID-11000: malformed or stale modification inputs remain best-effort and non-fatal. */
+    @Test
+    public void test1040UnsupportedAssignmentModifications() throws Exception {
+        String userOid = "00000001-d34d-b33f-f00d-110000001040";
+        PrismObject<UserType> object = new UserType()
+                .oid(userOid)
+                .name(getTestNameShort())
+                .assignment(assignmentWithRoleRef(ROLE_ROLE30.oid, ROLE_ROLE21.oid, 1040L, "first"))
+                .assignment(assignmentWithRoleRef(ROLE_ROLE31.oid, ROLE_ROLE22.oid, 1041L, "second"))
+                .asPrismObject();
+
+        ObjectDelta<UserType> differentAssignmentIds = prismContext.deltaFor(UserType.class)
+                .item(ItemPath.create(UserType.F_ASSIGNMENT, 1040L, AssignmentType.F_DESCRIPTION)).replace("changed")
+                .item(ItemPath.create(UserType.F_ASSIGNMENT, 1041L, AssignmentType.F_LIFECYCLE_STATE)).replace("changed")
+                .asObjectDelta(userOid);
+        ObjectDelta<UserType> staleAssignment = prismContext.deltaFor(UserType.class)
+                .item(ItemPath.create(UserType.F_ASSIGNMENT, 9999L, AssignmentType.F_DESCRIPTION)).replace("changed")
+                .asObjectDelta(userOid);
+        ObjectDelta<UserType> oidMismatch = prismContext.deltaFor(UserType.class)
+                .item(ItemPath.create(UserType.F_ASSIGNMENT, 1040L, AssignmentType.F_DESCRIPTION)).replace("changed")
+                .asObjectDelta("00000001-d34d-b33f-f00d-110000009999");
+        ObjectDelta<UserType> unrelatedPolicyRuleDelta = prismContext.deltaFor(UserType.class)
+                .item(UserType.F_DESCRIPTION).replace("unrelated policy-rule change")
+                .asObjectDelta(userOid);
+
+        for (ObjectDelta<UserType> unsupported : List.of(
+                differentAssignmentIds, staleAssignment, oidMismatch, unrelatedPolicyRuleDelta)) {
+            assertAssignmentVariableAbsentAndExpressionUnaffected(object, unsupported);
+        }
+
+        CaseType nonAssignmentCase = assignmentApprovalCase(ROLE_ROLE30.oid);
+        nonAssignmentCase.getApprovalContext().setChangeAspect("unrelated-aspect");
+        assertThat(computeApproverOids(
+                nonAssignmentCase, object, staleAssignment, ComputationMode.EXECUTION,
+                variableAbsentExpression(USER_LEAD21.oid)))
+                .containsExactlyInAnyOrder(USER_LEAD21.oid);
+
+        VariablesMap missingDelta = new VariablesMap();
+        missingDelta.put(ExpressionConstants.VAR_OBJECT, object, object.getDefinition());
+        assertThat(computeApproverOids(
+                assignmentApprovalCase(ROLE_ROLE30.oid), missingDelta, ComputationMode.EXECUTION,
+                variableAbsentExpression(USER_LEAD21.oid)))
+                .containsExactlyInAnyOrder(USER_LEAD21.oid);
+
+        VariablesMap missingObject = new VariablesMap();
+        missingObject.put(ExpressionConstants.VAR_OBJECT_DELTA, staleAssignment, ObjectDelta.class);
+        assertThat(computeApproverOids(
+                assignmentApprovalCase(ROLE_ROLE30.oid), missingObject, ComputationMode.EXECUTION,
+                variableAbsentExpression(USER_LEAD21.oid)))
+                .containsExactlyInAnyOrder(USER_LEAD21.oid);
+    }
+
+    /** MID-11000: direct stage-computation calls reconstruct independently of each supplied live object. */
+    @Test
+    public void test1050AssignmentVariableUsesCurrentObjectAtEachStage() throws Exception {
+        String userOid = "00000001-d34d-b33f-f00d-110000001050";
+        ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
+                .item(ItemPath.create(UserType.F_ASSIGNMENT, 1050L, AssignmentType.F_DESCRIPTION))
+                .replace("requested change")
+                .asObjectDelta(userOid);
+        PrismObject<UserType> firstStageObject = new UserType()
+                .oid(userOid)
+                .name(getTestNameShort())
+                .assignment(assignmentWithRoleRef(ROLE_ROLE30.oid, ROLE_ROLE21.oid, 1050L, "before"))
+                .asPrismObject();
+        PrismObject<UserType> secondStageObject = new UserType()
+                .oid(userOid)
+                .name(getTestNameShort())
+                .assignment(assignmentWithRoleRef(ROLE_ROLE30.oid, ROLE_ROLE22.oid, 1050L, "before"))
+                .asPrismObject();
+        ExpressionType expression = groovyExpression("""
+                import com.evolveum.midpoint.prism.path.ItemPath
+
+                assert assignment.description == 'requested change'
+                def roleReference = assignment.asPrismContainerValue().find(ItemPath.fromString('extension/roleRef'))
+                roleReference.realValue.oid == '%s' ? '%s' : '%s'
+                """.formatted(ROLE_ROLE21.oid, USER_LEAD21.oid, USER_LEAD22.oid));
+
+        Set<String> firstStageApprovers = computeApproverOidsAtStage(
+                assignmentApprovalCase(ROLE_ROLE30.oid), firstStageObject, delta,
+                ComputationMode.EXECUTION, 1, expression);
+        Set<String> secondStageApprovers = computeApproverOidsAtStage(
+                assignmentApprovalCase(ROLE_ROLE30.oid), secondStageObject, delta,
+                ComputationMode.EXECUTION, 2, expression);
+
+        assertThat(firstStageApprovers).containsExactlyInAnyOrder(USER_LEAD21.oid);
+        assertThat(secondStageApprovers).containsExactlyInAnyOrder(USER_LEAD22.oid);
+    }
+
     // returns root case after the test
     private CaseType executeAssignRoles123ToJack(boolean immediate,
             boolean approve1, boolean approve2, boolean approve3a, boolean approve3b, boolean securityDeputy) throws Exception {
@@ -1964,6 +2358,190 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
             rv.setId(assignment.getId());
             return rv;
         }
+    }
+
+    private AssignmentType assignmentWithRoleRef(String targetRoleOid, String referencedRoleOid,
+            Long id, String description) throws SchemaException {
+        AssignmentType assignment = createAssignmentTo(targetRoleOid, ObjectTypes.ROLE)
+                .id(id)
+                .description(description);
+        PrismContainer<?> extension = getAssignmentExtensionInstance();
+        extension.findOrCreateReference(ItemPath.create(EXT_ASSIGNMENT_ROLE_REF))
+                .add(ObjectTypeUtil.createObjectRef(referencedRoleOid, ObjectTypes.ROLE).asReferenceValue());
+        assignment.asPrismContainerValue().add(extension);
+        return assignment;
+    }
+
+    private String getAssignmentRoleRefOid(AssignmentType assignment) {
+        PrismReference reference = assignment.getExtension().asPrismContainerValue()
+                .findReference(EXT_ASSIGNMENT_ROLE_REF);
+        return reference != null ? reference.getRealValue().getOid() : null;
+    }
+
+    private void assertApprovers(CaseType aCase, String... expectedOids) {
+        assertNotNull("No approval case for expected target", aCase);
+        assertThat(aCase.getWorkItem()).as("work items").hasSize(expectedOids.length);
+        Set<String> actualOids = aCase.getWorkItem().stream()
+                .map(CaseWorkItemType::getOriginalAssigneeRef)
+                .map(ObjectReferenceType::getOid)
+                .collect(Collectors.toSet());
+        assertThat(actualOids).containsExactlyInAnyOrder(expectedOids);
+    }
+
+    private void assertPersistedAssignmentAddition(CaseType aCase, String objectOid,
+            String targetOid, String roleRefOid, String description) throws SchemaException {
+        ObjectTreeDeltas<UserType> persistedDeltas = ObjectTreeDeltas.fromObjectTreeDeltasType(
+                aCase.getApprovalContext().getDeltasToApprove());
+        assertNotNull("No persisted deltas to approve", persistedDeltas);
+        assertThat(persistedDeltas.getProjectionChangeMap()).as("persisted projection deltas").isEmpty();
+
+        ObjectDelta<UserType> focusDelta = persistedDeltas.getFocusChange();
+        assertNotNull("No persisted focus delta to approve", focusDelta);
+        assertTrue("The persisted focus delta is not a modification", focusDelta.isModify());
+        assertEquals("Wrong persisted focus delta OID", objectOid, focusDelta.getOid());
+        assertThat(focusDelta.getModifications()).as("persisted focus modifications").hasSize(1);
+        assertCompleteAssignmentDelta(focusDelta, true, false, false, 1, 0, 0);
+
+        ContainerDelta<?> assignmentDelta = getOnlyExactAssignmentDelta(focusDelta);
+        AssignmentType persistedAssignment = (AssignmentType) assignmentDelta.getValuesToAdd()
+                .iterator().next().asContainerable();
+        assertNull("The persisted requested assignment unexpectedly has an ID", persistedAssignment.getId());
+        assertEquals("Wrong persisted assignment target", targetOid, persistedAssignment.getTargetRef().getOid());
+        assertEquals("Wrong persisted assignment description", description, persistedAssignment.getDescription());
+        assertEquals("Wrong persisted assignment roleRef", roleRefOid, getAssignmentRoleRefOid(persistedAssignment));
+    }
+
+    private void assertCompleteAssignmentDelta(ObjectDelta<?> delta, boolean add, boolean delete, boolean replace,
+            int valuesToAdd, int valuesToDelete, int valuesToReplace) {
+        ContainerDelta<?> assignmentDelta = getOnlyExactAssignmentDelta(delta);
+        assertEquals("Wrong assignment add classification", add, assignmentDelta.isAdd());
+        assertEquals("Wrong assignment delete classification", delete, assignmentDelta.isDelete());
+        assertEquals("Wrong assignment replace classification", replace, assignmentDelta.isReplace());
+        assertEquals("Wrong number of values to add", valuesToAdd, sizeOf(assignmentDelta.getValuesToAdd()));
+        assertEquals("Wrong number of values to delete", valuesToDelete, sizeOf(assignmentDelta.getValuesToDelete()));
+        assertEquals("Wrong number of values to replace", valuesToReplace, sizeOf(assignmentDelta.getValuesToReplace()));
+    }
+
+    private ContainerDelta<?> getOnlyExactAssignmentDelta(ObjectDelta<?> delta) {
+        List<ItemDelta<?, ?>> assignmentDeltas = delta.getModifications().stream()
+                .filter(modification -> modification.getPath().equivalent(UserType.F_ASSIGNMENT))
+                .map(modification -> (ItemDelta<?, ?>) modification)
+                .collect(Collectors.toList());
+        assertThat(assignmentDeltas).as("exact assignment deltas").hasSize(1);
+        assertThat(assignmentDeltas.get(0)).isInstanceOf(ContainerDelta.class);
+        return (ContainerDelta<?>) assignmentDeltas.get(0);
+    }
+
+    private long countExactAssignmentDeltas(ObjectDelta<?> delta) {
+        return delta.getModifications().stream()
+                .filter(modification -> modification.getPath().equivalent(UserType.F_ASSIGNMENT))
+                .count();
+    }
+
+    private int sizeOf(Collection<?> values) {
+        return values != null ? values.size() : 0;
+    }
+
+    private CaseType assignmentApprovalCase(String targetOid) {
+        return new CaseType()
+                .oid("00000001-d34d-b33f-f00d-11000000cafe")
+                .targetRef(targetOid, RoleType.COMPLEX_TYPE)
+                .approvalContext(new ApprovalContextType()
+                        .changeAspect(PolicyRuleBasedAspect.class.getName()));
+    }
+
+    private Set<String> computeApproverOids(CaseType aCase, PrismObject<UserType> object, ObjectDelta<UserType> delta,
+            ComputationMode mode, ExpressionType... expressions) throws Exception {
+        return computeApproverOidsAtStage(aCase, variablesFor(object, delta), mode, 1, expressions);
+    }
+
+    private Set<String> computeApproverOids(CaseType aCase, VariablesMap variables, ComputationMode mode,
+            ExpressionType... expressions) throws Exception {
+        return computeApproverOidsAtStage(aCase, variables, mode, 1, expressions);
+    }
+
+    private Set<String> computeApproverOidsAtStage(CaseType aCase, PrismObject<UserType> object, ObjectDelta<UserType> delta,
+            ComputationMode mode, int stageNumber, ExpressionType... expressions) throws Exception {
+        return computeApproverOidsAtStage(aCase, variablesFor(object, delta), mode, stageNumber, expressions);
+    }
+
+    private Set<String> computeApproverOidsAtStage(CaseType aCase, VariablesMap variables, ComputationMode mode,
+            int stageNumber, ExpressionType... expressions) throws Exception {
+        ApprovalStageDefinitionType stage = new ApprovalStageDefinitionType().number(stageNumber);
+        stage.getApproverExpression().addAll(Arrays.asList(expressions));
+        Task task = getTestTask();
+        ComputationResult computation = stageComputeHelper.computeStageApprovers(
+                stage, aCase, () -> variables, mode, task, task.getResult());
+        return computation.getApproverRefs().stream()
+                .map(ObjectReferenceType::getOid)
+                .collect(Collectors.toSet());
+    }
+
+    private VariablesMap variablesFor(PrismObject<UserType> object, ObjectDelta<UserType> delta) {
+        VariablesMap variables = new VariablesMap();
+        variables.put(ExpressionConstants.VAR_OBJECT, object, object.getDefinition());
+        variables.put(ExpressionConstants.VAR_OBJECT_DELTA, delta, ObjectDelta.class);
+        return variables;
+    }
+
+    private ExpressionType groovyExpression(String code) {
+        return SimpleExpressionUtil.groovyExpression(code, IntegrationTestTools.trustedForTests());
+    }
+
+    private ExpressionType oldCompleteAssignmentExpression(String valuesAccessor, String expectedDescription,
+            String expectedRoleRefOid, String approverOid) {
+        return groovyExpression("""
+                import com.evolveum.midpoint.prism.path.ItemPath
+                import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType
+
+                def containerDelta = objectDelta.findContainerDelta(ItemPath.create(UserType.F_ASSIGNMENT))
+                def values = containerDelta.%s
+                assert values.size() == 1
+                def value = values.iterator().next()
+                assert value.asContainerable().description == '%s'
+                def roleReference = value.find(ItemPath.fromString('extension/roleRef'))
+                assert roleReference.realValue.oid == '%s'
+                '%s'
+                """.formatted(valuesAccessor, expectedDescription, expectedRoleRefOid, approverOid));
+    }
+
+    private ExpressionType assignmentExpression(String expectedTargetOid, String expectedDescription, String expectedId,
+            String expectedRoleRefOid, String approverOid, String... additionalAssertions) {
+        return groovyExpression("""
+                import com.evolveum.midpoint.prism.path.ItemPath
+
+                assert assignment.description == '%s'
+                assert assignment.id == %s
+                assert assignment.targetRef.oid == '%s'
+                def roleReference = assignment.asPrismContainerValue().find(ItemPath.fromString('extension/roleRef'))
+                assert roleReference.realValue.oid == '%s'
+                %s
+                '%s'
+                """.formatted(
+                expectedDescription,
+                expectedId,
+                expectedTargetOid,
+                expectedRoleRefOid,
+                String.join("\n", additionalAssertions),
+                approverOid));
+    }
+
+    private ExpressionType variableAbsentExpression(String approverOid) {
+        return groovyExpression("""
+                assert !this.binding.variables.containsKey('assignment')
+                '%s'
+                """.formatted(approverOid));
+    }
+
+    private void assertAssignmentVariableAbsentAndExpressionUnaffected(PrismObject<UserType> object, ObjectDelta<UserType> delta) throws Exception {
+        PrismObject<UserType> objectBefore = object.clone();
+        ObjectDelta<UserType> deltaBefore = delta.clone();
+        assertThat(computeApproverOids(
+                assignmentApprovalCase(ROLE_ROLE30.oid), object, delta, ComputationMode.EXECUTION,
+                variableAbsentExpression(USER_LEAD21.oid)))
+                .containsExactlyInAnyOrder(USER_LEAD21.oid);
+        assertEquals("Approver evaluation modified the current focus object", objectBefore, object);
+        assertEquals("Approver evaluation modified the approval delta", deltaBefore, delta);
     }
 
     private static class ExpectedStagePreview {

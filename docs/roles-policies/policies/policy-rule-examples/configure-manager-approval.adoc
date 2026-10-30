@@ -443,6 +443,33 @@ For example, the following script ensures that approval from a security officer 
 </approval>
 ----
 
+=== Accessing assignment properties in approver expressions
+
+Since midPoint 4.12, assignment-related `approverExpression` scripts can access the assignment being approved directly through the `assignment` variable. This provides access to its properties, including custom extension values, without manually extracting them from `objectDelta`.
+
+The variable is available for assignment additions, deletions, and modifications.
+
+For example, the following Groovy expression uses the `assignment` variable to select an approver based on the target role's OID, without navigating `objectDelta`:
+
+[source,xml]
+----
+<approverExpression>
+    <script>
+        <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
+        <code>
+            <![CDATA[
+                if (assignment.targetRef?.oid == 'a1100000-0000-4000-8000-000000000011') {
+                    return 'a1100000-0000-4000-8000-000000000002'
+                }
+                return []
+            ]]>
+        </code>
+    </script>
+</approverExpression>
+----
+
+The `assignment` variable is available when midPoint can identify the assignment being approved. If it cannot be determined, the variable is not provided. Existing expressions using `objectDelta` remain supported.
+
 === Escalation and timeouts
 
 Approval actions can be configured with a deadline.
