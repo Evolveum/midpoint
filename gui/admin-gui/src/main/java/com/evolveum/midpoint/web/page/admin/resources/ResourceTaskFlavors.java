@@ -26,6 +26,9 @@ public final class ResourceTaskFlavors<T> implements ResourceTaskFlavor<T> {
                                     .correlators(correlators))
     );
 
+    /**
+     * Creates an inbound mapping simulation work definition with the sampling query applied to resource objects.
+     */
     public static final ResourceTaskFlavors<InlineInboundMappingsDefinitionType> INBOUND_MAPPING_PREVIEW_ACTIVITY =
             new ResourceTaskFlavors<>("Mapping", (resourceObjectSetType, mappings) ->
                     new WorkDefinitionsType()
@@ -34,13 +37,21 @@ public final class ResourceTaskFlavors<T> implements ResourceTaskFlavor<T> {
                                     .inlineMappings(mappings))
             );
 
+    /**
+     * Creates an outbound mapping simulation work definition with the sampling query applied to focus objects.
+     */
     public static final ResourceTaskFlavors<InlineOutboundMappingsDefinitionType> OUTBOUND_MAPPING_PREVIEW_ACTIVITY =
-            new ResourceTaskFlavors<>("OutboundMapping", (resourceObjectSetType, mappings) ->
-                    new WorkDefinitionsType()
-                            .outboundMappingsSimulation(new OutboundMappingsSimulationWorkDefType()
-                                    .resourceObjects(resourceObjectSetType)
-                                    .inlineMappings(mappings))
-            );
+            new ResourceTaskFlavors<>("OutboundMapping", (resourceObjectSetType, mappings) -> {
+                ObjectSetType focusObjects = new ObjectSetType()
+                        .type(UserType.COMPLEX_TYPE)
+                        .query(resourceObjectSetType.getQuery());
+
+                return new WorkDefinitionsType()
+                        .outboundMappingsSimulation(new OutboundMappingsSimulationWorkDefType()
+                                .resourceObjects(resourceObjectSetType)
+                                .focusObjects(focusObjects)
+                                .inlineMappings(mappings));
+            });
 
     public static final ResourceTaskFlavor<Void> IMPORT = SynchronizationTaskFlavor.IMPORT;
     public static final ResourceTaskFlavor<Void> RECONCILIATION = SynchronizationTaskFlavor.RECONCILIATION;

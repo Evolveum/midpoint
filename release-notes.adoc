@@ -38,6 +38,7 @@ Moreover, midPoint 4.11.0 made a significant leap towards secure-by-default conf
 * Requests for unknown paths outside the REST API (for example under /actuator or /static) now return HTTP 404 instead of 500 with a stack trace. See bug:MID-12566[].
 * Prevented oversized string values from corrupting persisted object data and making objects unreadable. See bug:MID-12813[]
 * Fixed statistics regeneration tasks displaying the resource OID instead of its name. See bug:MID-11518[]
+* Fixed outbound mapping simulations ignoring the filter configured in the simulation sampling popup. See bug:MID-12060[]
 
 == Changes With Respect to Version 4.10
 
