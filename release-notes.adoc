@@ -62,6 +62,7 @@ Moreover, midPoint 4.11.0 made a significant leap towards secure-by-default conf
 * Prevented oversized string values from corrupting persisted object data and making objects unreadable. See bug:MID-12813[]
 * Fixed statistics regeneration tasks displaying the resource OID instead of its name. See bug:MID-11518[]
 * Fixed misleading messages after certification campaign actions and prevented an already closed campaign from being closed again. See bug:MID-12832[]
+* Fixed outbound mapping simulations ignoring the filter configured in the simulation sampling popup. See bug:MID-12060[]
 // TODO
 
 
