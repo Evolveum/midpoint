@@ -7,8 +7,6 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.component;
 
-import com.evolveum.midpoint.smart.api.info.HealthStatus;
-
 import com.evolveum.midpoint.web.component.dialog.SuggestionOption;
 
 import org.apache.wicket.AttributeModifier;
@@ -20,6 +18,7 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationWithOptionsDto;
+import com.evolveum.midpoint.web.component.dialog.ConfirmationWithOptionsPopupPanel;
 import com.evolveum.midpoint.web.component.dialog.privacy.DataAccessPermission;
 import com.evolveum.midpoint.web.component.input.ActivityIndicationInteractionsPair;
 import com.evolveum.midpoint.web.component.input.BlockingActionButtonWithConfirmationOptionsDialog;
@@ -37,45 +36,30 @@ import com.evolveum.midpoint.web.component.util.Describable;
 public class SmartSuggestButtonWithConfirmation<T extends Describable>
         extends ButtonWithConfirmationOptionsDialog<T> {
 
+    private final SmartSuggestConfirmationDto<T> confirmationConfig;
+
     public SmartSuggestButtonWithConfirmation(String id, IModel<ButtonConfig<T>> buttonConfig,
-            IModel<ButtonHandlers<T>> clickHandlers) {
+            IModel<ButtonHandlers<T>> clickHandlers, SmartSuggestConfirmationDto<T> confirmationConfig) {
         super(id, buttonConfig, clickHandlers);
+        this.confirmationConfig = confirmationConfig;
+    }
+
+    @Override
+    protected ConfirmationWithOptionsPopupPanel<T> createConfirmationDialog(
+            String id, IModel<ConfirmationWithOptionsDto<T>> dialogConfig, ButtonHandlers<T> dialogHandlers) {
+        return SmartSuggestConfirmationPopupPanel.create(id, confirmationConfig, dialogHandlers);
+    }
+
+    @Override
+    public void onDetach() {
+        confirmationConfig.detach();
+        super.onDetach();
     }
 
     private static ButtonConfig<DataAccessPermission> buildButtonConfig(
-            IModel<String> icon,
-            IModel<String> title,
-            SuggestionOption options,
-            PageBase pageBase) {
-
-        IModel<AiInfo> aiInfoModel = createAiInfoModel(pageBase);
-
-        IModel<ConfirmationWithOptionsDto<DataAccessPermission>> confirmationDialogConfig =
-                () -> ConfirmationWithOptionsDto.<DataAccessPermission>builder()
-                        .confirmationTitle(pageBase.createStringResource("SmartSuggestConfirmationPanel.title"))
-                        .confirmationSubtitle(pageBase.createStringResource("SmartSuggestConfirmationPanel.subtitle"))
-                        .confirmationOptionsTitle(pageBase.createStringResource(
-                                "SmartSuggestConfirmationPanel.request.component.title"))
-                        .infoEntries(aiInfoModel)
-                        .errorMessage(() ->
-                                options.requiresAiService()
-                                        ? getUnavailableMessage(
-                                        pageBase,
-                                        aiInfoModel,
-                                        "SmartSuggestConfirmationPanel.serviceUnreachable.error")
-                                        : null)
-                        .warningMessage(() ->
-                                options.requiresAiService()
-                                        ? null
-                                        : getUnavailableMessage(
-                                        pageBase,
-                                        aiInfoModel,
-                                        "SmartSuggestConfirmationPanel.serviceUnreachable.warning"))
-                        .confirmationOptions(options.confirmationOptions())
-                        .requireAiService(options.requiresAiService())
-                        .build();
-
-        return new ButtonConfig<>(icon, title, confirmationDialogConfig, () -> pageBase);
+            IModel<String> icon, IModel<String> title,
+            SmartSuggestConfirmationDto<DataAccessPermission> confirmationConfig, PageBase pageBase) {
+        return new ButtonConfig<>(icon, title, () -> confirmationConfig.confirmation(), () -> pageBase);
     }
 
     private static IModel<AiInfo> createAiInfoModel(PageBase pageBase) {
@@ -94,23 +78,6 @@ public class SmartSuggestButtonWithConfirmation<T extends Describable>
         };
     }
 
-    private static boolean isAiServiceUnavailable(IModel<AiInfo> aiInfoModel) {
-        AiInfo aiInfo = aiInfoModel.getObject();
-        return aiInfo == null || !HealthStatus.OK.equals(aiInfo.status());
-    }
-
-    private static String getUnavailableMessage(
-            PageBase pageBase,
-            IModel<AiInfo> aiInfoModel,
-            String resourceKey) {
-
-        if (!isAiServiceUnavailable(aiInfoModel)) {
-            return null;
-        }
-
-        return pageBase.createStringResource(resourceKey).getString();
-    }
-
     /**
      * Creates a Smart Suggest button for an *non-blocking* confirm action.
      * <p>
@@ -121,11 +88,13 @@ public class SmartSuggestButtonWithConfirmation<T extends Describable>
             SuggestionOption options,
             IModel<ButtonHandlers<DataAccessPermission>> clickHandlers, PageBase pageBase) {
 
+        SmartSuggestConfirmationDto<DataAccessPermission> confirmationConfig =
+                SmartSuggestConfirmationDto.create(pageBase, options, createAiInfoModel(pageBase));
         final ButtonConfig<DataAccessPermission> buttonConfig =
-                buildButtonConfig(icon, title, options, pageBase);
+                buildButtonConfig(icon, title, confirmationConfig, pageBase);
 
         final SmartSuggestButtonWithConfirmation<DataAccessPermission> button =
-                new SmartSuggestButtonWithConfirmation<>(id, () -> buttonConfig, clickHandlers);
+                new SmartSuggestButtonWithConfirmation<>(id, () -> buttonConfig, clickHandlers, confirmationConfig);
         button.add(AttributeModifier.append("class", "btn btn-purple"));
         return button;
     }
@@ -145,12 +114,27 @@ public class SmartSuggestButtonWithConfirmation<T extends Describable>
         // We need to be sure, the models support the `setObject` operation for activity indication.
         final IModel<String> settableIcon = Model.of(icon.getObject());
         final IModel<String> settableTitle = Model.of(title.getObject());
+        SmartSuggestConfirmationDto<DataAccessPermission> confirmationConfig =
+                SmartSuggestConfirmationDto.create(pageBase, options, createAiInfoModel(pageBase));
         final ButtonConfig<DataAccessPermission> buttonConfig =
-                buildButtonConfig(settableIcon, settableTitle, options, pageBase);
+                buildButtonConfig(settableIcon, settableTitle, confirmationConfig, pageBase);
 
         final BlockingActionButtonWithConfirmationOptionsDialog<DataAccessPermission> button =
                 new BlockingActionButtonWithConfirmationOptionsDialog<>(id, () -> buttonConfig, clickHandlers,
-                        new ActivityIndicationInteractionsPair(activityIndicationIcon, activityIndicationTitle, true));
+                        new ActivityIndicationInteractionsPair(activityIndicationIcon, activityIndicationTitle, true)) {
+                    @Override
+                    protected ConfirmationWithOptionsPopupPanel<DataAccessPermission> createConfirmationDialog(
+                            String dialogId, IModel<ConfirmationWithOptionsDto<DataAccessPermission>> dialogConfig,
+                            ButtonHandlers<DataAccessPermission> dialogHandlers) {
+                        return SmartSuggestConfirmationPopupPanel.create(dialogId, confirmationConfig, dialogHandlers);
+                    }
+
+                    @Override
+                    public void onDetach() {
+                        confirmationConfig.detach();
+                        super.onDetach();
+                    }
+                };
         button.add(AttributeModifier.append("class", "btn btn-purple"));
         return button;
     }

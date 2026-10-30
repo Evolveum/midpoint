@@ -34,7 +34,7 @@ The operation runs as a background task which is submitted by `SmartIntegrationS
 The activity has three child activities that run in this order:
 
 . `statisticsComputation` - computes object type statistics for the resource object type, or reuses the latest existing statistics.
-The step is skipped if the `RAW_DATA_ACCESS` permission is not granted.
+This is a purely local computation, so it runs regardless of the granted data access permissions.
 . `schemaMatching` - computes the schema match (attribute pairs) and stores it as a smart integration artifact, see xref:../../schema-match.adoc[Schema match].
 The match is AI-assisted only if the `SCHEMA_ACCESS` permission is granted.
 If `SCHEMA_ACCESS` is granted and a recomputation is not forced, the latest existing (non-expired) schema match is reused instead of being computed again.
@@ -85,7 +85,7 @@ Without it, only as-is, heuristic and system mappings are evaluated.
 
 | Object type statistics
 | no
-| `ObjectSetStatisticsType` computed by the `statisticsComputation` step (available only with `RAW_DATA_ACCESS`).
+| `ObjectSetStatisticsType` computed by the `statisticsComputation` step.
 It is used to detect attributes whose values are mostly missing and to get value distributions for categorical mappings.
 
 | Force schema match recomputation (`forceRecomputeSchemaMatch`)
