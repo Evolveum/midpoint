@@ -20,6 +20,7 @@ import org.apache.wicket.model.Model;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.smart.api.info.AiInfo;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationOption;
+import com.evolveum.midpoint.web.component.dialog.ConfirmationResult;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationWithOptionsContentPanel;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationWithOptionsPopupPanel;
 import com.evolveum.midpoint.web.component.input.ButtonWithConfirmationOptionsDialog.ButtonHandlers;
@@ -104,6 +105,11 @@ public class SmartSuggestConfirmationPopupPanel<T extends Describable>
     }
 
     @Override
+    protected ConfirmationResult<T> createConfirmationResult() {
+        return new ConfirmationResult<>(super.createConfirmationResult().selectedOptions(), config.isAiAvailable());
+    }
+
+    @Override
     public IModel<String> getTitle() {
         return () -> config.aiInfo() != null && !config.isAiAvailable()
                 ? createStringResource("ConfirmationWithOptionsDto.aiServiceUnavailable").getString()
@@ -121,8 +127,8 @@ public class SmartSuggestConfirmationPopupPanel<T extends Describable>
         return new SmartSuggestConfirmationPopupPanel<>(id, config) {
             @Override
             protected void confirmationPerformed(AjaxRequestTarget target,
-                    IModel<List<ConfirmationOption<T>>> confirmedOptions) {
-                handlers.confirmHandler().accept(target, confirmedOptions);
+                    IModel<ConfirmationResult<T>> confirmationResult) {
+                handlers.confirmHandler().accept(target, confirmationResult);
             }
 
             @Override
