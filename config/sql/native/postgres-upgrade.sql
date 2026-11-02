@@ -1603,6 +1603,85 @@ call apply_change(67, $aa$
         ON m_smart_integration_artifact (resourceRefTargetOid, objectClassId);
 $aa$);
 
+
+-- #68 enum values (ALTER TYPE ... ADD VALUE needs a change of its own)
+ALTER TYPE ContainerType ADD VALUE IF NOT EXISTS 'POLICY_RULE' AFTER 'OUTLIER_PARTITION';
+ALTER TYPE ReferenceType ADD VALUE IF NOT EXISTS 'ASSIGNMENT_POLICY_RULE_REF' AFTER 'ASSIGNMENT_EFFECTIVE_MARK';
+ALTER TYPE ReferenceType ADD VALUE IF NOT EXISTS 'POLICY_RULE_REF' AFTER 'PERSONA';
+ALTER TYPE ReferenceType ADD VALUE IF NOT EXISTS 'TASK_ACTIVITY_POLICY' AFTER 'TASK_AFFECTED_OBJECT';
+
+-- #69 m_assignment columns, tables and indexes
+
+-- embedded rules (assignment/inducement): columns are NULL when there is no policyRule
+ALTER TABLE m_assignment
+    ADD COLUMN policyRuleConstraints INTEGER[],       -- m_uri IDs of constraint element QNames, any depth;
+                                                      -- NOT NULL exactly when a rule exists
+    ADD COLUMN policyRuleActions INTEGER[];           -- m_uri IDs of action element QNames; '{}' = no actions
+
+CREATE INDEX m_assignment_policyRuleConstraints_idx ON m_assignment
+    USING gin(policyRuleConstraints gin__int_ops) WHERE policyRuleConstraints IS NOT NULL;
+CREATE INDEX m_assignment_policyRuleActions_idx ON m_assignment
+    USING gin(policyRuleActions gin__int_ops) WHERE policyRuleConstraints IS NOT NULL;
+
+-- @description: References of embedded policy rules (constraint targets, markRef).
+CREATE TABLE m_ref_assignment_policy_rule (
+                                              ownerOid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
+                                              assignmentCid INTEGER NOT NULL,
+                                              holderItemId INTEGER NOT NULL REFERENCES m_uri(id), -- constraint element, or policyRule for markRef
+                                              refItem TEXT NOT NULL,                            -- 'targetRef' | 'targetArchetypeRef' | 'markRef'
+                                              referenceType ReferenceType GENERATED ALWAYS AS ('ASSIGNMENT_POLICY_RULE_REF') STORED
+        CHECK (referenceType = 'ASSIGNMENT_POLICY_RULE_REF'),
+                                              PRIMARY KEY (ownerOid, assignmentCid, holderItemId, refItem, relationId, targetOid),
+                                              FOREIGN KEY (ownerOid, assignmentCid) REFERENCES m_assignment (ownerOid, cid) ON DELETE CASCADE
+)
+    INHERITS (m_reference);
+
+CREATE INDEX m_ref_assignment_policy_rule_targetOidRelationId_idx
+    ON m_ref_assignment_policy_rule (targetOid, relationId);
+
+-- @description: Multi-valued policy rules (MarkType/policyRule, TaskType activity policies).
+CREATE TABLE m_policy_rule (
+                               ownerOid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
+                               containerType ContainerType GENERATED ALWAYS AS ('POLICY_RULE') STORED
+        CHECK (containerType = 'POLICY_RULE'),
+                               ownerType ObjectType NOT NULL,                    -- MARK or TASK; identifies the source item
+                               policyConstraints INTEGER[] NOT NULL,
+                               policyActions INTEGER[] NOT NULL,
+                               PRIMARY KEY (ownerOid, cid)                       -- cid = the rule's own container ID
+)
+    INHERITS (m_container);
+
+CREATE INDEX m_policy_rule_policyConstraints_idx ON m_policy_rule USING gin(policyConstraints gin__int_ops);
+CREATE INDEX m_policy_rule_policyActions_idx ON m_policy_rule USING gin(policyActions gin__int_ops);
+
+-- @description: References of multivalued policy rules (constraint targets, markRef).
+CREATE TABLE m_ref_policy_rule (
+                                   ownerOid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
+                                   policyRuleCid INTEGER NOT NULL,
+                                   holderItemId INTEGER NOT NULL REFERENCES m_uri(id),
+                                   refItem TEXT NOT NULL,
+                                   referenceType ReferenceType GENERATED ALWAYS AS ('POLICY_RULE_REF') STORED
+        CHECK (referenceType = 'POLICY_RULE_REF'),
+                                   PRIMARY KEY (ownerOid, policyRuleCid, holderItemId, refItem, relationId, targetOid),
+                                   FOREIGN KEY (ownerOid, policyRuleCid) REFERENCES m_policy_rule (ownerOid, cid) ON DELETE CASCADE
+)
+    INHERITS (m_reference);
+
+CREATE INDEX m_ref_policy_rule_targetOidRelationId_idx
+    ON m_ref_policy_rule (targetOid, relationId);
+
+-- @description: policyRef of activity policies, from any activity of the task (incl. tailoring).
+CREATE TABLE m_ref_task_activity_policy (
+                                            ownerOid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
+                                            referenceType ReferenceType GENERATED ALWAYS AS ('TASK_ACTIVITY_POLICY') STORED
+        CHECK (referenceType = 'TASK_ACTIVITY_POLICY'),
+                                            PRIMARY KEY (ownerOid, relationId, targetOid)
+)
+    INHERITS (m_reference);
+
+CREATE INDEX m_ref_task_activity_policy_targetOidRelationId_idx
+    ON m_ref_task_activity_policy (targetOid, relationId);
+
 ---
 -- WRITE CHANGES ABOVE ^^
 -- IMPORTANT: update apply_change number at the end of postgres-new.sql

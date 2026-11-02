@@ -74,6 +74,7 @@ CREATE TYPE ContainerType AS ENUM (
     'LOOKUP_TABLE_ROW',
     'OPERATION_EXECUTION',
     'OUTLIER_PARTITION',
+    'POLICY_RULE',
     'SIMULATION_RESULT_PROCESSED_OBJECT',
     'TRIGGER');
 
@@ -131,6 +132,7 @@ CREATE TYPE ReferenceType AS ENUM (
     'ASSIGNMENT_CREATE_APPROVER',
     'ASSIGNMENT_MODIFY_APPROVER',
     'ASSIGNMENT_EFFECTIVE_MARK',
+    'ASSIGNMENT_POLICY_RULE_REF',
     'ACCESS_CERT_WI_ASSIGNEE',
     'ACCESS_CERT_WI_CANDIDATE',
     'CASE_WI_ASSIGNEE',
@@ -142,10 +144,12 @@ CREATE TYPE ReferenceType AS ENUM (
     'OBJECT_MODIFY_APPROVER',
     'OBJECT_PARENT_ORG',
     'PERSONA',
+    'POLICY_RULE_REF',
     'PROCESSED_OBJECT_EVENT_MARK',
     'PROJECTION',
     'RESOURCE_BUSINESS_CONFIGURATION_APPROVER',
     'ROLE_MEMBERSHIP',
+    'TASK_ACTIVITY_POLICY',
     'TASK_AFFECTED_OBJECT');
 
 -- @description: Identifies whether an extension item belongs to object extension data or resource attributes.
@@ -2940,6 +2944,21 @@ ALTER TABLE m_ref_task_affected_object ADD CONSTRAINT m_ref_task_affected_object
 -- @usedFor: task affected object target searches
 CREATE INDEX m_ref_task_affected_object_targetOidRelationId_idx
     ON m_ref_task_affected_object (targetOid, relationId);
+
+-- @description: Stores policyRef references of activity policies from any activity of the task, including tailoring.
+CREATE TABLE m_ref_task_activity_policy (
+    -- @description: OID of the task that owns the activity policy reference.
+    ownerOid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
+    referenceType ReferenceType GENERATED ALWAYS AS ('TASK_ACTIVITY_POLICY') STORED
+        CHECK (referenceType = 'TASK_ACTIVITY_POLICY'),
+    PRIMARY KEY (ownerOid, relationId, targetOid)
+)
+    INHERITS (m_reference);
+
+-- @description: Speeds up reverse lookup of activity policy references by target object and relation.
+-- @usedFor: task activity policyRef searches
+CREATE INDEX m_ref_task_activity_policy_targetOidRelationId_idx
+    ON m_ref_task_activity_policy (targetOid, relationId);
 -- endregion
 
 -- @region: cases-and-certification
@@ -3710,6 +3729,10 @@ CREATE TABLE m_assignment (
     policySituations INTEGER[], -- soft-references m_uri, add index per table
     -- @description: Assignment subtype values used for subtype filtering.
     subtypes TEXT[], -- only EQ filter
+    -- @description: URI identifiers (m_uri) of the constraint element names of the embedded policy rule, at any depth; NULL when the assignment has no policy rule.
+    policyRuleConstraints INTEGER[], -- soft-references m_uri
+    -- @description: URI identifiers (m_uri) of the action element names of the embedded policy rule; empty when the rule has no actions.
+    policyRuleActions INTEGER[], -- soft-references m_uri
     -- @description: Indexed extension values stored as JSON data.
     ext JSONB,
     -- construction
@@ -3821,6 +3844,14 @@ CREATE INDEX m_assignment_policySituation_idx
 -- @description: Speeds up filtering by assignment subtype.
 -- @usedFor: subtype filters
 CREATE INDEX m_assignment_subtypes_idx ON m_assignment USING gin(subtypes);
+-- @description: Speeds up filtering of assignments and inducements by constraint types of their embedded policy rule.
+-- @usedFor: policy rule constraint type filters
+CREATE INDEX m_assignment_policyRuleConstraints_idx ON m_assignment
+    USING gin(policyRuleConstraints gin__int_ops) WHERE policyRuleConstraints IS NOT NULL;
+-- @description: Speeds up filtering of assignments and inducements by action types of their embedded policy rule.
+-- @usedFor: policy rule action type filters
+CREATE INDEX m_assignment_policyRuleActions_idx ON m_assignment
+    USING gin(policyRuleActions gin__int_ops) WHERE policyRuleConstraints IS NOT NULL;
 -- @description: Speeds up filtering by indexed extension values.
 -- @usedFor: extension item filters
 CREATE INDEX m_assignment_ext_idx ON m_assignment USING gin(ext);
@@ -3870,6 +3901,32 @@ CREATE TABLE m_ref_assignment_effective_mark (
 -- @usedFor: assignment effective mark reference target searches
 CREATE INDEX m_ref_assignment_effective_mark_targetOidRelationId_idx
     ON m_ref_assignment_effective_mark (targetOid, relationId);
+
+-- stores assignment/policyRule references (constraint targets, markRef)
+-- @description: Stores object references of policy rules embedded in assignments and inducements (constraint targets and mark references).
+CREATE TABLE m_ref_assignment_policy_rule (
+    -- @description: OID of the object that owns the assignment or inducement.
+    ownerOid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
+    -- @description: Container ID of the assignment or inducement holding the policy rule.
+    assignmentCid INTEGER NOT NULL,
+    -- @description: URI identifier (m_uri) of the element holding the reference: the constraint element, or policyRule for rule-level references.
+    holderItemId INTEGER NOT NULL REFERENCES m_uri(id),
+    -- @description: Name of the reference item: targetRef, targetArchetypeRef or markRef.
+    refItem TEXT NOT NULL,
+    referenceType ReferenceType GENERATED ALWAYS AS ('ASSIGNMENT_POLICY_RULE_REF') STORED
+        CHECK (referenceType = 'ASSIGNMENT_POLICY_RULE_REF'),
+    PRIMARY KEY (ownerOid, assignmentCid, holderItemId, refItem, relationId, targetOid)
+)
+    INHERITS (m_reference);
+
+ALTER TABLE m_ref_assignment_policy_rule ADD CONSTRAINT m_ref_assignment_policy_rule_id_fk
+    FOREIGN KEY (ownerOid, assignmentCid) REFERENCES m_assignment (ownerOid, cid)
+        ON DELETE CASCADE;
+
+-- @description: Speeds up reverse lookup of assignment policy rule references by target object and relation.
+-- @usedFor: policy rule target and mark reference searches
+CREATE INDEX m_ref_assignment_policy_rule_targetOidRelationId_idx
+    ON m_ref_assignment_policy_rule (targetOid, relationId);
 
 
 ALTER TABLE "m_assignment_metadata"
@@ -4002,6 +4059,54 @@ CREATE INDEX m_operation_execution_taskRefTargetOid_idx
 CREATE INDEX m_operation_execution_timestamp_idx ON m_operation_execution (timestamp);
 -- index for ownerOid is part of PK
 -- TODO: index for status is questionable, don't we want WHERE status = ... to another index instead?
+-- Represents multi-valued PolicyRuleType definitions: MarkType/policyRule and TaskType activity policies.
+-- Policy rules embedded in assignments/inducements are indexed on m_assignment instead.
+-- @description: Stores the search index of multi-valued policy rules (mark policy rules and task activity policies) by their definition site.
+CREATE TABLE m_policy_rule (
+    -- @description: OID of the mark or task that defines the policy rule.
+    ownerOid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
+    containerType ContainerType GENERATED ALWAYS AS ('POLICY_RULE') STORED
+        CHECK (containerType = 'POLICY_RULE'),
+    -- @description: URI identifiers (m_uri) of the constraint element names of the rule, at any depth.
+    policyConstraints INTEGER[] NOT NULL, -- soft-references m_uri
+    -- @description: URI identifiers (m_uri) of the action element names of the rule; empty when the rule has no actions.
+    policyActions INTEGER[] NOT NULL, -- soft-references m_uri
+
+    PRIMARY KEY (ownerOid, cid)
+)
+    INHERITS(m_container);
+
+-- @description: Speeds up filtering of policy rules by constraint type.
+-- @usedFor: policy rule constraint type filters
+CREATE INDEX m_policy_rule_policyConstraints_idx ON m_policy_rule USING gin(policyConstraints gin__int_ops);
+-- @description: Speeds up filtering of policy rules by action type.
+-- @usedFor: policy rule action type filters
+CREATE INDEX m_policy_rule_policyActions_idx ON m_policy_rule USING gin(policyActions gin__int_ops);
+
+-- @description: Stores object references of multi-valued policy rules (constraint targets and mark references).
+CREATE TABLE m_ref_policy_rule (
+    -- @description: OID of the mark or task that defines the policy rule.
+    ownerOid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
+    -- @description: Container ID of the policy rule.
+    policyRuleCid INTEGER NOT NULL,
+    -- @description: URI identifier (m_uri) of the element holding the reference: the constraint element, or policyRule for rule-level references.
+    holderItemId INTEGER NOT NULL REFERENCES m_uri(id),
+    -- @description: Name of the reference item: targetRef, targetArchetypeRef or markRef.
+    refItem TEXT NOT NULL,
+    referenceType ReferenceType GENERATED ALWAYS AS ('POLICY_RULE_REF') STORED
+        CHECK (referenceType = 'POLICY_RULE_REF'),
+    PRIMARY KEY (ownerOid, policyRuleCid, holderItemId, refItem, relationId, targetOid)
+)
+    INHERITS (m_reference);
+
+ALTER TABLE m_ref_policy_rule ADD CONSTRAINT m_ref_policy_rule_id_fk
+    FOREIGN KEY (ownerOid, policyRuleCid) REFERENCES m_policy_rule (ownerOid, cid)
+        ON DELETE CASCADE;
+
+-- @description: Speeds up reverse lookup of policy rule references by target object and relation.
+-- @usedFor: policy rule target and mark reference searches
+CREATE INDEX m_ref_policy_rule_targetOidRelationId_idx
+    ON m_ref_policy_rule (targetOid, relationId);
 -- endregion
 
 
@@ -4327,4 +4432,4 @@ END $$;
 -- This is important to avoid applying any change more than once.
 -- Also update SqaleUtils.CURRENT_SCHEMA_CHANGE_NUMBER
 -- repo/repo-sqale/src/main/java/com/evolveum/midpoint/repo/sqale/SqaleUtils.java
-call apply_change(67, $$ SELECT 1 $$, true);
+call apply_change(69, $$ SELECT 1 $$, true);
