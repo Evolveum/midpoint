@@ -67,7 +67,7 @@ public class ProvenanceBuiltinMapping extends BaseBuiltinMetadataMapping {
         LOGGER.trace("Computing provenance during value transformation. Input values:\n{}", lazy(() -> dumpInput(input)));
 
         ProvenanceMetadataType provenance = new ProvenanceMetadataType()
-                .mappingSpecification(computation.getMappingSpecification());
+                .mappingSpecification(CloneUtil.clone(computation.getMappingSpecification()));
         provenance.getAcquisition().addAll(collectAcquisitions(input));
 
         LOGGER.trace("Output: provenance:\n{}", lazy(() -> provenance.asPrismContainerValue().debugDump()));

@@ -14,6 +14,7 @@ import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectable;
 import static com.evolveum.midpoint.util.MiscUtil.castSafely;
 import static com.evolveum.midpoint.util.MiscUtil.stateNonNull;
 
+import java.lang.ref.WeakReference;
 import java.util.*;
 import javax.xml.namespace.QName;
 
@@ -48,6 +49,7 @@ import com.evolveum.midpoint.schema.processor.ShadowAssociationValue;
 import com.evolveum.midpoint.schema.processor.SynchronizationReactionDefinition.ItemSynchronizationReactionDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.AbstractShadow;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -69,7 +71,15 @@ class AssociationSynchronizationExpressionEvaluator
     private static final String OP_PROCESS_ASSOCIATION_VALUE =
             AssociationSynchronizationExpressionEvaluator.class.getName() + ".processAssociationValue";
 
-    private Evaluation lastEvaluation;
+    /**
+     * What {@link #doesVetoTargetValueRemoval} needs of the last evaluation executed on the current thread.
+     * Must be thread-confined: this evaluator instance is shared JVM-wide via the {@code ExpressionFactory} cache,
+     * so a plain field is subject to a data race between worker threads of multi-threaded tasks (and between
+     * concurrently running tasks). Only the association definition and the task are kept, not the whole
+     * evaluation: that one holds the lens context, and every thread that ever evaluated would keep one alive.
+     */
+    private final ThreadLocal<Map.Entry<ShadowAssociationDefinition, WeakReference<Task>>> lastRemovalVeto =
+            new ThreadLocal<>();
 
     AssociationSynchronizationExpressionEvaluator(
             QName elementName,
@@ -97,14 +107,17 @@ class AssociationSynchronizationExpressionEvaluator
         Collection<? extends PrismValue> inputValues = inputTriple != null ? inputTriple.getNonNegativeValues() : List.of();
 
         // Actually, this should be called only once; at least for mappings
-        lastEvaluation = new Evaluation(inputValues, associationDefinition, context);
-        return lastEvaluation.process(result);
+        var evaluation = new Evaluation(inputValues, associationDefinition, context);
+        lastRemovalVeto.set(new AbstractMap.SimpleImmutableEntry<>(associationDefinition, new WeakReference<>(context.getTask())));
+        return evaluation.process(result);
     }
 
     @Override
     public boolean doesVetoTargetValueRemoval(@NotNull PrismContainerValue<AssignmentType> value, @NotNull OperationResult result) {
-        return stateNonNull(lastEvaluation, "No last evaluation?")
-                .doesVetoTargetValueRemoval(value, result);
+        var last = stateNonNull(lastRemovalVeto.get(), "No last evaluation?");
+        return Evaluation.doesVetoTargetValueRemoval(last.getKey(),
+                stateNonNull(last.getValue().get(), "The task of the last evaluation is gone"),
+                value, result);
     }
 
     class Evaluation {
@@ -182,7 +195,8 @@ class AssociationSynchronizationExpressionEvaluator
          *
          * We don't support multi-tag resources here. Nor fancy assignments with filters etc.
          */
-        boolean doesVetoTargetValueRemoval(PrismContainerValue<AssignmentType> value, OperationResult result) {
+        static boolean doesVetoTargetValueRemoval(ShadowAssociationDefinition associationDefinition, Task task,
+                PrismContainerValue<AssignmentType> value, OperationResult result) {
             LOGGER.trace("Considering whether to veto the removal of {}", value);
             try {
                 var assignmentTargetRef = value.asContainerable().getTargetRef();
@@ -218,7 +232,7 @@ class AssociationSynchronizationExpressionEvaluator
                 for (var linkRef : linkRefs) {
                     shadows.add(
                             ModelBeans.get().provisioningService.getShadow(
-                                    linkRef.getOid(), noFetchOptions, context.getTask(), result));
+                                    linkRef.getOid(), noFetchOptions, task, result));
                 }
                 var matchingShadows = shadows.stream()
                         .filter(shadow -> associationDefinition.matches(shadow.getBean()))
