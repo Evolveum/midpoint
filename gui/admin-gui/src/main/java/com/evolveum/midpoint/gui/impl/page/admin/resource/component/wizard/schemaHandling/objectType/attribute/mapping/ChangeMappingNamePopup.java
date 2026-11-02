@@ -84,7 +84,7 @@ public class ChangeMappingNamePopup extends SimplePopupable {
         footer = new Fragment(Popupable.ID_FOOTER, ID_BUTTONS, this);
 
         AjaxIconButton createNewTask = new AjaxIconButton(ID_APPLY_CHANGES,
-                () -> "fa fa-arrow",
+                () -> "fa-solid fa-arrow-right",
                 createStringResource("ChangeLifecycleSelectedMappingsPopup.applyChanges")) {
 
             @Override
