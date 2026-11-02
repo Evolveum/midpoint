@@ -69,7 +69,12 @@ class AssociationSynchronizationExpressionEvaluator
     private static final String OP_PROCESS_ASSOCIATION_VALUE =
             AssociationSynchronizationExpressionEvaluator.class.getName() + ".processAssociationValue";
 
-    private Evaluation lastEvaluation;
+    /**
+     * Last evaluation executed on the current thread. Must be thread-confined: this evaluator instance
+     * is shared JVM-wide via the {@code ExpressionFactory} cache, so a plain field is subject to a data
+     * race between worker threads of multi-threaded tasks (and between concurrently running tasks).
+     */
+    private final ThreadLocal<Evaluation> lastEvaluation = new ThreadLocal<>();
 
     AssociationSynchronizationExpressionEvaluator(
             QName elementName,
@@ -97,13 +102,14 @@ class AssociationSynchronizationExpressionEvaluator
         Collection<? extends PrismValue> inputValues = inputTriple != null ? inputTriple.getNonNegativeValues() : List.of();
 
         // Actually, this should be called only once; at least for mappings
-        lastEvaluation = new Evaluation(inputValues, associationDefinition, context);
-        return lastEvaluation.process(result);
+        var evaluation = new Evaluation(inputValues, associationDefinition, context);
+        lastEvaluation.set(evaluation);
+        return evaluation.process(result);
     }
 
     @Override
     public boolean doesVetoTargetValueRemoval(@NotNull PrismContainerValue<AssignmentType> value, @NotNull OperationResult result) {
-        return stateNonNull(lastEvaluation, "No last evaluation?")
+        return stateNonNull(lastEvaluation.get(), "No last evaluation?")
                 .doesVetoTargetValueRemoval(value, result);
     }
 
