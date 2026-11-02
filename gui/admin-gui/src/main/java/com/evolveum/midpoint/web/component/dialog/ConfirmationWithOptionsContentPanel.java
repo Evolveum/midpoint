@@ -14,6 +14,7 @@ import com.evolveum.midpoint.web.component.util.Describable;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
 import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.form.AjaxCheckBox;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -40,7 +41,6 @@ public class ConfirmationWithOptionsContentPanel<T extends Describable>
     private static final String ID_ERROR_TEXT = "errorText";
     private static final String ID_WARNING_MESSAGE = "warningMessage";
     private static final String ID_WARNING_TEXT = "warningText";
-    private static final String ID_INFO_DETAILS = "infoDetails";
     private static final String ID_OPTIONS_CONTAINER = "requestContainer";
     private static final String ID_OPTION_LABEL = "requestLabel";
     private static final String ID_LIST_VIEW = "listView";
@@ -48,11 +48,7 @@ public class ConfirmationWithOptionsContentPanel<T extends Describable>
     private static final String ID_OPTION_TITLE = "title";
     private static final String ID_OPTION_DESCRIPTION = "description";
     private static final String ID_OPTION_ACTION = "action";
-
-    private static final String ID_AI_PROVIDER = "aiProvider";
-    private static final String ID_AI_MODEL = "aiModel";
-    private static final String ID_AI_STATUS_CONTAINER = "aiStatusContainer";
-    private static final String ID_AI_STATUS = "aiStatus";
+    private static final String ID_ADDITIONAL_CONTENT = "additionalContent";
 
     public ConfirmationWithOptionsContentPanel(
             String id,
@@ -69,14 +65,14 @@ public class ConfirmationWithOptionsContentPanel<T extends Describable>
         initInfoMessage();
         initErrorMessage();
         initWarningMessage();
-        initAiInfo();
+        add(createAdditionalContent(ID_ADDITIONAL_CONTENT));
         initOptions();
     }
 
     private void addSubtitle() {
         Label subtitle = new Label(ID_SUBTITLE, getDto().getConfirmationSubtitle());
         subtitle.setOutputMarkupPlaceholderTag(true);
-        subtitle.add(new VisibleBehaviour(() -> getDto().isAiServiceAvailable()));
+        subtitle.add(new VisibleBehaviour(this::isSubtitleVisible));
         add(subtitle);
     }
 
@@ -123,22 +119,17 @@ public class ConfirmationWithOptionsContentPanel<T extends Describable>
         add(warningContainer);
     }
 
-    private void initAiInfo() {
-        WebMarkupContainer aiInfoContainer = new WebMarkupContainer(ID_INFO_DETAILS);
-        aiInfoContainer.setOutputMarkupId(true);
-        aiInfoContainer.add(new VisibleBehaviour(() -> getDto().hasAiInfo() && getDto().isAiAvailable()));
+    protected boolean isSubtitleVisible() {
+        IModel<String> subtitle = getDto().getConfirmationSubtitle();
+        return subtitle != null && subtitle.getObject() != null && !subtitle.getObject().isEmpty();
+    }
 
-        aiInfoContainer.add(new Label(ID_AI_PROVIDER, () -> getDto().getAiProviderText()));
-        aiInfoContainer.add(new Label(ID_AI_MODEL, () -> getDto().getAiModelText()));
+    protected boolean isOptionsVisible() {
+        return true;
+    }
 
-        WebMarkupContainer aiStatusContainer = new WebMarkupContainer(ID_AI_STATUS_CONTAINER);
-        aiStatusContainer.setOutputMarkupId(true);
-        aiStatusContainer.add(AttributeModifier.append("class", () -> getDto().getAiStatusCss()));
-        aiStatusContainer.add(new Label(ID_AI_STATUS, () -> getDto().getAiStatusText()));
-
-        aiInfoContainer.add(aiStatusContainer);
-
-        add(aiInfoContainer);
+    protected Component createAdditionalContent(String id) {
+        return new WebMarkupContainer(id).setVisible(false);
     }
 
     private void initOptions() {
@@ -148,7 +139,7 @@ public class ConfirmationWithOptionsContentPanel<T extends Describable>
 
         WebMarkupContainer container = new WebMarkupContainer(ID_OPTIONS_CONTAINER);
         container.setOutputMarkupId(true);
-        container.add(new VisibleBehaviour(() -> getDto().isOptionVisible() && numberOfOptions() > 0));
+        container.add(new VisibleBehaviour(() -> isOptionsVisible() && numberOfOptions() > 0));
         form.add(container);
 
         container.add(new Label(ID_OPTION_LABEL, getModelObject().getConfirmationOptionsTitle()));

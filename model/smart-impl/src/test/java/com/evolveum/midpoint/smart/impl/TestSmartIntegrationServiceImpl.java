@@ -1299,6 +1299,7 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
                 null,
                 List.of(DataAccessPermissionType.SCHEMA_ACCESS),
                 false,
+                true,
                 task,
                 result);
 

@@ -17,6 +17,8 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.api.component.button.DropdownButtonDto;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.component.SmartSuggestConfirmationDto;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.component.SmartSuggestConfirmationPopupPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.table.SmartObjectTypeSuggestionTable;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerValue;
@@ -24,17 +26,14 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.smart.api.RegenerateMode;
 import com.evolveum.midpoint.smart.api.info.AiInfo;
-import com.evolveum.midpoint.smart.api.info.HealthStatus;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.web.component.dialog.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.dialog.ConfirmationOption;
-import com.evolveum.midpoint.web.component.dialog.ConfirmationWithOptionsDto;
-import com.evolveum.midpoint.web.component.dialog.ConfirmationWithOptionsPopupPanel;
-import com.evolveum.midpoint.web.component.dialog.SuggestionOption;
 import com.evolveum.midpoint.web.component.dialog.privacy.DataAccessPermission;
 import com.evolveum.midpoint.web.component.input.SplitButtonWithDropdownMenu;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
@@ -336,37 +335,17 @@ public abstract class ResourceSuggestedObjectTypeTableWizardPanel<P extends Cont
         SuggestionOption suggestionOption = SuggestionOption.aiOnly(ConfirmationOption.delineationPermissionsOptions());
         IModel<AiInfo> aiInfoModel = createAiInfoModel();
 
-        ConfirmationWithOptionsDto<DataAccessPermission> confirmationDto =
-                ConfirmationWithOptionsDto.<DataAccessPermission>builder()
-                        .confirmationTitle(createStringResource("SmartSuggestConfirmationPanel.title"))
-                        .confirmationSubtitle(createStringResource("SmartSuggestConfirmationPanel.subtitle"))
-                        .confirmationOptionsTitle(createStringResource(
-                                "SmartSuggestConfirmationPanel.request.component.title"))
-                        .infoEntries(aiInfoModel)
-                        .errorMessage(() ->
-                                suggestionOption.requiresAiService()
-                                        ? getAiUnavailableMessage(
-                                        aiInfoModel,
-                                        "SmartSuggestConfirmationPanel.serviceUnreachable.error")
-                                        : null)
-                        .warningMessage(() ->
-                                suggestionOption.requiresAiService()
-                                        ? null
-                                        : getAiUnavailableMessage(
-                                        aiInfoModel,
-                                        "SmartSuggestConfirmationPanel.serviceUnreachable.warning"))
-                        .confirmationOptions(suggestionOption.confirmationOptions())
-                        .requireAiService(suggestionOption.requiresAiService())
-                        .build();
+        SmartSuggestConfirmationDto<DataAccessPermission> confirmationDto =
+                SmartSuggestConfirmationDto.create(getPageBase(), suggestionOption, aiInfoModel);
 
-        ConfirmationWithOptionsPopupPanel<DataAccessPermission> dialog =
-                new ConfirmationWithOptionsPopupPanel<>(getPageBase().getMainPopupBodyId(), Model.of(confirmationDto)) {
-            @Override
-            public void confirmationPerformed(AjaxRequestTarget target,
-                    IModel<List<ConfirmationOption<DataAccessPermission>>> confirmedOptions) {
-                refreshSuggestionPerform(target, confirmedOptions, regenerateMode);
-            }
-        };
+        SmartSuggestConfirmationPopupPanel<DataAccessPermission> dialog =
+                new SmartSuggestConfirmationPopupPanel<>(getPageBase().getMainPopupBodyId(), confirmationDto) {
+                    @Override
+                    public void confirmationPerformed(AjaxRequestTarget target,
+                            IModel<ConfirmationResult<DataAccessPermission>> confirmedOptions) {
+                        refreshSuggestionPerform(target, confirmedOptions, regenerateMode);
+                    }
+                };
 
         getPageBase().showMainPopup(dialog, target);
     }
@@ -387,18 +366,8 @@ public abstract class ResourceSuggestedObjectTypeTableWizardPanel<P extends Cont
         };
     }
 
-    private String getAiUnavailableMessage(
-            IModel<AiInfo> aiInfoModel,
-            String resourceKey) {
-        AiInfo aiInfo = aiInfoModel.getObject();
-        if (aiInfo != null && HealthStatus.OK.equals(aiInfo.status())) {
-            return null;
-        }
-        return createStringResource(resourceKey).getString();
-    }
-
     public abstract void refreshSuggestionPerform(AjaxRequestTarget target,
-            IModel<List<ConfirmationOption<DataAccessPermission>>> confirmedOptions,
+            IModel<ConfirmationResult<DataAccessPermission>> confirmationResult,
             RegenerateMode regenerateMode);
 
     @Override

@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.table;
 
+import com.evolveum.midpoint.web.component.dialog.ConfirmationResult;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 
 import com.evolveum.midpoint.gui.api.component.button.DropdownButtonDto;
@@ -371,7 +372,7 @@ public abstract class SmartObjectTypeSuggestionPanel<C extends PrismContainerVal
 
             @Override
             public void confirmationPerformed(AjaxRequestTarget target,
-                    IModel<List<ConfirmationOption<Describable>>> confirmedOptions) {
+                    IModel<ConfirmationResult<Describable>> confirmationResult) {
                 performOnDelete(target);
             }
         };

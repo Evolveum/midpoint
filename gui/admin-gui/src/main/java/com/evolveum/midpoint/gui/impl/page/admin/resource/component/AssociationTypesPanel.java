@@ -6,6 +6,7 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component;
 
+import com.evolveum.midpoint.web.component.dialog.ConfirmationResult;
 import com.evolveum.midpoint.schema.processor.AssociationPair;
 
 import java.util.HashSet;
@@ -172,7 +173,7 @@ public class AssociationTypesPanel extends SchemaHandlingObjectsPanel<ShadowAsso
 
             @Override
             protected void onSuggestNewPerformed(AjaxRequestTarget target,
-                    IModel<List<ConfirmationOption<DataAccessPermission>>> confirmedOptions) {
+                    IModel<ConfirmationResult<DataAccessPermission>> confirmationResult) {
                 onSuggestValue(target);
                 refreshAndDetach(target);
                 AssociationTypesPanel.this.restartTimer.accept(target); //must be after refreshAndDetach
@@ -411,13 +412,13 @@ public class AssociationTypesPanel extends SchemaHandlingObjectsPanel<ShadowAsso
         SmartAlertGeneratingPanel aiPanel = new SmartAlertGeneratingPanel(id, suggestionModel) {
             @Override
             protected void performSuggestOperation(AjaxRequestTarget target,
-                    IModel<List<ConfirmationOption<DataAccessPermission>>> confirmedOptions) {
+                    IModel<ConfirmationResult<DataAccessPermission>> confirmationResult) {
                 onSuggestValue(createContainerModel(), target);
             }
 
             @Override
             protected void performRegenerateSuggestOperation(AjaxRequestTarget target,
-                    IModel<List<ConfirmationOption<DataAccessPermission>>> confirmedOptions) {
+                    IModel<ConfirmationResult<DataAccessPermission>> confirmationResult) {
                 onSuggestValue(createContainerModel(), target);
             }
 
