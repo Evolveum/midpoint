@@ -9,8 +9,16 @@ package com.evolveum.midpoint.model.intest.associations;
 import java.io.File;
 import java.io.IOException;
 import java.time.ZonedDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.CyclicBarrier;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import com.evolveum.icf.dummy.resource.DummyObject;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
@@ -933,6 +941,99 @@ public class TestAssociations extends AbstractEmptyModelIntegrationTest {
         // @formatter:on
     }
 
+    /** MID-11746: A cached association synchronization evaluator must not share an evaluation between worker threads. */
+    @Test
+    public void test315ConcurrentAssociationSynchronizationEvaluations() throws Exception {
+        var scenarios = List.of(
+                new ConcurrentAssociationScenario(
+                        getTestNameShort() + "-administrators", dummyAdministrators, roleAdministrators.getOid()),
+                new ConcurrentAssociationScenario(
+                        getTestNameShort() + "-guests", dummyGuests, roleGuests.getOid()),
+                new ConcurrentAssociationScenario(
+                        getTestNameShort() + "-testers", dummyTesters, roleTesters.getOid()),
+                new ConcurrentAssociationScenario(
+                        getTestNameShort() + "-operators", dummyOperators, roleOperators.getOid()));
+
+        for (var scenario : scenarios) {
+            var account = adScenario.account.add(scenario.accountName());
+            adScenario.accountGroup.add(account, scenario.group());
+        }
+
+        var ready = new CountDownLatch(scenarios.size());
+        var start = new CountDownLatch(1);
+        var rounds = new CyclicBarrier(scenarios.size());
+        var executor = Executors.newFixedThreadPool(scenarios.size());
+        try {
+            List<Future<Void>> futures = new ArrayList<>();
+            for (var scenario : scenarios) {
+                futures.add(executor.submit(() -> {
+                    ready.countDown();
+                    start.await();
+                    login(userAdministrator.clone());
+
+                    var initialTask = createPlainTask("MID-11746 initial import of " + scenario.accountName());
+                    importAccountsRequest()
+                            .withResourceOid(RESOURCE_DUMMY_AD.oid)
+                            .withNameValue(scenario.accountName())
+                            .withTask(initialTask)
+                            .executeOnForeground(initialTask.getResult());
+                    var shadowOid = assertOnlyExpectedAssignment(scenario);
+
+                    // Repeated synchronized starts make the old lastEvaluation race observable without sleeps.
+                    for (int round = 0; round < 10; round++) {
+                        rounds.await(30, TimeUnit.SECONDS);
+                        var task = createPlainTask(
+                                "MID-11746 import " + round + " of " + scenario.accountName());
+                        var result = task.getResult();
+                        modelService.importFromResource(shadowOid, task, result);
+                        result.computeStatus();
+                        assertSuccess(result);
+                        assertOnlyExpectedAssignment(scenario);
+                    }
+                    return null;
+                }));
+            }
+
+            assertThat(ready.await(30, TimeUnit.SECONDS))
+                    .as("all MID-11746 workers are ready")
+                    .isTrue();
+            start.countDown();
+
+            List<Throwable> failures = new ArrayList<>();
+            for (Future<Void> future : futures) {
+                try {
+                    future.get(2, TimeUnit.MINUTES);
+                } catch (ExecutionException e) {
+                    failures.add(e.getCause() != null ? e.getCause() : e);
+                } catch (TimeoutException e) {
+                    future.cancel(true);
+                    failures.add(e);
+                }
+            }
+            assertThat(failures)
+                    .as("MID-11746 worker failures")
+                    .isEmpty();
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw e;
+        } finally {
+            start.countDown();
+            executor.shutdown();
+            try {
+                if (!executor.awaitTermination(30, TimeUnit.SECONDS)) {
+                    executor.shutdownNow();
+                    assertThat(executor.awaitTermination(30, TimeUnit.SECONDS))
+                            .as("MID-11746 worker executor terminated")
+                            .isTrue();
+                }
+            } catch (InterruptedException e) {
+                executor.shutdownNow();
+                Thread.currentThread().interrupt();
+                throw e;
+            }
+        }
+    }
+
     /** Imports AD account throughout its lifecycle: from creation, through modifications, to deletion. */
     @Test
     public void test320ImportChangingAdAccount() throws Exception {
@@ -1277,6 +1378,121 @@ public class TestAssociations extends AbstractEmptyModelIntegrationTest {
                 .associations()
                 .association(RI_GROUP)
                 .assertShadowOids(scenario.groupShadowOid());
+    }
+
+    /** MID-11746: Removal veto must use the association definition and task belonging to the current worker thread. */
+    @Test
+    public void test375ConcurrentRemovalVetoUsesThreadSpecificAssociationDefinition() throws Exception {
+        var task = getTestTask();
+        var result = task.getResult();
+        var scenarios = List.of(
+                createRemovalVetoScenario(
+                        "app-managed", "application", "app-group", RI_APP_GROUP, "app-group-inbound", true, result),
+                createRemovalVetoScenario(
+                        "generic-managed", "generic", "generic-group", RI_GENERIC_GROUP, "generic-group-inbound", true,
+                        result),
+                createRemovalVetoScenario(
+                        "app-unmanaged", "application", "app-group", RI_APP_GROUP, "app-group-inbound", false, result),
+                createRemovalVetoScenario(
+                        "generic-unmanaged", "generic", "generic-group", RI_GENERIC_GROUP, "generic-group-inbound", false,
+                        result));
+
+        for (var scenario : scenarios) {
+            markShadow(
+                    scenario.groupShadowOid(),
+                    scenario.removalVetoExpected() ? MARK_MANAGED.oid : MARK_UNMANAGED.oid,
+                    task,
+                    result);
+            adMoreAssociationTypesScenario.accountGroup.delete(scenario.account(), scenario.group());
+            assertThat(scenario.account().getLinkedObjects(
+                    DummyAdTrivialScenario.Account.LinkNames.GROUP.local()))
+                    .as("resource memberships before removal-veto evaluation for %s", scenario.accountName())
+                    .isEmpty();
+        }
+        invalidateShadowCacheIfNeeded(RESOURCE_DUMMY_AD_MORE_ASSOCIATION_TYPES.oid);
+
+        var ready = new CountDownLatch(scenarios.size());
+        var start = new CountDownLatch(1);
+        var executor = Executors.newFixedThreadPool(scenarios.size());
+        try {
+            List<Future<Void>> futures = new ArrayList<>();
+            for (var scenario : scenarios) {
+                futures.add(executor.submit(() -> {
+                    login(userAdministrator.clone());
+                    var workerTask = createPlainTask("MID-11746 removal veto for " + scenario.accountName());
+                    var workerResult = workerTask.getResult();
+                    ready.countDown();
+                    start.await();
+
+                    reconcileUser(scenario.userOid(), workerTask, workerResult);
+                    workerResult.computeStatus();
+                    assertSuccess(workerResult);
+                    return null;
+                }));
+            }
+
+            assertThat(ready.await(30, TimeUnit.SECONDS))
+                    .as("all MID-11746 removal-veto workers are ready")
+                    .isTrue();
+            start.countDown();
+
+            List<Throwable> failures = new ArrayList<>();
+            for (Future<Void> future : futures) {
+                try {
+                    future.get(2, TimeUnit.MINUTES);
+                } catch (ExecutionException e) {
+                    failures.add(e.getCause() != null ? e.getCause() : e);
+                } catch (TimeoutException e) {
+                    future.cancel(true);
+                    failures.add(e);
+                }
+            }
+            assertThat(failures)
+                    .as("MID-11746 removal-veto worker failures")
+                    .isEmpty();
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw e;
+        } finally {
+            start.countDown();
+            executor.shutdown();
+            try {
+                if (!executor.awaitTermination(30, TimeUnit.SECONDS)) {
+                    executor.shutdownNow();
+                    assertThat(executor.awaitTermination(30, TimeUnit.SECONDS))
+                            .as("MID-11746 removal-veto worker executor terminated")
+                            .isTrue();
+                }
+            } catch (InterruptedException e) {
+                executor.shutdownNow();
+                Thread.currentThread().interrupt();
+                throw e;
+            }
+        }
+
+        for (var scenario : scenarios) {
+            var assignmentTargetOids = findUserByUsernameFullRequired(scenario.accountName()).asObjectable().getAssignment().stream()
+                    .map(AssignmentType::getTargetRef)
+                    .map(ref -> ref != null ? ref.getOid() : null)
+                    .toList();
+            var linkedGroups = scenario.account().getLinkedObjects(
+                    DummyAdTrivialScenario.Account.LinkNames.GROUP.local());
+            if (scenario.removalVetoExpected()) {
+                assertThat(assignmentTargetOids)
+                        .as("assignment target OIDs for managed scenario %s", scenario.accountName())
+                        .containsExactly(scenario.roleOid());
+                assertThat(linkedGroups)
+                        .as("resource memberships for managed scenario %s", scenario.accountName())
+                        .containsExactly(scenario.group());
+            } else {
+                assertThat(assignmentTargetOids)
+                        .as("assignment target OIDs for unmanaged scenario %s", scenario.accountName())
+                        .isEmpty();
+                assertThat(linkedGroups)
+                        .as("resource memberships for unmanaged scenario %s", scenario.accountName())
+                        .isEmpty();
+            }
+        }
     }
 
     /** Testing whether we can induce the group membership explicitly via shadow OID (the legacy way). MID-9994. */
@@ -2039,6 +2255,77 @@ public class TestAssociations extends AbstractEmptyModelIntegrationTest {
                 .withTypeIdentification(ResourceObjectTypeIdentification.of(ACCOUNT, INTENT_DEFAULT))
                 .withNameValue(name)
                 .executeOnForeground(result);
+    }
+
+    private String assertOnlyExpectedAssignment(ConcurrentAssociationScenario scenario) throws CommonException {
+        var user = findUserByUsernameFullRequired(scenario.accountName());
+        assertThat(user.asObjectable().getAssignment().stream()
+                .map(AssignmentType::getTargetRef)
+                .map(ref -> ref != null ? ref.getOid() : null))
+                .as("assignment target OIDs for %s", scenario.accountName())
+                .containsExactly(scenario.expectedRoleOid());
+        assertThat(user.asObjectable().getLinkRef())
+                .as("links for %s", scenario.accountName())
+                .singleElement()
+                .satisfies(ref -> assertThat(ref.getOid()).isNotBlank());
+        return user.asObjectable().getLinkRef().get(0).getOid();
+    }
+
+    private record ConcurrentAssociationScenario(String accountName, DummyObject group, String expectedRoleOid) {
+    }
+
+    private RemovalVetoScenario createRemovalVetoScenario(String suffix, String groupType, String groupIntent, ItemName associationName,
+            String mappingName, boolean removalVetoExpected, OperationResult result) throws Exception {
+        var accountName = "account-" + getTestNameShort() + "-" + suffix;
+        var groupName = "group-" + getTestNameShort() + "-" + suffix;
+        var group = adMoreAssociationTypesScenario.group.add(groupName)
+                .addAttributeValue(Group.AttributeNames.TYPE.local(), groupType);
+        var account = adMoreAssociationTypesScenario.account.add(accountName);
+        adMoreAssociationTypesScenario.accountGroup.add(account, group);
+
+        importAccountsRequest()
+                .withResourceOid(RESOURCE_DUMMY_AD_MORE_ASSOCIATION_TYPES.oid)
+                .withTypeIdentification(ResourceObjectTypeIdentification.of(ENTITLEMENT, groupIntent))
+                .withNameValue(groupName)
+                .executeOnForeground(result);
+        var roleAsserter = assertRoleByName(groupName, "after importing " + groupIntent);
+        var roleOid = roleAsserter.getOid();
+        var groupShadowOid = roleAsserter.singleLink().getOid();
+
+        importAccountsRequest()
+                .withResourceOid(RESOURCE_DUMMY_AD_MORE_ASSOCIATION_TYPES.oid)
+                .withTypeIdentification(ResourceObjectTypeIdentification.ACCOUNT_DEFAULT)
+                .withNameValue(accountName)
+                .executeOnForeground(result);
+
+        var userOid = assertUserAfterByUsername(accountName)
+                .assignments()
+                .assertAssignments(1)
+                .by().targetOid(roleOid).find()
+                    .assertTargetRef(roleOid, RoleType.COMPLEX_TYPE, SchemaConstants.ORG_DEFAULT)
+                    .valueMetadataSingle()
+                        .assertMappingName(mappingName)
+                        .assertMappingObjectOid(RESOURCE_DUMMY_AD_MORE_ASSOCIATION_TYPES.oid)
+                        .assertMappingObjectType(ResourceObjectTypeIdentification.ACCOUNT_DEFAULT)
+                    .end()
+                .end()
+                .end()
+                .getOid();
+
+        assertUser(userOid, "before concurrent removal-veto evaluation")
+                .withObjectResolver(createSimpleModelObjectResolver())
+                .singleLink()
+                .resolveTarget()
+                .associations()
+                .assertValuesCount(1)
+                .association(associationName)
+                .assertShadowOids(groupShadowOid);
+
+        return new RemovalVetoScenario(accountName, account, group, groupShadowOid, roleOid, userOid, removalVetoExpected);
+    }
+
+    private record RemovalVetoScenario(String accountName, DummyObject account, DummyObject group, String groupShadowOid,
+            String roleOid, String userOid, boolean removalVetoExpected) {
     }
 
     private @NotNull SingleAccountSingleGroupScenario createSingleAccountSingleGroup(
