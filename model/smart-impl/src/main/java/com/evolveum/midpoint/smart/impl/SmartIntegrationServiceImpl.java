@@ -163,12 +163,13 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
     }
 
     @Override
-    public Optional<AiInfo> getAiInfo(Task task, OperationResult result) throws CommonException {
+    public @NotNull AiInfo getAiInfo(Task task, OperationResult result) throws CommonException {
         authorizeSmartIntegration(task, result);
         try (var client = clientFactory.getServiceClient(result)) {
             return client.getAiInfo();
         } catch (Exception e) {
-            throw new SystemException("Failed to retrieve AI info: " + e.getMessage(), e);
+            LOGGER.warn("Smart integration service is not available: {}", e.getMessage());
+            return AiInfo.unavailable();
         }
     }
 
@@ -759,10 +760,10 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
                 .addParam("resourceOid", resourceOid)
                 .addArbitraryObjectAsParam("typeIdentification", typeIdentification)
                 .build();
-        try (var serviceClient = this.clientFactory.getServiceClient(result)) {
+        try {
             authorizeSmartIntegration(task, result);
             var correlation = new CorrelationSuggestionOperation(
-                    TypeOperationContext.init(serviceClient, resourceOid, typeIdentification, null, task, result),
+                    TypeOperationContext.init(null, resourceOid, typeIdentification, null, task, result),
                     samplerProvider)
                     .suggestCorrelation(result, schemaMatch, targetPathsToIgnore);
             LOGGER.debug("Suggested correlation:\n{}", correlation.debugDump(1));
@@ -794,7 +795,7 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
                 .addParam("resourceOid", resourceOid)
                 .addArbitraryObjectAsParam("typeIdentification", typeIdentification)
                 .build();
-        try (var serviceClient = this.clientFactory.getServiceClient(result)) {
+        try (var serviceClient = Boolean.TRUE.equals(useAiService) ? this.clientFactory.getServiceClient(result) : null) {
             authorizeSmartIntegration(task, result);
             int retryCount = getConfiguredRetryCount(result);
             var mappings = this.mappingSuggestionOperationFactory.create(serviceClient, resourceOid,
@@ -834,6 +835,7 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
             String resourceOid, ResourceObjectTypeIdentification typeIdentification,
             List<DataAccessPermissionType> permissions,
             boolean forceRecomputeSchemaMatch,
+            Boolean useAiService,
             Task task, OperationResult parentResult)
             throws CommonException {
         var result = parentResult.subresult(OP_SUBMIT_SUGGEST_CORRELATION_OPERATION)
@@ -846,6 +848,7 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
                     .resourceRef(resourceOid, ResourceType.COMPLEX_TYPE)
                     .objectType(typeIdentification.asBean());
             workDef.getPermissions().addAll(permissions);
+            workDef.setUseAiService(useAiService);
             if (forceRecomputeSchemaMatch) {
                 workDef.setForceRecomputeSchemaMatch(true);
             }
@@ -940,6 +943,7 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
             List<ItemPathType> targetPathsToIgnore,
             List<DataAccessPermissionType> permissions,
             boolean forceRecomputeSchemaMatch,
+            Boolean useAiService,
             Task task,
             OperationResult parentResult) throws CommonException {
         var result = parentResult.subresult(OP_SUBMIT_SUGGEST_MAPPINGS_OPERATION)
@@ -953,6 +957,7 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
                     .objectType(typeIdentification.asBean())
                     .inbound(isInbound);
             permissions.forEach(mappingsSuggestionWorkDefinition::permissions);
+            mappingsSuggestionWorkDefinition.setUseAiService(useAiService);
             if (forceRecomputeSchemaMatch) {
                 mappingsSuggestionWorkDefinition.setForceRecomputeSchemaMatch(true);
             }

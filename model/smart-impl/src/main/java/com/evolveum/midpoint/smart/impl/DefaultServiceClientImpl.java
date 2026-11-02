@@ -8,7 +8,7 @@
 package com.evolveum.midpoint.smart.impl;
 
 import java.util.Date;
-import java.util.Optional;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -19,6 +19,7 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import org.apache.cxf.jaxrs.client.WebClient;
 import org.apache.cxf.transports.http.configuration.HTTPClientPolicy;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.VisibleForTesting;
 
@@ -124,29 +125,26 @@ public class DefaultServiceClientImpl implements ServiceClient {
     }
 
     @Override
-    public Optional<AiInfo> getAiInfo() {
+    public @NotNull AiInfo getAiInfo() {
         resetWebClient();
         webClient.accept(MediaType.APPLICATION_JSON);
         webClient.path("/health");
         LOGGER.trace("Calling health endpoint: /health");
         try (var response = webClient.get()) {
             var statusType = response.getStatusInfo();
-            if (statusType.getFamily() != Response.Status.Family.SUCCESSFUL) {
-                throw new SystemException("Health endpoint returned non-success status: %s".formatted(
-                        response.getStatus()));
-            }
             var responseText = response.readEntity(String.class);
+            if (statusType.getFamily() != Response.Status.Family.SUCCESSFUL) {
+                throw new SystemException("Health endpoint returned non-success status: %s, response: %s".formatted(
+                        response.getStatus(), responseText));
+            }
             LOGGER.trace("Response from health endpoint (status: {}):\n{}",
                     statusType.getStatusCode(), responseText);
             try {
                 var root = new ObjectMapper().readTree(responseText);
                 var statusString = root.path("status").asText(null);
-                var status = HealthStatus.fromString(statusString);
+                var status = Objects.requireNonNullElse(HealthStatus.fromString(statusString), HealthStatus.ERROR);
                 var metadata = root.path("metadata");
-                if (metadata.isMissingNode()) {
-                    return Optional.empty();
-                }
-                return Optional.of(new AiInfo(metadata.path("provider").asText(null), metadata.path("model").asText(null), status));
+                return new AiInfo(metadata.path("provider").asText(null), metadata.path("model").asText(null), status);
             } catch (Exception e) {
                 throw new SystemException("Failed to parse AI info from health endpoint: " + e.getMessage(), e);
             }

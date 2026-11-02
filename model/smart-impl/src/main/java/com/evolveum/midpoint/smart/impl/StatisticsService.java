@@ -162,6 +162,9 @@ public class StatisticsService {
                 .build();
 
         try {
+            var resource = modelService.getObject(ResourceType.class, resourceOid, null, task, result).asObjectable();
+            var resourceName = ObjectTypeUtil.getDisplayNameOrOid(resource);
+
             deleteStatisticsForResource(resourceOid, objectClassName, task, parentResult);
 
             ActivityDefinitionType activity = new ActivityDefinitionType()
@@ -173,7 +176,7 @@ public class StatisticsService {
             var oid = modelInteractionService.submit(
                     activity,
                     ActivitySubmissionOptions.create().withTaskTemplate(new TaskType()
-                            .name("Regenerate statistics for " + objectClassName.getLocalPart() + " on " + resourceOid)
+                            .name("Regenerate statistics for " + objectClassName.getLocalPart() + " on " + resourceName)
                             .cleanupAfterCompletion(DEFAULT_STATISTICS_TTL)),
                     task,
                     result);
@@ -222,6 +225,9 @@ public class StatisticsService {
                 .build();
 
         try {
+            var resource = modelService.getObject(ResourceType.class, resourceOid, null, task, result).asObjectable();
+            var resourceName = ObjectTypeUtil.getDisplayNameOrOid(resource);
+
             deleteObjectTypeStatistics(resourceOid, typeIdentification, task, parentResult);
 
             ActivityDefinitionType activity = new ActivityDefinitionType()
@@ -234,7 +240,7 @@ public class StatisticsService {
             var oid = modelInteractionService.submit(
                     activity,
                     ActivitySubmissionOptions.create().withTaskTemplate(new TaskType()
-                            .name("Regenerate statistics for " + typeIdentification + " on " + resourceOid)
+                            .name("Regenerate statistics for " + typeIdentification + " on " + resourceName)
                             .cleanupAfterCompletion(DEFAULT_STATISTICS_TTL)),
                     task,
                     result);

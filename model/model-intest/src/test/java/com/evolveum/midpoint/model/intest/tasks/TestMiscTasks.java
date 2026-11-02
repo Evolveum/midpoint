@@ -71,6 +71,8 @@ public class TestMiscTasks extends AbstractInitializedModelIntegrationTest {
             new TestTask(TEST_DIR, "task-execute-changes-multi.xml", "8427d4a9-f0cb-4771-ae51-c6979630068a");
     private static final TestTask TASK_ROLE_MEMBERSHIP_MANAGEMENT_BASIC =
             new TestTask(TEST_DIR, "task-role-membership-management-basic.xml", "07e8c51b-e5ae-496e-9b24-4f8701621c0d");
+    private static final TestTask TASK_ROLE_MEMBERSHIP_MANAGEMENT_CHAINED_TEMPLATE =
+            new TestTask(TEST_DIR, "task-role-membership-management-chained-template.xml", "c4cf05e2-e581-46b4-8bf3-10a7cc2cd73f");
     private static final TestTask TASK_ROLE_ANALYSIS_CLUSTERING_BASIC =
             new TestTask(TEST_DIR, "task-role-analysis-clustering-basic.xml", "908e8dd3-66ba-4568-80aa-75c1a4e06b4a");
     private static final TestTask TASK_ROLE_ANALYSIS_PATTERN_DETECTION_BASIC =
@@ -90,6 +92,12 @@ public class TestMiscTasks extends AbstractInitializedModelIntegrationTest {
             TEST_DIR, "user-1.xml", "f1c3fbc4-85d6-4559-9a1e-647e3caa25df");
     private static final TestObject<UserType> USER_2 = TestObject.file(
             TEST_DIR, "user-2.xml", "3fc7d5bb-d1a6-446b-925e-5680afaa9df6");
+    private static final TestObject<UserType> USER_3 = TestObject.file(
+            TEST_DIR, "user-3.xml", "db653dc1-58a8-4544-a167-246a999b8e61");
+    private static final TestObject<UserType> USER_4 = TestObject.file(
+            TEST_DIR, "user-4.xml", "bd58c480-c60a-41b1-980b-8567286b98e7");
+    private static final TestObject<ObjectTemplateType> OBJECT_TEMPLATE_CHAINED = TestObject.file(
+            TEST_DIR, "object-template-chained.xml", "360b7cff-8a3b-467a-830b-1393e5906876");
 
     private static final DummyTestResource RESOURCE_DUMMY_REFRESHED = new DummyTestResource(
             TEST_DIR, "resource-dummy-refreshed.xml", "e5eeccc7-a0bb-4961-9edf-a8693c6e9004", "refreshed");
@@ -680,6 +688,47 @@ public class TestMiscTasks extends AbstractInitializedModelIntegrationTest {
                 .rootActivityState()
                 .itemProcessingStatistics()
                 .assertTotalCounts(2, 0, 0);
+    }
+
+    /**
+     * Migration of members with a user template that has chained mappings over user-only items
+     * (fullName -> displayName). Issue 12679.
+     */
+    @Test
+    public void test310RoleMembershipManagementChainedTemplate() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        given("users with application roles and a user template with chained mappings");
+        initTestObjects(task, result, OBJECT_TEMPLATE_CHAINED, USER_3, USER_4);
+        setDefaultObjectTemplate(UserType.COMPLEX_TYPE, OBJECT_TEMPLATE_CHAINED.oid, result);
+        try {
+            when("task is run");
+            TASK_ROLE_MEMBERSHIP_MANAGEMENT_CHAINED_TEMPLATE.init(this, task, result);
+            TASK_ROLE_MEMBERSHIP_MANAGEMENT_CHAINED_TEMPLATE.rerun(result); // asserts success
+
+            then("users have business role but no application roles");
+            assertBusinessRoleAndNoApplicationRoles(USER_3.oid);
+            assertBusinessRoleAndNoApplicationRoles(USER_4.oid);
+
+            and("chained mappings were applied");
+            assertUserAfter(USER_3.oid)
+                    .assertFullName("John Third")
+                    .assertPolyStringProperty(UserType.F_DISPLAY_NAME, "John Third");
+            assertUserAfter(USER_4.oid)
+                    .assertFullName("Jane Fourth")
+                    .assertPolyStringProperty(UserType.F_DISPLAY_NAME, "Jane Fourth");
+
+            and("task is OK");
+            TASK_ROLE_MEMBERSHIP_MANAGEMENT_CHAINED_TEMPLATE.assertAfter()
+                    .display()
+                    .assertProgress(2)
+                    .rootActivityState()
+                    .itemProcessingStatistics()
+                    .assertTotalCounts(2, 0, 0);
+        } finally {
+            setDefaultObjectTemplate(UserType.COMPLEX_TYPE, null, result);
+        }
     }
 
     private void assertBusinessRoleAndNoApplicationRoles(String oid) throws CommonException {

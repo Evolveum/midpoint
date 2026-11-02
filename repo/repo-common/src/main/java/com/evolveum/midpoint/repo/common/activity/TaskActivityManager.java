@@ -26,10 +26,12 @@ import com.evolveum.midpoint.schema.util.task.ActivityTreeUtil.ActivityStateInCo
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.TreeNode;
+import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
 
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -227,7 +229,8 @@ public class TaskActivityManager {
             TreeNode<ActivityStateInContext> stateTree = ActivityTreeUtil.toStateTree(rootTaskBean, TaskResolver.empty());
 
             deleteWorkersOrTheirState(stateTree, deleteWorkers, result);
-            purgeOrDeleteActivityState(stateTree, result);
+            purgeOrDeleteActivityState(stateTree, null, result);
+            makeRootReadyOnResumeIfNothingToWaitFor(rootTaskOid, result);
 
         } catch (Throwable t) {
             result.recordFatalError(t);
@@ -275,20 +278,62 @@ public class TaskActivityManager {
         }
     }
 
-    private void purgeOrDeleteActivityState(TreeNode<ActivityStateInContext> node, OperationResult result) {
+    /**
+     * @param parentTaskBean Task holding the state of the parent activity (null for the root). A node whose state lives
+     * in a different task is the local root of a delegate subtask.
+     */
+    private void purgeOrDeleteActivityState(
+            TreeNode<ActivityStateInContext> node, @Nullable TaskType parentTaskBean, OperationResult result) {
         ActivityStateInContext stateInContext = node.getUserObject();
         if (stateInContext.getActivityState() == null) {
             return;
         }
 
         TaskType taskBean = stateInContext.getTask();
-        if (ActivityTreeUtil.hasDelegatedActivity(node)) {
+        if (parentTaskBean != null && !parentTaskBean.getOid().equals(taskBean.getOid())) {
+            // A delegate subtask cannot run without its state, and the parent would wait for it forever. So the subtask
+            // (with its own subtasks) and the delegation state in the parent go away; the parent will delegate anew.
+            deleteDelegate(taskBean, stateInContext.getActivityPath(), result);
+            deleteState(parentTaskBean, stateInContext.getActivityPath(), result);
+        } else if (ActivityTreeUtil.hasDelegatedActivity(node)) {
             purgeState(taskBean, stateInContext.getActivityPath(), stateInContext.getActivityState(), result);
             for (TreeNode<ActivityStateInContext> child : node.getChildren()) {
-                purgeOrDeleteActivityState(child, result);
+                purgeOrDeleteActivityState(child, taskBean, result);
             }
         } else {
             deleteState(taskBean, stateInContext.getActivityPath(), result);
+        }
+    }
+
+    private void deleteDelegate(TaskType delegateTaskBean, ActivityPath activityPath, OperationResult result) {
+        taskManager.suspendAndDeleteTasks(List.of(delegateTaskBean.getOid()), TaskManager.DO_NOT_WAIT, true, result);
+        LOGGER.info("Deleted delegate subtask {} for '{}'", delegateTaskBean, activityPath);
+    }
+
+    /**
+     * The root was suspended while waiting for its subtasks. If none are left (they were deleted above), a resume
+     * would put it back into the waiting state with nothing to wake it up, so it must resume as ready instead.
+     */
+    private void makeRootReadyOnResumeIfNothingToWaitFor(String rootTaskOid, OperationResult result)
+            throws SchemaException, ObjectNotFoundException {
+        Task root = taskManager.getTaskPlain(rootTaskOid, result);
+        TaskType rootBean = root.getRawTaskObjectClonedIfNecessary().asObjectable();
+        if (rootBean.getSchedulingStateBeforeSuspend() != TaskSchedulingStateType.WAITING) {
+            return;
+        }
+        if (!root.listSubtasks(true, result).isEmpty()) {
+            return;
+        }
+        try {
+            plainRepositoryService.modifyObject(TaskType.class, rootTaskOid,
+                    prismContext.deltaFor(TaskType.class)
+                            .item(TaskType.F_STATE_BEFORE_SUSPEND).replace(TaskExecutionStateType.RUNNABLE)
+                            .item(TaskType.F_SCHEDULING_STATE_BEFORE_SUSPEND).replace(TaskSchedulingStateType.READY)
+                            .asItemDeltas(),
+                    result);
+            LOGGER.info("Task {} has no subtasks left to wait for, it will resume as ready", root);
+        } catch (ObjectAlreadyExistsException e) {
+            throw SystemException.unexpected(e, "when updating the state before suspend");
         }
     }
 
@@ -326,6 +371,9 @@ public class TaskActivityManager {
                     .item(stateItemPath.append(ActivityStateType.F_STATISTICS)).replace()
                     .item(stateItemPath.append(ActivityStateType.F_BUCKETING)).replace()
                     .item(stateItemPath.append(ActivityStateType.F_COUNTERS)).replace()
+                    .item(stateItemPath.append(ActivityStateType.F_POLICIES)).replace()
+                    .item(stateItemPath.append(ActivityStateType.F_HALTING_INFORMATION)).replace()
+                    .item(stateItemPath.append(ActivityStateType.F_ABORTING_INFORMATION)).replace()
                     .asItemDeltas();
             if (!(activityState.getWorkState() instanceof DelegationWorkStateType)) {
                 itemDeltas.addAll(

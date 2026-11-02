@@ -568,6 +568,13 @@ public class CertificationManagerImpl implements CertificationManager {
             securityEnforcer.authorize(
                     ModelAuthorizationAction.CLOSE_CERTIFICATION_CAMPAIGN.getUrl(), null,
                     AuthorizationParameters.Builder.buildObject(campaign.asPrismObject()), task, result);
+            if (CLOSED.equals(campaign.getState())) {
+                // Closing an already closed campaign would overwrite its end timestamp, emit the "campaign end" event
+                // (i.e. send the notifications again) and start yet another closing task.
+                result.recordFatalError("Couldn't close the campaign as it is already closed.");
+                return;
+            }
+
             closerHelper.closeCampaign(campaign, task, result);
             if (!noBackgroundTask) {
                 closingTaskHandler.launch(campaign, result);

@@ -697,7 +697,7 @@ class MappingsSuggestionOperation {
         }
 
         // Try AI service if enabled
-        if (useAiService) {
+        if (useAiService && bestExpectedQuality < 1.0f) {
             var aiExpression = evaluateAiMappingWithRetry(matchPair, valuePairsForLLM, valuePairsForValidation, parentResult);
             if (aiExpression != null) {
                 var aiQuality = qualityAssessor.assessMappingsQuality(valuePairsForValidation, aiExpression, ctx.task, parentResult)
@@ -740,8 +740,7 @@ class MappingsSuggestionOperation {
                     errorLog = e.getMessage();
                     LOGGER.warn("Validation issues found on attempt {}; retrying.", attempt);
                 } else {
-                    LOGGER.warn("Validation issues found in mapping script; giving up.");
-                    throw e;
+                    LOGGER.warn("Validation issues found in mapping script; giving up on AI mapping: {}", e.getMessage());
                 }
             }
         }

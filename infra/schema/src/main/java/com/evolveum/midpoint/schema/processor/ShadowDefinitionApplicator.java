@@ -18,7 +18,6 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationsType;
@@ -259,7 +258,7 @@ public class ShadowDefinitionApplicator {
                 }
             } catch (SchemaException e) {
                 if (lax) {
-                    LoggingUtils.logException(LOGGER, "Couldn't convert attribute {} in {}", e, item.getElementName(), context);
+                    LOGGER.trace("Couldn't convert attribute {} in {}: {}", item.getElementName(), context, e.getMessage(), e);
                 } else {
                     throw new SchemaException(
                             "Couldn't convert attribute %s in %s: %s".formatted(item.getElementName(), context, e.getMessage()),

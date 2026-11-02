@@ -1,0 +1,70 @@
+<!--
+  ~ Copyright (C) 2010-2026 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        oid="00000001-d34d-b33f-f00d-000000000030">
+    <name>Role30 assignment variable</name>
+    <assignment id="1">
+        <policyRule>
+            <policyConstraints>
+                <assignment/>
+            </policyConstraints>
+            <policyActions>
+                <approval>
+                    <approvalSchema>
+                        <stage>
+                            <evaluationStrategy>allMustApprove</evaluationStrategy>
+                            <!-- The pre-MID-11000 way of obtaining the assignment. -->
+                            <approverExpression>
+                                <script>
+                                    <code>
+                                        import com.evolveum.midpoint.prism.path.ItemPath
+                                        import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType
+
+                                        def item = ItemPath.create(UserType.F_ASSIGNMENT)
+                                        def containerDelta = objectDelta.findContainerDelta(item)
+                                        def value = containerDelta.getItemNew().getValue()
+                                        def roleReference = value.find(ItemPath.fromString('extension/roleRef'))
+                                        if (roleReference.realValue.oid == '00000001-d34d-b33f-f00d-000000000021') {
+                                            '00000001-d34d-b33f-f00d-f00000000021'
+                                        } else {
+                                            null
+                                        }
+                                    </code>
+                                </script>
+                            </approverExpression>
+                            <!-- The MID-11000 convenience variable. -->
+                            <approverExpression>
+                                <script>
+                                    <code>
+                                        import com.evolveum.midpoint.prism.path.ItemPath
+
+                                        def roleReference = assignment.asPrismContainerValue().find(
+                                                ItemPath.fromString('extension/roleRef'))
+                                        assert assignment.id == null
+                                        assert assignment.description == 'role30 request'
+                                        assert assignment.targetRef.oid == '00000001-d34d-b33f-f00d-000000000030'
+                                        if (roleReference.realValue.oid == '00000001-d34d-b33f-f00d-000000000021') {
+                                            '00000001-d34d-b33f-f00d-f00000000021'
+                                        } else {
+                                            null
+                                        }
+                                    </code>
+                                </script>
+                            </approverExpression>
+                            <!-- Existing expressions that do not use assignment must stay unchanged. -->
+                            <approverExpression>
+                                <script>
+                                    <code>'00000001-d34d-b33f-f00d-f00000000023'</code>
+                                </script>
+                            </approverExpression>
+                        </stage>
+                    </approvalSchema>
+                </approval>
+            </policyActions>
+        </policyRule>
+    </assignment>
+</role>

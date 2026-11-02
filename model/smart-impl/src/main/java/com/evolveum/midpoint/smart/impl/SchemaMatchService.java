@@ -22,6 +22,7 @@ import com.evolveum.midpoint.schema.util.SmartIntegrationArtifactUtil;
 import com.evolveum.midpoint.util.exception.*;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.stereotype.Service;
 
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
@@ -112,7 +113,8 @@ public class SchemaMatchService {
                 .addParam("resourceOid", resourceOid)
                 .addArbitraryObjectAsParam("typeIdentification", typeIdentification)
                 .build();
-        try (var serviceClient = this.clientFactory.getServiceClient(result)) {
+
+        try (var serviceClient = useAiService ? this.clientFactory.getServiceClient(result) : null) {
             var options = GetOperationOptionsBuilder.create()
                     .item(ResourceType.F_CONNECTOR_REF).resolve()
                     .build();
@@ -148,7 +150,7 @@ public class SchemaMatchService {
                 .addParam("objectClassName", objectClassName)
                 .addParam("focusTypeName", focusTypeName)
                 .build();
-        try (var serviceClient = this.clientFactory.getServiceClient(result)) {
+        try (var serviceClient = useAiService ? this.clientFactory.getServiceClient(result) : null) {
             var options = GetOperationOptionsBuilder.create()
                     .item(ResourceType.F_CONNECTOR_REF).resolve()
                     .build();
@@ -169,7 +171,7 @@ public class SchemaMatchService {
     }
 
     private SchemaMatchResultType doComputeSchemaMatch(
-            ServiceClient serviceClient,
+            @Nullable ServiceClient serviceClient,
             ResourceObjectClassDefinition objectClassDef,
             PrismObjectDefinition<?> focusTypeDefinition,
             ResourceType resource,

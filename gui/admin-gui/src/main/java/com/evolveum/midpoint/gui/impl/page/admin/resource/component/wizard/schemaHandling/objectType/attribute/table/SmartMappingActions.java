@@ -37,6 +37,7 @@ import org.apache.wicket.model.StringResourceModel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import com.evolveum.midpoint.web.component.dialog.ConfirmationResult;
 import com.evolveum.midpoint.gui.api.component.button.DropdownButtonDto;
 import com.evolveum.midpoint.gui.api.component.button.DropdownButtonPanel;
 import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
@@ -749,7 +750,7 @@ final class SmartMappingActions<P extends Containerable> implements Serializable
                     @Override
                     public void confirmationPerformed(
                             AjaxRequestTarget target,
-                            IModel<List<ConfirmationOption<Describable>>> confirmedOptions) {
+                            IModel<ConfirmationResult<Describable>> confirmationResult) {
 
                         if (Boolean.TRUE.equals(rememberChoiceModel.getObject())) {
                             table.getPageBase()

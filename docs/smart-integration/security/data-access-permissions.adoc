@@ -73,7 +73,7 @@ Without it, only well-known schema pairs are used.
 Without it, only well-known schema pairs are used.
 
 | `RAW_DATA_ACCESS`
-| Object type statistics are computed, and sample values are sent to the microservice for AI-generated and categorical mappings.
+| Sample values are sent to the microservice for AI-generated and categorical mappings.
 Without it, only as-is, heuristic and well-known mappings are recommended.
 
 | xref:../recommendations/associations/associations-recommendation.adoc[Associations]

@@ -14,6 +14,7 @@ import java.io.Serial;
 import java.io.Serializable;
 import java.util.*;
 
+import com.evolveum.midpoint.web.component.dialog.ConfirmationResult;
 import com.evolveum.midpoint.web.component.dialog.SuggestionOption;
 
 import org.apache.wicket.AttributeModifier;
@@ -55,7 +56,6 @@ import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
 import com.evolveum.midpoint.web.component.data.column.IsolatedCheckBoxPanel;
-import com.evolveum.midpoint.web.component.dialog.ConfirmationOption;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
 import com.evolveum.midpoint.web.component.dialog.privacy.DataAccessPermission;
 import com.evolveum.midpoint.web.component.input.ButtonWithConfirmationOptionsDialog;
@@ -561,7 +561,7 @@ public abstract class MultiSelectContainerActionTileTablePanel<E extends Seriali
 
                 @Override
                 public void onClick(AjaxRequestTarget target) {
-                    onSuggestNewPerformed(target, Collections::emptyList);
+                    onSuggestNewPerformed(target, ConfirmationResult::empty);
                 }
             };
             generateButton.add(AttributeModifier.append("class", "btn btn-purple"));
@@ -664,7 +664,7 @@ public abstract class MultiSelectContainerActionTileTablePanel<E extends Seriali
     }
 
     protected void onSuggestNewPerformed(AjaxRequestTarget target,
-            IModel<List<ConfirmationOption<DataAccessPermission>>> confirmedOptions) {
+            IModel<ConfirmationResult<DataAccessPermission>> confirmationResult) {
     }
 
     protected SuggestionOption suggestionConfirmationOptions() {

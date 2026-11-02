@@ -163,8 +163,9 @@ public class RoleMembershipManagementActivityHandler
                     CloneUtil.cloneCollectionMembers(
                             RoleManagementUtil.getMatchingAssignments(member.getAssignment(), inducedRolesOids));
 
-            ObjectDelta<AssignmentHolderType> memberDelta = prismContext
-                    .deltaFor(AssignmentHolderType.class)
+            // Using the real class of the member, so that the model works with its full definition.
+            ObjectDelta<? extends AssignmentHolderType> memberDelta = prismContext
+                    .deltaFor(member.getClass())
                     .item(AssignmentHolderType.F_ASSIGNMENT)
                     .deleteRealValues(assignmentsToDelete)
                     .add(assignmentToAdd)
