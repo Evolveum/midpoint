@@ -12,6 +12,7 @@ import java.util.stream.Collectors;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.common.activity.definition.ActivityDefinition;
+import com.evolveum.midpoint.repo.common.activity.run.ActivityRunException;
 import com.evolveum.midpoint.repo.common.activity.run.CommonTaskBeans;
 import com.evolveum.midpoint.repo.common.activity.run.distribution.WorkersReconciliation;
 import com.evolveum.midpoint.repo.common.activity.run.distribution.WorkersReconciliationOptions;
@@ -229,6 +230,7 @@ public class TaskActivityManager {
             TreeNode<ActivityStateInContext> stateTree = ActivityTreeUtil.toStateTree(rootTaskBean, TaskResolver.empty());
 
             deleteWorkersOrTheirState(stateTree, deleteWorkers, result);
+            purgeTreeStateOverview(rootTask, result);
             purgeOrDeleteActivityState(stateTree, null, result);
             makeRootReadyOnResumeIfNothingToWaitFor(rootTaskOid, result);
 
@@ -237,6 +239,22 @@ public class TaskActivityManager {
             throw t;
         } finally {
             result.computeStatusIfUnknown();
+        }
+    }
+
+    /**
+     * Removes single-realization entries (and resets the perpetual ones) in the activity state overview of the root task.
+     * The detailed states are purged or deleted separately, but the overview is a different structure: when the root
+     * state is only purged (delegated activities), entries of the deleted subtasks, with their result status and error
+     * messages, would otherwise survive the restart. This must run before the detailed states are deleted, so that
+     * the overview is not written back to a task whose whole activity state has just been removed.
+     */
+    private void purgeTreeStateOverview(Task rootTask, OperationResult result) {
+        try {
+            new ActivityTreeStateOverview(rootTask, beans)
+                    .purge(ActivityPath.empty(), result);
+        } catch (ActivityRunException e) {
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't purge activity state overview in {}", e, rootTask);
         }
     }
 
