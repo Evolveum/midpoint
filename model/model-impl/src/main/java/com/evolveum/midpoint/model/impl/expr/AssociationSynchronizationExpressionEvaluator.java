@@ -115,101 +115,9 @@ class AssociationSynchronizationExpressionEvaluator
     @Override
     public boolean doesVetoTargetValueRemoval(@NotNull PrismContainerValue<AssignmentType> value, @NotNull OperationResult result) {
         var last = stateNonNull(lastRemovalVeto.get(), "No last evaluation?");
-        return doesVetoRemoval(last.getKey(),
-                stateNonNull(last.getValue().get(), "The task of the last evaluation is gone"), value, result);
-    }
-
-    /**
-     * The mapping considers to remove the assignment that belongs to the range of this mapping.
-     * Maybe it was created by this mapping before?
-     *
-     * We consent, unless the assignment points to a role which has a projection of relevant type (resource, kind, intent)
-     * that prevents inbound membership synchronization.
-     *
-     * We don't support multi-tag resources here. Nor fancy assignments with filters etc.
-     */
-    private static boolean doesVetoRemoval(ShadowAssociationDefinition associationDefinition, Task task,
-            PrismContainerValue<AssignmentType> value, OperationResult result) {
-        LOGGER.trace("Considering whether to veto the removal of {}", value);
-        try {
-            var assignmentTargetRef = value.asContainerable().getTargetRef();
-            if (assignmentTargetRef == null || assignmentTargetRef.getOid() == null) {
-                LOGGER.trace("-> No targetRef or OID, just remove it.");
-                return false; // We don't care about assignments without OID, why should we veto their deletion?
-            }
-            var type = assignmentTargetRef.getType();
-            Class<? extends ObjectType> clazz;
-            if (type != null) {
-                clazz = ObjectTypes.getObjectTypeClass(type);
-                if (!FocusType.class.isAssignableFrom(clazz)) {
-                    LOGGER.trace("-> Not a focus, just remove it.");
-                    return false; // no shadows
-                }
-            } else {
-                clazz = AssignmentHolderType.class;
-            }
-            var target = ModelBeans.get().cacheRepositoryService.getObject(
-                    clazz,
-                    assignmentTargetRef.getOid(),
-                    readOnly(),
-                    result);
-            List<ObjectReferenceType> linkRefs =
-                    target.asObjectable() instanceof FocusType focus ? focus.getLinkRef() : List.of();
-            LOGGER.trace("-> Target {} with {} shadows: {}", target, linkRefs.size(), linkRefs);
-            if (linkRefs.isEmpty()) {
-                LOGGER.trace("-> No shadows, just remove it.");
-                return false;
-            }
-            var shadows = new ArrayList<AbstractShadow>();
-            var noFetchOptions = createNoFetchCollection();
-            for (var linkRef : linkRefs) {
-                shadows.add(
-                        ModelBeans.get().provisioningService.getShadow(
-                                linkRef.getOid(), noFetchOptions, task, result));
-            }
-            var matchingShadows = shadows.stream()
-                    .filter(shadow -> associationDefinition.matches(shadow.getBean()))
-                    .toList();
-            LOGGER.trace("-> Matching shadows: {}", matchingShadows);
-            var liveShadows = matchingShadows.stream()
-                    .filter(s -> !s.isDead())
-                    .toList();
-            var fromLiveShadows = new HashSet<Boolean>();
-            for (var liveShadow : liveShadows) {
-                fromLiveShadows.add(
-                        isMembershipSyncInboundDisabled(liveShadow.getEffectiveOperationPolicyRequired()));
-            }
-            if (fromLiveShadows.size() == 1) {
-                boolean answer = fromLiveShadows.iterator().next();
-                LOGGER.trace("-> Answer from live shadows: {}", answer);
-                return answer;
-            } else if (fromLiveShadows.size() > 1) {
-                LOGGER.trace("-> Contradicting answers from live shadows; NOT vetoing the removal");
-                return false;
-            }
-            // Now let's have a look at the last dead shadow
-            var lastDeadShadowOptional = matchingShadows.stream()
-                    .filter(s -> s.isDead() && s.getBean().getDeathTimestamp() != null)
-                    .max(Comparator.comparingLong(s -> XmlTypeConverter.toMillis(s.getBean().getDeathTimestamp())));
-            if (lastDeadShadowOptional.isPresent()) {
-                var lastDeadShadow = lastDeadShadowOptional.get();
-                var answer = isMembershipSyncInboundDisabled(lastDeadShadow.getEffectiveOperationPolicyRequired());
-                LOGGER.trace("-> Answer from last dead shadow: {} (from {})", answer, lastDeadShadow);
-                return answer;
-            }
-            LOGGER.trace("-> No shadow found, not vetoing the removal.");
-            return false;
-        } catch (ObjectNotFoundException e) {
-            LoggingUtils.logExceptionAsWarning(
-                    LOGGER,
-                    "'Object not found' detected while determining whether to remove assignment {}; so we will remove it",
-                    e, value);
-            return false;
-        } catch (CommonException e) {
-            LoggingUtils.logUnexpectedException(
-                    LOGGER, "Error while determining whether to remove assignment {}; so we will remove it", e, value);
-            return false;
-        }
+        return Evaluation.doesVetoTargetValueRemoval(last.getKey(),
+                stateNonNull(last.getValue().get(), "The task of the last evaluation is gone"),
+                value, result);
     }
 
     class Evaluation {
@@ -287,7 +195,8 @@ class AssociationSynchronizationExpressionEvaluator
          *
          * We don't support multi-tag resources here. Nor fancy assignments with filters etc.
          */
-        boolean doesVetoTargetValueRemoval(PrismContainerValue<AssignmentType> value, OperationResult result) {
+        static boolean doesVetoTargetValueRemoval(ShadowAssociationDefinition associationDefinition, Task task,
+                PrismContainerValue<AssignmentType> value, OperationResult result) {
             LOGGER.trace("Considering whether to veto the removal of {}", value);
             try {
                 var assignmentTargetRef = value.asContainerable().getTargetRef();
@@ -323,7 +232,7 @@ class AssociationSynchronizationExpressionEvaluator
                 for (var linkRef : linkRefs) {
                     shadows.add(
                             ModelBeans.get().provisioningService.getShadow(
-                                    linkRef.getOid(), noFetchOptions, context.getTask(), result));
+                                    linkRef.getOid(), noFetchOptions, task, result));
                 }
                 var matchingShadows = shadows.stream()
                         .filter(shadow -> associationDefinition.matches(shadow.getBean()))

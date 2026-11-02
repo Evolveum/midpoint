@@ -39,6 +39,7 @@ Moreover, midPoint 4.11.0 made a significant leap towards secure-by-default conf
 * Prevented oversized string values from corrupting persisted object data and making objects unreadable. See bug:MID-12813[]
 * Fixed statistics regeneration tasks displaying the resource OID instead of its name. See bug:MID-11518[]
 * Fixed outbound mapping simulations ignoring the filter configured in the simulation sampling popup. See bug:MID-12060[]
+* Fixed multi-threaded reconciliation failures caused by concurrent group membership synchronization, preventing incorrect assignments and Prism value parent errors. See bug:MID-11746[]
 
 == Changes With Respect to Version 4.10
 
