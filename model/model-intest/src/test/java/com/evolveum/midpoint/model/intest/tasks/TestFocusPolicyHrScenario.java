@@ -26,6 +26,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.task.ActivityItemProcessingStatisticsUtil;
 import com.evolveum.midpoint.schema.util.task.ActivityPath;
+import com.evolveum.midpoint.schema.util.task.TaskInformation;
 import com.evolveum.midpoint.schema.util.task.work.ActivityDefinitionUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.*;
@@ -733,6 +734,10 @@ public abstract class TestFocusPolicyHrScenario extends AbstractEmptyModelIntegr
                 .display()
                 .assertClosed()
                 .assertSuccess();
+        TaskType rootAfterRestart = taskManager.getTaskTree(task.oid, result).getRawTaskObjectClonedIfNecessary().asObjectable();
+        assertThat(TaskInformation.createForTask(rootAfterRestart, null).getTaskHealthUserFriendlyMessages())
+                .as("task health messages after restart (state overview entries of the deleted subtasks)")
+                .isEmpty();
         assertThat(haltingInformation(task.oid))
                 .as("recorded halts after restart").isEmpty();
         assertThat(countUsers())
