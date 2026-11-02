@@ -903,7 +903,11 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
             LoggingUtils.logUnexpectedException(LOGGER, e);
             error(getString("AbstractPageObjectDetails.replacePanelException", e.getMessage(), e.getClass().getSimpleName()));
 
+            addErrorPanel(true, form, MessagePanel.MessagePanelType.ERROR, "AbstractPageObjectDetails.panelErrorInitialization",
+                    config != null ? config.getIdentifier() : null, config != null ? config.getPanelType() : null);
+
             target.add(getFeedbackPanel());
+            target.add(form);
         }
     }
 

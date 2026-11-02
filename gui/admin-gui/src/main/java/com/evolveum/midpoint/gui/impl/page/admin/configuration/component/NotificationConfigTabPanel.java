@@ -76,6 +76,7 @@ public class NotificationConfigTabPanel extends BasePanel<PrismContainerWrapper<
     private static final String DOT_CLASS = NotificationConfigTabPanel.class.getName() + ".";
     private static final String OPERATION_CREATE_NEW_VALUE = DOT_CLASS + "createNewValue";
 
+    private static final String ID_MAIL_CONFIG = "mailConfiguration";
     private static final String ID_MAIL_CONFIG_HEADER = "mailConfigurationHeader";
     private static final String ID_DEFAULT_FROM = "defaultFrom";
     private static final String ID_REDIRECT_TO_FILE = "redirectToFile";
@@ -83,6 +84,7 @@ public class NotificationConfigTabPanel extends BasePanel<PrismContainerWrapper<
     private static final String ID_DEBUG = "debug";
     private static final String ID_MAIL_SERVERS_TABLE = "mailServersTable";
     private static final String ID_MAIL_SERVER_CONFIG_HEADER = "mailServerConfigurationHeader";
+    private static final String ID_FILE_CONFIG_SECTION = "fileConfigurationSection";
     private static final String ID_FILE_CONFIG_HEADER = "fileConfigurationHeader";
     private static final String ID_FILE_CONFIG = "fileConfiguration";
     private static final String ID_ADD_BUTTON = "addButton";
@@ -112,45 +114,25 @@ public class NotificationConfigTabPanel extends BasePanel<PrismContainerWrapper<
     }
 
     protected void initLayout() {
-        PrismPropertyWrapperModel<NotificationConfigurationType, MailConfigurationType> mailConfig =
-                PrismPropertyWrapperModel.fromContainerWrapper(getModel(), NotificationConfigurationType.F_MAIL);
+        initMailConfiguration();
 
-        add(createHeader(ID_MAIL_CONFIG_HEADER, mailConfig));
+        // legacy "file" is deprecated, so it's shown only when it's already present in system configuration
+        WebMarkupContainer fileSection = new WebMarkupContainer(ID_FILE_CONFIG_SECTION);
+        fileSection.setOutputMarkupId(true);
+        add(fileSection);
 
-        PropertyModel<MailConfigurationType> mailConfigType = new ItemRealValueModel<>(new PropertyModel<>(mailConfig, "values[0]"));
-
-        if (mailConfigType.getObject() == null) {
-            // TODO: This fails for deprecated "mail" element if it's missing, so it's not deprecated yet.
-            //  Reason: mailConfig.getObject() == null
-            //  Root cause: ItemWrapperFactoryImpl.skipCreateWrapper() has a code to skip empty & deprecated stuff.
-            //  The object for mailConfig can't be created with createItemWrapper either as it would be skipped again and return null.
-            //  Let's create new GUI for the new transport configuration first without to-be deprecated components.
-            mailConfigType.setObject(new MailConfigurationType());
+        if (!isFileConfigurationPresent()) {
+            fileSection.setVisible(false);
+            return;
         }
 
-        add(new TextFormGroup(ID_DEFAULT_FROM, new PropertyModel<>(mailConfigType, "defaultFrom"),
-                createStringResource(mailConfig.getObject().getTypeName().getLocalPart() + ".defaultFrom"), "", getInputCssClass(), false, true));
-
-        add(new TextFormGroup(ID_REDIRECT_TO_FILE, new PropertyModel<>(mailConfigType, "redirectToFile"),
-                createStringResource(mailConfig.getObject().getTypeName().getLocalPart() + ".redirectToFile"), "", getInputCssClass(), false, true));
-
-        add(new TextFormGroup(ID_LOG_TO_FILE, new PropertyModel<>(mailConfigType, "logToFile"),
-                createStringResource(mailConfig.getObject().getTypeName().getLocalPart() + ".logToFile"), "", getInputCssClass(), false, true));
-
-        add(new TriStateFormGroup(ID_DEBUG, new PropertyModel<>(mailConfigType, "debug"),
-                createStringResource(mailConfig.getObject().getTypeName().getLocalPart() + ".debug"), "", getInputCssClass(), false, true));
-
-        add(createHeader(ID_MAIL_SERVER_CONFIG_HEADER, MailServerConfigurationType.COMPLEX_TYPE.getLocalPart() + ".details"));
-
-        add(initServersTable(mailConfigType));
-
-        add(createHeader(ID_FILE_CONFIG_HEADER, FileConfigurationType.COMPLEX_TYPE.getLocalPart() + ".details"));
+        fileSection.add(createHeader(ID_FILE_CONFIG_HEADER, FileConfigurationType.COMPLEX_TYPE.getLocalPart() + ".details"));
 
         IModel<PrismPropertyWrapper<FileConfigurationType>> fileConfig = new DeprecatedPropertyWrapperModel<>(this, getModel(), NotificationConfigurationType.F_FILE);
 
         WebMarkupContainer files = new WebMarkupContainer(ID_FILE_CONFIG);
         files.setOutputMarkupId(true);
-        add(files);
+        fileSection.add(files);
 
         ListView<PrismPropertyValueWrapper<FileConfigurationType>> values = new ListView<>("values",
                 new PropertyModel<>(fileConfig, "values")) {
@@ -222,8 +204,57 @@ public class NotificationConfigTabPanel extends BasePanel<PrismContainerWrapper<
                 target.add(files);
             }
         };
-        add(addButton);
+        fileSection.add(addButton);
 
+    }
+
+    private boolean isFileConfigurationPresent() {
+        // wrapper for deprecated item without value isn't created (see ItemWrapperFactoryImpl.skipCreateWrapper())
+        PrismPropertyWrapperModel<NotificationConfigurationType, FileConfigurationType> fileConfigModel =
+                PrismPropertyWrapperModel.fromContainerWrapper(getModel(), NotificationConfigurationType.F_FILE);
+        PrismPropertyWrapper<FileConfigurationType> fileConfig = fileConfigModel.getObject();
+        return fileConfig != null
+                && fileConfig.getValues().stream().anyMatch(value -> value.getRealValue() != null);
+    }
+
+    /**
+     * Legacy "mail" is deprecated (replaced by messageTransportConfiguration), so it's shown only when it's already
+     * present in system configuration. New legacy mail configuration can't be created here.
+     */
+    private void initMailConfiguration() {
+        PrismPropertyWrapperModel<NotificationConfigurationType, MailConfigurationType> mailConfig =
+                PrismPropertyWrapperModel.fromContainerWrapper(getModel(), NotificationConfigurationType.F_MAIL);
+        PropertyModel<MailConfigurationType> mailConfigType = new ItemRealValueModel<>(new PropertyModel<>(mailConfig, "values[0]"));
+
+        WebMarkupContainer mailContainer = new WebMarkupContainer(ID_MAIL_CONFIG);
+        mailContainer.setOutputMarkupId(true);
+        add(mailContainer);
+
+        if (mailConfigType.getObject() == null) {
+            // wrapper for deprecated item without value isn't created (see ItemWrapperFactoryImpl.skipCreateWrapper())
+            mailContainer.setVisible(false);
+            return;
+        }
+
+        mailContainer.add(createHeader(ID_MAIL_CONFIG_HEADER, mailConfig));
+
+        String typeName = mailConfig.getObject().getTypeName().getLocalPart();
+
+        mailContainer.add(new TextFormGroup(ID_DEFAULT_FROM, new PropertyModel<>(mailConfigType, "defaultFrom"),
+                createStringResource(typeName + ".defaultFrom"), "", getInputCssClass(), false, true));
+
+        mailContainer.add(new TextFormGroup(ID_REDIRECT_TO_FILE, new PropertyModel<>(mailConfigType, "redirectToFile"),
+                createStringResource(typeName + ".redirectToFile"), "", getInputCssClass(), false, true));
+
+        mailContainer.add(new TextFormGroup(ID_LOG_TO_FILE, new PropertyModel<>(mailConfigType, "logToFile"),
+                createStringResource(typeName + ".logToFile"), "", getInputCssClass(), false, true));
+
+        mailContainer.add(new TriStateFormGroup(ID_DEBUG, new PropertyModel<>(mailConfigType, "debug"),
+                createStringResource(typeName + ".debug"), "", getInputCssClass(), false, true));
+
+        mailContainer.add(createHeader(ID_MAIL_SERVER_CONFIG_HEADER, MailServerConfigurationType.COMPLEX_TYPE.getLocalPart() + ".details"));
+
+        mailContainer.add(initServersTable(mailConfigType));
     }
 
     private BoxedTablePanel<MailServerConfiguration> initServersTable(PropertyModel<MailConfigurationType> mailConfigType) {
@@ -253,8 +284,7 @@ public class NotificationConfigTabPanel extends BasePanel<PrismContainerWrapper<
 
             @Override
             public int getItemsPerPage() {
-                return getPageBase().getBrowserTabSessionStorage().getUserProfile().getTables()
-                        .get(getTableId());
+                return (int) getPageBase().getItemsPerPage(getTableId());
             }
 
             @Override
@@ -478,7 +508,8 @@ public class NotificationConfigTabPanel extends BasePanel<PrismContainerWrapper<
         List<MailServerConfigurationType> servers = mailConfigType.getObject().getServer();
 
         toDelete.forEach(value -> servers.remove(value.getValue()));
-        target.add(this.addOrReplace(initServersTable(mailConfigType)));
+        WebMarkupContainer mailContainer = (WebMarkupContainer) get(ID_MAIL_CONFIG);
+        target.add(mailContainer.addOrReplace(initServersTable(mailConfigType)));
     }
 
     private ColumnMenuAction<MailServerConfiguration> createEditColumnAction() {
@@ -517,7 +548,7 @@ public class NotificationConfigTabPanel extends BasePanel<PrismContainerWrapper<
     }
 
     private BoxedTablePanel<MailServerConfiguration> getMailServersTable() {
-        return (BoxedTablePanel<MailServerConfiguration>) get(ID_MAIL_SERVERS_TABLE);
+        return (BoxedTablePanel<MailServerConfiguration>) get(createComponentPath(ID_MAIL_CONFIG, ID_MAIL_SERVERS_TABLE));
     }
 
     private String getInputCssClass() {
