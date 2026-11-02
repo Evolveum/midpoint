@@ -49,8 +49,6 @@ public class ConfirmationWithOptionsDto<T extends Describable> implements Serial
         confirmationOptions = builder.confirmationOptions;
         errorMessage = builder.errorMessage;
         warningMessage = builder.warningMessage;
-        aiInfo = builder.aiInfo;
-        requireAiService = builder.requireAiService;
     }
 
     public IModel<String> getConfirmationTitle() {
