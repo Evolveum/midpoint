@@ -17,6 +17,7 @@ import com.evolveum.midpoint.model.common.mapping.metadata.ConsolidationMetadata
 import com.evolveum.midpoint.model.common.mapping.metadata.TransformationalMetadataComputation;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingSourceType;
@@ -53,7 +54,7 @@ public class TransformationBuiltinMapping extends BaseBuiltinMetadataMapping {
                 lazy(() -> dumpInput(input)));
 
         MappingTransformationType mappingTransformation = new MappingTransformationType()
-                .mappingSpecification(computation.getMappingSpecification());
+                .mappingSpecification(CloneUtil.clone(computation.getMappingSpecification()));
 
         List<QName> sourceNames = computation.getSourceNames();
         if (computation.getInputValues().size() < sourceNames.size()) {
