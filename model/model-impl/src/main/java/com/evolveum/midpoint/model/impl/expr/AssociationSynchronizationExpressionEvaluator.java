@@ -14,6 +14,7 @@ import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectable;
 import static com.evolveum.midpoint.util.MiscUtil.castSafely;
 import static com.evolveum.midpoint.util.MiscUtil.stateNonNull;
 
+import java.lang.ref.WeakReference;
 import java.util.*;
 import javax.xml.namespace.QName;
 
@@ -48,6 +49,7 @@ import com.evolveum.midpoint.schema.processor.ShadowAssociationValue;
 import com.evolveum.midpoint.schema.processor.SynchronizationReactionDefinition.ItemSynchronizationReactionDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.AbstractShadow;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -70,11 +72,14 @@ class AssociationSynchronizationExpressionEvaluator
             AssociationSynchronizationExpressionEvaluator.class.getName() + ".processAssociationValue";
 
     /**
-     * Last evaluation executed on the current thread. Must be thread-confined: this evaluator instance
-     * is shared JVM-wide via the {@code ExpressionFactory} cache, so a plain field is subject to a data
-     * race between worker threads of multi-threaded tasks (and between concurrently running tasks).
+     * What {@link #doesVetoTargetValueRemoval} needs of the last evaluation executed on the current thread.
+     * Must be thread-confined: this evaluator instance is shared JVM-wide via the {@code ExpressionFactory} cache,
+     * so a plain field is subject to a data race between worker threads of multi-threaded tasks (and between
+     * concurrently running tasks). Only the association definition and the task are kept, not the whole
+     * evaluation: that one holds the lens context, and every thread that ever evaluated would keep one alive.
      */
-    private final ThreadLocal<Evaluation> lastEvaluation = new ThreadLocal<>();
+    private final ThreadLocal<Map.Entry<ShadowAssociationDefinition, WeakReference<Task>>> lastRemovalVeto =
+            new ThreadLocal<>();
 
     AssociationSynchronizationExpressionEvaluator(
             QName elementName,
@@ -103,14 +108,108 @@ class AssociationSynchronizationExpressionEvaluator
 
         // Actually, this should be called only once; at least for mappings
         var evaluation = new Evaluation(inputValues, associationDefinition, context);
-        lastEvaluation.set(evaluation);
+        lastRemovalVeto.set(new AbstractMap.SimpleImmutableEntry<>(associationDefinition, new WeakReference<>(context.getTask())));
         return evaluation.process(result);
     }
 
     @Override
     public boolean doesVetoTargetValueRemoval(@NotNull PrismContainerValue<AssignmentType> value, @NotNull OperationResult result) {
-        return stateNonNull(lastEvaluation.get(), "No last evaluation?")
-                .doesVetoTargetValueRemoval(value, result);
+        var last = stateNonNull(lastRemovalVeto.get(), "No last evaluation?");
+        return doesVetoRemoval(last.getKey(),
+                stateNonNull(last.getValue().get(), "The task of the last evaluation is gone"), value, result);
+    }
+
+    /**
+     * The mapping considers to remove the assignment that belongs to the range of this mapping.
+     * Maybe it was created by this mapping before?
+     *
+     * We consent, unless the assignment points to a role which has a projection of relevant type (resource, kind, intent)
+     * that prevents inbound membership synchronization.
+     *
+     * We don't support multi-tag resources here. Nor fancy assignments with filters etc.
+     */
+    private static boolean doesVetoRemoval(ShadowAssociationDefinition associationDefinition, Task task,
+            PrismContainerValue<AssignmentType> value, OperationResult result) {
+        LOGGER.trace("Considering whether to veto the removal of {}", value);
+        try {
+            var assignmentTargetRef = value.asContainerable().getTargetRef();
+            if (assignmentTargetRef == null || assignmentTargetRef.getOid() == null) {
+                LOGGER.trace("-> No targetRef or OID, just remove it.");
+                return false; // We don't care about assignments without OID, why should we veto their deletion?
+            }
+            var type = assignmentTargetRef.getType();
+            Class<? extends ObjectType> clazz;
+            if (type != null) {
+                clazz = ObjectTypes.getObjectTypeClass(type);
+                if (!FocusType.class.isAssignableFrom(clazz)) {
+                    LOGGER.trace("-> Not a focus, just remove it.");
+                    return false; // no shadows
+                }
+            } else {
+                clazz = AssignmentHolderType.class;
+            }
+            var target = ModelBeans.get().cacheRepositoryService.getObject(
+                    clazz,
+                    assignmentTargetRef.getOid(),
+                    readOnly(),
+                    result);
+            List<ObjectReferenceType> linkRefs =
+                    target.asObjectable() instanceof FocusType focus ? focus.getLinkRef() : List.of();
+            LOGGER.trace("-> Target {} with {} shadows: {}", target, linkRefs.size(), linkRefs);
+            if (linkRefs.isEmpty()) {
+                LOGGER.trace("-> No shadows, just remove it.");
+                return false;
+            }
+            var shadows = new ArrayList<AbstractShadow>();
+            var noFetchOptions = createNoFetchCollection();
+            for (var linkRef : linkRefs) {
+                shadows.add(
+                        ModelBeans.get().provisioningService.getShadow(
+                                linkRef.getOid(), noFetchOptions, task, result));
+            }
+            var matchingShadows = shadows.stream()
+                    .filter(shadow -> associationDefinition.matches(shadow.getBean()))
+                    .toList();
+            LOGGER.trace("-> Matching shadows: {}", matchingShadows);
+            var liveShadows = matchingShadows.stream()
+                    .filter(s -> !s.isDead())
+                    .toList();
+            var fromLiveShadows = new HashSet<Boolean>();
+            for (var liveShadow : liveShadows) {
+                fromLiveShadows.add(
+                        isMembershipSyncInboundDisabled(liveShadow.getEffectiveOperationPolicyRequired()));
+            }
+            if (fromLiveShadows.size() == 1) {
+                boolean answer = fromLiveShadows.iterator().next();
+                LOGGER.trace("-> Answer from live shadows: {}", answer);
+                return answer;
+            } else if (fromLiveShadows.size() > 1) {
+                LOGGER.trace("-> Contradicting answers from live shadows; NOT vetoing the removal");
+                return false;
+            }
+            // Now let's have a look at the last dead shadow
+            var lastDeadShadowOptional = matchingShadows.stream()
+                    .filter(s -> s.isDead() && s.getBean().getDeathTimestamp() != null)
+                    .max(Comparator.comparingLong(s -> XmlTypeConverter.toMillis(s.getBean().getDeathTimestamp())));
+            if (lastDeadShadowOptional.isPresent()) {
+                var lastDeadShadow = lastDeadShadowOptional.get();
+                var answer = isMembershipSyncInboundDisabled(lastDeadShadow.getEffectiveOperationPolicyRequired());
+                LOGGER.trace("-> Answer from last dead shadow: {} (from {})", answer, lastDeadShadow);
+                return answer;
+            }
+            LOGGER.trace("-> No shadow found, not vetoing the removal.");
+            return false;
+        } catch (ObjectNotFoundException e) {
+            LoggingUtils.logExceptionAsWarning(
+                    LOGGER,
+                    "'Object not found' detected while determining whether to remove assignment {}; so we will remove it",
+                    e, value);
+            return false;
+        } catch (CommonException e) {
+            LoggingUtils.logUnexpectedException(
+                    LOGGER, "Error while determining whether to remove assignment {}; so we will remove it", e, value);
+            return false;
+        }
     }
 
     class Evaluation {
