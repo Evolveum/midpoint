@@ -740,7 +740,7 @@ public class SmartStatisticsPanel extends BasePanel<ObjectSetStatisticsType> imp
             @Override
             protected @NotNull Component getValueComponent(String id) {
                 Label label = new Label(id, valueCount);
-                label.add(AttributeModifier.append(CLASS_CSS, "d-flex ps-4 m-0 lh-1"));
+                label.add(AttributeModifier.append(CLASS_CSS, "d-flex justify-content-center w-100 m-0 lh-1"));
                 label.add(AttributeModifier.append(STYLE_CSS, "font-size:20px"));
 
                 return label;
