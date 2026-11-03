@@ -48,7 +48,12 @@ import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.search.WaitingSearchByIdConnectorStepPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.search.WaitingSearchFilterConnectorStepPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.update.UpdateObjectClassConnectorStepPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.update.UpdateResultConnectorStepPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.update.UpdateScriptConnectorStepPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.update.UpdateCleanupConnectorStepPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.update.UpdateConfirmCreatedObjectConnectorStepPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.update.UpdateSelectTestObjectConnectorStepPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.update.UpdateTestObjectConnectorStepPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.update.WaitingUpdateConnectorStepPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.sql.connection.SqlConnectionParametersConnectorStepPanel;
 import com.evolveum.midpoint.prism.Containerable;
@@ -155,11 +160,17 @@ public class SqlConnectorWizardStrategy implements ConnectorWizardStrategy {
     public List<WizardStep> updateObjectClassSteps(
             WizardPanelHelper<? extends Containerable, ConnectorDevelopmentDetailsModel> helper,
             IModel<PrismContainerValueWrapper<ConnDevObjectClassInfoType>> objectClassModel) {
+        TestObjectFlowState flowState = new TestObjectFlowState();
         return List.of(
                 new WaitingUpdateConnectorStepPanel(helper, objectClassModel),
                 new WaitingFixObjectClassConnectorStepPanel(helper, objectClassModel, UpdateObjectClassConnectorStepPanel.PANEL_TYPE),
                 new FixObjectClassReviewConnectorStepPanel(helper, objectClassModel, UpdateObjectClassConnectorStepPanel.PANEL_TYPE),
-                new UpdateScriptConnectorStepPanel(helper, objectClassModel));
+                new UpdateScriptConnectorStepPanel(helper, objectClassModel),
+                new UpdateSelectTestObjectConnectorStepPanel(helper, objectClassModel, flowState),
+                new UpdateConfirmCreatedObjectConnectorStepPanel(helper, objectClassModel, flowState),
+                new UpdateTestObjectConnectorStepPanel(helper, objectClassModel, flowState),
+                new UpdateResultConnectorStepPanel(helper, objectClassModel, flowState),
+                new UpdateCleanupConnectorStepPanel(helper, objectClassModel, flowState));
     }
 
     @Override
