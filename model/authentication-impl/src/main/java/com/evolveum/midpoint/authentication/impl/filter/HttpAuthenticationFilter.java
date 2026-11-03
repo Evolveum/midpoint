@@ -20,6 +20,7 @@ import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
 
 import com.evolveum.midpoint.authentication.api.config.ModuleAuthentication;
 import com.evolveum.midpoint.authentication.impl.handler.BasicMidPointAuthenticationSuccessHandler;
+import com.evolveum.midpoint.authentication.impl.handler.MidpointAuthenticationFailureHandler;
 import com.evolveum.midpoint.authentication.impl.session.MidpointHttpServletRequest;
 import com.evolveum.midpoint.authentication.impl.util.AuthSequenceUtil;
 
@@ -202,6 +203,7 @@ public abstract class HttpAuthenticationFilter<T> extends BasicAuthenticationFil
             MidpointAuthentication mpAuthentication = (MidpointAuthentication) authentication;
             ModuleAuthentication moduleAuthentication = mpAuthentication.getProcessingModuleAuthentication();
             moduleAuthentication.recordFailure(failed);
+            MidpointAuthenticationFailureHandler.markResetPasswordFailure(request, mpAuthentication);
         }
     }
 }
