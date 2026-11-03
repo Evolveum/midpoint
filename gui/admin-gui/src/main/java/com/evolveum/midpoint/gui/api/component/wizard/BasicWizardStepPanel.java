@@ -221,7 +221,7 @@ public class BasicWizardStepPanel<T> extends WizardStepPanel<T> {
 
     private WebMarkupContainer createSubmitIcon() {
         WebMarkupContainer submitIcon = new WebMarkupContainer(ID_SUBMIT_ICON);
-        submitIcon.add(AttributeAppender.append("class", getSubmitIcon()));
+        submitIcon.add(AttributeAppender.append("class", this::getSubmitIcon));
         return submitIcon;
     }
 

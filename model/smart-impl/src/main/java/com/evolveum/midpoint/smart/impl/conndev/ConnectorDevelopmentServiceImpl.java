@@ -13,6 +13,9 @@ import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.util.ResourceUtils;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.builder.S_ItemEntry;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.common.activity.run.state.ActivityState;
 import com.evolveum.midpoint.provisioning.ucf.api.ReadableConnector;
@@ -21,7 +24,10 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.processor.BareResourceSchema;
+import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.Resource;
+import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
@@ -53,6 +59,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.xml.datatype.Duration;
+import javax.xml.namespace.QName;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -65,6 +72,7 @@ public class ConnectorDevelopmentServiceImpl implements ConnectorDevelopmentServ
     /** Auto cleanup time for background tasks created by the service. Will be shorter, probably. */
     private static final Duration AUTO_CLEANUP_TIME = XmlTypeConverter.createDuration("P1D");
     private static final Logger LOG = LoggerFactory.getLogger(ConnectorDevelopmentServiceImpl.class);
+    private static final String OP_LOAD_TEST_OBJECT = ConnectorDevelopmentServiceImpl.class.getName() + ".loadTestObject";
 
     private static final Set<String> SUPPORTED_MANIFEST_BASED_CONNECTORS = Set.of(
             "com.evolveum.polygon.sql.base.groovy.impl.ManifestBasedConnector",
@@ -687,6 +695,147 @@ public class ConnectorDevelopmentServiceImpl implements ConnectorDevelopmentServ
                     new WorkDefinitionsType().refreshSchema(new ConnDevRefreshSchemaWorkDefinitionType()
                             .connectorDevelopmentRef(stateObject.getOid(), ConnectorDevelopmentType.COMPLEX_TYPE)
                     ), task, result);
+        }
+
+        @Override
+        public String addTestObject(ShadowType shadow, Task task, OperationResult result) throws CommonException {
+            authorizeTestObjectChange(task, result);
+            checkTestingResource(shadow.getResourceRef());
+            String oid = ConnDevBeans.get().provisioningService.addObject(shadow.asPrismObject(), null, null, task, result);
+            addTestObjectRef(oid, task, result);
+            return oid;
+        }
+
+        @Override
+        public void modifyTestObject(String oid, Collection<? extends ItemDelta<?, ?>> modifications, Task task,
+                OperationResult result) throws CommonException {
+            authorizeTestObjectChange(task, result);
+            var shadow = ConnDevBeans.get().repositoryService.getObject(ShadowType.class, oid, null, result);
+            checkTestingResource(shadow.asObjectable().getResourceRef());
+            ConnDevBeans.get().provisioningService.modifyObject(ShadowType.class, oid, modifications, null, null, task, result);
+        }
+
+        @Override
+        public List<ShadowType> getTestObjects(String objectClass, Task task, OperationResult result) {
+            List<ShadowType> objects = new ArrayList<>();
+            for (String oid : getTestObjectOids()) {
+                try {
+                    ShadowType shadow = loadLiveTestObject(oid, task, result);
+                    if (shadow != null && shadow.getObjectClass() != null
+                            && objectClass.equals(shadow.getObjectClass().getLocalPart())) {
+                        objects.add(shadow);
+                    }
+                } catch (CommonException e) {
+                    LOG.warn("Couldn't load test object {}", oid, e);
+                }
+            }
+            return objects;
+        }
+
+        @Override
+        public ShadowType findTestingResourceObject(String objectClass, String primaryIdentifier, Task task,
+                OperationResult result) throws CommonException {
+            Resource testingResource = Resource.of(
+                    modelService.getObject(ResourceType.class, getTestingResourceOid(), null, task, result).asObjectable());
+            ResourceObjectDefinition definition = testingResource.getCompleteSchemaRequired()
+                    .findObjectClassDefinitionRequired(new QName(objectClass));
+            ObjectQuery query = testingResource.queryFor(definition.getObjectClassName())
+                    .and().item(ShadowType.F_ATTRIBUTES, definition.getPrimaryIdentifierRequired().getItemName())
+                    .eq(primaryIdentifier.trim())
+                    .build();
+            var shadows = modelService.searchObjects(ShadowType.class, query, null, task, result);
+            return shadows.isEmpty() ? null : shadows.get(0).asObjectable();
+        }
+
+        @Override
+        public void deleteTestObjects(Collection<String> oids, Task task, OperationResult result) throws CommonException {
+            authorizeTestObjectChange(task, result);
+            for (String oid : oids) {
+                var shadow = ConnDevBeans.get().repositoryService.getObject(ShadowType.class, oid, null, result);
+                checkTestingResource(shadow.asObjectable().getResourceRef());
+                ConnDevBeans.get().provisioningService.deleteObject(ShadowType.class, oid, null, null, task, result);
+                forgetTestObjects(Set.of(oid), task, result);
+            }
+        }
+
+        @Override
+        public void forgetTestObjects(Collection<String> oids, Task task, OperationResult result) throws CommonException {
+            if (oids.isEmpty()) {
+                return;
+            }
+            executeTestObjectsDelta(PrismContext.get().deltaFor(ConnectorDevelopmentType.class)
+                    .item(ConnectorDevelopmentType.F_TESTING, ConnDevTestingType.F_TEST_OBJECT)
+                    .delete(oids.stream().map(this::createTestObjectRef).toArray()), task, result);
+        }
+
+        @Override
+        public void forgetMissingTestObjects(Task task, OperationResult result) throws CommonException {
+            List<String> missingOids = new ArrayList<>();
+            for (String oid : getTestObjectOids()) {
+                try {
+                    if (loadLiveTestObject(oid, task, result) == null) {
+                        missingOids.add(oid);
+                    }
+                } catch (CommonException e) {
+                    LOG.warn("Couldn't check whether test object {} exists", oid, e);
+                }
+            }
+            forgetTestObjects(missingOids, task, result);
+        }
+
+        private List<String> getTestObjectOids() {
+            var testing = stateObject.getTesting();
+            return testing == null ? List.of() : testing.getTestObject().stream()
+                    .map(ObjectReferenceType::getOid)
+                    .toList();
+        }
+
+        private ShadowType loadLiveTestObject(String oid, Task task, OperationResult parentResult) throws CommonException {
+            OperationResult result = parentResult.createMinorSubresult(OP_LOAD_TEST_OBJECT);
+            try {
+                ShadowType shadow = modelService.getObject(ShadowType.class, oid,
+                        GetOperationOptions.createAllowNotFoundCollection(), task, result).asObjectable();
+                return ShadowUtil.isDead(shadow) ? null : shadow;
+            } catch (ObjectNotFoundException e) {
+                return null;
+            } catch (Throwable t) {
+                result.recordException(t);
+                throw t;
+            } finally {
+                result.close();
+            }
+        }
+
+        private void addTestObjectRef(String oid, Task task, OperationResult result) throws CommonException {
+            executeTestObjectsDelta(PrismContext.get().deltaFor(ConnectorDevelopmentType.class)
+                    .item(ConnectorDevelopmentType.F_TESTING, ConnDevTestingType.F_TEST_OBJECT)
+                    .add(createTestObjectRef(oid)), task, result);
+        }
+
+        private ObjectReferenceType createTestObjectRef(String oid) {
+            return new ObjectReferenceType().oid(oid).type(ShadowType.COMPLEX_TYPE);
+        }
+
+        private void executeTestObjectsDelta(S_ItemEntry delta, Task task, OperationResult result) throws CommonException {
+            modelService.executeChanges(List.of(delta.asObjectDelta(stateObject.getOid())), null, task, result);
+        }
+
+        private void authorizeTestObjectChange(Task task, OperationResult result) throws CommonException {
+            checkDevelopmentToolsEnabled();
+            securityEnforcer.authorize(AuthorizationConstants.AUTZ_UI_CONNECTOR_WIZARD_URL, task, result);
+        }
+
+        private void checkTestingResource(ObjectReferenceType resourceRef) throws SecurityViolationException {
+            var testingResourceOid = getTestingResourceOid();
+            if (testingResourceOid == null || resourceRef == null || !testingResourceOid.equals(resourceRef.getOid())) {
+                throw new SecurityViolationException("Test objects can be changed only on the testing resource of "
+                        + stateObject.getOid());
+            }
+        }
+
+        private String getTestingResourceOid() {
+            var testing = stateObject.getTesting();
+            return testing != null && testing.getTestingResource() != null ? testing.getTestingResource().getOid() : null;
         }
 
         private String connectorNameForTasks() {

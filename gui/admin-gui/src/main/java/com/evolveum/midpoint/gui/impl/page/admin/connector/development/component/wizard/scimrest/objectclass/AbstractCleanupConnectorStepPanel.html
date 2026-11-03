@@ -1,0 +1,27 @@
+<!--
+  ~ Copyright (C) 2026 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:extend>
+    <div wicket:id="deleteAvailableAlert" class="col-12 alert alert-info alert-opaque d-flex px-3 mb-3" role="alert">
+        <i class="fa fa-info-circle me-2 mt-1"/>
+        <div>
+            <div class="fw-bold"><wicket:message key="AbstractCleanupConnectorStepPanel.deleteAvailable"/></div>
+            <wicket:message key="AbstractCleanupConnectorStepPanel.deleteAvailableText"/>
+        </div>
+    </div>
+    <div wicket:id="deleteNotConfiguredAlert" class="col-12 alert alert-warning alert-opaque alert-dismissible fade show d-flex px-3 mb-3" role="alert">
+        <i class="fa fa-exclamation-triangle me-2 mt-1"/>
+        <div>
+            <div class="fw-bold"><wicket:message key="AbstractCleanupConnectorStepPanel.deleteNotConfigured"/></div>
+            <wicket:message key="AbstractCleanupConnectorStepPanel.deleteNotConfiguredText"/>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"/>
+    </div>
+    <div class="col-12 p-0 gen-table-scroll" wicket:id="table"/>
+</wicket:extend>
+</html>

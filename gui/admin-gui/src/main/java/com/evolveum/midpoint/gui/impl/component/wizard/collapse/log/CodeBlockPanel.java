@@ -82,14 +82,19 @@ public class CodeBlockPanel extends BasePanel<String> {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                target.appendJavaScript(buildCopyScript());
+                target.appendJavaScript(buildCopyScript(CodeBlockPanel.this.getModelObject()));
             }
         };
     }
 
-
-    private @NotNull String buildCopyScript() {
-        return "if (navigator.clipboard) { navigator.clipboard.writeText(%s); }".formatted(toJsStringLiteral(getModelObject()));
+    /**
+     * Builds the script copying the text to the clipboard.
+     *
+     * @param text text to copy
+     * @return the script to append to the Ajax response
+     */
+    public static @NotNull String buildCopyScript(String text) {
+        return "if (navigator.clipboard) { navigator.clipboard.writeText(%s); }".formatted(toJsStringLiteral(text));
     }
 
     private static String toJsStringLiteral(String text) {
