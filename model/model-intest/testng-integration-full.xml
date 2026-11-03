@@ -165,6 +165,7 @@
             <class name="com.evolveum.midpoint.model.intest.tasks.TestCustomPolicyReconciliationMultiNode"/>
             <class name="com.evolveum.midpoint.model.intest.tasks.TestFocusPolicyTreeCounters"/>
             <class name="com.evolveum.midpoint.model.intest.tasks.TestActivityPolicyNonIterativeScripting"/>
+            <class name="com.evolveum.midpoint.model.intest.tasks.TestCorrelatorSimulationTask"/>
         </classes>
     </test>
     <test name="Async updates" preserve-order="true" parallel="none" verbose="10">
@@ -250,6 +251,7 @@
         <classes>
             <class name="com.evolveum.midpoint.model.intest.smart.TestSmartIntegrationService"/>
             <class name="com.evolveum.midpoint.model.intest.smart.TestSmartIntegrationServiceStory"/>
+            <class name="com.evolveum.midpoint.model.intest.smart.TestSmartAssociation"/>
         </classes>
     </test>
 </suite>
