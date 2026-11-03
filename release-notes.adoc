@@ -317,7 +317,7 @@ See bug:MID-11230[].
 * Fixed object marks not being removed immediately after unassigning the policy that induces them. See bug:MID-10641[].
 * Fixed misleading messages after certification campaign actions and prevented an already closed campaign from being closed again. See bug:MID-12832[]
 * Fixed file-based secret providers failing to read secrets that end with a trailing newline. See bug:MID-10836[]
-
+* bug:MID-11658[] Fixed inconsistency in help for ninja export command
 // TODO
 
 === Other changes
