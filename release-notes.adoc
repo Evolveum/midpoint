@@ -43,6 +43,7 @@ Moreover, midPoint 4.11.0 made a significant leap towards secure-by-default conf
 
 ==== Security
 
+* Failed password reset attempts are now recorded in the audit log, improving security monitoring and troubleshooting. See bug:MID-4351[]
 // TODO
 
 ==== User Interface
