@@ -17,6 +17,7 @@ import com.evolveum.midpoint.authentication.impl.FocusAuthenticationResultRecord
 import com.evolveum.midpoint.model.api.ModelAuditRecorder;
 import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipalManager;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.security.api.Authorization;
 import com.evolveum.midpoint.security.api.ConnectionEnvironment;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
@@ -131,6 +132,18 @@ public abstract class AuthenticationEvaluatorImpl<T extends AbstractAuthenticati
 
     protected void auditAuthenticationFailure(String username, ConnectionEnvironment connEnv, String reason) {
         auditRecorder.auditLoginFailure(username, null, connEnv, reason);
+    }
+
+    /**
+     * Empty credentials are normally audited immediately. During password reset, the sequence completion filter
+     * owns the audit record so that all rejected submissions follow a single, duplicate-free path.
+     */
+    protected void recordEmptyCredentialFailure(String username, ConnectionEnvironment connEnv, String reason) {
+        if (SchemaConstants.CHANNEL_RESET_PASSWORD_URI.equals(connEnv.getChannel())) {
+            recordModuleAuthenticationFailure(username, null, connEnv, null, reason);
+        } else {
+            auditAuthenticationFailure(username, connEnv, reason);
+        }
     }
 
     protected void auditAuthenticationSuccess(ObjectType object, ConnectionEnvironment connEnv) {

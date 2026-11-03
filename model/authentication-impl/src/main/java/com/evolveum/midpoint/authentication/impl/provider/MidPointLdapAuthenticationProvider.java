@@ -41,6 +41,7 @@ import com.evolveum.midpoint.model.api.ModelAuditRecorder;
 import com.evolveum.midpoint.model.api.authentication.*;
 import com.evolveum.midpoint.model.api.util.AuthenticationEvaluatorUtil;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -318,6 +319,9 @@ public class MidPointLdapAuthenticationProvider extends MidpointAbstractAuthenti
     }
 
     private void recordAuthenticationFailure(String name, FocusType focus, String channel, String reason) {
-        auditProvider.auditLoginFailure(name, focus, createConnectEnvironment(channel), reason);
+        // Password reset failures are audited by SequenceCompletionFilter.
+        if (!SchemaConstants.CHANNEL_RESET_PASSWORD_URI.equals(channel)) {
+            auditProvider.auditLoginFailure(name, focus, createConnectEnvironment(channel), reason);
+        }
     }
 }

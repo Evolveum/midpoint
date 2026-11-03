@@ -18,6 +18,7 @@ import com.evolveum.midpoint.authentication.api.ModuleWebSecurityConfiguration;
 import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
 import com.evolveum.midpoint.authentication.api.config.ModuleAuthentication;
 import com.evolveum.midpoint.authentication.api.util.AuthConstants;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequenceModuleNecessityType;
 
@@ -36,6 +37,15 @@ import org.springframework.security.web.savedrequest.SavedRequest;
  */
 
 public class MidpointAuthenticationFailureHandler extends SimpleUrlAuthenticationFailureHandler {
+
+    public static final String RESET_PASSWORD_FAILURE_ATTRIBUTE = MidpointAuthenticationFailureHandler.class.getName() + ".resetPasswordFailure";
+
+    public static void markResetPasswordFailure(HttpServletRequest request, MidpointAuthentication authentication) {
+        if (authentication.getAuthenticationChannel() != null
+                && SchemaConstants.CHANNEL_RESET_PASSWORD_URI.equals(authentication.getAuthenticationChannel().getChannelId())) {
+            request.setAttribute(RESET_PASSWORD_FAILURE_ATTRIBUTE, Boolean.TRUE);
+        }
+    }
 
     private RequestCache requestCache = new HttpSessionRequestCache();
 
@@ -71,6 +81,8 @@ public class MidpointAuthenticationFailureHandler extends SimpleUrlAuthenticatio
             }
 
             moduleAuthentication.recordFailure(exception);
+
+            markResetPasswordFailure(request, mpAuthentication);
 
             //abort the authentication in case of requisite module fail
             if (!mpAuthentication.isLast(moduleAuthentication)

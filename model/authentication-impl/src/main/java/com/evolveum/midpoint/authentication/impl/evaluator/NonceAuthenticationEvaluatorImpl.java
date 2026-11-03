@@ -34,7 +34,7 @@ public class NonceAuthenticationEvaluatorImpl extends CredentialsAuthenticationE
     protected void checkEnteredCredentials(ConnectionEnvironment connEnv,
             NonceAuthenticationContext authCtx) {
         if (StringUtils.isBlank(authCtx.getNonce())) {
-            auditAuthenticationFailure(authCtx.getUsername(), connEnv, "empty nonce provided");
+            recordEmptyCredentialFailure(authCtx.getUsername(), connEnv, "empty nonce provided");
             throw new BadCredentialsException("web.security.provider.nonce.bad");
         }
     }

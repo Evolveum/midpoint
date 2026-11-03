@@ -11,6 +11,7 @@ import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.authentication.impl.module.authentication.OidcClientModuleAuthenticationImpl;
 import com.evolveum.midpoint.authentication.impl.module.configuration.OidcAdditionalConfiguration;
 import com.evolveum.midpoint.authentication.impl.filter.oidc.OidcUserTokenService;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -130,7 +131,10 @@ public class OidcClientProvider extends RemoteModuleProvider {
             try {
                 oidcAuthenticationToken = (OAuth2LoginAuthenticationToken) oidcProvider.authenticate(authentication);
             } catch (Exception e) {
-                getAuditProvider().auditLoginFailure(null, null, createConnectEnvironment(getChannel()), e.getMessage());
+                // Password reset failures are audited by SequenceCompletionFilter.
+                if (!SchemaConstants.CHANNEL_RESET_PASSWORD_URI.equals(getChannel())) {
+                    getAuditProvider().auditLoginFailure(null, null, createConnectEnvironment(getChannel()), e.getMessage());
+                }
                 LOGGER.debug("Unexpected exception in oidc module", e);
                 throw new AuthenticationServiceException("web.security.provider.unavailable", e);
             }

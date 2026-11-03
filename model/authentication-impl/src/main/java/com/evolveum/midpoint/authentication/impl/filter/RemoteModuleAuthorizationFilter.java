@@ -85,11 +85,14 @@ public abstract class RemoteModuleAuthorizationFilter<T extends RemoteModuleAuth
             channel = SchemaConstants.CHANNEL_USER_URI;
         }
 
-        auditProvider.auditLoginFailure(
-                "unknown user",
-                null,
-                ConnectionEnvironment.create(channel),
-                getAuthenticationType() + " authentication module: " + failed.getMessage());
+        // Password reset failures are audited by SequenceCompletionFilter.
+        if (!SchemaConstants.CHANNEL_RESET_PASSWORD_URI.equals(channel)) {
+            auditProvider.auditLoginFailure(
+                    "unknown user",
+                    null,
+                    ConnectionEnvironment.create(channel),
+                    getAuthenticationType() + " authentication module: " + failed.getMessage());
+        }
 
         this.failureHandler.onAuthenticationFailure(request, response, failed);
     }
