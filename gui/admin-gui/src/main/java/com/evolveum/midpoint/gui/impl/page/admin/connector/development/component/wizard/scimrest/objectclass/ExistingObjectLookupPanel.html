@@ -1,0 +1,36 @@
+<!--
+  ~ Copyright (C) 2026 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+    <div class="card shadow-sm p-3 mb-0" wicket:id="identifierCard">
+        <label class="mb-2 fw-semibold" wicket:id="identifierLabel"/>
+        <div class="input-group">
+            <input type="text" class="form-control" wicket:id="identifier"/>
+            <button type="button" class="btn btn-outline-secondary" wicket:id="checkObject">
+                <i class="fa fa-sync me-1"></i>
+                <wicket:message key="ExistingObjectLookupPanel.checkObject"/>
+            </button>
+        </div>
+        <div class="form-text small mt-2" wicket:id="identifierHint"></div>
+    </div>
+    <div class="card shadow-sm p-3 mb-0" wicket:id="foundObject">
+        <div class="alert alert-success alert-opaque px-3 mb-3" role="alert">
+            <i class="fa fa-check-circle me-1"></i>
+            <span class="fw-bold"><wicket:message key="ExistingObjectLookupPanel.objectFound"/></span>
+            <span wicket:id="foundObjectText"></span>
+        </div>
+        <div class="card shadow-sm p-3 mb-0 d-flex flex-row align-items-center">
+            <div class="d-flex align-items-center me-auto" wicket:id="foundObjectCard"></div>
+            <a href="#" class="btn btn-link" wicket:id="changeObject">
+                <i class="fa fa-sync me-1"></i>
+                <wicket:message key="ExistingObjectLookupPanel.changeObject"/>
+            </a>
+        </div>
+    </div>
+</wicket:panel>
+</html>

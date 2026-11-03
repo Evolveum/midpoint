@@ -115,6 +115,16 @@
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="suggestedEndpoint" type="c:ConnDevHttpEndpointType" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="testObject" type="tns:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Shadows created on the testing resource while testing connector operations.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:objectReferenceTargetType>ShadowType</a:objectReferenceTargetType>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
 
