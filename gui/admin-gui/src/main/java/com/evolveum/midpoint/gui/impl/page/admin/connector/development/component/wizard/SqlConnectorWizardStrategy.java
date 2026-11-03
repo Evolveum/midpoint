@@ -21,7 +21,10 @@ import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.ObjectClassSelectConnectorStepPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.TestObjectFlowState;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.create.CreateObjectClassConnectorStepPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.create.CreateCleanupConnectorStepPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.create.CreateResultConnectorStepPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.create.CreateScriptConnectorStepPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.create.CreateTestObjectConnectorStepPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.create.WaitingCreateConnectorStepPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.delete.DeleteObjectClassConnectorStepPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.delete.DeleteScriptConnectorStepPanel;
@@ -137,11 +140,15 @@ public class SqlConnectorWizardStrategy implements ConnectorWizardStrategy {
     public List<WizardStep> createObjectClassSteps(
             WizardPanelHelper<? extends Containerable, ConnectorDevelopmentDetailsModel> helper,
             IModel<PrismContainerValueWrapper<ConnDevObjectClassInfoType>> objectClassModel) {
+        TestObjectFlowState flowState = new TestObjectFlowState();
         return List.of(
                 new WaitingCreateConnectorStepPanel(helper, objectClassModel),
                 new WaitingFixObjectClassConnectorStepPanel(helper, objectClassModel, CreateObjectClassConnectorStepPanel.PANEL_TYPE),
                 new FixObjectClassReviewConnectorStepPanel(helper, objectClassModel, CreateObjectClassConnectorStepPanel.PANEL_TYPE),
-                new CreateScriptConnectorStepPanel(helper, objectClassModel));
+                new CreateScriptConnectorStepPanel(helper, objectClassModel),
+                new CreateTestObjectConnectorStepPanel(helper, objectClassModel, flowState),
+                new CreateResultConnectorStepPanel(helper, objectClassModel, flowState),
+                new CreateCleanupConnectorStepPanel(helper, objectClassModel, flowState));
     }
 
     @Override
