@@ -8,9 +8,15 @@
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:extend>
-    <div wicket:id="feedbackContainer" class="col-12 feedbackContainer">
-        <div wicket:id="feedback" class="messagePanel"/>
+    <div class="col-12 p-0" wicket:id="objectSource"/>
+    <div class="col-12 p-0 mt-3" wicket:id="searchResults"/>
+    <div class="col-12 p-0 mt-3" wicket:id="manualIdentifier">
+        <div class="card shadow-sm p-3 mb-0">
+            <label class="mb-2" wicket:for="identifier">
+                <wicket:message key="SearchByIdObjectConnectorStepPanel.primaryIdentifier"/>
+            </label>
+            <input type="text" class="form-control" wicket:id="identifier"/>
+        </div>
     </div>
-    <div class="col-12 p-0 mt-1" wicket:id="panel"/>
 </wicket:extend>
 </html>
