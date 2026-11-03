@@ -28,6 +28,7 @@ import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.connection.WaitingConnectivityEndpointConnectorStepPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.connection.WaitingSchemaConnectorStepPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.ObjectClassSelectConnectorStepPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.TestObjectFlowState;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.create.CreateEndpointsConnectorStepPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.create.CreateObjectClassConnectorStepPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.create.CreateScriptConnectorStepPanel;
@@ -48,6 +49,7 @@ import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.search.SearchByIdEndpointsConnectorStepPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.search.SearchByIdObjectClassConnectorStepPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.search.SearchByIdObjectConnectorStepPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.search.SearchByIdResultConnectorStepPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.search.SearchByIdScriptConnectorStepPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.search.SearchFilterEndpointsConnectorStepPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.search.SearchFilterObjectClassConnectorStepPanel;
@@ -90,6 +92,7 @@ public class RestConnectorWizardStrategy implements ConnectorWizardStrategy {
     public List<WizardStep> initObjectClassSteps(
             WizardPanelHelper<? extends Containerable, ConnectorDevelopmentDetailsModel> helper,
             IModel<PrismContainerValueWrapper<ConnDevObjectClassInfoType>> objectClassModel) {
+        TestObjectFlowState flowState = new TestObjectFlowState();
         return List.of(
                 new ObjectClassSelectConnectorStepPanel(helper, objectClassModel),
                 new WaitingObjectClassDetailsConnectorStepPanel(helper, objectClassModel),
@@ -109,7 +112,8 @@ public class RestConnectorWizardStrategy implements ConnectorWizardStrategy {
                 new WaitingFixObjectClassConnectorStepPanel(helper, objectClassModel, SearchByIdObjectClassConnectorStepPanel.PANEL_TYPE),
                 new FixObjectClassReviewConnectorStepPanel(helper, objectClassModel, SearchByIdObjectClassConnectorStepPanel.PANEL_TYPE),
                 new SearchByIdScriptConnectorStepPanel(helper, objectClassModel),
-                new SearchByIdObjectConnectorStepPanel(helper, objectClassModel));
+                new SearchByIdObjectConnectorStepPanel(helper, objectClassModel, flowState),
+                new SearchByIdResultConnectorStepPanel(helper, objectClassModel, flowState));
     }
 
     @Override
@@ -129,13 +133,15 @@ public class RestConnectorWizardStrategy implements ConnectorWizardStrategy {
     public List<WizardStep> searchByIdObjectClassSteps(
             WizardPanelHelper<? extends Containerable, ConnectorDevelopmentDetailsModel> helper,
             IModel<PrismContainerValueWrapper<ConnDevObjectClassInfoType>> objectClassModel) {
+        TestObjectFlowState flowState = new TestObjectFlowState();
         return List.of(
                 new SearchByIdEndpointsConnectorStepPanel(helper, objectClassModel),
                 new WaitingSearchByIdConnectorStepPanel(helper, objectClassModel),
                 new WaitingFixObjectClassConnectorStepPanel(helper, objectClassModel, SearchByIdObjectClassConnectorStepPanel.PANEL_TYPE),
                 new FixObjectClassReviewConnectorStepPanel(helper, objectClassModel, SearchByIdObjectClassConnectorStepPanel.PANEL_TYPE),
                 new SearchByIdScriptConnectorStepPanel(helper, objectClassModel),
-                new SearchByIdObjectConnectorStepPanel(helper, objectClassModel));
+                new SearchByIdObjectConnectorStepPanel(helper, objectClassModel, flowState),
+                new SearchByIdResultConnectorStepPanel(helper, objectClassModel, flowState));
     }
 
     @Override
