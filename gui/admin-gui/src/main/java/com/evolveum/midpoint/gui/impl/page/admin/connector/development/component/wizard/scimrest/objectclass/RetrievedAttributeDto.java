@@ -1,0 +1,42 @@
+/*
+ * Copyright (C) 2026 Evolveum and contributors
+ *
+ * Licensed under the EUPL-1.2 or later.
+ */
+package com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass;
+
+import java.io.Serial;
+import java.io.Serializable;
+
+/**
+ * One attribute of a retrieved object.
+ */
+public class RetrievedAttributeDto implements Serializable {
+
+    @Serial private static final long serialVersionUID = 1L;
+
+    public static final String F_NAME = "name";
+    public static final String F_VALUE = "value";
+
+    private final String name;
+    private final String value;
+
+    /**
+     * Creates a retrieved attribute.
+     *
+     * @param name attribute name
+     * @param value value retrieved from the testing resource
+     */
+    public RetrievedAttributeDto(String name, String value) {
+        this.name = name;
+        this.value = value;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public String getValue() {
+        return value;
+    }
+}

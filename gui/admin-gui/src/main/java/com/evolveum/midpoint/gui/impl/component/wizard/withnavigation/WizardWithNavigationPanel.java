@@ -13,6 +13,7 @@ import java.util.List;
 import com.evolveum.midpoint.gui.impl.component.wizard.collapse.DrawerInfoPanel;
 
 import com.evolveum.midpoint.gui.impl.event.FormComponentUpdatingEvent;
+import com.evolveum.midpoint.gui.impl.event.ShowOperationResultsEvent;
 
 import org.apache.commons.lang3.Strings;
 import org.apache.wicket.Component;
@@ -399,5 +400,19 @@ public class WizardWithNavigationPanel<AH extends AssignmentHolderType, ADM exte
         ((Component) step).add(AttributeAppender.append("class", () -> getController().getActiveStep().appendCssToWizard()));
 
         ((MidpointForm) get(ID_MAIN_FORM)).addOrReplace((Component) step);
+    }
+
+    @Override
+    public void onEvent(IEvent<?> event) {
+        super.onEvent(event);
+
+        if (event.getPayload() instanceof ShowOperationResultsEvent showOperationResultsEvent) {
+            getController().showOperationResults();
+            getDrawerInfoPanel().replaceModel(getController(), showOperationResultsEvent.target());
+        }
+    }
+
+    private DrawerInfoPanel getDrawerInfoPanel() {
+        return (DrawerInfoPanel) get(createComponentPath(ID_MAIN_FORM, ID_DRAWER_INFO_PANEL));
     }
 }

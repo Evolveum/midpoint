@@ -37,6 +37,15 @@ public abstract class ScriptConfirmationPanel extends AbstractWizardStepPanel<Co
         this.valueModel = valueModel;
     }
 
+    /**
+     * Returns the name of the object class being developed.
+     *
+     * @return the object class name
+     */
+    protected final String getObjectClassName() {
+        return valueModel.getObject().getRealValue().getName();
+    }
+
     protected final IModel<PrismContainerValueWrapper<ConnDevObjectClassInfoType>> getValueModel() {
         return valueModel;
     }
@@ -46,10 +55,14 @@ public abstract class ScriptConfirmationPanel extends AbstractWizardStepPanel<Co
         return getScriptClassifications().stream()
                 .allMatch(
                         classification -> ConnectorDevelopmentWizardUtil.isScriptConfirmed(
-                                getDetailsModel(), classification, valueModel.getObject().getRealValue().getName()));
+                                getDetailsModel(), classification, getObjectClassName()));
     }
 
     protected abstract List<ConnectorDevelopmentArtifacts.KnownArtifactType> getScriptClassifications();
+
+    protected final void nextWithoutConfirmationPerformed(AjaxRequestTarget target) {
+        super.onNextPerformed(target);
+    }
 
     @Override
     public boolean onNextPerformed(AjaxRequestTarget target) {
