@@ -192,7 +192,8 @@ public class DocumentationConnectorStepPanel extends AbstractWizardStepPanel<Con
                     values.addAll(parentWrapper.getValues().stream()
                             .filter(value -> value.getStatus() != ValueStatus.DELETED)
                             .filter(value -> value.getStatus() != ValueStatus.ADDED
-                                    || StringUtils.isNotEmpty(value.getRealValue().getName()))
+                                    || StringUtils.isNotEmpty(value.getRealValue().getName())
+                                    || StringUtils.isNotEmpty(value.getRealValue().getUri()))
                             .peek(value -> value.setSelected(true))
                             .toList());
 
@@ -544,7 +545,7 @@ public class DocumentationConnectorStepPanel extends AbstractWizardStepPanel<Con
             protected void processHide(AjaxRequestTarget target) {
                 clearPopupFeedback(getPanel());
                 var newValue = newValueModel.getObject();
-                if (newValue != null && StringUtils.isNotEmpty(newValue.getRealValue().getName())) {
+                if (newValue != null && StringUtils.isNotEmpty(newValue.getRealValue().getUri())) {
                     newValue.setSelected(true);
                     valuesModel.getObject().add(0, newValue);
                 }
