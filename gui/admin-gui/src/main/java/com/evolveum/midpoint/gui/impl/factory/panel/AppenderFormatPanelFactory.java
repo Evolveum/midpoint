@@ -15,7 +15,7 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AppenderConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AppenderLayoutType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AppenderFormatType;
 
 import jakarta.annotation.PostConstruct;
 import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
@@ -23,11 +23,11 @@ import org.apache.wicket.model.Model;
 import org.springframework.stereotype.Component;
 
 @Component
-public class AppenderLayoutPanelFactory  extends AbstractInputGuiComponentFactory<AppenderLayoutType> {
+public class AppenderFormatPanelFactory extends AbstractInputGuiComponentFactory<AppenderFormatType> {
 
     @Override
     public Integer getOrder() {
-        return Integer.MAX_VALUE - 1;      // TODO: over, či je to správna priorita (pozri nižšie)
+        return Integer.MAX_VALUE - 1;
     }
 
     @PostConstruct
@@ -35,39 +35,39 @@ public class AppenderLayoutPanelFactory  extends AbstractInputGuiComponentFactor
         getRegistry().addToRegistry(this);
     }
     @Override
-    protected InputPanel getPanel(PrismPropertyPanelContext<AppenderLayoutType> panelCtx) {
-        return new DropDownChoicePanel<>(panelCtx.getComponentId(), new AppenderLayoutModel(panelCtx),
-                WebComponentUtil.createReadonlyModelFromEnum(AppenderLayoutType.class),
+    protected InputPanel getPanel(PrismPropertyPanelContext<AppenderFormatType> panelCtx) {
+        return new DropDownChoicePanel<>(panelCtx.getComponentId(), new AppenderFormatModel(panelCtx),
+                WebComponentUtil.createReadonlyModelFromEnum(AppenderFormatType.class),
                 new EnumChoiceRenderer<>(), false);
     }
 
     @Override
     public <IW extends ItemWrapper<?, ?>, VW extends PrismValueWrapper<?>> boolean match(IW wrapper, VW valueWrapper) {
-        if (!AppenderConfigurationType.F_LAYOUT.equals( wrapper.getItemName())){
+        if (!AppenderConfigurationType.F_FORMAT.equals( wrapper.getItemName())){
         return false;
     }
         PrismContainerValueWrapper<?> parent = wrapper.getParent();
         return parent != null && parent.getRealValue() instanceof AppenderConfigurationType;
     }
 
-    private static class AppenderLayoutModel extends Model<AppenderLayoutType> {
+    private static class AppenderFormatModel extends Model<AppenderFormatType> {
 
-        private final PrismPropertyPanelContext<AppenderLayoutType> panelCtx;
+        private final PrismPropertyPanelContext<AppenderFormatType> panelCtx;
 
-        AppenderLayoutModel(PrismPropertyPanelContext<AppenderLayoutType> panelCtx) {
+        AppenderFormatModel(PrismPropertyPanelContext<AppenderFormatType> panelCtx) {
             this.panelCtx = panelCtx;
         }
 
         @Override
-        public AppenderLayoutType getObject() {
-            AppenderLayoutType layout = panelCtx.getRealValueModel().getObject();
-            return layout != null ? layout : AppenderLayoutType.PATTERN;
+        public AppenderFormatType getObject() {
+            AppenderFormatType format = panelCtx.getRealValueModel().getObject();
+            return format != null ? format : AppenderFormatType.PATTERN;
         }
 
         @Override
-        public void setObject(AppenderLayoutType object) {
+        public void setObject(AppenderFormatType object) {
             super.setObject(object);
-            panelCtx.getRealValueModel().setObject(object == AppenderLayoutType.PATTERN ? null : object);
+            panelCtx.getRealValueModel().setObject(object == AppenderFormatType.PATTERN ? null : object);
         }
     }
 }

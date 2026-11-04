@@ -95,7 +95,7 @@ public class AppendersContentPanel extends MultivalueContainerListPanelWithDetai
                     }
                 },
                 new AbstractColumn<PrismContainerValueWrapper<AppenderConfigurationType>, String>(
-                        createStringResource("AppenderConfigurationType.layout")) {
+                        createStringResource("AppenderConfigurationType.format")) {
 
                     @Override
                     public void populateItem(
@@ -105,11 +105,11 @@ public class AppendersContentPanel extends MultivalueContainerListPanelWithDetai
 
                         item.add(new Label(componentId, () -> {
                             AppenderConfigurationType appender = rowModel.getObject().getRealValue();
-                            AppenderLayoutType layout = appender != null ? appender.getLayout() : null;
-                            if (layout == null) {
-                                layout = AppenderLayoutType.PATTERN;
+                            AppenderFormatType format = appender != null ? appender.getFormat() : null;
+                            if (format == null) {
+                                format = AppenderFormatType.PATTERN;
                             }
-                            return getString("AppenderLayoutType." + layout.name());
+                            return getString("AppenderFormatType." + format.name());
                         }));
                     }
                 },

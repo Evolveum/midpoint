@@ -35,7 +35,7 @@ public class LoggingConfigurationManagerTest {
         FileAppenderConfigurationType appenderConfig = new FileAppenderConfigurationType();
         appenderConfig.setName("AUDIT_JSON");
         appenderConfig.setFileName(logFile.getAbsolutePath());
-        appenderConfig.setLayout(AppenderLayoutType.JSON);
+        appenderConfig.setFormat(AppenderFormatType.JSON);
 
         StringBuilder appenderXml = new StringBuilder();
         appenderXml.append("<appender name=\"").append(appenderConfig.getName())
@@ -95,7 +95,7 @@ public class LoggingConfigurationManagerTest {
     public void testSyslogWithJsonLayoutFails() throws Exception {
         SyslogAppenderConfigurationType appender = new SyslogAppenderConfigurationType();
         appender.setName("SYSLOG");
-        appender.setLayout(AppenderLayoutType.JSON);
+        appender.setFormat(AppenderFormatType.JSON);
 
         LoggingConfigurationManager.prepareSyslogAppenderConfiguration(
                 new StringBuilder(), appender, new LoggingConfigurationType());
@@ -119,7 +119,7 @@ public class LoggingConfigurationManagerTest {
     public void testTracingAppenderUsesDefaultPatternForJsonRootAppender() {
         AppenderConfigurationType appender = new AppenderConfigurationType();
         appender.setName("ROOT");
-        appender.setLayout(AppenderLayoutType.JSON);          // no pattern
+        appender.setFormat(AppenderFormatType.JSON);          // no pattern
 
         StringBuilder sb = new StringBuilder();
         LoggingConfigurationManager.prepareTracingAppenderConfiguration(sb, appender);

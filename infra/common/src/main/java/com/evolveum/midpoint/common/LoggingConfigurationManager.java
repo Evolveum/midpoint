@@ -54,10 +54,10 @@ public class LoggingConfigurationManager {
 
     private static final String OP_CONFIGURE = LoggingConfigurationManager.class.getName() + ".configure";
 
-    /** Encoder used for {@link AppenderLayoutType#JSON}.  */
+    /** Encoder used for {@link AppenderFormatType#JSON}.  */
     private static final String JSON_ENCODER_CLASS_NAME = LogstashEncoder.class.getName();
     /**
-     * Used by ALT and TRACING appenders when the root appender has no pattern (e.g. it uses JSON layout).
+     * Used by ALT and TRACING appenders when the root appender has no pattern (e.g. it uses JSON format).
      * Same as the pattern of MIDPOINT_LOG in the default system configuration.
      */
     private static final String DEFAULT_ROOT_APPENDER_PATTERN = "%date [%X{subsystem}] [%thread] %level \\(%logger\\): %msg%n";
@@ -354,15 +354,15 @@ public class LoggingConfigurationManager {
         if (StringUtils.isNotEmpty(altFilename)) {
             sb.append("\t<appender name=\"" + ALT_APPENDER_NAME + "\" class=\"ch.qos.logback.core.FileAppender\">\n")
                     .append("\t\t\t\t<file>").append(altFilename).append("</file>\n")
-                    .append("\t\t\t\t<layout class=\"ch.qos.logback.classic.PatternLayout\">\n")
+                    .append("\t\t\t\t<format class=\"ch.qos.logback.classic.PatternLayout\">\n")
                     .append("\t\t\t\t\t<pattern>").append(altPrefix).append(pattern).append("</pattern>\n")
-                    .append("\t\t\t\t</layout>\n")
+                    .append("\t\t\t\t</format>\n")
                     .append("\t\t\t</appender>\n");
         } else {
             sb.append("\t<appender name=\"" + ALT_APPENDER_NAME + "\" class=\"ch.qos.logback.core.ConsoleAppender\">\n")
-                    .append("\t\t\t\t<layout class=\"ch.qos.logback.classic.PatternLayout\">\n")
+                    .append("\t\t\t\t<format class=\"ch.qos.logback.classic.PatternLayout\">\n")
                     .append("\t\t\t\t\t<pattern>").append(altPrefix).append(pattern).append("</pattern>\n")
-                    .append("\t\t\t\t</layout>\n")
+                    .append("\t\t\t\t</format>\n")
                     .append("\t\t\t</appender>\n");
         }
     }
@@ -422,8 +422,8 @@ public class LoggingConfigurationManager {
 
     static void prepareSyslogAppenderConfiguration(StringBuilder sb, SyslogAppenderConfigurationType appender, LoggingConfigurationType config) throws SchemaException {
 
-        if (appender.getLayout() == AppenderLayoutType.JSON) {
-            throw new SchemaException("JSON layout is not supported for syslog appender '" + appender.getName() + "'.");
+        if (appender.getFormat() == AppenderFormatType.JSON) {
+            throw new SchemaException("JSON format is not supported for syslog appender '" + appender.getName() + "'.");
         }
         prepareCommonAppenderHeader(sb, appender, config, "ch.qos.logback.classic.net.SyslogAppender");
 
@@ -447,9 +447,9 @@ public class LoggingConfigurationManager {
     @VisibleForTesting
      static void prepareTracingAppenderConfiguration(StringBuilder sb, AppenderConfigurationType appender) {
         sb.append("\t<appender name=\"" + TRACING_APPENDER_NAME + "\" class=\"").append(TRACING_APPENDER_CLASS_NAME).append("\">\n")
-                .append("\t\t<layout class=\"ch.qos.logback.classic.PatternLayout\">\n")
+                .append("\t\t<format class=\"ch.qos.logback.classic.PatternLayout\">\n")
                 .append("\t\t\t<pattern>").append(getPatternOrDefault(appender)).append("</pattern>\n")
-                .append("\t\t</layout>\n")
+                .append("\t\t</format>\n")
                 .append("\t</appender>\n");
     }
 
@@ -473,12 +473,12 @@ public class LoggingConfigurationManager {
     @VisibleForTesting
     static void prepareCommonAppenderFooter(StringBuilder sb, AppenderConfigurationType appender) throws SchemaException {
 
-        AppenderLayoutType layout = appender.getLayout();
-        if (layout == null) {
-            layout = AppenderLayoutType.PATTERN;
+        AppenderFormatType format = appender.getFormat();
+        if (format == null) {
+            format = AppenderFormatType.PATTERN;
         }
 
-        if (layout == AppenderLayoutType.JSON) {
+        if (format == AppenderFormatType.JSON) {
             sb.append("         <encoder class=\"").append(JSON_ENCODER_CLASS_NAME).append("\"/>\n");
         } else {
 
@@ -487,7 +487,7 @@ public class LoggingConfigurationManager {
 
             if (StringUtils.isBlank(pattern)) {
                 throw new SchemaException("Pattern is required for appender '" + appender.getName()
-                        + "' unless its layout is JSON.");
+                        + "' unless its format is JSON.");
             }
 
             if (StringUtils.isNotEmpty(pattern)) {

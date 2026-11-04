@@ -16112,7 +16112,7 @@
         </xsd:restriction>
     </xsd:simpleType>
 
-    <xsd:simpleType name="AppenderLayoutType">
+    <xsd:simpleType name="AppenderFormatType">
         <xsd:annotation>
             <xsd:documentation>
                 Output format of a logging appender.
@@ -16175,14 +16175,14 @@
                 </xsd:annotation>
             </xsd:element>
 
-            <xsd:element name="layout" type="tns:AppenderLayoutType" minOccurs="0">
+            <xsd:element name="format" type="tns:AppenderFormatType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         Output format of the appender. If not specified, PATTERN is used.
                         With JSON, the "pattern" element is not used to format the output of this appender.
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <a:displayName>AppenderConfigurationType.layout</a:displayName>
+                        <a:displayName>AppenderConfigurationType.formatFormat</a:displayName>
                         <a:since>4.12</a:since>
                     </xsd:appinfo>
                 </xsd:annotation>
