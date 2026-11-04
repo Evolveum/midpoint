@@ -32,6 +32,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.context.annotation.Primary;
+import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.AuthenticationTrustResolver;
 import org.springframework.security.authentication.AuthenticationTrustResolverImpl;
@@ -39,18 +40,20 @@ import org.springframework.security.config.ObjectPostProcessor;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.core.context.DeferredSecurityContext;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.web.AuthenticationEntryPoint;
+import org.springframework.security.web.DefaultSecurityFilterChain;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher;
 import org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter;
 import org.springframework.security.web.session.HttpSessionEventPublisher;
+import org.springframework.security.web.util.matcher.OrRequestMatcher;
+import org.springframework.security.web.util.matcher.RequestMatcher;
 
 import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
@@ -66,7 +69,7 @@ import java.util.Map;
 
 /**
  * Class with basic components for authentication filters.
- * Also this class contains configuration for path which ignore authentication.
+ * Also configures an empty security filter chain for public resources.
  *
  * @author skublik
  */
@@ -75,6 +78,19 @@ import java.util.Map;
 @EnableWebSecurity
 @DependsOn("initialSecurityConfiguration")
 public class SecurityConfigurer {
+
+    private static final RequestMatcher PUBLIC_RESOURCES = new OrRequestMatcher(
+            pathMatcher("/js/**"),
+            pathMatcher("/css/**"),
+            pathMatcher("/img/**"),
+            pathMatcher("/fonts/**"),
+
+            pathMatcher("/static/**"),
+            pathMatcher("/static-web/**"),
+
+            pathMatcher("/wicket/resource/**"),
+
+            pathMatcher("/favicon.ico"));
 
     @Autowired
     private AuthChannelRegistryImpl authChannelRegistry;
@@ -148,27 +164,9 @@ public class SecurityConfigurer {
     }
 
     @Bean
-    public WebSecurityCustomizer webSecurityCustomizer() {
-        return (web) -> {
-            // Web (SOAP) services
-            web.ignoring().requestMatchers(pathMatcher("/model/**"));
-
-            // Special intra-cluster service to download and delete report outputs
-            web.ignoring().requestMatchers(pathMatcher("/report"));
-
-            web.ignoring().requestMatchers(pathMatcher("/js/**"));
-            web.ignoring().requestMatchers(pathMatcher("/css/**"));
-            web.ignoring().requestMatchers(pathMatcher("/img/**"));
-            web.ignoring().requestMatchers(pathMatcher("/fonts/**"));
-
-            web.ignoring().requestMatchers(pathMatcher("/static/**"));
-            web.ignoring().requestMatchers(pathMatcher("/static-web/**"));
-            web.ignoring().requestMatchers(pathMatcher("/less/**"));
-
-            web.ignoring().requestMatchers(pathMatcher("/wicket/resource/**"));
-
-            web.ignoring().requestMatchers(pathMatcher("/favicon.ico"));
-        };
+    @Order(Ordered.HIGHEST_PRECEDENCE)
+    public SecurityFilterChain publicResourcesFilterChain() {
+        return new DefaultSecurityFilterChain(PUBLIC_RESOURCES);
     }
 
     @Bean
