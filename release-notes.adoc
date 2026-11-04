@@ -43,6 +43,7 @@ See xref:/midpoint/guides/account-activation-sequence/[Account Activation Authen
 * Fixed access certification ignoring overridden system clock in deadlines, reminders, notifications and campaign cleanup. See bug:MID-11008[]
 * Requests for unknown paths outside the REST API (for example under /actuator or /static) now return HTTP 404 instead of 500 with a stack trace. See bug:MID-12566[].
 * Failed password reset attempts are now recorded in the audit log, improving security monitoring and troubleshooting. See bug:MID-4351[]
+* Improved Spring Security initialization by replacing ignored URL patterns with a dedicated security filter chain, preserving existing authentication behavior. See bug:MID-6046[]
 
 == Changes With Respect To Version 4.10.4
 
