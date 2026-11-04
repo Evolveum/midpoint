@@ -191,7 +191,8 @@ public class DocumentationConnectorStepPanel extends AbstractWizardStepPanel<Con
                     values.addAll(parentWrapper.getValues().stream()
                             .filter(value -> value.getStatus() != ValueStatus.DELETED)
                             .filter(value -> value.getStatus() != ValueStatus.ADDED
-                                    || StringUtils.isNotEmpty(value.getRealValue().getName()))
+                                    || StringUtils.isNotEmpty(value.getRealValue().getName())
+                                    || StringUtils.isNotEmpty(value.getRealValue().getUri()))
                             .peek(value -> value.setSelected(true))
                             .toList());
 
@@ -454,6 +455,23 @@ public class DocumentationConnectorStepPanel extends AbstractWizardStepPanel<Con
     }
 
     private void onAddUrlPerformed(AjaxRequestTarget target) {
+        IModel<PrismContainerValueWrapper<ConnDevDocumentationSourceType>> newValueModel = new LoadableModel<>(false) {
+
+            @Override
+            protected PrismContainerValueWrapper<ConnDevDocumentationSourceType> load() {
+                PrismContainerValueWrapper<ConnDevDocumentationSourceType> newItemWrapper;
+                try {
+                    newItemWrapper = addNewDocumentationSourceValue();
+                } catch (SchemaException e) {
+                    LOGGER.error("Couldn't create new value for limitation container", e);
+                    return null;
+                }
+                newItemWrapper.setExpanded(true);
+                newItemWrapper.setShowEmpty(true);
+                return newItemWrapper;
+            }
+        };
+
         OnePanelPopupPanel popup = new OnePanelPopupPanel(
                 getPageBase().getMainPopupBodyId(),
                 createStringResource("DocumentationConnectorStepPanel.addNewDocumentation")) {
@@ -465,24 +483,7 @@ public class DocumentationConnectorStepPanel extends AbstractWizardStepPanel<Con
                         .build();
                 settings.setConfig(getContainerConfiguration(PANEL_TYPE));
 
-                IModel<PrismContainerValueWrapper<ConnDevDocumentationSourceType>> model = new LoadableModel<>(false) {
-
-                    @Override
-                    protected PrismContainerValueWrapper<ConnDevDocumentationSourceType> load() {
-                        PrismContainerValueWrapper<ConnDevDocumentationSourceType> newItemWrapper;
-                        try {
-                            newItemWrapper = addNewDocumentationSourceValue();
-                        } catch (SchemaException e) {
-                            LOGGER.error("Couldn't create new value for limitation container", e);
-                            return null;
-                        }
-                        newItemWrapper.setExpanded(true);
-                        newItemWrapper.setShowEmpty(true);
-                        return newItemWrapper;
-                    }
-                };
-
-                return new VerticalFormPrismContainerValuePanel<>(id, model, settings) {
+                return new VerticalFormPrismContainerValuePanel<>(id, newValueModel, settings) {
                     @Override
                     protected void onInitialize() {
                         super.onInitialize();
@@ -515,8 +516,8 @@ public class DocumentationConnectorStepPanel extends AbstractWizardStepPanel<Con
 
             @Override
             protected void processHide(AjaxRequestTarget target) {
-                var newValue = (PrismContainerValueWrapper<ConnDevDocumentationSourceType>) getPanel().getDefaultModelObject();
-                if (newValue != null && StringUtils.isNotEmpty(newValue.getRealValue().getName())) {
+                var newValue = newValueModel.getObject();
+                if (newValue != null && StringUtils.isNotEmpty(newValue.getRealValue().getUri())) {
                     newValue.setSelected(true);
                     valuesModel.getObject().add(0, newValue);
                 }
