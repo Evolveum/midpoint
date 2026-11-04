@@ -131,7 +131,12 @@
                                     def reuseAssignment = existingAssignments.find(a -&gt; a.targetRef &amp;&amp; midpoint.resolveReferenceIfExists(a.targetRef)?.name?.orig == it)
                                     if (reuseAssignment) {
                                         log.info("Reusing existing assignment for role '{}'", it)
-                                        result.add(reuseAssignment.cloneWithoutId())
+                                        // Issue 11092: do not re-assert a stale default relation
+                                        def reused = reuseAssignment.cloneWithoutId()
+                                        if (reused.targetRef.relation == null || reused.targetRef.relation == SchemaConstants.ORG_DEFAULT) {
+                                            reused.targetRef.relation = specialRelation
+                                        }
+                                        result.add(reused)
                                     } else {
                                         log.info("Constructing new assignment for role '{}'", it)
                                         def role = midpoint.searchObjectByName(RoleType.class, it)

@@ -51,7 +51,8 @@
                         }
 
                         // These assignments are special, they must have a custom relation.
-                        if (it.targetRef.relation == SchemaConstants.ORG_DEFAULT) {
+                        // Issue 11092: freshly added assignment carries null relation (normalized to default only on store)
+                        if (it.targetRef.relation == null || it.targetRef.relation == SchemaConstants.ORG_DEFAULT) {
                             log.info("Forcing business relation for assignment to role {} to {}", it.debugDump(), forcedRelation)
                             it = it.cloneWithoutId()
                             it.targetRef.relation = forcedRelation
