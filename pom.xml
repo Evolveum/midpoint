@@ -286,6 +286,7 @@
         <java-otp.version>1.7.1</java-otp.version>
         <byte-buddy.version>1.17.8</byte-buddy.version>
         <antlr.version>4.13.2</antlr.version>
+        <logstash.version>9.0</logstash.version>
     </properties>
 
     <dependencyManagement>
@@ -559,21 +560,7 @@
             <dependency>
                 <groupId>net.logstash.logback</groupId>
                 <artifactId>logstash-logback-encoder</artifactId>
-                <version>8.0</version>
-                <exclusions>
-                    <exclusion>
-                        <groupId>ch.qos.logback</groupId>
-                        <artifactId>logback-core</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>ch.qos.logback</groupId>
-                        <artifactId>logback-classic</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>com.fasterxml.jackson.core</groupId>
-                        <artifactId>jackson-databind</artifactId>
-                    </exclusion>
-                </exclusions>
+                <version>${logstash.version}</version>
             </dependency>
 
             <!-- Needed for OpenDJ in tests -->

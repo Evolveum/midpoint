@@ -18,6 +18,7 @@ import ch.qos.logback.classic.LoggerContext;
 import ch.qos.logback.classic.joran.JoranConfigurator;
 import ch.qos.logback.core.joran.spi.JoranException;
 import ch.qos.logback.core.util.StatusPrinter;
+import net.logstash.logback.encoder.LogstashEncoder;
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.Nullable;
@@ -53,8 +54,8 @@ public class LoggingConfigurationManager {
 
     private static final String OP_CONFIGURE = LoggingConfigurationManager.class.getName() + ".configure";
 
-    /** Encoder used for {@link AppenderLayoutType#JSON}. Referenced by name, so there is no compile-time dependency. */
-    private static final String JSON_ENCODER_CLASS_NAME = "net.logstash.logback.encoder.LogstashEncoder";
+    /** Encoder used for {@link AppenderLayoutType#JSON}.  */
+    private static final String JSON_ENCODER_CLASS_NAME = LogstashEncoder.class.getName();
     /**
      * Used by ALT and TRACING appenders when the root appender has no pattern (e.g. it uses JSON layout).
      * Same as the pattern of MIDPOINT_LOG in the default system configuration.
@@ -467,14 +468,7 @@ public class LoggingConfigurationManager {
         }
     }
 
-    private static void checkJsonEncoderAvailable() throws SchemaException {
-        try {
-            Class.forName(JSON_ENCODER_CLASS_NAME, false, LoggingConfigurationManager.class.getClassLoader());
-        } catch (ClassNotFoundException e) {
-            throw new SchemaException("JSON layout requires " + JSON_ENCODER_CLASS_NAME
-                    + " on the classpath, but it was not found.", e);
-        }
-    }
+
 
     @VisibleForTesting
     static void prepareCommonAppenderFooter(StringBuilder sb, AppenderConfigurationType appender) throws SchemaException {
@@ -485,7 +479,6 @@ public class LoggingConfigurationManager {
         }
 
         if (layout == AppenderLayoutType.JSON) {
-            checkJsonEncoderAvailable();
             sb.append("         <encoder class=\"").append(JSON_ENCODER_CLASS_NAME).append("\"/>\n");
         } else {
 
