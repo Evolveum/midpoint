@@ -39,7 +39,6 @@ import org.springframework.security.config.ObjectPostProcessor;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.core.context.DeferredSecurityContext;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -57,7 +56,7 @@ import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.authentication.impl.factory.channel.AuthChannelRegistryImpl;
 
-import static com.evolveum.midpoint.authentication.impl.util.MidpointRequestMatchers.pathMatcher;
+import static com.evolveum.midpoint.authentication.impl.util.MidpointRequestMatchers.publicResources;
 import org.springframework.web.accept.ContentNegotiationStrategy;
 import org.springframework.web.accept.HeaderContentNegotiationStrategy;
 
@@ -66,7 +65,7 @@ import java.util.Map;
 
 /**
  * Class with basic components for authentication filters.
- * Also this class contains configuration for path which ignore authentication.
+ * Also contains authorization configuration for public resources.
  *
  * @author skublik
  */
@@ -148,30 +147,6 @@ public class SecurityConfigurer {
     }
 
     @Bean
-    public WebSecurityCustomizer webSecurityCustomizer() {
-        return (web) -> {
-            // Web (SOAP) services
-            web.ignoring().requestMatchers(pathMatcher("/model/**"));
-
-            // Special intra-cluster service to download and delete report outputs
-            web.ignoring().requestMatchers(pathMatcher("/report"));
-
-            web.ignoring().requestMatchers(pathMatcher("/js/**"));
-            web.ignoring().requestMatchers(pathMatcher("/css/**"));
-            web.ignoring().requestMatchers(pathMatcher("/img/**"));
-            web.ignoring().requestMatchers(pathMatcher("/fonts/**"));
-
-            web.ignoring().requestMatchers(pathMatcher("/static/**"));
-            web.ignoring().requestMatchers(pathMatcher("/static-web/**"));
-            web.ignoring().requestMatchers(pathMatcher("/less/**"));
-
-            web.ignoring().requestMatchers(pathMatcher("/wicket/resource/**"));
-
-            web.ignoring().requestMatchers(pathMatcher("/favicon.ico"));
-        };
-    }
-
-    @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http.setSharedObject(AuthenticationTrustResolverImpl.class, new MidpointAuthenticationTrustResolverImpl());
         http.addFilter(new WebAsyncManagerIntegrationFilter())
@@ -180,6 +155,11 @@ public class SecurityConfigurer {
                     configurer.securityContextRepository(createSessionContextRepository(http));
                 });
         http.with(new AuthFilterConfigurer(), authFilterConfigurer -> {});
+
+        http.authorizeHttpRequests(registry -> registry
+                .requestMatchers(publicResources()).permitAll()
+                // Authorization of application requests is handled by midPoint's dynamic module filter chains.
+                .anyRequest().permitAll());
 
         http.setSharedObject(SecurityContextRepository.class, createSessionContextRepository(http));
 
