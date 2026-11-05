@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2026 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<!-- Replication of issue 11092 -->
+<objectTemplate xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+                xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+                xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                oid="11092000-0000-0000-0001-000000000002">
+    <name>ReproRoleOT</name>
+
+    <mapping>
+        <name>OT:Role:assignment</name>
+        <documentation>Forces the business relation on role-role assignments, as in the customer configuration.</documentation>
+        <authoritative>true</authoritative>
+        <strength>strong</strength>
+        <source>
+            <path>assignment</path>
+            <set>
+                <predefined>all</predefined>
+            </set>
+        </source>
+        <expression>
+            <script xsi:type="c:ScriptExpressionEvaluatorType">
+                <relativityMode>absolute</relativityMode>
+                <code>
+                <![CDATA[
+                    import com.evolveum.midpoint.schema.constants.SchemaConstants
+                    import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType
+                    import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType
+
+                    import javax.xml.namespace.QName
+
+                    def forcedNs = 'http://example.com/xml/ns/midpoint/relation'
+                    def forcedRelation = new QName(forcedNs, 'member')
+                    def theAssignments = assignment as Collection<AssignmentType>
+
+                    // This mapping simulates forcing relations to a specific value depending on the role content.
+                    def relationsForced = theAssignments.collect {
+                        // Ignore assignments not pointing to a role.
+                        if (it.targetRef.type != RoleType.COMPLEX_TYPE) {
+                            return it
+                        }
+
+                        // Delete role assignments not having a targetRef (mainly for nullishness-protection below)
+                        if (it.targetRef == null) {
+                            return null
+                        }
+
+                        // These assignments are special, they must have a custom relation.
+                        // Issue 11092: freshly added assignment carries null relation (normalized to default only on store)
+                        if (it.targetRef.relation == null || it.targetRef.relation == SchemaConstants.ORG_DEFAULT) {
+                            log.info("Forcing business relation for assignment to role {} to {}", it.debugDump(), forcedRelation)
+                            it = it.cloneWithoutId()
+                            it.targetRef.relation = forcedRelation
+                        }
+
+                        return it
+                    }
+
+                    return relationsForced
+                    ]]>
+            </code>
+            </script>
+        </expression>
+        <target>
+            <path>assignment</path>
+            <set>
+                <predefined>all</predefined>
+            </set>
+        </target>
+    </mapping>
+</objectTemplate>

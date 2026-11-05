@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2026 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<!-- Replication of issue 11092 -->
+<archetype xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+           oid="11092000-0000-0000-0001-000000000001">
+    <name>ReprodCaseRole</name>
+    <description>Role archetype replicating issue 11092.</description>
+    <archetypePolicy>
+        <objectTemplateRef oid="11092000-0000-0000-0001-000000000002" type="ObjectTemplateType"/>
+    </archetypePolicy>
+    <archetypeType>structural</archetypeType>
+
+    <inducement>
+        <construction>
+            <resourceRef oid="11092000-0000-0000-0001-000000000003" type="ResourceType"/>
+            <kind>entitlement</kind>
+            <intent>role</intent>
+        </construction>
+    </inducement>
+</archetype>

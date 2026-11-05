@@ -328,11 +328,16 @@ public class PageRole extends PageAbstractRole<RoleType, AbstractRoleDetailsMode
             @Override
             protected void onSubmit(AjaxRequestTarget target) {
                 PageBase pageBase = (PageBase) getPage();
-                ConfirmationPanel dialog = new DeleteConfirmationPanel(pageBase.getMainPopupBodyId(), createStringResource(
+                ConfirmationPanel dialog = new ConfirmationPanel(pageBase.getMainPopupBodyId(), createStringResource(
                         "RoleMining.button.title.execute.migration.confirmation.message")) {
                     @Override
                     public void yesPerformed(AjaxRequestTarget target) {
                         performMigration(target, pageBase);
+                    }
+
+                    @Override
+                    public IModel<String> getTitle() {
+                        return createStringResource("PageRole.button.title.execute.migration.confirmation");
                     }
                 };
                 pageBase.showMainPopup(dialog, target);

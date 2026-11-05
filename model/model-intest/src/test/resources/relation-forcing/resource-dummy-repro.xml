@@ -1,0 +1,279 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2026 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<!-- Replication of issue 11092 -->
+<resource oid="11092000-0000-0000-0001-000000000003"
+          xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+          xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
+
+    <name>resource-dummy-repro</name>
+
+    <connectorRef type="c:ConnectorType">
+        <filter>
+            <q:and>
+                <q:equal>
+                    <q:path>connectorType</q:path>
+                    <q:value>com.evolveum.icf.dummy.connector.DummyConnector</q:value>
+                </q:equal>
+                <q:equal>
+                    <q:path>connectorVersion</q:path>
+                    <q:value>2.0</q:value>
+                </q:equal>
+            </q:and>
+        </filter>
+    </connectorRef>
+    <connectorConfiguration xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector"
+                            xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
+        <icfc:configurationProperties>
+            <icfi:instanceId>repro</icfi:instanceId>
+        </icfc:configurationProperties>
+    </connectorConfiguration>
+
+    <schemaHandling>
+        <objectType>
+            <kind>entitlement</kind>
+            <intent>role</intent>
+            <displayName>Roles</displayName>
+            <default>true</default>
+            <delineation>
+                <objectClass>ri:AccountObjectClass</objectClass>
+            </delineation>
+            <focus>
+                <archetypeRef oid="11092000-0000-0000-0001-000000000001" type="c:ArchetypeType"/>
+            </focus>
+            <attribute>
+                <ref>icfs:name</ref>
+                <outbound>
+                    <source>
+                        <path>name</path>
+                    </source>
+                </outbound>
+                <inbound>
+                    <target>
+                        <path>name</path>
+                    </target>
+                </inbound>
+            </attribute>
+            <attribute>
+                <ref>ri:CHILD_ROLES</ref>
+                <outbound>
+                    <name>ReproRole:assignment:Outbound:CHILD_ROLES</name>
+                    <source>
+                        <path>assignment</path>
+                        <set>
+                            <condition>
+                                <script>
+                                    <code>
+                                        if (!assignment.targetRef) return false
+                                        def role = midpoint.resolveReferenceIfExists(assignment.targetRef)
+                                        return role &amp;&amp; role.archetypeRef.find { arch -&gt; arch.oid == "11092000-0000-0000-0001-000000000001" }
+                                    </code>
+                                </script>
+                            </condition>
+                        </set>
+                    </source>
+                    <expression>
+                        <script>
+                            <relativityMode>absolute</relativityMode>
+                            <code>
+                                return assignment.collect {
+                                    def role = midpoint.resolveReferenceIfExists(it.targetRef)
+                                    return role?.name?.orig
+                                }
+                            </code>
+                        </script>
+                    </expression>
+                    <target>
+                        <set>
+                            <condition>
+                                <script>
+                                    <code>
+                                        import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType
+
+                                        def role = midpoint.searchObjectByName(RoleType.class, input as String)
+                                        return role &amp;&amp; role.archetypeRef.find { arch -&gt; arch.oid == "11092000-0000-0000-0001-000000000001" }
+                                    </code>
+                                </script>
+                            </condition>
+                        </set>
+                    </target>
+                </outbound>
+                <inbound>
+                    <name>ReproRole:Inbound:CHILD_ROLES:Assignment</name>
+                    <expression>
+                        <variable>
+                            <name>assignment</name>
+                            <path>$focus/assignment</path>
+                        </variable>
+                        <script>
+                            <relativityMode>absolute</relativityMode>
+                            <code>
+                                import com.evolveum.midpoint.schema.constants.SchemaConstants
+                                import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType
+                                import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType
+
+                                import javax.xml.namespace.QName
+
+                                def specialRelation = new QName("http://example.com/xml/ns/midpoint/relation", "member")
+
+                                def existingAssignments = assignment as Collection&lt;AssignmentType&gt;
+                                def names = input instanceof String ? [input] : input as Collection&lt;String&gt;
+                                def result = new ArrayList&lt;AssignmentType&gt;()
+
+                                names.each {
+                                    def reuseAssignment = existingAssignments.find(a -&gt; a.targetRef &amp;&amp; midpoint.resolveReferenceIfExists(a.targetRef)?.name?.orig == it)
+                                    if (reuseAssignment) {
+                                        log.info("Reusing existing assignment for role '{}'", it)
+                                        // Issue 11092: do not re-assert a stale default relation
+                                        def reused = reuseAssignment.cloneWithoutId()
+                                        if (reused.targetRef.relation == null || reused.targetRef.relation == SchemaConstants.ORG_DEFAULT) {
+                                            reused.targetRef.relation = specialRelation
+                                        }
+                                        result.add(reused)
+                                    } else {
+                                        log.info("Constructing new assignment for role '{}'", it)
+                                        def role = midpoint.searchObjectByName(RoleType.class, it)
+
+                                        if (role &amp;&amp; role.archetypeRef.find { arch -&gt; arch.oid == "11092000-0000-0000-0001-000000000001" }) {
+                                            def newAssignment = new AssignmentType()
+                                            newAssignment.beginTargetRef().type(RoleType.COMPLEX_TYPE).oid(role.oid).relation(specialRelation)
+                                            result.add(newAssignment)
+                                        }
+                                    }
+                                }
+                                return result
+                            </code>
+                        </script>
+                    </expression>
+                    <target>
+                        <path>assignment</path>
+                        <set>
+                            <condition>
+                                <script>
+                                    <code>
+                                        import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType
+
+                                        // Restrict the assignments to only those that have the specific archetype.
+
+                                        def theAssignment = assignment as AssignmentType
+                                        if (!midpoint.mapping.conditionSatisfied || !theAssignment?.targetRef) {
+                                            return false
+                                        }
+
+                                        def theRole = midpoint.resolveReferenceIfExists(theAssignment.targetRef)
+                                        def found = theRole.archetypeRef?.find { arch -&gt; arch.oid == "11092000-0000-0000-0001-000000000001" }
+                                        return found != null
+                                    </code>
+                                </script>
+                            </condition>
+                        </set>
+                    </target>
+                    <condition>
+                        <variable>
+                            <name>roleType</name>
+                            <path>$projection/attributes/ri:ROLE_TYPE</path>
+                        </variable>
+                        <script>
+                            <code>
+                                return roleType == "REPRO_ROLE"
+                            </code>
+                        </script>
+                    </condition>
+                </inbound>
+            </attribute>
+            <attribute>
+                <ref>ri:ROLE_TYPE</ref>
+                <outbound>
+                    <name>ReproRole:OUT:ROLE_TYPE</name>
+                    <source>
+                        <path>archetypeRef</path>
+                    </source>
+                    <expression>
+                        <script>
+                            <relativityMode>absolute</relativityMode>
+                            <code>
+                                if (archetypeRef.find { arch -&gt; arch.oid == "11092000-0000-0000-0001-000000000001" }) {
+                                    return "REPRO_ROLE"
+                                } else {
+                                    return null
+                                }
+                            </code>
+                        </script>
+                    </expression>
+                </outbound>
+                <inbound>
+                    <name>ReproRole:ROLE_TYPE:IN:Archetype</name>
+                    <expression>
+                        <assignmentTargetSearch>
+                            <targetType>ArchetypeType</targetType>
+                            <filter>
+                                <q:inOid>
+                                    <q:value>11092000-0000-0000-0001-000000000001</q:value>
+                                </q:inOid>
+                            </filter>
+                        </assignmentTargetSearch>
+                    </expression>
+                    <target>
+                        <path>assignment</path>
+                        <set>
+                            <condition>
+                                <script>
+                                    <code>'ArchetypeType' == assignment?.targetRef?.type?.localPart</code>
+                                </script>
+                            </condition>
+                        </set>
+                    </target>
+                    <condition>
+                        <script>
+                            <code>
+                                return input == "REPRO_ROLE"
+                            </code>
+                        </script>
+                    </condition>
+                </inbound>
+            </attribute>
+            <correlation>
+                <correlators>
+                    <items>
+                        <item>
+                            <ref>name</ref>
+                        </item>
+                    </items>
+                </correlators>
+            </correlation>
+            <synchronization>
+                <reaction>
+                    <situation>unmatched</situation>
+                    <actions>
+                        <addFocus/>
+                    </actions>
+                </reaction>
+                <reaction>
+                    <situation>unlinked</situation>
+                    <actions>
+                        <link/>
+                    </actions>
+                </reaction>
+                <reaction>
+                    <situation>deleted</situation>
+                    <actions>
+                        <synchronize/>
+                    </actions>
+                </reaction>
+                <reaction>
+                    <situation>linked</situation>
+                    <actions>
+                        <synchronize/>
+                    </actions>
+                </reaction>
+            </synchronization>
+        </objectType>
+    </schemaHandling>
+</resource>
