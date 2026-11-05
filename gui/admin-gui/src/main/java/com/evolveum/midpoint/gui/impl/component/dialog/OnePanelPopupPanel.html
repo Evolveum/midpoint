@@ -9,9 +9,14 @@
 
     <wicket:fragment wicket:id="buttons">
         <div class="d-flex">
-            <a wicket:id="doneButton" class="ms-auto btn btn-primary">
-                <span><wicket:message key="OnePanelPopupPanel.button.done"/></span>
-            </a>
+            <div class="ms-auto d-flex">
+                <a wicket:id="cancelButton" class="btn btn-default me-2">
+                    <span><wicket:message key="Button.cancel"/></span>
+                </a>
+                <a wicket:id="doneButton" class="btn btn-primary">
+                    <span><wicket:message key="OnePanelPopupPanel.button.done"/></span>
+                </a>
+            </div>
         </div>
     </wicket:fragment>
 </wicket:panel>
