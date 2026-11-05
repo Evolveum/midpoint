@@ -1891,6 +1891,15 @@ export default class MidPointTheme {
         }
     }
 
+    triggerSearchOnEnterIfAutocompleteClosed(event, submitButtonAbout) {
+        if (event.keyCode === 13) {
+            var autocompletePopup = document.getElementsByClassName("wicket-aa-container");
+            if (autocompletePopup != null && autocompletePopup[0].style.display === "none") {
+                $('[about="' + submitButtonAbout + '"]').click();
+            }
+        }
+    }
+
     updatePasswordErrorState(errorId, fieldId) {
         const error = document.getElementById(errorId);
         if (!error) {

@@ -55,6 +55,7 @@ Users who have `en_EU` stored (midPoint 4.11.0) keep English (Europe). See bug:M
 * Fixed focus mapping wizard in role wizard allowing an empty target for empty, "as is" and path expressions, and the source column in the mappings table growing when multiple values are selected. See bug:MID-13021[]
 * Fixed misleading messages after certification campaign actions and prevented an already closed campaign from being closed again. See bug:MID-12832[]
 * Fixed file-based secret providers failing to read secrets that end with a trailing newline. See bug:MID-10836[]
+* Hardened Content Security Policy by removing unsafe-inline and unsafe-eval JavaScript permissions and restricting inline CSS in <style> elements.
 
 == Changes With Respect to Version 4.10
 
