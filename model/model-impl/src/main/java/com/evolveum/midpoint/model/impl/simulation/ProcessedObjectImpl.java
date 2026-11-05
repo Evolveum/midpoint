@@ -44,6 +44,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.provisioning.api.ShadowSimulationData;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
+import com.evolveum.midpoint.schema.DeltaConversionOptions;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
@@ -758,7 +759,7 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
                     .resultStatus(OperationResultStatus.createStatusType(resultStatus))
                     .before(prepareObjectForStorage(before))
                     .after(prepareObjectForStorage(after))
-                    .delta(DeltaConvertor.toObjectDeltaType(delta));
+                    .delta(DeltaConvertor.toObjectDeltaType(delta, DeltaConversionOptions.createSerializeReferenceNames()));
 
             // Event marks
             List<ObjectReferenceType> eventMarkRef = bean.getEventMarkRef();
