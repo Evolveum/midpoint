@@ -9,6 +9,7 @@ package com.evolveum.midpoint.repo.sqale.qmodel.simulation;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.PrismConstants;
+import com.evolveum.midpoint.prism.SerializationOptions;
 import com.evolveum.midpoint.prism.path.PathSet;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqale.SqaleUtils;
@@ -106,6 +107,15 @@ public class QProcessedObjectMapping extends QContainerMapping<SimulationResultP
         MProcessedObject row = newRowObject();
         row.ownerOid = ownerRow.oid;
         return row;
+    }
+
+    @Override
+    protected SerializationOptions fullObjectSerializationOptions() {
+        return SerializationOptions
+                .createSerializeReferenceNames()
+                .skipIndexOnly(true)
+                .skipTransient(true)
+                .skipWhitespaces(true);
     }
 
     @Override
