@@ -8,7 +8,6 @@ package com.evolveum.midpoint.authentication.impl.util;
 
 import org.springframework.http.HttpMethod;
 import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher;
-import org.springframework.security.web.util.matcher.OrRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 
 /**
@@ -21,28 +20,6 @@ public final class MidpointRequestMatchers {
 
     private static final PathPatternRequestMatcher.Builder MATCHER_BUILDER = PathPatternRequestMatcher.withDefaults();
 
-    // Public paths shared by HTTP authorization and midPoint authentication bypass.
-    private static final RequestMatcher PUBLIC_RESOURCES = new OrRequestMatcher(
-            // Web (SOAP) services
-            pathMatcher("/model/**"),
-
-            // Special intra-cluster service to download and delete report outputs
-            pathMatcher("/report"),
-
-            pathMatcher("/js/**"),
-            pathMatcher("/css/**"),
-            pathMatcher("/img/**"),
-            pathMatcher("/fonts/**"),
-
-            pathMatcher("/static/**"),
-            pathMatcher("/static-web/**"),
-            pathMatcher("/less/**"),
-
-            pathMatcher("/wicket/resource/**"),
-
-            pathMatcher("/favicon.ico")
-    );
-
     private MidpointRequestMatchers() {
     }
 
@@ -52,9 +29,5 @@ public final class MidpointRequestMatchers {
 
     public static RequestMatcher pathMatcher(String pattern, String method) {
         return MATCHER_BUILDER.matcher(HttpMethod.valueOf(method), pattern);
-    }
-
-    public static RequestMatcher publicResources() {
-        return PUBLIC_RESOURCES;
     }
 }

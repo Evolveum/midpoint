@@ -112,14 +112,6 @@ public class MidpointAuthFilter extends GenericFilterBean {
     private void doFilterInternal(ServletRequest request, ServletResponse response,
             FilterChain chain) throws IOException, ServletException {
         HttpServletRequest httpRequest = (HttpServletRequest) request;
-
-        // Public resources stay in the Spring Security filter chain, but do not participate
-        // in midPoint authentication sequences.
-        if (MidpointRequestMatchers.publicResources().matches(httpRequest)) {
-            chain.doFilter(request, response);
-            return;
-        }
-
         MidpointAuthentication mpAuthentication = getMidpointAuthentication();
 
         resetRetryableModuleIfNeeded(mpAuthentication);

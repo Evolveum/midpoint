@@ -32,6 +32,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.context.annotation.Primary;
+import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.AuthenticationTrustResolver;
 import org.springframework.security.authentication.AuthenticationTrustResolverImpl;
@@ -44,19 +45,22 @@ import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.web.AuthenticationEntryPoint;
+import org.springframework.security.web.DefaultSecurityFilterChain;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher;
 import org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter;
 import org.springframework.security.web.session.HttpSessionEventPublisher;
+import org.springframework.security.web.util.matcher.OrRequestMatcher;
+import org.springframework.security.web.util.matcher.RequestMatcher;
 
 import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.authentication.impl.factory.channel.AuthChannelRegistryImpl;
 
-import static com.evolveum.midpoint.authentication.impl.util.MidpointRequestMatchers.publicResources;
+import static com.evolveum.midpoint.authentication.impl.util.MidpointRequestMatchers.pathMatcher;
 import org.springframework.web.accept.ContentNegotiationStrategy;
 import org.springframework.web.accept.HeaderContentNegotiationStrategy;
 
@@ -65,7 +69,7 @@ import java.util.Map;
 
 /**
  * Class with basic components for authentication filters.
- * Also contains authorization configuration for public resources.
+ * Also configures an empty security filter chain for public resources.
  *
  * @author skublik
  */
@@ -74,6 +78,19 @@ import java.util.Map;
 @EnableWebSecurity
 @DependsOn("initialSecurityConfiguration")
 public class SecurityConfigurer {
+
+    private static final RequestMatcher PUBLIC_RESOURCES = new OrRequestMatcher(
+            pathMatcher("/js/**"),
+            pathMatcher("/css/**"),
+            pathMatcher("/img/**"),
+            pathMatcher("/fonts/**"),
+
+            pathMatcher("/static/**"),
+            pathMatcher("/static-web/**"),
+
+            pathMatcher("/wicket/resource/**"),
+
+            pathMatcher("/favicon.ico"));
 
     @Autowired
     private AuthChannelRegistryImpl authChannelRegistry;
@@ -147,6 +164,12 @@ public class SecurityConfigurer {
     }
 
     @Bean
+    @Order(Ordered.HIGHEST_PRECEDENCE)
+    public SecurityFilterChain publicResourcesFilterChain() {
+        return new DefaultSecurityFilterChain(PUBLIC_RESOURCES);
+    }
+
+    @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http.setSharedObject(AuthenticationTrustResolverImpl.class, new MidpointAuthenticationTrustResolverImpl());
         http.addFilter(new WebAsyncManagerIntegrationFilter())
@@ -155,11 +178,6 @@ public class SecurityConfigurer {
                     configurer.securityContextRepository(createSessionContextRepository(http));
                 });
         http.with(new AuthFilterConfigurer(), authFilterConfigurer -> {});
-
-        http.authorizeHttpRequests(registry -> registry
-                .requestMatchers(publicResources()).permitAll()
-                // Authorization of application requests is handled by midPoint's dynamic module filter chains.
-                .anyRequest().permitAll());
 
         http.setSharedObject(SecurityContextRepository.class, createSessionContextRepository(http));
 
