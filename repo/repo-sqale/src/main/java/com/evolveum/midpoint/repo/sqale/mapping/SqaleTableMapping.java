@@ -534,14 +534,18 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
         String str = repositoryContext().createStringSerializer()
                 .definition(definition)
                 .itemsToSkip(fullObjectItemsToSkip())
-                .options(SerializationOptions
-                        .createSerializeReferenceNamesForNullOids()
-                        .skipIndexOnly(true)
-                        .skipTransient(true)
-                        .skipWhitespaces(true))
+                .options(fullObjectSerializationOptions())
                 .serialize(container.asPrismContainerValue());
 
         return MiscUtil.stringToBytes(str);
+    }
+
+    protected SerializationOptions fullObjectSerializationOptions() {
+        return SerializationOptions
+                .createSerializeReferenceNamesForNullOids()
+                .skipIndexOnly(true)
+                .skipTransient(true)
+                .skipWhitespaces(true);
     }
 
     protected PathSet fullObjectItemsToSkip() {

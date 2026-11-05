@@ -33,17 +33,22 @@ import org.jetbrains.annotations.VisibleForTesting;
 import com.evolveum.midpoint.model.api.simulation.ProcessedObject;
 import com.evolveum.midpoint.model.common.ModelCommonBeans;
 import com.evolveum.midpoint.model.impl.ModelBeans;
+import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensElementContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
+import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.deleg.ItemDeltaDelegator;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.equivalence.ParameterizedEquivalenceStrategy;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.provisioning.api.ShadowSimulationData;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
+import com.evolveum.midpoint.schema.DeltaConversionOptions;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
@@ -53,12 +58,15 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.simulation.PartitionScope;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.schema.util.delta.ItemDeltaFilter;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.annotation.Experimental;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
@@ -67,6 +75,8 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
  * Default (and the only) implementation of {@link ProcessedObject}.
  */
 public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObject<O> {
+
+    private static final Trace LOGGER = TraceManager.getTrace(ProcessedObjectImpl.class);
 
     /** To store parsed version along with {@link SimulationResultProcessedObjectType} bean. */
     public static final String KEY_PARSED = ProcessedObjectImpl.class.getName() + ".parsed";
@@ -249,6 +259,10 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
         @Nullable O stateBefore = asObjectable(elementContext.getStateBeforeSimulatedOperation());
         @Nullable ObjectDelta<O> delta = singleDelta != null ? singleDelta : elementContext.getSummaryExecutedDelta();
 
+        if (singleDelta == null && delta != null && elementContext instanceof LensFocusContext<?>) {
+            fillLinkRefTargetNames(delta, elementContext.getLensContext());
+        }
+
         // We intentionally do not use "object new" because it does not contain e.g. linkRefs added.
         @Nullable O stateAfter;
         if (delta == null) {
@@ -304,6 +318,43 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
         }
 
         return processedObject;
+    }
+
+    private static void fillLinkRefTargetNames(@NotNull ObjectDelta<?> delta, @NotNull LensContext<?> lensContext) {
+        List<PrismReferenceValue> linkRefValues = new ArrayList<>();
+        if (delta.isAdd()) {
+            PrismReference linkRef = delta.getObjectToAdd().findReference(ProjectionHolderType.F_LINK_REF);
+            if (linkRef != null) {
+                linkRefValues.addAll(linkRef.getValues());
+            }
+        } else if (delta.isModify()) {
+            ReferenceDelta linkRefDelta = delta.findReferenceModification(ProjectionHolderType.F_LINK_REF);
+            if (linkRefDelta != null) {
+                linkRefValues.addAll(MiscUtil.emptyIfNull(linkRefDelta.getValuesToAdd()));
+                linkRefValues.addAll(MiscUtil.emptyIfNull(linkRefDelta.getValuesToReplace()));
+            }
+        }
+        for (PrismReferenceValue linkRefValue : linkRefValues) {
+            String shadowOid = linkRefValue.getOid();
+            if (linkRefValue.getTargetName() != null || shadowOid == null) {
+                continue;
+            }
+            LensProjectionContext projectionContext = lensContext.findProjectionContextByOid(shadowOid);
+            if (projectionContext == null) {
+                continue;
+            }
+            PrismObject<ShadowType> shadow = projectionContext.getObjectNewOrCurrentOrOld();
+            if (shadow == null) {
+                continue;
+            }
+            try {
+                PolyString shadowName = shadow.getName() != null ?
+                        shadow.getName() : ShadowUtil.determineShadowName(shadow);
+                linkRefValue.setTargetName(shadowName);
+            } catch (SchemaException e) {
+                LOGGER.debug("Couldn't determine name of shadow {}, linkRef will be left without target name", shadowOid, e);
+            }
+        }
     }
 
     private void addComputedMetricValues(@NotNull List<SimulationProcessedObjectMetricValueType> newValues) {
@@ -758,7 +809,7 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
                     .resultStatus(OperationResultStatus.createStatusType(resultStatus))
                     .before(prepareObjectForStorage(before))
                     .after(prepareObjectForStorage(after))
-                    .delta(DeltaConvertor.toObjectDeltaType(delta));
+                    .delta(DeltaConvertor.toObjectDeltaType(delta, DeltaConversionOptions.createSerializeReferenceNames()));
 
             // Event marks
             List<ObjectReferenceType> eventMarkRef = bean.getEventMarkRef();
