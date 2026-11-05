@@ -35,7 +35,7 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 public class LocalizationUtil {
 
     //Date and time patterns for English (Europe) locale
-    public static final Map<String, String> EN_EU_PATTERNS;
+    public static final Map<String, String> EN_150_PATTERNS;
 
     static {
         String dateShort  = "d.M.yyyy";
@@ -84,13 +84,13 @@ public class LocalizationUtil {
         m.put("FL", dateFull   + " " + timeLong);
         m.put("FF", dateFull   + " " + timeFull);
 
-        EN_EU_PATTERNS = Collections.unmodifiableMap(m);
+        EN_150_PATTERNS = Collections.unmodifiableMap(m);
     }
 
     public static @NotNull Locale findLocale() {
         GuiProfiledPrincipal principal = AuthUtil.getPrincipalUser();
         if (principal != null && principal.getLocale() != null) {
-            return principal.getLocale();
+            return AvailableLocale.normalizeLocale(principal.getLocale());
         }
 
         if (ThreadContext.getSession() != null) {
@@ -237,6 +237,6 @@ public class LocalizationUtil {
     }
 
     public static boolean isEnglishEuropeLocale(Locale locale) {
-        return "en".equals(locale.getLanguage()) && "EU".equals(locale.getCountry());
+        return AvailableLocale.ENGLISH_EUROPE.equals(AvailableLocale.normalizeLocale(locale));
     }
 }
