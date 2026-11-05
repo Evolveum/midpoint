@@ -8,14 +8,17 @@ package com.evolveum.midpoint.web.component.prism.show;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
 import com.evolveum.midpoint.gui.impl.util.RelationUtil;
 import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.schema.GetOperationOptions;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.IconComponent;
@@ -42,6 +45,14 @@ public class VisualizationItemValuePanel extends BasePanel<VisualizationItemValu
     private static final String ID_LINK = "link";
     private static final String ID_ADDITIONAL_TEXT = "additionalText";
 
+    private final IModel<Boolean> linkEnabledModel = new LoadableDetachableModel<>() {
+        @Override
+        protected Boolean load() {
+            VisualizationItemValue object = getModelObject();
+            return hasValidReferenceValue(object) && isReferenceTargetResolvable(object);
+        }
+    };
+
     public VisualizationItemValuePanel(String id, IModel<VisualizationItemValue> model) {
         super(id, model);
     }
@@ -52,15 +63,19 @@ public class VisualizationItemValuePanel extends BasePanel<VisualizationItemValu
         initLayout();
     }
 
+    @Override
+    protected void onDetach() {
+        linkEnabledModel.detach();
+        super.onDetach();
+    }
+
     private void initLayout() {
         final VisibleBehaviour visibleIfReference = new VisibleBehaviour(() -> {
             VisualizationItemValue object = getModelObject();
             return hasValidReferenceValue(object);
         });
-        final VisibleBehaviour visibleIfNotReference = new VisibleBehaviour(() -> {
-            VisualizationItemValue object = getModelObject();
-            return !hasValidReferenceValue(object);
-        });
+        final VisibleBehaviour visibleIfLink = new VisibleBehaviour(() -> Boolean.TRUE.equals(linkEnabledModel.getObject()));
+        final VisibleBehaviour visibleIfNotLink = new VisibleBehaviour(() -> !Boolean.TRUE.equals(linkEnabledModel.getObject()));
 
         final IconComponent icon = new IconComponent(ID_ICON,
                 () -> {
@@ -75,7 +90,7 @@ public class VisualizationItemValuePanel extends BasePanel<VisualizationItemValu
         add(icon);
 
         final Label label = new Label(ID_LABEL, new LabelModel());
-        label.add(visibleIfNotReference);
+        label.add(visibleIfNotLink);
         add(label);
 
         final AjaxButton link = new AjaxButton(ID_LINK, new LabelModel()) {
@@ -93,7 +108,7 @@ public class VisualizationItemValuePanel extends BasePanel<VisualizationItemValu
                 DetailsPageUtil.dispatchToObjectDetailsPage(ort, getPageBase(), false);
             }
         };
-        link.add(visibleIfReference);
+        link.add(visibleIfLink);
         add(link);
 
         final Label additionalText = new Label(ID_ADDITIONAL_TEXT, new AdditionalLabelModel());
@@ -119,6 +134,15 @@ public class VisualizationItemValuePanel extends BasePanel<VisualizationItemValu
         Class<? extends ObjectType> targetClass = getPrismContext().getSchemaRegistry().getCompileTimeClass(targetType);
 
         return WebComponentUtil.isAuthorized(targetClass);
+    }
+
+    private boolean isReferenceTargetResolvable(VisualizationItemValue object) {
+        if (object == null || !(object.getSourceValue() instanceof PrismReferenceValue refValue)
+                || refValue.getOid() == null) {
+            return false;
+        }
+        return WebModelServiceUtils.loadObject(
+                refValue.asReferencable(), GetOperationOptions.noFetch(), getPageBase()) != null;
     }
 
     private ObjectTypeGuiDescriptor getObjectTypeDescriptor() {
