@@ -37,8 +37,7 @@ public class TestPageAbout extends AbstractInitializedGuiIntegrationTest {
     private static final String UNRESOLVED_BRANCH_PLACEHOLDER = "${git.branch}";
     private static final String GIT_DESCRIBE_PATTERN = "v\\d+\\.\\d+.*";
     private static final String RAW_GIT_HASH = "[0-9a-fA-F]{7,64}";
-    private static final Set<String> INVALID_GIT_VALUES = Set.of(
-            "unknown", "null");
+    private static final Set<String> INVALID_GIT_VALUES = Set.of("unknown", "null");
 
     @Test
     public void test001AboutPageShowsGeneratedGitMetadata() throws Exception {
@@ -51,6 +50,17 @@ public class TestPageAbout extends AbstractInitializedGuiIntegrationTest {
 
         tester.assertLabel("branch", branch);
         tester.assertLabel("build", build);
+    }
+
+    @Test
+    public void test002ContentSecurityPolicyDoesNotAllowUnsafeEval() {
+        renderPage(PageAbout.class);
+
+        String csp = tester.getLastResponse().getHeader("Content-Security-Policy");
+        assertNotNull(csp);
+        assertTrue(csp.contains("script-src 'self' 'unsafe-inline'"), csp);
+        assertFalse(csp.contains("'unsafe-eval'"), csp);
+        assertTrue(csp.contains("style-src 'self' 'unsafe-inline'"), csp);
     }
 
     private Properties loadMidpointSystemProperties() throws Exception {

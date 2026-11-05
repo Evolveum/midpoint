@@ -38,6 +38,7 @@ import org.apache.wicket.core.util.objects.checker.ObjectSerializationChecker;
 import org.apache.wicket.core.util.resource.locator.IResourceStreamLocator;
 import org.apache.wicket.core.util.resource.locator.caching.CachingResourceStreamLocator;
 import org.apache.wicket.csp.CSPDirective;
+import org.apache.wicket.csp.CSPDirectiveSrcValue;
 import org.apache.wicket.devutils.inspector.InspectorPage;
 import org.apache.wicket.devutils.inspector.LiveSessionsPage;
 import org.apache.wicket.devutils.pagestore.PageStorePage;
@@ -220,8 +221,10 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
 
         getRequestCycleSettings().setTimeout(requestCycleTimeout);
 
-        getCspSettings().blocking().clear()
+        getCspSettings().blocking()
                 .unsafeInline()
+                .remove(CSPDirective.SCRIPT_SRC)
+                .add(CSPDirective.SCRIPT_SRC, CSPDirectiveSrcValue.SELF, CSPDirectiveSrcValue.UNSAFE_INLINE)
                 .add(CSPDirective.IMG_SRC, "*", "data:")
                 .add(CSPDirective.FONT_SRC, "data:");
 
