@@ -2553,6 +2553,31 @@ footer.app-footer a {
     width: 100% !important;
   }
 }
+
+// Select2 multi-choice inside a table cell (Select2MultiChoicePanel#isInColumn).
+.select2-in-column {
+  // don't let selected values drive the column width (auto table layout), just fill the column
+  width: 0;
+  min-width: 100%;
+
+  // keep selected values and search field on one line, with the height of other small inputs in the row
+  .form-select ~ .select2-container--bootstrap-5 .select2-selection--multiple {
+    flex-wrap: nowrap;
+    padding-top: 0.125rem;
+    padding-bottom: 0.125rem;
+
+    .select2-selection__rendered .select2-selection__choice {
+      margin-top: 0;
+      margin-bottom: 0;
+      padding-top: 0;
+      padding-bottom: 0;
+    }
+
+    .select2-search--inline {
+      margin-bottom: 0;
+    }
+  }
+}
 //end .select2 overrides
 
 .input-group > :not(.dropdown-menu):has(:is(.form-control, .form-select):focus, .select2-container--focus) {
