@@ -25,7 +25,7 @@ It helps automate the connector development process, making it easier and faster
 
 Generated connectors can be further developed, tested, and customized to meet the requirements of a particular integration.
 
-For more information, see the xref:/midpoint/reference/midpilot/connector-generator/[].
+For more information, see xref:/midpoint/reference/midpilot/connector-generator/[].
 
 == Smart recommendations
 
