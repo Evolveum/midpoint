@@ -52,6 +52,7 @@ Users who have `en_EU` stored (midPoint 4.11.0) keep English (Europe). See bug:M
 * Fixed errors in log while editing API key. See bug:MID-12834[] and bug:MID-12779[]
 * Fixed report generation for objects without marks. See bug:MID-12814[]
 * Fixed horizontal scroll of the report preview table and expressions in the `Simulation report: Items changed` initial object. See bug:MID-12882[]
+* Fixed focus mapping wizard in role wizard allowing an empty target for empty, "as is" and path expressions, and the source column in the mappings table growing when multiple values are selected. See bug:MID-13021[]
 
 == Changes With Respect to Version 4.10
 
