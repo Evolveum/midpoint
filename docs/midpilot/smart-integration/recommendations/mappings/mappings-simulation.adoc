@@ -1,0 +1,7 @@
+= Mappings simulation
+:page-toc: top
+:page-since: "4.11.0"
+:page-upkeep-status: green
+:page-moved-from: /midpoint/reference/smart-integration/recommendations/mappings/mappings-simulation
+
+// TODO (Andrej): Describe mappings simulation.
