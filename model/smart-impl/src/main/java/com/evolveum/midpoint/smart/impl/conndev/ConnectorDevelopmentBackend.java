@@ -253,6 +253,7 @@ public abstract class ConnectorDevelopmentBackend {
      * no such processed documentation.
      */
     public void removeDocumentationFile(String fileName) throws CommonException {
+        reload();
         var toRemove = developmentObject().getProcessedDocumentation().stream()
                 .filter(documentation -> StringUtils.equals(fileName, documentation.getUri()))
                 // Clones: the live container values carry a parent, which the delta builder refuses to reset.
