@@ -18,8 +18,6 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.IterationSpecificationType;
 
-import org.jspecify.annotations.NonNull;
-
 import static com.evolveum.midpoint.gui.api.util.LocalizationUtil.translate;
 
 /** Reports conflicting iteration limits without invalidating the input or preventing saving. */
@@ -71,7 +69,7 @@ public class IterationLimitValidator implements INullAcceptingValidator<Integer>
     /** Identifies iteration warnings so they can be cleared separately from other feedback. */
     private record LimitWarning(String text) implements Serializable {
         @Override
-        public @NonNull String toString() {
+        public String toString() {
             return text;
         }
     }
