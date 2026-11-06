@@ -110,7 +110,11 @@ public class ScriptExpressionPanel extends EvaluatorExpressionPanel {
         parent.add(codePanel);
     }
 
-    private List<ExpressionUtil.Language> initAllowedLanguageByProfiles() {
+    /**
+     * Returns languages allowed by the expression profile, or null if no profile could be determined (no restriction).
+     * An empty list means that the profile forbids all script languages.
+     */
+    private @Nullable List<ExpressionUtil.Language> initAllowedLanguageByProfiles() {
         ExpressionProfile expressionProfile = ExpressionUtil.getExpressionProfile(getModelObject(), property, getPageBase());
 
         if (expressionProfile != null) {
@@ -123,7 +127,7 @@ public class ScriptExpressionPanel extends EvaluatorExpressionPanel {
                     .toList();
         }
 
-        return Arrays.asList(ExpressionUtil.Language.class.getEnumConstants());
+        return null;
     }
 
     private WebMarkupContainer createDisabledLanguageInfoPanel(IModel<ExpressionUtil.Language> languageModel) {
@@ -266,7 +270,7 @@ public class ScriptExpressionPanel extends EvaluatorExpressionPanel {
         List<ExpressionUtil.Language> list = new ArrayList<>();
         Arrays.stream(ExpressionUtil.Language.class.getEnumConstants())
                 .filter(language -> !safeLanguagesOnly || language.isSafeLanguage())
-                .filter(language -> allowedLanguageByProfiles.isEmpty() || allowedLanguageByProfiles.contains(language))
+                .filter(language -> allowedLanguageByProfiles == null || allowedLanguageByProfiles.contains(language))
                 .forEach(list::add);
         return list;
     }
