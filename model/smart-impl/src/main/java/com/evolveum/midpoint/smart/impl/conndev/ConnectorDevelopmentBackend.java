@@ -423,6 +423,7 @@ public abstract class ConnectorDevelopmentBackend {
 
         editableConnector().saveFile(CONNECTOR_MANIFEST, manifest);
         editableConnector().deleteFileIfExists(CONNECTOR_MANIFEST_JSON_LEGACY);
+        invalidateConnector();
     }
 
     /**

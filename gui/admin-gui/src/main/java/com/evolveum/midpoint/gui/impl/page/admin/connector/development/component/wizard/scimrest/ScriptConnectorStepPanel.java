@@ -7,7 +7,9 @@
 package com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest;
 
 import java.io.IOException;
+import java.io.Serializable;
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
@@ -44,6 +46,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.AceEditor;
+import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
@@ -74,6 +77,17 @@ public abstract class ScriptConnectorStepPanel extends AbstractWizardStepPanel<C
     private String generatedScriptToken;
     private String generatedScriptObjectClass;
 
+    /** The latest generation task's token, kept after the suggestion is rejected so "Reload suggested script" can bring it back. */
+    private String lastSuggestionToken;
+    private String lastSuggestionObjectClass;
+
+    /** Set once the user confirmed deleting the deployed script with an empty editor, to let the Next that follows go through. */
+    private boolean deleteDeployedConfirmed;
+
+    private interface ConfirmedAction extends Serializable {
+        void run(AjaxRequestTarget target);
+    }
+
     /** Guards the auto-validate-on-arrival check in {@link #createModels()} to run once per fresh script. */
     private boolean autoValidationDone = false;
 
@@ -91,8 +105,8 @@ public abstract class ScriptConnectorStepPanel extends AbstractWizardStepPanel<C
     private RepairObjectClassButton repairObjectClassButton;
 
     /**
-     * Dropdown next to the plain submit button: "Regenerate" + "Repair object class" for a mandatory
-     * script, or "Discard suggested script" / "Regenerate" / "Discard script" for an optional one.
+     * Dropdown next to the plain submit button: "Reject suggested script", "Reload suggested script",
+     * "Regenerate" and, where it applies, "Repair object class".
      * Built in {@link #createCustomButtonsAnchor} rather than {@link #initCustomButtons}'s repeater,
      * since that wraps every child in an {@code <a>} tag - illegal for a {@code <button>}+
      * {@code <div class="dropdown-menu">} panel.
@@ -106,9 +120,6 @@ public abstract class ScriptConnectorStepPanel extends AbstractWizardStepPanel<C
 
     /** Mode last pushed to the live editor - a step panel is reused across navigations, so a plain re-render alone never pushes a {@link #languageModel} change. */
     private AceEditor.Mode lastPushedMode;
-
-    /** The editor's raw submitted value for the current request - see {@link #rawEditedScriptContent()}. */
-    private String pendingEditorValue;
 
     public ScriptConnectorStepPanel(
             WizardPanelHelper<? extends Containerable, ConnectorDevelopmentDetailsModel> helper) {
@@ -214,7 +225,7 @@ public abstract class ScriptConnectorStepPanel extends AbstractWizardStepPanel<C
 
         if (!autoValidationDone) {
             autoValidationDone = true;
-            boolean skipValidation = isScriptOptional() && StringUtils.isBlank(artifact.getContent());
+            boolean skipValidation = StringUtils.isBlank(artifact.getContent());
             ConnDevArtifactValidationResult validation = skipValidation
                     ? ConnDevArtifactValidationResult.success()
                     : getDetailsModel().getConnectorDevelopmentOperation().validateArtifact(artifact, task, result);
@@ -286,7 +297,6 @@ public abstract class ScriptConnectorStepPanel extends AbstractWizardStepPanel<C
 
             @Override
             public void setObject(String value) {
-                pendingEditorValue = value;
             }
 
             @Override
@@ -394,6 +404,16 @@ public abstract class ScriptConnectorStepPanel extends AbstractWizardStepPanel<C
 
     @Override
     public boolean onNextPerformed(AjaxRequestTarget target) {
+        boolean emptyScript = StringUtils.isBlank(currentLiveScriptContent());
+        if (emptyScript && deployedScriptWrapper() != null && !deleteDeployedConfirmed) {
+            showEditsConfirmation("ScriptConnectorStepPanel.deleteDeployed", confirmTarget -> {
+                deleteDeployedConfirmed = true;
+                onNextPerformed(confirmTarget);
+            }, target);
+            return false;
+        }
+        deleteDeployedConfirmed = false;
+
         if (!saveUnsavedStepChanges(target)) {
             return false;
         }
@@ -427,7 +447,7 @@ public abstract class ScriptConnectorStepPanel extends AbstractWizardStepPanel<C
             }
             script.setFilename(languageModel.getObject().withExtension(script.getFilename()));
             WebPrismUtil.cleanupEmptyContainerValue(script.asPrismContainerValue());
-            if (isScriptOptional() && StringUtils.isBlank(script.getContent())) {
+            if (StringUtils.isBlank(script.getContent())) {
                 scriptFileToDelete = removeDeployedScriptEntry();
                 dropGeneratedScript();
             } else {
@@ -495,14 +515,16 @@ public abstract class ScriptConnectorStepPanel extends AbstractWizardStepPanel<C
         dropGeneratedScript();
         generatedScriptToken = token;
         generatedScriptObjectClass = getObjectClassName();
+        lastSuggestionToken = token;
+        lastSuggestionObjectClass = generatedScriptObjectClass;
     }
 
     protected void onAfterSave(AjaxRequestTarget target) {
     }
 
-    /** True only where the connector can work without this script (see {@link AuthScriptsConnectorStepPanel}). */
-    protected boolean isScriptOptional() {
-        return false;
+    /** Whether the "Repair object class" action makes sense for this script (it fixes the object class the script belongs to). */
+    protected boolean isRepairAvailable() {
+        return true;
     }
 
     protected final LoadableModel<ConnDevArtifactType> getValueModel() {
@@ -531,19 +553,50 @@ public abstract class ScriptConnectorStepPanel extends AbstractWizardStepPanel<C
     }
 
     private List<InlineMenuItem> buildScriptActionsMenuItems() {
+        List<InlineMenuItem> items = new ArrayList<>();
+
+        InlineMenuItem rejectItem = new InlineMenuItem(createStringResource("ScriptConnectorStepPanel.rejectSuggestedScript")) {
+            @Override
+            public InlineMenuItemAction initAction() {
+                return new InlineMenuItemAction() {
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        onRejectSuggestedScriptPerformed(target);
+                    }
+                };
+            }
+        };
+        rejectItem.setVisible(this::isShowingSuggestedScript);
+        items.add(rejectItem);
+
+        InlineMenuItem reloadItem = new InlineMenuItem(createStringResource("ScriptConnectorStepPanel.reloadSuggestedScript")) {
+            @Override
+            public InlineMenuItemAction initAction() {
+                return new InlineMenuItemAction() {
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        onReloadSuggestedScriptPerformed(target);
+                    }
+                };
+            }
+        };
+        reloadItem.setVisible(this::isReloadSuggestedScriptAvailable);
+        items.add(reloadItem);
+
         InlineMenuItem regenerateItem = new InlineMenuItem(createStringResource("ScriptConnectorStepPanel.regenerate")) {
             @Override
             public InlineMenuItemAction initAction() {
                 return new InlineMenuItemAction() {
                     @Override
                     public void onClick(AjaxRequestTarget target) {
-                        onRefreshPerformed(target);
+                        onRegenerateClicked(target);
                     }
                 };
             }
         };
+        items.add(regenerateItem);
 
-        if (!isScriptOptional()) {
+        if (isRepairAvailable()) {
             InlineMenuItem repairItem = new InlineMenuItem(createStringResource("NextStepsConnectorStepPanel.repairObjectClass")) {
                 @Override
                 public InlineMenuItemAction initAction() {
@@ -560,40 +613,33 @@ public abstract class ScriptConnectorStepPanel extends AbstractWizardStepPanel<C
                     };
                 }
             };
-            return List.of(regenerateItem, repairItem);
+            items.add(repairItem);
         }
 
-        InlineMenuItem discardItem = new InlineMenuItem(createStringResource("ScriptConnectorStepPanel.discardSuggestedScript")) {
-            @Override
-            public InlineMenuItemAction initAction() {
-                return new InlineMenuItemAction() {
-                    @Override
-                    public void onClick(AjaxRequestTarget target) {
-                        onDiscardSuggestedScriptPerformed(target);
-                    }
-                };
-            }
-        };
-        discardItem.setVisible(this::isShowingSuggestedScript);
-
-        InlineMenuItem deleteItem = new InlineMenuItem(createStringResource("ScriptConnectorStepPanel.discardScript")) {
-            @Override
-            public InlineMenuItemAction initAction() {
-                return new InlineMenuItemAction() {
-                    @Override
-                    public void onClick(AjaxRequestTarget target) {
-                        onDeleteScriptPerformed(target);
-                    }
-                };
-            }
-        };
-
-        return List.of(discardItem, regenerateItem, deleteItem);
+        return items;
     }
 
-    /** Whether the editor content differs from the saved script (or there is no saved script and the editor is not blank). */
+    /** Whether the editor holds a generated suggestion that has not been saved. */
     private boolean isShowingSuggestedScript() {
-        return differsFromSavedScript();
+        valueModel.getObject();
+        return generatedScriptToken() != null;
+    }
+
+    /**
+     * Whether a suggestion was generated earlier, whether or not it is in the editor now. Deliberately independent
+     * of the editor content: the menu is rendered on the server and is not refreshed while the user types.
+     */
+    private boolean isReloadSuggestedScriptAvailable() {
+        valueModel.getObject();
+        return lastSuggestionToken != null
+                && StringUtils.equals(lastSuggestionObjectClass, getObjectClassName());
+    }
+
+    /** Whether the user changed the editor content compared to what the application loaded into it. */
+    private boolean hasEditorEdits() {
+        ConnDevArtifactType loaded = valueModel.getObject();
+        return !StringUtils.equals(StringUtils.defaultString(currentLiveScriptContent()),
+                StringUtils.defaultString(loaded != null ? loaded.getContent() : null));
     }
 
     private boolean differsFromSavedScript() {
@@ -625,80 +671,83 @@ public abstract class ScriptConnectorStepPanel extends AbstractWizardStepPanel<C
         return filename;
     }
 
-    /** Fully removes an already-deployed optional script: model entry, file and manifest record. */
-    private void onDeleteScriptPerformed(AjaxRequestTarget target) {
-        String filename = removeDeployedScriptEntry();
-        if (filename != null) {
-            OperationResult result = getHelper().onSaveObjectPerformed(target);
-            if (result == null || result.isError()) {
-                target.add(getFeedback());
-                return;
-            }
-            Task task = getPageBase().createSimpleTask(CLASS_DOT + "deleteScript");
-            try {
-                getDetailsModel().getConnectorDevelopmentOperation().deleteArtifactFile(filename, task, task.getResult());
-                getDetailsModel().getConnectorDevelopmentOperation().recomputeConnectorManifest(task, task.getResult());
-            } catch (IOException | CommonException e) {
-                getPageBase().error("Couldn't delete " + filename + ": " + e.getMessage());
-                target.add(getFeedback());
-                return;
-            }
-            getDetailsModel().reloadPrismObjectByOid();
+    private void onRegenerateClicked(AjaxRequestTarget target) {
+        if (hasEditorEdits()) {
+            showEditsConfirmation("ScriptConnectorStepPanel.regenerate", this::onRefreshPerformed, target);
+            return;
         }
-        dropGeneratedScript();
-        super.onNextPerformed(target);
+        onRefreshPerformed(target);
     }
 
-    /** Marks a deployed script disabled (no-op if nothing deployed, or already disabled) - see {@link #onRefreshPerformed}. */
-    private void disableDeployedScriptIfPresent() {
-        PrismContainerValueWrapper<ConnDevArtifactType> deployed = deployedScriptWrapper();
-        if (deployed == null || deployed.getRealValue() == null || deployed.getRealValue().getFilename() == null
-                || Boolean.TRUE.equals(deployed.getRealValue().isDisabled())) {
-            return;
-        }
-        Task task = getPageBase().createSimpleTask(CLASS_DOT + "disableDeployedScript");
-        try {
-            getDetailsModel().getConnectorDevelopmentOperation().disableArtifact(deployed.getRealValue().getFilename(), task, task.getResult());
-            getDetailsModel().reloadPrismObjectByOid();
-        } catch (IOException | CommonException e) {
-            throw new RuntimeException(e);
-        }
+    /** Takes back the suggested script: the editor shows the saved script, or stays blank when none is saved. */
+    private void onRejectSuggestedScriptPerformed(AjaxRequestTarget target) {
+        dropGeneratedScript();
+        showLoadedScript(target);
     }
 
-    /** Reverts to the deployed script if there is one, or clears the editor to blank otherwise. */
-    private void onDiscardSuggestedScriptPerformed(AjaxRequestTarget target) {
-        PrismContainerValueWrapper<ConnDevArtifactType> deployed = deployedScriptWrapper();
-        if (deployed == null || deployed.getRealValue() == null) {
-            dropGeneratedScript();
-            target.add(this);
-            if (scriptEditor != null) {
-                scriptEditor.updateValue(target, "");
-            }
+    private void onReloadSuggestedScriptPerformed(AjaxRequestTarget target) {
+        if (hasEditorEdits()) {
+            showEditsConfirmation("ScriptConnectorStepPanel.reload", this::reloadSuggestedScript, target);
             return;
         }
+        reloadSuggestedScript(target);
+    }
 
-        Task task = getPageBase().createSimpleTask(CLASS_DOT + "discardSuggestedScript");
-        String content;
-        try {
-            ConnDevArtifactType deployedArtifact = deployed.getRealValue().clone();
-            content = getDetailsModel().getConnectorDevelopmentOperation()
-                    .getArtifactContent(deployedArtifact, task, task.getResult());
-            deployedArtifact.setContent(content);
-            WebPrismUtil.cleanupEmptyContainerValue(deployedArtifact.asPrismContainerValue());
-            saveScript(deployedArtifact, task, task.getResult());
-            getDetailsModel().reloadPrismObjectByOid();
-        } catch (IOException | CommonException e) {
-            throw new RuntimeException(e);
-        }
-        if (task.getResult() != null && task.getResult().isError()) {
-            target.add(getFeedback());
-            return;
-        }
-        dropGeneratedScript();
+    private void reloadSuggestedScript(AjaxRequestTarget target) {
+        setGeneratedScriptToken(lastSuggestionToken);
+        showLoadedScript(target);
+    }
+
+    /** Re-reads the script into the editor, dropping the user's edits and the validation errors reported for the previous content. */
+    private void showLoadedScript(AjaxRequestTarget target) {
+        scriptEditedSinceError = false;
+        ConnectorDevelopmentWizardUtil.clearScriptValidationErrors(this, getStepId());
+        ConnectorDevelopmentWizardUtil.refreshDrawerPanel(this, target);
+        getHelper().removeVariable(liveScriptKey());
+        valueModel.detach();
+        savedContentModel.detach();
+        languageModel.detach();
+        String content = valueModel.getObject().getContent();
         target.add(this);
-        if (scriptEditor != null) {
-            scriptEditor.updateValue(target, content);
+        if (scriptActionsMenu != null) {
+            target.add(scriptActionsMenu);
         }
+        if (scriptEditor != null) {
+            scriptEditor.updateValue(target, StringUtils.defaultString(content));
+        }
+    }
+
+    /** Asks before an action throws away the user's edits; {@code keyPrefix}.confirm.{title,message,yes} are the texts. */
+    private void showEditsConfirmation(String keyPrefix, ConfirmedAction onConfirmed, AjaxRequestTarget target) {
+        ConfirmationPanel dialog = new ConfirmationPanel(getPageBase().getMainPopupBodyId(),
+                createStringResource(keyPrefix + ".confirm.message")) {
+
+            @Override
+            public IModel<String> getTitle() {
+                return createStringResource(keyPrefix + ".confirm.title");
+            }
+
+            @Override
+            protected IModel<String> createYesLabel() {
+                return createStringResource(keyPrefix + ".confirm.yes");
+            }
+
+            @Override
+            protected IModel<String> createNoLabel() {
+                return createStringResource("ScriptConnectorStepPanel.confirm.cancel");
+            }
+
+            @Override
+            public void yesPerformed(AjaxRequestTarget confirmTarget) {
+                onConfirmed.run(confirmTarget);
+            }
+
+            @Override
+            public void noPerformed(AjaxRequestTarget cancelTarget) {
+                super.noPerformed(cancelTarget);
+            }
+        };
+        getPageBase().showMainPopup(dialog, target);
     }
 
     private boolean hasPendingValidationError() {
@@ -720,12 +769,12 @@ public abstract class ScriptConnectorStepPanel extends AbstractWizardStepPanel<C
     }
 
     /**
-     * The value the browser just submitted for the editor - set by the editor's own model
-     * ({@code setObject}) moments earlier in this same request. Deliberately NOT written into
-     * {@link #valueModel}: that artifact stays untouched by the editor.
+     * The value the browser just submitted for the editor. Deliberately NOT written into {@link #valueModel}
+     * (that artifact stays untouched by the editor) and not taken from the editor model's {@code setObject},
+     * which Wicket skips whenever the submitted value equals the model's current one.
      */
     private String rawEditedScriptContent() {
-        return pendingEditorValue;
+        return scriptEditor.getConvertedInput();
     }
 
     @Override
@@ -751,9 +800,6 @@ public abstract class ScriptConnectorStepPanel extends AbstractWizardStepPanel<C
     }
 
     private void onRefreshPerformed(AjaxRequestTarget target) {
-        if (isScriptOptional()) {
-            disableDeployedScriptIfPresent();
-        }
         if (getWizard() instanceof WizardModelWithParentSteps parentWizardModel) {
             var pendingResults = parentWizardModel.getOperationResultsForFixStep(getStepId());
             List<String> errorMessages = ConnectorDevelopmentWizardUtil.collectErrorMessages(pendingResults);
