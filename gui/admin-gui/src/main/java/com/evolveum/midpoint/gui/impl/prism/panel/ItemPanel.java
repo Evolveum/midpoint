@@ -16,6 +16,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfig
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.event.Broadcast;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
@@ -30,6 +31,7 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismValueWrapper;
 import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.gui.impl.component.HelpTextPanel;
+import com.evolveum.midpoint.gui.impl.event.ItemValueRemovedEvent;
 import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperColumnPanel;
 import com.evolveum.midpoint.gui.impl.util.GuiConfigUtil;
 import com.evolveum.midpoint.prism.PrismValue;
@@ -151,6 +153,7 @@ public abstract class ItemPanel<VW extends PrismValueWrapper<?>, IW extends Item
 
         getModelObject().remove(valueToRemove, getParentPage());
         target.add(ItemPanel.this);
+        send(getPage(), Broadcast.DEPTH, new ItemValueRemovedEvent(getModelObject(), target));
     }
 
     // VALUE REGION
