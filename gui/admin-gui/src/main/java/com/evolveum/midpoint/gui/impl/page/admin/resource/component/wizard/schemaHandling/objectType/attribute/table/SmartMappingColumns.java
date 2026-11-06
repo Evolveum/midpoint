@@ -203,6 +203,16 @@ final class SmartMappingColumns<P extends Containerable> implements Serializable
                 AbstractItemWrapperColumn.ColumnType.VALUE,
                 table.getPageBase()) {
 
+            /** Makes the owning mapping available to source change listeners. */
+            @Override
+            public void populateItem(
+                    Item<ICellPopulator<PrismContainerValueWrapper<MappingType>>> cellItem,
+                    String componentId,
+                    IModel<PrismContainerValueWrapper<MappingType>> rowModel) {
+                super.populateItem(cellItem, componentId, rowModel);
+                cellItem.setDefaultModel(rowModel);
+            }
+
             @SuppressWarnings({ "unchecked", "rawtypes" })
             @Override
             protected <IW extends ItemWrapper> Component createColumnPanel(
