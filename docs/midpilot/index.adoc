@@ -1,0 +1,54 @@
+= MidPilot features
+:experimental:
+:page-keywords: midPilot, connector generator, smart recommendations, integration catalog, SCIMREST framework
+:page-description: This signpost page introduces the midPilot features and technologies, including the connector generator and smart recommendations.
+
+This signpost page introduces the midPilot features and technologies, including the connector generator and smart recommendations.
+
+== Introduction
+
+The midPilot project has brought several capabilities and technologies to midPoint, extending its integration possibilities and introducing AI-assisted functionality.
+
+There are the following features and related technologies:
+
+* *Connector generator* – AI-assisted development of connectors for external systems.
+* *Smart recommendations* – Intelligent recommendations that help users work with integrations in midPoint.
+* *Integration catalog* – A central hub to discover, download, and contribute integration methods for midPoint.
+* *SCIMREST framework* – A framework for low-code development of REST or SCIM-based connectors that communicate with external systems.
+
+For more information about the background and scope of the midPilot project, see xref:/midpoint/projects/midPilot/[].
+
+== Connector generator
+
+The *Connector generator* uses AI to assist in developing xref:/connectors/[connectors] that enable you to integrate external systems with midPoint.
+It helps automate the connector development process, making it easier and faster to create integrations with systems that midPoint does not yet support.
+
+Generated connectors can be further developed, tested, and customized to meet the requirements of a particular integration.
+
+For more information, see the xref:/midpoint/reference/midpilot/connector-generator/[].
+
+== Smart recommendations
+
+*Smart recommendations* bring AI-assisted intelligence to midPoint integrations.
+They help users identify relevant options and make better-informed decisions when configuring resources.
+
+For example, smart recommendations can suggest appropriate mappings, correlation rules, or synchronization situations, helping to accelerate resource implementation.
+
+For more information, see xref:/midpoint/reference/midpilot/smart-integration/[].
+
+== Integration catalog
+
+The *MidPoint Integration catalog* provides a central place to discover integration methods for connecting midPoint with other systems.
+
+Integration methods bring together the components and configuration needed for a particular integration, including connectors and information about supported capabilities. They provide a more complete integration solution than a connector alone.
+
+You can access the MidPoint Integration catalog at https://integrations.evolveum.com.
+
+For more information, see xref:/connectors/integration-catalog/[].
+
+== SCIMREST framework
+
+The *SCIMREST framework* in midPoint is a low‑code scaffolding layer that lets you build a REST or SCIM‑based connector without writing a full Java connector from scratch.
+It sits above the generic ConnID infrastructure and below the concrete SCIMREST connector implementation.
+
+For more information, see xref:/connectors/scimrest-framework/[].
