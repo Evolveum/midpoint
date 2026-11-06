@@ -9,9 +9,13 @@ package com.evolveum.midpoint.gui;
 import static org.testng.Assert.*;
 
 import java.io.InputStream;
+import java.util.List;
 import java.util.Properties;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
+import org.apache.wicket.util.tester.TagTester;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -53,14 +57,36 @@ public class TestPageAbout extends AbstractInitializedGuiIntegrationTest {
     }
 
     @Test
-    public void test002ContentSecurityPolicyDoesNotAllowUnsafeEval() {
+    public void test002ContentSecurityPolicyNonceConfiguration() {
         renderPage(PageAbout.class);
 
         String csp = tester.getLastResponse().getHeader("Content-Security-Policy");
         assertNotNull(csp);
-        assertTrue(csp.contains("script-src 'self' 'unsafe-inline'"), csp);
+        String scriptSrc = csp.split("script-src ")[1].split(";")[0];
+        assertTrue(scriptSrc.contains("'self'"), csp);
+        Matcher nonceMatcher = Pattern.compile("'nonce-([^']+)'").matcher(scriptSrc);
+        assertTrue(nonceMatcher.find(), csp);
+        String nonce = nonceMatcher.group(1);
+        assertFalse(scriptSrc.contains("'unsafe-inline'"), csp);
         assertFalse(csp.contains("'unsafe-eval'"), csp);
         assertTrue(csp.contains("style-src 'self' 'unsafe-inline'"), csp);
+
+        List<TagTester> inlineScripts = TagTester.createTags(
+                        tester.getLastResponseAsString(),
+                        tag -> "script".equalsIgnoreCase(tag.getName()),
+                        false).stream()
+                .filter(tag -> !tag.hasAttribute("src"))
+                .filter(tag -> {
+                    String type = tag.getAttribute("type");
+                    return type == null
+                            || type.isBlank()
+                            || "text/javascript".equalsIgnoreCase(type)
+                            || "application/javascript".equalsIgnoreCase(type)
+                            || "module".equalsIgnoreCase(type);
+                })
+                .toList();
+        assertFalse(inlineScripts.isEmpty(), "Expected at least one inline executable script");
+        inlineScripts.forEach(script -> assertEquals(script.getAttribute("nonce"), nonce));
     }
 
     private Properties loadMidpointSystemProperties() throws Exception {

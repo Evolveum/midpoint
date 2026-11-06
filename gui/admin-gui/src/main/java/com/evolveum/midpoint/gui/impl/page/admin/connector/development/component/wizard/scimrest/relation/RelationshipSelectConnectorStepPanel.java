@@ -41,6 +41,7 @@ import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.web.component.dialog.HelpInfoPanel;
+import com.evolveum.midpoint.web.component.behavior.JavaScriptEventBehavior;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.gui.impl.component.wizard.collapse.HelpTab;
@@ -149,6 +150,7 @@ public class RelationshipSelectConnectorStepPanel extends AbstractWizardStepPane
             protected void populateItem(ListItem<PrismContainerValueWrapper<ConnDevRelationInfoType>> listItem) {
                 Radio<String> radio = new Radio<>(ID_RADIO, Model.of(listItem.getModelObject().getRealValue().getName()), radioGroup);
                 radio.setOutputMarkupId(true);
+                radio.add(new JavaScriptEventBehavior("click", "event.stopPropagation();"));
                 listItem.add(radio);
 
                 Label name = new Label(ID_NAME, () -> listItem.getModelObject().getRealValue().getName());

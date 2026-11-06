@@ -18,6 +18,9 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.behavior.Behavior;
+import org.apache.wicket.core.util.string.JavaScriptUtils;
+import org.apache.wicket.markup.head.IHeaderResponse;
+import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.FormComponent;
@@ -231,14 +234,22 @@ public abstract class SingleSearchItemPanel<S extends AbstractSearchItemWrapper>
             @Override
             public void bind(Component component) {
                 super.bind(component);
+                component.setOutputMarkupId(true);
+            }
 
-                component.add(AttributeModifier.replace("onkeydown",
-                        Model.of(
-                                "if (event.keyCode == 13){"
-                                        + "var autocompletePopup = document.getElementsByClassName(\"wicket-aa-container\");"
-                                        + "if(autocompletePopup != null && autocompletePopup[0].style.display == \"none\"){"
-                                        + "$('[about=\"searchSimple\"]').click();}}"
-                        )));
+            @Override
+            public void renderHead(Component component, IHeaderResponse response) {
+                super.renderHead(component, response);
+                // Handle Enter before Wicket's autocomplete listener processes the keydown event.
+                CharSequence markupId = JavaScriptUtils.escapeQuotesAndBackslash(component.getMarkupId());
+                response.render(OnDomReadyHeaderItem.forScript(
+                        "var element = document.getElementById('" + markupId + "');"
+                                + "if (element) { element.addEventListener('keydown', function(event) { "
+                                + "if (event.keyCode == 13){"
+                                + "var autocompletePopup = document.getElementsByClassName(\"wicket-aa-container\");"
+                                + "if(autocompletePopup != null && autocompletePopup[0].style.display == \"none\"){"
+                                + "$('[about=\"searchSimple\"]').click();}}"
+                                + ";}, true); }"));
             }
         });
         return autoCompletePanel;

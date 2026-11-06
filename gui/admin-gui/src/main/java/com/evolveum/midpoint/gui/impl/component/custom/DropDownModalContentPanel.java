@@ -6,6 +6,7 @@
 package com.evolveum.midpoint.gui.impl.component.custom;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.web.component.behavior.JavaScriptEventBehavior;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -59,10 +60,15 @@ public abstract class DropDownModalContentPanel extends BasePanel<String> {
         contentContainer.setOutputMarkupId(true);
         contentContainer.setOutputMarkupPlaceholderTag(true);
         contentContainer.add(AttributeModifier.append("style", buildContentContainerStyle()));
+        contentContainer.add(new JavaScriptEventBehavior("click", "event.stopPropagation();"));
 
         contentContainer.add(createTitleIconComponent(ID_TITLE_ICON));
         contentContainer.add(createTitleComponent(ID_TITLE));
-        contentContainer.add(createCloseComponent(ID_CLOSE));
+        Component close = createCloseComponent(ID_CLOSE);
+        close.add(new JavaScriptEventBehavior(
+                "click",
+                "$(this).closest('.dropdown').find('[data-bs-toggle=dropdown]').dropdown('toggle');"));
+        contentContainer.add(close);
         contentContainer.add(createFooterComponent(ID_FOOTER));
 
         return contentContainer;

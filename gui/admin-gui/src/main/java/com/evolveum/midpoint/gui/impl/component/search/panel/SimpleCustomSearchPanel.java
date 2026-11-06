@@ -9,6 +9,7 @@ package com.evolveum.midpoint.gui.impl.component.search.panel;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
+import com.evolveum.midpoint.web.component.behavior.JavaScriptEventBehavior;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -44,9 +45,9 @@ public abstract class SimpleCustomSearchPanel extends BasePanel<String> {
 
         TextField<String> searchInput = new TextField<>(ID_TEXT_FIELD, getModel());
         searchInput.setOutputMarkupId(true);
-        searchInput.add(AttributeModifier.append(
-                "onkeydown",
-                "if (event.key === 'Enter') { event.preventDefault(); return false; }"));
+        searchInput.add(new JavaScriptEventBehavior(
+                "keydown",
+                "if (event.key === 'Enter') { event.preventDefault(); }"));
 
         searchInput.add(new AjaxFormComponentUpdatingBehavior("change") {
             @Override

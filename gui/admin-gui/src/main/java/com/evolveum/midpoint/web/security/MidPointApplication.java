@@ -224,7 +224,7 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
         getCspSettings().blocking()
                 .unsafeInline()
                 .remove(CSPDirective.SCRIPT_SRC)
-                .add(CSPDirective.SCRIPT_SRC, CSPDirectiveSrcValue.SELF, CSPDirectiveSrcValue.UNSAFE_INLINE)
+                .add(CSPDirective.SCRIPT_SRC, CSPDirectiveSrcValue.SELF, CSPDirectiveSrcValue.NONCE)
                 .add(CSPDirective.IMG_SRC, "*", "data:")
                 .add(CSPDirective.FONT_SRC, "data:");
 
