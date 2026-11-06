@@ -7,6 +7,8 @@
 package com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest;
 
 import java.io.IOException;
+import java.io.Serializable;
+import java.util.ArrayList;
 import java.time.Duration;
 import java.util.List;
 
@@ -45,6 +47,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.AceEditor;
+import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
@@ -75,6 +78,30 @@ public abstract class ScriptConnectorStepPanel extends AbstractWizardStepPanel<C
     /** Guards the auto-validate-on-arrival check in {@link #createModels()} to run once per fresh script. */
     private boolean autoValidationDone = false;
 
+    /**
+     * Token of the generation task whose suggested script the user rejected. Kept in memory only (a step panel
+     * is reused across navigations, so it survives Next/Back but not a page reload). A newer generation has a
+     * different token, so it is never treated as rejected.
+     */
+    private String rejectedSuggestionToken;
+
+    /** Whether {@link #valueModel} currently holds the generated suggestion (as opposed to the deployed script or a blank one). */
+    private boolean editorShowsSuggestion;
+
+    /** The content the application last loaded into the editor - what the user's edits are compared against. */
+    private String loadedContent;
+
+    /** Snapshot of the latest completed generation's script, for the "Reload suggested script" action. */
+    private boolean suggestionAvailable;
+    private String suggestionContent;
+
+    /** Set once the user confirmed deleting the deployed script with an empty editor, to let the Next that follows go through. */
+    private boolean deleteDeployedConfirmed;
+
+    private interface ConfirmedAction extends Serializable {
+        void run(AjaxRequestTarget target);
+    }
+
     /** Script format; derived from the artifact's file extension, overridable via the language selector. */
     private final LoadableModel<ConnDevScriptFormat> languageModel = new LoadableModel<>() {
         @Override
@@ -89,8 +116,8 @@ public abstract class ScriptConnectorStepPanel extends AbstractWizardStepPanel<C
     private RepairObjectClassButton repairObjectClassButton;
 
     /**
-     * Dropdown next to the plain submit button: "Regenerate" + "Repair object class" for a mandatory
-     * script, or "Discard suggested script" / "Regenerate" / "Discard script" for an optional one.
+     * Dropdown next to the plain submit button: "Reject suggested script", "Reload suggested script",
+     * "Regenerate" and, where it applies, "Repair object class".
      * Built in {@link #createCustomButtonsAnchor} rather than {@link #initCustomButtons}'s repeater,
      * since that wraps every child in an {@code <a>} tag - illegal for a {@code <button>}+
      * {@code <div class="dropdown-menu">} panel.
@@ -149,50 +176,31 @@ public abstract class ScriptConnectorStepPanel extends AbstractWizardStepPanel<C
                 PrismContainerValueWrapper<ConnDevArtifactType> deployedWrapper = deployedScriptWrapper();
                 boolean deployedActive = deployedWrapper != null
                         && !Boolean.TRUE.equals(deployedWrapper.getRealValue().isDisabled());
-
-                if (!isReloaded && deployedActive) {
-                    ConnDevArtifactType artifactType = deployedWrapper.getRealValue();
-                    Task task = getDetailsModel().getPageAssignmentHolder().createSimpleTask(OP_LOAD_SCRIPT);
-                    OperationResult result = task.getResult();
-                    try {
-                        String content = getDetailsModel().getConnectorDevelopmentOperation().getArtifactContent(artifactType, task, result);
-                        artifactType.setContent(content);
-                        return artifactType;
-                    } catch (IOException e) {
-                        // The script entry exists in the model, but its file cannot be read (e.g. it
-                        // was removed out-of-band). Don't fail the page render - show a blank script.
-                        getPageBase().error("Couldn't load " + artifactType.getFilename() + ": " + e.getMessage());
-                        artifactType.setContent(null);
-                        return artifactType;
-                    }
-                }
-
                 String token = getTaskToken();
+                boolean rejected = StringUtils.isNotEmpty(token) && token.equals(rejectedSuggestionToken);
+                suggestionAvailable = false;
+                suggestionContent = null;
+
+                if (rejected || (!isReloaded && deployedActive)) {
+                    rememberSuggestion(readSuggestion(token));
+                    return loadedFrom(deployedOrBlank(deployedWrapper), false);
+                }
 
                 if (StringUtils.isEmpty(token)) {
-                    return getScriptType().create(getObjectClassName());
+                    return loadedFrom(deployedOrBlank(deployedWrapper), false);
                 }
 
-                Task task = getDetailsModel().getPageAssignmentHolder().createSimpleTask(OP_LOAD_SCRIPT);
-                OperationResult result = task.getResult();
-
-                StatusInfo<ConnDevGenerateArtifactResultType> statusInfo;
-                try {
-                    statusInfo = getDetailsModel().getServiceLocator().getConnectorService().getGenerateArtifactStatus(token, task, result);
-                } catch (CommonException e) {
-                    throw new RuntimeException(e);
+                ConnDevArtifactType artifact = readSuggestion(token);
+                rememberSuggestion(artifact);
+                if (artifact == null) {
+                    return loadedFrom(deployedOrBlank(deployedWrapper), false);
                 }
-                ConnDevGenerateArtifactResultType artifactResultType = statusInfo.getResult();
-
-                if (artifactResultType == null || artifactResultType.getArtifact() == null) {
-                    return getScriptType().create(getObjectClassName());
-                }
-
-                ConnDevArtifactType artifact = artifactResultType.getArtifact();
 
                 if (!autoValidationDone) {
                     autoValidationDone = true;
-                    boolean skipValidation = isScriptOptional() && StringUtils.isBlank(artifact.getContent());
+                    Task task = getDetailsModel().getPageAssignmentHolder().createSimpleTask(OP_LOAD_SCRIPT);
+                    OperationResult result = task.getResult();
+                    boolean skipValidation = StringUtils.isBlank(artifact.getContent());
                     ConnDevArtifactValidationResult validation = skipValidation
                             ? ConnDevArtifactValidationResult.success()
                             : getDetailsModel().getConnectorDevelopmentOperation().validateArtifact(artifact, task, result);
@@ -211,9 +219,58 @@ public abstract class ScriptConnectorStepPanel extends AbstractWizardStepPanel<C
                     }
                 }
 
-                return artifact;
+                return loadedFrom(artifact, true);
             }
         };
+    }
+
+    private void rememberSuggestion(ConnDevArtifactType artifact) {
+        suggestionAvailable = artifact != null;
+        suggestionContent = artifact == null ? null : artifact.getContent();
+    }
+
+    private ConnDevArtifactType loadedFrom(ConnDevArtifactType artifact, boolean suggestion) {
+        editorShowsSuggestion = suggestion;
+        loadedContent = artifact.getContent();
+        return artifact;
+    }
+
+    /** The deployed script with its content read from the connector's file, or a blank script when none is deployed. */
+    private ConnDevArtifactType deployedOrBlank(PrismContainerValueWrapper<ConnDevArtifactType> deployedWrapper) {
+        if (deployedWrapper == null) {
+            return getScriptType().create(getObjectClassName());
+        }
+        ConnDevArtifactType artifactType = deployedWrapper.getRealValue();
+        Task task = getDetailsModel().getPageAssignmentHolder().createSimpleTask(OP_LOAD_SCRIPT);
+        OperationResult result = task.getResult();
+        try {
+            String content = getDetailsModel().getConnectorDevelopmentOperation().getArtifactContent(artifactType, task, result);
+            artifactType.setContent(content);
+            return artifactType;
+        } catch (IOException e) {
+            // The script entry exists in the model, but its file cannot be read (e.g. it
+            // was removed out-of-band). Don't fail the page render - show a blank script.
+            getPageBase().error("Couldn't load " + artifactType.getFilename() + ": " + e.getMessage());
+            artifactType.setContent(null);
+            return artifactType;
+        }
+    }
+
+    /** The script of the latest generation task, or null when there is no task or it produced none. */
+    private ConnDevArtifactType readSuggestion(String token) {
+        if (StringUtils.isEmpty(token)) {
+            return null;
+        }
+        Task task = getDetailsModel().getPageAssignmentHolder().createSimpleTask(OP_LOAD_SCRIPT);
+        OperationResult result = task.getResult();
+        try {
+            StatusInfo<ConnDevGenerateArtifactResultType> statusInfo =
+                    getDetailsModel().getServiceLocator().getConnectorService().getGenerateArtifactStatus(token, task, result);
+            ConnDevGenerateArtifactResultType artifactResultType = statusInfo.getResult();
+            return artifactResultType == null ? null : artifactResultType.getArtifact();
+        } catch (CommonException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private String getTaskToken() {
@@ -348,6 +405,16 @@ public abstract class ScriptConnectorStepPanel extends AbstractWizardStepPanel<C
 
     @Override
     public boolean onNextPerformed(AjaxRequestTarget target) {
+        boolean emptyScript = StringUtils.isBlank(currentLiveScriptContent());
+        if (emptyScript && deployedScriptWrapper() != null && !deleteDeployedConfirmed) {
+            showEditsConfirmation("ScriptConnectorStepPanel.deleteDeployed", confirmTarget -> {
+                deleteDeployedConfirmed = true;
+                onNextPerformed(confirmTarget);
+            }, target);
+            return false;
+        }
+        deleteDeployedConfirmed = false;
+
         Task task = getPageBase().createSimpleTask(OP_SAVE_SCRIPT);
         ConnectorDevelopmentWizardUtil.clearScriptValidationErrors(this, getStepId());
         ConnectorDevelopmentWizardUtil.refreshDrawerPanel(this, target);
@@ -360,7 +427,8 @@ public abstract class ScriptConnectorStepPanel extends AbstractWizardStepPanel<C
             }
             script.setFilename(languageModel.getObject().withExtension(script.getFilename()));
             WebPrismUtil.cleanupEmptyContainerValue(script.asPrismContainerValue());
-            if (isScriptOptional() && StringUtils.isBlank(script.getContent())) {
+            if (StringUtils.isBlank(script.getContent())) {
+                rejectedSuggestionToken = getTaskToken();
                 scriptFileToDelete = removeDeployedScriptEntry();
                 valueModel.detach();
                 languageModel.detach();
@@ -418,9 +486,9 @@ public abstract class ScriptConnectorStepPanel extends AbstractWizardStepPanel<C
     protected void onAfterSave(AjaxRequestTarget target) {
     }
 
-    /** True only where the connector can work without this script (see {@link AuthScriptsConnectorStepPanel}). */
-    protected boolean isScriptOptional() {
-        return false;
+    /** Whether the "Repair object class" action makes sense for this script (it fixes the object class the script belongs to). */
+    protected boolean isRepairAvailable() {
+        return true;
     }
 
     protected final LoadableModel<ConnDevArtifactType> getValueModel() {
@@ -451,19 +519,50 @@ public abstract class ScriptConnectorStepPanel extends AbstractWizardStepPanel<C
     }
 
     private List<InlineMenuItem> buildScriptActionsMenuItems() {
+        List<InlineMenuItem> items = new ArrayList<>();
+
+        InlineMenuItem rejectItem = new InlineMenuItem(createStringResource("ScriptConnectorStepPanel.rejectSuggestedScript")) {
+            @Override
+            public InlineMenuItemAction initAction() {
+                return new InlineMenuItemAction() {
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        onRejectSuggestedScriptPerformed(target);
+                    }
+                };
+            }
+        };
+        rejectItem.setVisible(this::isShowingSuggestedScript);
+        items.add(rejectItem);
+
+        InlineMenuItem reloadItem = new InlineMenuItem(createStringResource("ScriptConnectorStepPanel.reloadSuggestedScript")) {
+            @Override
+            public InlineMenuItemAction initAction() {
+                return new InlineMenuItemAction() {
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        onReloadSuggestedScriptPerformed(target);
+                    }
+                };
+            }
+        };
+        reloadItem.setVisible(this::isReloadSuggestedScriptAvailable);
+        items.add(reloadItem);
+
         InlineMenuItem regenerateItem = new InlineMenuItem(createStringResource("ScriptConnectorStepPanel.regenerate")) {
             @Override
             public InlineMenuItemAction initAction() {
                 return new InlineMenuItemAction() {
                     @Override
                     public void onClick(AjaxRequestTarget target) {
-                        onRefreshPerformed(target);
+                        onRegenerateClicked(target);
                     }
                 };
             }
         };
+        items.add(regenerateItem);
 
-        if (!isScriptOptional()) {
+        if (isRepairAvailable()) {
             InlineMenuItem repairItem = new InlineMenuItem(createStringResource("NextStepsConnectorStepPanel.repairObjectClass")) {
                 @Override
                 public InlineMenuItemAction initAction() {
@@ -480,51 +579,31 @@ public abstract class ScriptConnectorStepPanel extends AbstractWizardStepPanel<C
                     };
                 }
             };
-            return List.of(regenerateItem, repairItem);
+            items.add(repairItem);
         }
 
-        InlineMenuItem discardItem = new InlineMenuItem(createStringResource("ScriptConnectorStepPanel.discardSuggestedScript")) {
-            @Override
-            public InlineMenuItemAction initAction() {
-                return new InlineMenuItemAction() {
-                    @Override
-                    public void onClick(AjaxRequestTarget target) {
-                        onDiscardSuggestedScriptPerformed(target);
-                    }
-                };
-            }
-        };
-        discardItem.setVisible(this::isShowingSuggestedScript);
-
-        InlineMenuItem deleteItem = new InlineMenuItem(createStringResource("ScriptConnectorStepPanel.discardScript")) {
-            @Override
-            public InlineMenuItemAction initAction() {
-                return new InlineMenuItemAction() {
-                    @Override
-                    public void onClick(AjaxRequestTarget target) {
-                        onDeleteScriptPerformed(target);
-                    }
-                };
-            }
-        };
-
-        return List.of(discardItem, regenerateItem, deleteItem);
+        return items;
     }
 
-    /** Whether {@link #valueModel} is showing a generated suggestion rather than the deployed script. */
+    /** Whether the editor holds the generated suggestion (not the deployed script and not a blank script). */
     private boolean isShowingSuggestedScript() {
-        if (hasActiveDeployedScript()) {
-            return false;
-        }
-        ConnDevArtifactType current = valueModel.getObject();
-        boolean result = current != null && StringUtils.isNotBlank(current.getContent());
-        return result;
+        valueModel.getObject();
+        return editorShowsSuggestion;
     }
 
-    private boolean hasActiveDeployedScript() {
-        PrismContainerValueWrapper<ConnDevArtifactType> deployed = deployedScriptWrapper();
-        boolean result = deployed != null && !Boolean.TRUE.equals(deployed.getRealValue().isDisabled());
-        return result;
+    /**
+     * Whether the latest generation produced a suggestion. Deliberately independent of the editor content: the
+     * menu is rendered on the server and is not refreshed while the user types, so a condition on the editor
+     * would leave the item stale (e.g. hidden after the user clears the editor).
+     */
+    private boolean isReloadSuggestedScriptAvailable() {
+        valueModel.getObject();
+        return suggestionAvailable && StringUtils.isNotBlank(suggestionContent);
+    }
+
+    /** Whether the user changed the editor content compared to what the application loaded into it. */
+    private boolean hasEditorEdits() {
+        return !StringUtils.equals(StringUtils.defaultString(currentLiveScriptContent()), StringUtils.defaultString(loadedContent));
     }
 
     /** The deployed script's wrapper, or null - filters out the empty placeholder value an as-yet-nonexistent container gets. */
@@ -550,93 +629,83 @@ public abstract class ScriptConnectorStepPanel extends AbstractWizardStepPanel<C
         return filename;
     }
 
-    /** Fully removes an already-deployed optional script: model entry, file and manifest record. */
-    private void onDeleteScriptPerformed(AjaxRequestTarget target) {
-        String filename = removeDeployedScriptEntry();
-        if (filename != null) {
-            OperationResult result = getHelper().onSaveObjectPerformed(target);
-            if (result == null || result.isError()) {
-                target.add(getFeedback());
-                return;
-            }
-            Task task = getPageBase().createSimpleTask(CLASS_DOT + "deleteScript");
-            try {
-                getDetailsModel().getConnectorDevelopmentOperation().deleteArtifactFile(filename, task, task.getResult());
-                getDetailsModel().getConnectorDevelopmentOperation().recomputeConnectorManifest(task, task.getResult());
-            } catch (IOException | CommonException e) {
-                getPageBase().error("Couldn't delete " + filename + ": " + e.getMessage());
-                target.add(getFeedback());
-                return;
-            }
-            getDetailsModel().reloadPrismObjectByOid();
+    private void onRegenerateClicked(AjaxRequestTarget target) {
+        boolean edits = hasEditorEdits();
+        if (edits) {
+            showEditsConfirmation("ScriptConnectorStepPanel.regenerate", this::onRefreshPerformed, target);
+            return;
         }
+        onRefreshPerformed(target);
+    }
+
+    /** Takes back the suggested script: the editor shows the deployed script, or stays blank when none is deployed. */
+    private void onRejectSuggestedScriptPerformed(AjaxRequestTarget target) {
+        rejectedSuggestionToken = getTaskToken();
+        resetEditorToLoadedState(target);
+    }
+
+    private void onReloadSuggestedScriptPerformed(AjaxRequestTarget target) {
+        boolean edits = hasEditorEdits();
+        if (edits) {
+            showEditsConfirmation("ScriptConnectorStepPanel.reload", this::reloadSuggestedScript, target);
+            return;
+        }
+        reloadSuggestedScript(target);
+    }
+
+    private void reloadSuggestedScript(AjaxRequestTarget target) {
+        rejectedSuggestionToken = null;
+        isReloaded = true;
+        resetEditorToLoadedState(target);
+    }
+
+    /** Re-reads the script into the editor, dropping the user's edits and the validation errors reported for the previous content. */
+    private void resetEditorToLoadedState(AjaxRequestTarget target) {
         autoValidationDone = false;
-        valueModel.detach();
-        languageModel.detach();
+        scriptEditedSinceError = false;
         getHelper().removeVariable(VAR_LIVE_SCRIPT);
-        isReloaded = false;
-        super.onNextPerformed(target);
-    }
-
-    /** Marks a deployed script disabled (no-op if nothing deployed, or already disabled) - see {@link #onRefreshPerformed}. */
-    private void disableDeployedScriptIfPresent() {
-        PrismContainerValueWrapper<ConnDevArtifactType> deployed = deployedScriptWrapper();
-        if (deployed == null || deployed.getRealValue() == null || deployed.getRealValue().getFilename() == null
-                || Boolean.TRUE.equals(deployed.getRealValue().isDisabled())) {
-            return;
-        }
-        Task task = getPageBase().createSimpleTask(CLASS_DOT + "disableDeployedScript");
-        try {
-            getDetailsModel().getConnectorDevelopmentOperation().disableArtifact(deployed.getRealValue().getFilename(), task, task.getResult());
-            getDetailsModel().reloadPrismObjectByOid();
-        } catch (IOException | CommonException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    /**
-     * Reverts to the deployed script if there is one, or clears the editor to blank otherwise.
-     * The blank case sets {@link #valueModel} directly rather than detaching it: load() would
-     * just re-fetch the same completed generation task's result again.
-     */
-    private void onDiscardSuggestedScriptPerformed(AjaxRequestTarget target) {
-        PrismContainerValueWrapper<ConnDevArtifactType> deployed = deployedScriptWrapper();
-        if (deployed == null || deployed.getRealValue() == null) {
-            autoValidationDone = false;
-            valueModel.setObject(getScriptType().create(getObjectClassName()));
-            languageModel.detach();
-            getHelper().removeVariable(VAR_LIVE_SCRIPT);
-            target.add(this);
-            if (scriptEditor != null) {
-                scriptEditor.updateValue(target, "");
-            }
-            return;
-        }
-
-        Task task = getPageBase().createSimpleTask(CLASS_DOT + "discardSuggestedScript");
-        String content;
-        try {
-            ConnDevArtifactType deployedArtifact = deployed.getRealValue().clone();
-            content = getDetailsModel().getConnectorDevelopmentOperation()
-                    .getArtifactContent(deployedArtifact, task, task.getResult());
-            deployedArtifact.setContent(content);
-            WebPrismUtil.cleanupEmptyContainerValue(deployedArtifact.asPrismContainerValue());
-            saveScript(deployedArtifact, task, task.getResult());
-            getDetailsModel().reloadPrismObjectByOid();
-        } catch (IOException | CommonException e) {
-            throw new RuntimeException(e);
-        }
-        if (task.getResult() != null && task.getResult().isError()) {
-            target.add(getFeedback());
-            return;
-        }
-        autoValidationDone = false;
+        ConnectorDevelopmentWizardUtil.clearScriptValidationErrors(this, getStepId());
+        ConnectorDevelopmentWizardUtil.refreshDrawerPanel(this, target);
         valueModel.detach();
         languageModel.detach();
+        String content = valueModel.getObject().getContent();
         target.add(this);
         if (scriptEditor != null) {
-            scriptEditor.updateValue(target, content);
+            scriptEditor.updateValue(target, StringUtils.defaultString(content));
         }
+    }
+
+    /** Asks before an action throws away the user's edits; {@code keyPrefix}.confirm.{title,message,yes} are the texts. */
+    private void showEditsConfirmation(String keyPrefix, ConfirmedAction onConfirmed, AjaxRequestTarget target) {
+        ConfirmationPanel dialog = new ConfirmationPanel(getPageBase().getMainPopupBodyId(),
+                createStringResource(keyPrefix + ".confirm.message")) {
+
+            @Override
+            public IModel<String> getTitle() {
+                return createStringResource(keyPrefix + ".confirm.title");
+            }
+
+            @Override
+            protected IModel<String> createYesLabel() {
+                return createStringResource(keyPrefix + ".confirm.yes");
+            }
+
+            @Override
+            protected IModel<String> createNoLabel() {
+                return createStringResource("ScriptConnectorStepPanel.confirm.cancel");
+            }
+
+            @Override
+            public void yesPerformed(AjaxRequestTarget confirmTarget) {
+                onConfirmed.run(confirmTarget);
+            }
+
+            @Override
+            public void noPerformed(AjaxRequestTarget cancelTarget) {
+                super.noPerformed(cancelTarget);
+            }
+        };
+        getPageBase().showMainPopup(dialog, target);
     }
 
     private boolean hasPendingValidationError() {
@@ -670,9 +739,6 @@ public abstract class ScriptConnectorStepPanel extends AbstractWizardStepPanel<C
     }
 
     private void onRefreshPerformed(AjaxRequestTarget target) {
-        if (isScriptOptional()) {
-            disableDeployedScriptIfPresent();
-        }
         if (getWizard() instanceof WizardModelWithParentSteps parentWizardModel) {
             var pendingResults = parentWizardModel.getOperationResultsForFixStep(getStepId());
             List<String> errorMessages = ConnectorDevelopmentWizardUtil.collectErrorMessages(pendingResults);
