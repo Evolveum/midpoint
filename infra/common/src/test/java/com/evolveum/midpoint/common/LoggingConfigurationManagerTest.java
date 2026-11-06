@@ -233,6 +233,20 @@ public class LoggingConfigurationManagerTest {
         assertThat(limited.length()).isLessThan(full.length());
     }
 
+    @Test(expectedExceptions = SchemaException.class)
+    public void testJsonCustomFieldsNotJsonFails() throws Exception {
+        AppenderConfigurationType appender = jsonAppender("JSON");
+        appender.getJson().setCustomFields("app:MidPointTest");
+        LoggingConfigurationManager.prepareCommonAppenderFooter(new StringBuilder(), appender);
+    }
+
+    @Test
+    public void testJsonCustomFieldsObjectIsAccepted() throws Exception {
+        AppenderConfigurationType appender = jsonAppender("JSON");
+        appender.getJson().setCustomFields("{\"app\":\"MidPointTest\"}");
+        LoggingConfigurationManager.prepareCommonAppenderFooter(new StringBuilder(), appender);   // no exception
+    }
+
     private String logExceptionThroughJsonAppender(String name, JsonFormatConfigurationType json)
             throws Exception {
         File logFile = new File("target/test-json-" + name + ".log");

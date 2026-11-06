@@ -25,9 +25,15 @@ import net.logstash.logback.encoder.LogstashEncoder;
 import net.logstash.logback.stacktrace.ShortenedThrowableConverter;
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.text.StringEscapeUtils;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.VisibleForTesting;
 import org.slf4j.bridge.SLF4JBridgeHandler;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.DeserializationFeature;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.common.configuration.api.ProfilingMode;
@@ -41,7 +47,6 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.*;
 import com.evolveum.midpoint.util.statistics.OperationExecutionLogger;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.apache.commons.text.StringEscapeUtils;
 
 public class LoggingConfigurationManager {
 
@@ -59,11 +64,13 @@ public class LoggingConfigurationManager {
 
     private static final String OP_CONFIGURE = LoggingConfigurationManager.class.getName() + ".configure";
 
-    /** Encoder used for {@link AppenderFormatType#JSON}.  */
+    /** Encoder used for {@link AppenderFormatType#JSON}. */
     private static final String JSON_ENCODER_CLASS_NAME = LogstashEncoder.class.getName();
 
     private static final String SHORTENED_THROWABLE_CONVERTER_CLASS_NAME = ShortenedThrowableConverter.class.getName();
 
+    private static final ObjectMapper JSON_VALIDATOR = JsonMapper.builder().enable(DeserializationFeature
+            .FAIL_ON_TRAILING_TOKENS).build();
 
     /**
      * Used by ALT and TRACING appenders when the root appender has no pattern (e.g. it uses JSON format).
@@ -469,7 +476,7 @@ public class LoggingConfigurationManager {
     }
 
     @VisibleForTesting
-     static void prepareTracingAppenderConfiguration(StringBuilder sb, AppenderConfigurationType appender) {
+    static void prepareTracingAppenderConfiguration(StringBuilder sb, AppenderConfigurationType appender) {
         sb.append("\t<appender name=\"" + TRACING_APPENDER_NAME + "\" class=\"").append(TRACING_APPENDER_CLASS_NAME).append("\">\n")
                 .append("\t\t<format class=\"ch.qos.logback.classic.PatternLayout\">\n")
                 .append("\t\t\t<pattern>").append(getPatternOrDefault(appender)).append("</pattern>\n")
@@ -499,9 +506,9 @@ public class LoggingConfigurationManager {
         if (format == null) {
             format = AppenderFormatType.PATTERN;
         }
-        LOGGER.debug("Footer: Appender name:{} , Appender format {}",appender.getName(),format);
+        LOGGER.debug("Footer: Appender name:{} , Appender format {}", appender.getName(), format);
         if (format == AppenderFormatType.JSON) {
-            validateJsonSettings(appender.getName(),appender.getJson());
+            validateJsonSettings(appender.getName(), appender.getJson());
             sb.append("\t\t<encoder class=\"").append(JSON_ENCODER_CLASS_NAME).append("\">\n");
             prepareJsonEncoderProperties(sb, appender.getJson());
             sb.append("\t\t</encoder>\n");
@@ -520,15 +527,14 @@ public class LoggingConfigurationManager {
         sb.append("\t</appender>\n");
     }
 
-    private static void prepareJsonEncoderProperties(StringBuilder sb, JsonFormatConfigurationType json)
-            {
+    private static void prepareJsonEncoderProperties(StringBuilder sb, JsonFormatConfigurationType json) {
         if (json == null) {
             return;                       // defaults of the encoder
         }
         String indent = "\t\t\t";
-        appendEscapedProp(sb, indent,"timestampPattern", json.getTimestampPattern());
-        appendEscapedProp(sb, indent,"timeZone", json.getTimeZone());
-        appendEscapedProp(sb, indent,"customFields", json.getCustomFields());
+        appendEscapedProp(sb, indent, "timestampPattern", json.getTimestampPattern());
+        appendEscapedProp(sb, indent, "timeZone", json.getTimeZone());
+        appendEscapedProp(sb, indent, "customFields", json.getCustomFields());
         prepareStacktraceProperties(sb, indent, json);
     }
 
@@ -547,7 +553,6 @@ public class LoggingConfigurationManager {
             sb.append(indent).append("</throwableConverter>\n");
         }
     }
-
 
     private static void validateJsonSettings(String appenderName, JsonFormatConfigurationType json)
             throws SchemaException {
@@ -577,6 +582,19 @@ public class LoggingConfigurationManager {
         if (maxDepth != null && maxDepth < 1) {
             throw new SchemaException("Maximum stack trace depth must be at least 1 in JSON settings of appender '"
                     + appenderName + "'.");
+        }
+        String customFields = json.getCustomFields();
+        if (customFields != null) {
+            try {
+                JsonNode node = JSON_VALIDATOR.readTree(customFields);
+                if (node == null || !node.isObject()) {
+                    throw new SchemaException("Custom fields must be a JSON object in JSON settings of appender '"
+                            + appenderName + "'.");
+                }
+            } catch (JacksonException e) {
+                throw new SchemaException("Custom fields are not valid JSON in JSON settings of appender '"
+                        + appenderName + "': " + e.getOriginalMessage(), e);
+            }
         }
     }
 
