@@ -11,6 +11,9 @@ import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
+import java.time.DateTimeException;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
@@ -19,6 +22,7 @@ import ch.qos.logback.classic.joran.JoranConfigurator;
 import ch.qos.logback.core.joran.spi.JoranException;
 import ch.qos.logback.core.util.StatusPrinter;
 import net.logstash.logback.encoder.LogstashEncoder;
+import net.logstash.logback.stacktrace.ShortenedThrowableConverter;
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.Nullable;
@@ -37,6 +41,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.*;
 import com.evolveum.midpoint.util.statistics.OperationExecutionLogger;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import org.apache.commons.text.StringEscapeUtils;
 
 public class LoggingConfigurationManager {
 
@@ -56,6 +61,10 @@ public class LoggingConfigurationManager {
 
     /** Encoder used for {@link AppenderFormatType#JSON}.  */
     private static final String JSON_ENCODER_CLASS_NAME = LogstashEncoder.class.getName();
+
+    private static final String SHORTENED_THROWABLE_CONVERTER_CLASS_NAME = ShortenedThrowableConverter.class.getName();
+
+
     /**
      * Used by ALT and TRACING appenders when the root appender has no pattern (e.g. it uses JSON format).
      * Same as the pattern of MIDPOINT_LOG in the default system configuration.
@@ -444,6 +453,21 @@ public class LoggingConfigurationManager {
             sb.append("</").append(name).append(">\n");
         }
     }
+
+    private static void appendEscapedProp(StringBuilder sb, String indent, String name, String value) {
+        if (value != null) {
+            appendProp(sb, indent, name, StringEscapeUtils.escapeXml10(value));
+        }
+    }
+
+    private static void appendProp(StringBuilder sb, String indent, String name, Object value) {
+        if (value != null) {
+            sb.append(indent).append('<').append(name).append('>');
+            sb.append(value);
+            sb.append("</").append(name).append(">\n");
+        }
+    }
+
     @VisibleForTesting
      static void prepareTracingAppenderConfiguration(StringBuilder sb, AppenderConfigurationType appender) {
         sb.append("\t<appender name=\"" + TRACING_APPENDER_NAME + "\" class=\"").append(TRACING_APPENDER_CLASS_NAME).append("\">\n")
@@ -468,35 +492,92 @@ public class LoggingConfigurationManager {
         }
     }
 
-
-
     @VisibleForTesting
-    static void prepareCommonAppenderFooter(StringBuilder sb, AppenderConfigurationType appender) throws SchemaException {
-
+    static void prepareCommonAppenderFooter(StringBuilder sb, AppenderConfigurationType appender)
+            throws SchemaException {
         AppenderFormatType format = appender.getFormat();
         if (format == null) {
             format = AppenderFormatType.PATTERN;
         }
-
+        LOGGER.debug("Footer: Appender name:{} , Appender format {}",appender.getName(),format);
         if (format == AppenderFormatType.JSON) {
-            sb.append("         <encoder class=\"").append(JSON_ENCODER_CLASS_NAME).append("\"/>\n");
+            validateJsonSettings(appender.getName(),appender.getJson());
+            sb.append("\t\t<encoder class=\"").append(JSON_ENCODER_CLASS_NAME).append("\">\n");
+            prepareJsonEncoderProperties(sb, appender.getJson());
+            sb.append("\t\t</encoder>\n");
         } else {
-
-            sb.append("        <encoder>\n");
             String pattern = appender.getPattern();
-
             if (StringUtils.isBlank(pattern)) {
                 throw new SchemaException("Pattern is required for appender '" + appender.getName()
                         + "' unless its format is JSON.");
             }
+            sb.append("\t\t<encoder>\n");
+            sb.append("\t\t\t<pattern>");
+            sb.append(pattern);
+            sb.append("</pattern>\n");
+            sb.append("\t\t</encoder>\n");
+        }
+        sb.append("\t</appender>\n");
+    }
 
-            if (StringUtils.isNotEmpty(pattern)) {
-                sb.append("            <pattern>").append(pattern).append("</pattern>\n");
+    private static void prepareJsonEncoderProperties(StringBuilder sb, JsonFormatConfigurationType json)
+            {
+        if (json == null) {
+            return;                       // defaults of the encoder
+        }
+        String indent = "\t\t\t";
+        appendEscapedProp(sb, indent,"timestampPattern", json.getTimestampPattern());
+        appendEscapedProp(sb, indent,"timeZone", json.getTimeZone());
+        appendEscapedProp(sb, indent,"customFields", json.getCustomFields());
+        prepareStacktraceProperties(sb, indent, json);
+    }
+
+    private static void prepareStacktraceProperties(StringBuilder sb, String indent, JsonFormatConfigurationType json) {
+        if (Boolean.FALSE.equals(json.isIncludeStacktrace())) {
+            sb.append(indent).append("<fieldNames>\n");
+            sb.append(indent).append("\t<stackTrace>[ignore]</stackTrace>\n");
+            sb.append(indent).append("</fieldNames>\n");
+            return;                                   // depth makes no sense without the stack trace
+        }
+        if (json.getMaxStacktraceDepth() != null) {
+            sb.append(indent).append("<throwableConverter class=\"")
+                    .append(SHORTENED_THROWABLE_CONVERTER_CLASS_NAME).append("\">\n");
+            sb.append(indent).append("\t<maxDepthPerThrowable>")
+                    .append(json.getMaxStacktraceDepth()).append("</maxDepthPerThrowable>\n");
+            sb.append(indent).append("</throwableConverter>\n");
+        }
+    }
+
+
+    private static void validateJsonSettings(String appenderName, JsonFormatConfigurationType json)
+            throws SchemaException {
+        if (json == null) {
+            return;
+        }
+        String timeZone = json.getTimeZone();
+        if (timeZone != null) {
+            try {
+                ZoneId.of(timeZone);
+            } catch (DateTimeException e) {
+                throw new SchemaException("Invalid time zone '" + timeZone
+                        + "' in JSON settings of appender '" + appenderName + "'.", e);
             }
-            sb.append("        </encoder>\n");
+        }
+        String timestampPattern = json.getTimestampPattern();
+        if (timestampPattern != null) {
+            try {
+                DateTimeFormatter.ofPattern(timestampPattern);
+            } catch (IllegalArgumentException e) {
+                throw new SchemaException("Invalid timestamp pattern '" + timestampPattern
+                        + "' in JSON settings of appender '" + appenderName + "'.", e);
+            }
         }
 
-        sb.append("    </appender>\n");
+        Integer maxDepth = json.getMaxStacktraceDepth();
+        if (maxDepth != null && maxDepth < 1) {
+            throw new SchemaException("Maximum stack trace depth must be at least 1 in JSON settings of appender '"
+                    + appenderName + "'.");
+        }
     }
 
     private static void generateAuditingLogConfig(LoggingAuditingConfigurationType auditing, StringBuilder sb) {
