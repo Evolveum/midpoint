@@ -22,6 +22,7 @@ import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingStrengthType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateType;
 
 import org.apache.commons.lang3.StringUtils;
@@ -41,6 +42,10 @@ import com.evolveum.midpoint.gui.impl.component.data.column.MappingExpressionCol
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapperColumn;
 import com.evolveum.midpoint.gui.impl.factory.panel.ItemRealValueModel;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
+import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.web.component.prism.ItemVisibility;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
@@ -49,8 +54,25 @@ import org.apache.wicket.model.Model;
 
 public class ListMappingPanel extends AbstractMappingsTable<ObjectTemplateType> {
 
+    private static final Trace LOGGER = TraceManager.getTrace(ListMappingPanel.class);
+
     public ListMappingPanel(String id, IModel<PrismContainerValueWrapper<ObjectTemplateType>> valueModel, ContainerPanelConfigurationType config) {
         super(id, valueModel, config);
+    }
+
+    @Override
+    protected PrismContainerValueWrapper<MappingType> createNewValue(
+            PrismContainerValue<MappingType> value, AjaxRequestTarget target) {
+        @SuppressWarnings("unchecked")
+        PrismContainerValueWrapper<MappingType> newValue = super.createNewValue(value, target);
+        if (value == null && newValue != null && newValue.getRealValue() != null) {
+            try {
+                newValue.findProperty(MappingType.F_STRENGTH).getValue().setRealValue(MappingStrengthType.STRONG);
+            } catch (SchemaException e) {
+                LOGGER.error("Couldn't set default strength for new object template mapping", e);
+            }
+        }
+        return newValue;
     }
 
     @Override
