@@ -77,12 +77,12 @@ public final class MappingNameGenerator {
     }
 
     /**
-     * Checks whether the name matches the base, optionally followed by a suffix such as {@code (2)}.
+     * Checks whether the name matches the base, optionally followed by a suffix such as {@code _2}.
      * This compares the text only; SYSTEM metadata determines whether the name was generated.
      */
     static boolean isGeneratedName(String name, String baseName) {
         return name != null && baseName != null && Pattern.matches(
-                Pattern.quote(baseName) + "(?: \\((?:[2-9]|[1-9][0-9]+)\\))?", name);
+                Pattern.quote(baseName) + "(?:_(?:[2-9]|[1-9][0-9]+))?", name);
     }
 
     /** Mapping locations with supported naming patterns. */
@@ -206,13 +206,13 @@ public final class MappingNameGenerator {
                 .collect(Collectors.joining("-"));
     }
 
-    /** Keeps an unused base name or adds the first available suffix, starting with {@code (2)}. */
+    /** Keeps an unused base name or adds the first available suffix, starting with {@code _2}. */
     static String suggestUniqueName(String baseName, Predicate<String> isNameUsed) {
 
         String candidate = baseName;
         int suffix = 2;
         while (isNameUsed.test(candidate)) {
-            candidate = baseName + " (" + suffix++ + ")";
+            candidate = baseName + "_" + suffix++;
         }
         return candidate;
     }
