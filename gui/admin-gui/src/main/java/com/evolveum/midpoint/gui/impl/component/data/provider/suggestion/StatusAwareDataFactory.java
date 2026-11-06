@@ -4,6 +4,7 @@ import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
 import com.evolveum.midpoint.gui.api.util.MappingDirection;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
@@ -196,6 +197,7 @@ public final class StatusAwareDataFactory {
                 var suggestionWrappers = SmartIntegrationStatusInfoUtils.loadMappingSuggestionWrappers(
                         page,
                         resourceOid,
+                        getResource(parentWrapper),
                         rotDef,
                         mappingDirection,
                         false,
@@ -265,6 +267,18 @@ public final class StatusAwareDataFactory {
         SuggestionsModelDto<MappingType> dto = new SuggestionsModelDto<>(valuesModel, resourceOid);
         dto.suggestionResolver = suggestionsIndex::get;
         return dto;
+    }
+
+    /** Returns the resource that contains the given object type definition, if it is available in the wrapper hierarchy. */
+    private static ResourceType getResource(@NotNull PrismContainerValueWrapper<ResourceObjectTypeDefinitionType> parentWrapper) {
+        if (parentWrapper.getParent() == null) {
+            return null;
+        }
+        PrismObjectWrapper<?> objectWrapper = parentWrapper.getParent().findObjectWrapper();
+        if (objectWrapper == null || objectWrapper.getObject() == null) {
+            return null;
+        }
+        return objectWrapper.getObject().asObjectable() instanceof ResourceType resource ? resource : null;
     }
 
     public static class SuggestionsModelDto<C extends Containerable> {
