@@ -42,6 +42,16 @@ Moreover, midPoint 4.11.0 made a significant leap towards secure-by-default conf
 * Fixed multi-threaded reconciliation failures caused by concurrent group membership synchronization, preventing incorrect assignments and Prism value parent errors. See bug:MID-11746[]
 * Failed password reset attempts are now recorded in the audit log, improving security monitoring and troubleshooting.
 * Improved Spring Security initialization by replacing ignored URL patterns with a dedicated security filter chain, preserving existing authentication behavior.
+* English (Europe) is now the default locale.
+It uses the standard locale code `en_150` instead of the non-existent `en_EU`, for which neither the JDK nor browsers have locale data.
+Users who have `en_EU` stored (midPoint 4.11.0) keep English (Europe). See bug:MID-12889[]
+* Fixed password strength indicator showing inaccurate score that jumped up and down while typing. See bug:MID-12480[]
+* Fixed border styling of input fields with a button. See bug:MID-12469[]
+* Fixed NullPointerException when creating a new schema. See bug:MID-12407[]
+* Fixed NullPointerException during export of cases. See bug:MID-12830[]
+* Fixed errors in log while editing API key. See bug:MID-12834[] and bug:MID-12779[]
+* Fixed report generation for objects without marks. See bug:MID-12814[]
+* Fixed horizontal scroll of the report preview table and expressions in the `Simulation report: Items changed` initial object. See bug:MID-12882[]
 
 == Changes With Respect to Version 4.10
 
