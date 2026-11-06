@@ -22,6 +22,7 @@ import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
@@ -48,6 +49,12 @@ public abstract class MultiSelectObjectTypeTileWizardStepPanel<SI extends Serial
                 ID_TABLE,
                 getDefaultViewToggle(),
                 UserProfileStorage.TableId.PANEL_ACCESS_WIZARD_STEP) {
+            @Override
+            protected WebMarkupContainer createHeaderContainer() {
+                WebMarkupContainer headerContainer = super.createHeaderContainer();
+                headerContainer.add(AttributeModifier.append("class", "p-3"));
+                return headerContainer;
+            }
 
             @Override
             protected void deselectItem(SI entry) {
