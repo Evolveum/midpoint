@@ -302,6 +302,7 @@ public class DocumentationConnectorStepPanel extends AbstractWizardStepPanel<Con
                         } catch (CommonException e) {
                             throw new RuntimeException(e);
                         }
+                        getTilesModel().detach();
                         adjustPagingIfEmpty();
                         refresh(target);
                     }
