@@ -49,6 +49,9 @@ Moreover, midPoint 4.11.0 made a significant leap towards secure-by-default conf
 
 ==== User Interface
 
+* English (Europe) is now the default locale.
+It uses the standard locale code `en_150` instead of the non-existent `en_EU`, for which neither the JDK nor browsers have locale data.
+Users who have `en_EU` stored (midPoint 4.11.0) keep English (Europe). See bug:MID-12889[]
 // TODO
 
 === Other Areas
@@ -67,6 +70,19 @@ Moreover, midPoint 4.11.0 made a significant leap towards secure-by-default conf
 * Fixed outbound mapping simulations ignoring the filter configured in the simulation sampling popup. See bug:MID-12060[]
 * Fixed multi-threaded reconciliation failures caused by concurrent group membership synchronization, preventing incorrect assignments and Prism value parent errors. See bug:MID-11746[]
 * Fixed an issue with file-based secret providers when the secret file ends with a trailing newline. See bug:MID-10836[]
+* Fixed password strength indicator showing inaccurate score that jumped up and down while typing. See bug:MID-12480[]
+* Fixed border styling of input fields with a button. See bug:MID-12469[]
+* Fixed NullPointerException when creating a new schema. See bug:MID-12407[]
+* Fixed paging and search of the Repository objects page not being kept in session storage. See bug:MID-11645[]
+* Fixed NullPointerException during export of cases. See bug:MID-12830[]
+* Fixed errors in log while editing API key. See bug:MID-12834[] and bug:MID-12779[]
+* Fixed report generation for objects without marks. See bug:MID-12814[]
+* Fixed horizontal scroll of the report preview table and expressions in the `Simulation report: Items changed` initial object. See bug:MID-12882[]
+* Fixed error 500 when opening the System Notifications panel.
+The legacy `mail` and `file` transport configuration is shown only if it is present in system configuration. See bug:MID-12776[]
+* Fixed focus mapping wizard in role wizard allowing an empty target for empty, "as is" and path expressions, and the source column in the mappings table growing when multiple values are selected. See bug:MID-13021[]
+* Fixed incorrect display names of System GUI configuration items (shadow collection views, default settings of object list views and object details). See bug:MID-11752[]
+* Fixed failures of large multipart form submissions in GUI by raising the embedded Tomcat multipart limits (`max-part-count` to 250, `max-part-header-size` to 1024). See bug:MID-12616[]
 // TODO
 
 
