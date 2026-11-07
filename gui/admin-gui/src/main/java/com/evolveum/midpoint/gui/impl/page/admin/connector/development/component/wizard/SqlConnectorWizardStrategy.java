@@ -9,6 +9,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.connector.development.componen
 import java.util.List;
 
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 
 import com.evolveum.midpoint.gui.api.component.wizard.WizardStep;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
@@ -20,7 +21,10 @@ import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.connection.WaitingSchemaConnectorStepPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.ObjectClassSelectConnectorStepPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.create.CreateObjectClassConnectorStepPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.create.CreateCleanupConnectorStepPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.create.CreateResultConnectorStepPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.create.CreateScriptConnectorStepPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.create.CreateTestObjectConnectorStepPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.create.WaitingCreateConnectorStepPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.delete.DeleteObjectClassConnectorStepPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.delete.DeleteScriptConnectorStepPanel;
@@ -35,6 +39,7 @@ import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.search.SearchAllScriptConnectorStepPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.search.SearchByIdObjectClassConnectorStepPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.search.SearchByIdObjectConnectorStepPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.search.SearchByIdResultConnectorStepPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.search.SearchByIdScriptConnectorStepPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.search.SearchFilterObjectClassConnectorStepPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.search.SearchFilterObjectsConnectorStepPanel;
@@ -49,6 +54,7 @@ import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnDevObjectClassInfoType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
  * Wizard strategy for SQL connectors. No HTTP endpoint-selection steps (JDBC connectors have no
@@ -71,6 +77,7 @@ public class SqlConnectorWizardStrategy implements ConnectorWizardStrategy {
     public List<WizardStep> initObjectClassSteps(
             WizardPanelHelper<? extends Containerable, ConnectorDevelopmentDetailsModel> helper,
             IModel<PrismContainerValueWrapper<ConnDevObjectClassInfoType>> objectClassModel) {
+        IModel<ShadowType> retrievedObjectModel = Model.of();
         return List.of(
                 new ObjectClassSelectConnectorStepPanel(helper, objectClassModel),
                 new WaitingObjectClassDetailsConnectorStepPanel(helper, objectClassModel),
@@ -88,7 +95,8 @@ public class SqlConnectorWizardStrategy implements ConnectorWizardStrategy {
                 new WaitingFixObjectClassConnectorStepPanel(helper, objectClassModel, SearchByIdObjectClassConnectorStepPanel.PANEL_TYPE),
                 new FixObjectClassReviewConnectorStepPanel(helper, objectClassModel, SearchByIdObjectClassConnectorStepPanel.PANEL_TYPE),
                 new SearchByIdScriptConnectorStepPanel(helper, objectClassModel),
-                new SearchByIdObjectConnectorStepPanel(helper, objectClassModel));
+                new SearchByIdObjectConnectorStepPanel(helper, objectClassModel, retrievedObjectModel),
+                new SearchByIdResultConnectorStepPanel(helper, objectClassModel, retrievedObjectModel));
     }
 
     @Override
@@ -107,12 +115,14 @@ public class SqlConnectorWizardStrategy implements ConnectorWizardStrategy {
     public List<WizardStep> searchByIdObjectClassSteps(
             WizardPanelHelper<? extends Containerable, ConnectorDevelopmentDetailsModel> helper,
             IModel<PrismContainerValueWrapper<ConnDevObjectClassInfoType>> objectClassModel) {
+        IModel<ShadowType> retrievedObjectModel = Model.of();
         return List.of(
                 new WaitingSearchByIdConnectorStepPanel(helper, objectClassModel),
                 new WaitingFixObjectClassConnectorStepPanel(helper, objectClassModel, SearchByIdObjectClassConnectorStepPanel.PANEL_TYPE),
                 new FixObjectClassReviewConnectorStepPanel(helper, objectClassModel, SearchByIdObjectClassConnectorStepPanel.PANEL_TYPE),
                 new SearchByIdScriptConnectorStepPanel(helper, objectClassModel),
-                new SearchByIdObjectConnectorStepPanel(helper, objectClassModel));
+                new SearchByIdObjectConnectorStepPanel(helper, objectClassModel, retrievedObjectModel),
+                new SearchByIdResultConnectorStepPanel(helper, objectClassModel, retrievedObjectModel));
     }
 
     @Override
@@ -131,11 +141,16 @@ public class SqlConnectorWizardStrategy implements ConnectorWizardStrategy {
     public List<WizardStep> createObjectClassSteps(
             WizardPanelHelper<? extends Containerable, ConnectorDevelopmentDetailsModel> helper,
             IModel<PrismContainerValueWrapper<ConnDevObjectClassInfoType>> objectClassModel) {
+        IModel<ShadowType> createdObjectModel = Model.of();
+        IModel<ShadowType> retrievedObjectModel = Model.of();
         return List.of(
                 new WaitingCreateConnectorStepPanel(helper, objectClassModel),
                 new WaitingFixObjectClassConnectorStepPanel(helper, objectClassModel, CreateObjectClassConnectorStepPanel.PANEL_TYPE),
                 new FixObjectClassReviewConnectorStepPanel(helper, objectClassModel, CreateObjectClassConnectorStepPanel.PANEL_TYPE),
-                new CreateScriptConnectorStepPanel(helper, objectClassModel));
+                new CreateScriptConnectorStepPanel(helper, objectClassModel),
+                new CreateTestObjectConnectorStepPanel(helper, objectClassModel, createdObjectModel, retrievedObjectModel),
+                new CreateResultConnectorStepPanel(helper, objectClassModel, createdObjectModel, retrievedObjectModel),
+                new CreateCleanupConnectorStepPanel(helper, objectClassModel));
     }
 
     @Override

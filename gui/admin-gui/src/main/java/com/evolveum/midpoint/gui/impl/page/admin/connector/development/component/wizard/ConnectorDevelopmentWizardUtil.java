@@ -24,6 +24,7 @@ import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.Referencable;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
@@ -400,6 +401,96 @@ public class ConnectorDevelopmentWizardUtil {
             AbstractWizardStepPanel<?> step, String panelId, OperationResult result, AjaxRequestTarget target) {
         OperationResultLogProvider provider = OperationResultLogProvider.fromLines(getConnectorLogs(result));
         reportOperationLogs(step, panelId, provider, target);
+    }
+
+    /**
+     * Shows connector errors and logs of the operation in the wizard drawer.
+     *
+     * @param step the step that ran the operation
+     * @param scriptPanelType the script step opened by the fix action
+     * @param result the result of the operation
+     * @param target the request target
+     */
+    public static void reportConnectorResults(
+            AbstractWizardStepPanel<ConnectorDevelopmentDetailsModel> step, String scriptPanelType,
+            OperationResult result, AjaxRequestTarget target) {
+        if (step.getWizard() instanceof WizardModelWithParentSteps wizardModel) {
+            collectConnectorResults(result, connIdResult ->
+                    wizardModel.addOperationResult(step.getStepId(), scriptPanelType, connIdResult,
+                            fixScriptAction(step, scriptPanelType)));
+            reportConnectorLogs(step, step.getStepId(), result, target);
+        }
+    }
+
+    /**
+     * Joins values into a comma-separated text.
+     *
+     * @param values the values
+     * @return the text
+     */
+    public static String formatValues(Collection<?> values) {
+        return values.stream()
+                .map(String::valueOf)
+                .collect(Collectors.joining(", "));
+    }
+
+    /**
+     * Returns OIDs of test objects created on the testing resource.
+     *
+     * @param detailsModel the model of the connector development
+     * @return the OIDs
+     */
+    public static List<String> getTestObjectOids(ConnectorDevelopmentDetailsModel detailsModel) {
+        ConnDevTestingType testing = detailsModel.getObjectType().getTesting();
+        if (testing == null) {
+            return List.of();
+        }
+        return testing.getTestObject().stream()
+                .map(ObjectReferenceType::getOid)
+                .toList();
+    }
+
+    /**
+     * Stores a reference to a test object created on the testing resource.
+     *
+     * @param detailsModel the model of the connector development
+     * @param shadowOid the OID of the test object
+     * @param task the task
+     * @param result the result
+     */
+    public static void addTestObject(ConnectorDevelopmentDetailsModel detailsModel, String shadowOid,
+            Task task, OperationResult result) throws CommonException {
+        executeTestObjectsDelta(detailsModel, PrismContext.get().deltaFor(ConnectorDevelopmentType.class)
+                .item(ConnectorDevelopmentType.F_TESTING, ConnDevTestingType.F_TEST_OBJECT)
+                .add(new ObjectReferenceType().oid(shadowOid).type(ShadowType.COMPLEX_TYPE))
+                .asObjectDelta(detailsModel.getObjectWrapper().getOid()), task, result);
+    }
+
+    /**
+     * Removes references to the test objects.
+     *
+     * @param detailsModel the model of the connector development
+     * @param shadowOids the OIDs of the test objects
+     * @param task the task
+     * @param result the result
+     */
+    public static void removeTestObjects(ConnectorDevelopmentDetailsModel detailsModel, Collection<String> shadowOids,
+            Task task, OperationResult result) throws CommonException {
+        if (shadowOids.isEmpty()) {
+            return;
+        }
+        executeTestObjectsDelta(detailsModel, PrismContext.get().deltaFor(ConnectorDevelopmentType.class)
+                .item(ConnectorDevelopmentType.F_TESTING, ConnDevTestingType.F_TEST_OBJECT)
+                .delete(shadowOids.stream()
+                        .map(oid -> new ObjectReferenceType().oid(oid).type(ShadowType.COMPLEX_TYPE))
+                        .toArray())
+                .asObjectDelta(detailsModel.getObjectWrapper().getOid()), task, result);
+    }
+
+    private static void executeTestObjectsDelta(ConnectorDevelopmentDetailsModel detailsModel,
+            ObjectDelta<ConnectorDevelopmentType> delta, Task task, OperationResult result) throws CommonException {
+        detailsModel.getPageAssignmentHolder().getModelService().executeChanges(List.of(delta), null, task, result);
+        detailsModel.reloadPrismObjectByOid();
     }
 
     public static <C extends PrismContainerWrapper<?>> boolean existContainerValue(C container, ItemPath path) {

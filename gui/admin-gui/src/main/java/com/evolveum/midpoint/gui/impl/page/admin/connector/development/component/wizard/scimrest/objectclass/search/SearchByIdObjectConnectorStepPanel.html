@@ -11,6 +11,19 @@
     <div wicket:id="feedbackContainer" class="col-12 feedbackContainer">
         <div wicket:id="feedback" class="messagePanel"/>
     </div>
-    <div class="col-12 p-0 mt-1" wicket:id="panel"/>
+    <div class="col-12 p-0" wicket:id="objectSource"/>
+    <div class="col-12 p-0 mt-3" wicket:id="searchResults">
+        <div class="overflow-auto" wicket:id="radioGroup">
+            <div wicket:id="table"/>
+        </div>
+    </div>
+    <div class="col-12 p-0 mt-3" wicket:id="manualIdentifier">
+        <div class="card shadow-sm p-3 mb-0">
+            <label class="mb-2" wicket:for="identifier">
+                <wicket:message key="SearchByIdObjectConnectorStepPanel.primaryIdentifier"/>
+            </label>
+            <input type="text" class="form-control" wicket:id="identifier"/>
+        </div>
+    </div>
 </wicket:extend>
 </html>
