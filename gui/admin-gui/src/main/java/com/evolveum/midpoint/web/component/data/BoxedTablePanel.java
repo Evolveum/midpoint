@@ -33,7 +33,7 @@ import org.apache.wicket.model.IModel;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.data.provider.BaseSortableDataProvider;
-import com.evolveum.midpoint.gui.impl.component.data.provider.SelectableBeanContainerDataProvider;
+import com.evolveum.midpoint.gui.impl.component.data.provider.SelectableBeanDataProvider;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.web.component.data.paging.NavigatorPanel;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
@@ -497,8 +497,8 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
 
                 @Override
                 protected boolean isCountingDisabled() {
-                    if (dataTable.getDataProvider() instanceof SelectableBeanContainerDataProvider) {
-                        return !((SelectableBeanContainerDataProvider) dataTable.getDataProvider()).isUseObjectCounting();
+                    if (dataTable.getDataProvider() instanceof SelectableBeanDataProvider) {
+                        return !((SelectableBeanDataProvider) dataTable.getDataProvider()).isUseObjectCounting();
                     }
                     return super.isCountingDisabled();
                 }

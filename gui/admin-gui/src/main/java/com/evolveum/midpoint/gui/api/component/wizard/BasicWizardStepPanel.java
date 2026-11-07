@@ -52,6 +52,7 @@ public class BasicWizardStepPanel<T> extends WizardStepPanel<T> {
     private static final String ID_CUSTOM_BUTTONS = "customButtons";
 
     private static final String ID_SUBMIT = "submit";
+    private static final String ID_SUBMIT_ICON = "submitIcon";
     private static final String ID_SUBMIT_LABEL = "submitLabel";
     private static final String ID_NEXT = "next";
     private static final String ID_NEXT_LABEL = "nextLabel";
@@ -176,6 +177,8 @@ public class BasicWizardStepPanel<T> extends WizardStepPanel<T> {
         WebComponentUtil.addDisabledClassBehavior(submit);
         customButtonsContainer.add(submit);
 
+        submit.add(createSubmitIcon());
+
         Label submitLabel = new Label(ID_SUBMIT_LABEL, getSubmitLabelModel());
         submit.add(submitLabel);
 
@@ -214,6 +217,12 @@ public class BasicWizardStepPanel<T> extends WizardStepPanel<T> {
         WebMarkupContainer anchor = new WebMarkupContainer(id);
         anchor.setVisible(false);
         return anchor;
+    }
+
+    private WebMarkupContainer createSubmitIcon() {
+        WebMarkupContainer icon = new WebMarkupContainer(ID_SUBMIT_ICON);
+        icon.add(AttributeAppender.append("class", this::getSubmitIcon));
+        return icon;
     }
 
     private LoadableDetachableModel<String> createNextModel() {
@@ -255,6 +264,15 @@ public class BasicWizardStepPanel<T> extends WizardStepPanel<T> {
 
     protected IModel<String> getSubmitLabelModel() {
         return getPageBase().createStringResource("WizardPanel.submit");
+    }
+
+    /**
+     * Returns the CSS classes of the icon shown on the submit button.
+     *
+     * @return the icon CSS classes
+     */
+    protected String getSubmitIcon() {
+        return "fas fa-check";
     }
 
     @Override
