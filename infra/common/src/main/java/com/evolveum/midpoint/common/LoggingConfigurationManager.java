@@ -11,6 +11,9 @@ import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
+import java.time.DateTimeException;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
@@ -18,16 +21,23 @@ import ch.qos.logback.classic.LoggerContext;
 import ch.qos.logback.classic.joran.JoranConfigurator;
 import ch.qos.logback.core.joran.spi.JoranException;
 import ch.qos.logback.core.util.StatusPrinter;
-
-import com.evolveum.midpoint.prism.util.PrismUtil;
-
+import net.logstash.logback.encoder.LogstashEncoder;
+import net.logstash.logback.stacktrace.ShortenedThrowableConverter;
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.text.StringEscapeUtils;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.VisibleForTesting;
 import org.slf4j.bridge.SLF4JBridgeHandler;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.DeserializationFeature;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.common.configuration.api.ProfilingMode;
+import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -54,6 +64,20 @@ public class LoggingConfigurationManager {
 
     private static final String OP_CONFIGURE = LoggingConfigurationManager.class.getName() + ".configure";
 
+    /** Encoder used for {@link AppenderFormatType#JSON}. */
+    private static final String JSON_ENCODER_CLASS_NAME = LogstashEncoder.class.getName();
+
+    private static final String SHORTENED_THROWABLE_CONVERTER_CLASS_NAME = ShortenedThrowableConverter.class.getName();
+
+    private static final ObjectMapper JSON_VALIDATOR = JsonMapper.builder().enable(DeserializationFeature
+            .FAIL_ON_TRAILING_TOKENS).build();
+
+    /**
+     * Used by ALT and TRACING appenders when the root appender has no pattern (e.g. it uses JSON format).
+     * Same as the pattern of MIDPOINT_LOG in the default system configuration.
+     */
+    private static final String DEFAULT_ROOT_APPENDER_PATTERN = "%date [%X{subsystem}] [%thread] %level \\(%logger\\): %msg%n";
+
     /** Determines whether we apply the new configuration. */
     private static LoggingConfigurationType currentlyUsedConfiguration;
 
@@ -75,7 +99,7 @@ public class LoggingConfigurationManager {
 
             if (PrismUtil.realValueEquals(currentlyUsedConfiguration, updatedConfiguration)) {
                 LOGGER.debug("Skipped logging configuration update (version {}) because the same configuration is already"
-                                + " applied", updatedVersion);
+                        + " applied", updatedVersion);
                 result.recordNotApplicableIfUnknown();
                 return;
             }
@@ -334,22 +358,27 @@ public class LoggingConfigurationManager {
         }
     }
 
+    private static String getPatternOrDefault(AppenderConfigurationType appender) {
+        return StringUtils.isNotBlank(appender.getPattern()) ? appender.getPattern() : DEFAULT_ROOT_APPENDER_PATTERN;
+    }
+
     private static void prepareAltAppenderConfiguration(StringBuilder sb, AppenderConfigurationType appender,
             MidpointConfiguration midpointConfiguration) {
         String altFilename = getAltAppenderFilename(midpointConfiguration);
         String altPrefix = getAltAppenderPrefix(midpointConfiguration);
+        String pattern = getPatternOrDefault(appender);
         if (StringUtils.isNotEmpty(altFilename)) {
             sb.append("\t<appender name=\"" + ALT_APPENDER_NAME + "\" class=\"ch.qos.logback.core.FileAppender\">\n")
                     .append("\t\t\t\t<file>").append(altFilename).append("</file>\n")
-                    .append("\t\t\t\t<layout class=\"ch.qos.logback.classic.PatternLayout\">\n")
-                    .append("\t\t\t\t\t<pattern>").append(altPrefix).append(appender.getPattern()).append("</pattern>\n")
-                    .append("\t\t\t\t</layout>\n")
+                    .append("\t\t\t\t<format class=\"ch.qos.logback.classic.PatternLayout\">\n")
+                    .append("\t\t\t\t\t<pattern>").append(altPrefix).append(pattern).append("</pattern>\n")
+                    .append("\t\t\t\t</format>\n")
                     .append("\t\t\t</appender>\n");
         } else {
             sb.append("\t<appender name=\"" + ALT_APPENDER_NAME + "\" class=\"ch.qos.logback.core.ConsoleAppender\">\n")
-                    .append("\t\t\t\t<layout class=\"ch.qos.logback.classic.PatternLayout\">\n")
-                    .append("\t\t\t\t\t<pattern>").append(altPrefix).append(appender.getPattern()).append("</pattern>\n")
-                    .append("\t\t\t\t</layout>\n")
+                    .append("\t\t\t\t<format class=\"ch.qos.logback.classic.PatternLayout\">\n")
+                    .append("\t\t\t\t\t<pattern>").append(altPrefix).append(pattern).append("</pattern>\n")
+                    .append("\t\t\t\t</format>\n")
                     .append("\t\t\t</appender>\n");
         }
     }
@@ -369,7 +398,7 @@ public class LoggingConfigurationManager {
         return config != null ? config.getString(MidpointConfiguration.MIDPOINT_LOGGING_ALT_FILENAME_PROPERTY) : null;
     }
 
-    private static void prepareFileAppenderConfiguration(StringBuilder sb, FileAppenderConfigurationType appender, LoggingConfigurationType config) {
+    private static void prepareFileAppenderConfiguration(StringBuilder sb, FileAppenderConfigurationType appender, LoggingConfigurationType config) throws SchemaException {
         String fileName = appender.getFileName();
         String filePattern = appender.getFilePattern();
         boolean isPrudent = Boolean.TRUE.equals(appender.isPrudent());
@@ -407,8 +436,11 @@ public class LoggingConfigurationManager {
         prepareCommonAppenderFooter(sb, appender);
     }
 
-    private static void prepareSyslogAppenderConfiguration(StringBuilder sb, SyslogAppenderConfigurationType appender, LoggingConfigurationType config) {
+    static void prepareSyslogAppenderConfiguration(StringBuilder sb, SyslogAppenderConfigurationType appender, LoggingConfigurationType config) throws SchemaException {
 
+        if (appender.getFormat() == AppenderFormatType.JSON) {
+            throw new SchemaException("JSON format is not supported for syslog appender '" + appender.getName() + "'.");
+        }
         prepareCommonAppenderHeader(sb, appender, config, "ch.qos.logback.classic.net.SyslogAppender");
 
         appendProp(sb, "syslogHost", appender.getSyslogHost());
@@ -429,11 +461,26 @@ public class LoggingConfigurationManager {
         }
     }
 
-    private static void prepareTracingAppenderConfiguration(StringBuilder sb, AppenderConfigurationType appender) {
+    private static void appendEscapedProp(StringBuilder sb, String indent, String name, String value) {
+        if (value != null) {
+            appendProp(sb, indent, name, StringEscapeUtils.escapeXml10(value));
+        }
+    }
+
+    private static void appendProp(StringBuilder sb, String indent, String name, Object value) {
+        if (value != null) {
+            sb.append(indent).append('<').append(name).append('>');
+            sb.append(value);
+            sb.append("</").append(name).append(">\n");
+        }
+    }
+
+    @VisibleForTesting
+    static void prepareTracingAppenderConfiguration(StringBuilder sb, AppenderConfigurationType appender) {
         sb.append("\t<appender name=\"" + TRACING_APPENDER_NAME + "\" class=\"").append(TRACING_APPENDER_CLASS_NAME).append("\">\n")
-                .append("\t\t<layout class=\"ch.qos.logback.classic.PatternLayout\">\n")
-                .append("\t\t\t<pattern>").append(appender.getPattern()).append("</pattern>\n")
-                .append("\t\t</layout>\n")
+                .append("\t\t<format class=\"ch.qos.logback.classic.PatternLayout\">\n")
+                .append("\t\t\t<pattern>").append(getPatternOrDefault(appender)).append("</pattern>\n")
+                .append("\t\t</format>\n")
                 .append("\t</appender>\n");
     }
 
@@ -452,13 +499,103 @@ public class LoggingConfigurationManager {
         }
     }
 
-    private static void prepareCommonAppenderFooter(StringBuilder sb, AppenderConfigurationType appender) {
-        sb.append("\t\t<encoder>\n");
-        sb.append("\t\t\t<pattern>");
-        sb.append(appender.getPattern());
-        sb.append("</pattern>\n");
-        sb.append("\t\t</encoder>\n");
+    @VisibleForTesting
+    static void prepareCommonAppenderFooter(StringBuilder sb, AppenderConfigurationType appender)
+            throws SchemaException {
+        AppenderFormatType format = appender.getFormat();
+        if (format == null) {
+            format = AppenderFormatType.PATTERN;
+        }
+        LOGGER.debug("Footer: Appender name:{} , Appender format {}", appender.getName(), format);
+        if (format == AppenderFormatType.JSON) {
+            validateJsonSettings(appender.getName(), appender.getJson());
+            sb.append("\t\t<encoder class=\"").append(JSON_ENCODER_CLASS_NAME).append("\">\n");
+            prepareJsonEncoderProperties(sb, appender.getJson());
+            sb.append("\t\t</encoder>\n");
+        } else {
+            String pattern = appender.getPattern();
+            if (StringUtils.isBlank(pattern)) {
+                throw new SchemaException("Pattern is required for appender '" + appender.getName()
+                        + "' unless its format is JSON.");
+            }
+            sb.append("\t\t<encoder>\n");
+            sb.append("\t\t\t<pattern>");
+            sb.append(pattern);
+            sb.append("</pattern>\n");
+            sb.append("\t\t</encoder>\n");
+        }
         sb.append("\t</appender>\n");
+    }
+
+    private static void prepareJsonEncoderProperties(StringBuilder sb, JsonFormatConfigurationType json) {
+        if (json == null) {
+            return;                       // defaults of the encoder
+        }
+        String indent = "\t\t\t";
+        appendEscapedProp(sb, indent, "timestampPattern", json.getTimestampPattern());
+        appendEscapedProp(sb, indent, "timeZone", json.getTimeZone());
+        appendEscapedProp(sb, indent, "customFields", json.getCustomFields());
+        prepareStacktraceProperties(sb, indent, json);
+    }
+
+    private static void prepareStacktraceProperties(StringBuilder sb, String indent, JsonFormatConfigurationType json) {
+        if (Boolean.FALSE.equals(json.isIncludeStacktrace())) {
+            sb.append(indent).append("<fieldNames>\n");
+            sb.append(indent).append("\t<stackTrace>[ignore]</stackTrace>\n");
+            sb.append(indent).append("</fieldNames>\n");
+            return;                                   // depth makes no sense without the stack trace
+        }
+        if (json.getMaxStacktraceDepth() != null) {
+            sb.append(indent).append("<throwableConverter class=\"")
+                    .append(SHORTENED_THROWABLE_CONVERTER_CLASS_NAME).append("\">\n");
+            sb.append(indent).append("\t<maxDepthPerThrowable>")
+                    .append(json.getMaxStacktraceDepth()).append("</maxDepthPerThrowable>\n");
+            sb.append(indent).append("</throwableConverter>\n");
+        }
+    }
+
+    private static void validateJsonSettings(String appenderName, JsonFormatConfigurationType json)
+            throws SchemaException {
+        if (json == null) {
+            return;
+        }
+        String timeZone = json.getTimeZone();
+        if (timeZone != null) {
+            try {
+                ZoneId.of(timeZone);
+            } catch (DateTimeException e) {
+                throw new SchemaException("Invalid time zone '" + timeZone
+                        + "' in JSON settings of appender '" + appenderName + "'.", e);
+            }
+        }
+        String timestampPattern = json.getTimestampPattern();
+        if (timestampPattern != null) {
+            try {
+                DateTimeFormatter.ofPattern(timestampPattern);
+            } catch (IllegalArgumentException e) {
+                throw new SchemaException("Invalid timestamp pattern '" + timestampPattern
+                        + "' in JSON settings of appender '" + appenderName + "'.", e);
+            }
+        }
+
+        Integer maxDepth = json.getMaxStacktraceDepth();
+        if (maxDepth != null && maxDepth < 1) {
+            throw new SchemaException("Maximum stack trace depth must be at least 1 in JSON settings of appender '"
+                    + appenderName + "'.");
+        }
+        String customFields = json.getCustomFields();
+        if (customFields != null) {
+            try {
+                JsonNode node = JSON_VALIDATOR.readTree(customFields);
+                if (node == null || !node.isObject()) {
+                    throw new SchemaException("Custom fields must be a JSON object in JSON settings of appender '"
+                            + appenderName + "'.");
+                }
+            } catch (JacksonException e) {
+                throw new SchemaException("Custom fields are not valid JSON in JSON settings of appender '"
+                        + appenderName + "': " + e.getOriginalMessage(), e);
+            }
+        }
     }
 
     private static void generateAuditingLogConfig(LoggingAuditingConfigurationType auditing, StringBuilder sb) {

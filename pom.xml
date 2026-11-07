@@ -286,6 +286,7 @@
         <java-otp.version>1.7.1</java-otp.version>
         <byte-buddy.version>1.17.8</byte-buddy.version>
         <antlr.version>4.13.2</antlr.version>
+        <logstash.version>9.0</logstash.version>
     </properties>
 
     <dependencyManagement>
@@ -555,6 +556,13 @@
                 <artifactId>janino</artifactId>
                 <version>3.1.12</version>
             </dependency>
+
+            <dependency>
+                <groupId>net.logstash.logback</groupId>
+                <artifactId>logstash-logback-encoder</artifactId>
+                <version>${logstash.version}</version>
+            </dependency>
+
             <!-- Needed for OpenDJ in tests -->
             <dependency>
                 <groupId>com.sleepycat</groupId>
