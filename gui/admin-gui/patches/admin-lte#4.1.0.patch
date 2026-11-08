@@ -1,0 +1,22 @@
+diff --git admin-lte/dist/js/adminlte.esm.js admin-lte/dist/js/adminlte.esm.js
+--- admin-lte/dist/js/adminlte.esm.js
++++ admin-lte/dist/js/adminlte.esm.js
+@@ -1092,18 +1092,6 @@ class AccessibilityManager {
+         if (prefersReducedMotion) {
+             document.body.classList.add('reduce-motion');
+             document.documentElement.style.scrollBehavior = 'auto';
+-            if (!document.getElementById('adminlte-reduce-motion')) {
+-                const style = document.createElement('style');
+-                style.id = 'adminlte-reduce-motion';
+-                style.textContent = `
+-          *, *::before, *::after {
+-            animation-duration: 0.01ms !important;
+-            animation-iteration-count: 1 !important;
+-            transition-duration: 0.01ms !important;
+-          }
+-        `;
+-                document.head.append(style);
+-            }
+         }
+     }
+     initErrorAnnouncements() {

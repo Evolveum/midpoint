@@ -18,6 +18,8 @@ import 'bootstrap5-toggle';
 
 import 'ace-builds/src-noconflict/ace';
 
+ace.config.set("useStrictCSP", true);
+
 import '@eonasdan/tempus-dominus';
 
 ace.config.setModuleUrl('ace/theme/eclipse',

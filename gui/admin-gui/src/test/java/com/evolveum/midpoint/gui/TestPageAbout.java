@@ -15,6 +15,10 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.wicket.Component;
+import org.apache.wicket.behavior.Behavior;
+import org.apache.wicket.markup.head.CssHeaderItem;
+import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.util.tester.TagTester;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.DirtiesContext;
@@ -42,6 +46,8 @@ public class TestPageAbout extends AbstractInitializedGuiIntegrationTest {
     private static final String GIT_DESCRIBE_PATTERN = "v\\d+\\.\\d+.*";
     private static final String RAW_GIT_HASH = "[0-9a-fA-F]{7,64}";
     private static final Set<String> INVALID_GIT_VALUES = Set.of("unknown", "null");
+    private static final Pattern CSP_NONCE_PATTERN = Pattern.compile("'nonce-([^']+)'");
+    private static final String TEST_CSS_ID = "csp-nonce-test-css";
 
     @Test
     public void test001AboutPageShowsGeneratedGitMetadata() throws Exception {
@@ -57,19 +63,36 @@ public class TestPageAbout extends AbstractInitializedGuiIntegrationTest {
     }
 
     @Test
-    public void test002ContentSecurityPolicyNonceConfiguration() {
+    public void test002ContentSecurityPolicyConfiguration() {
         renderPage(PageAbout.class);
 
-        String csp = tester.getLastResponse().getHeader("Content-Security-Policy");
-        assertNotNull(csp);
-        String scriptSrc = csp.split("script-src ")[1].split(";")[0];
-        assertTrue(scriptSrc.contains("'self'"), csp);
-        Matcher nonceMatcher = Pattern.compile("'nonce-([^']+)'").matcher(scriptSrc);
-        assertTrue(nonceMatcher.find(), csp);
-        String nonce = nonceMatcher.group(1);
-        assertFalse(scriptSrc.contains("'unsafe-inline'"), csp);
-        assertFalse(csp.contains("'unsafe-eval'"), csp);
-        assertTrue(csp.contains("style-src 'self' 'unsafe-inline'"), csp);
+        String csp = getContentSecurityPolicyHeader();
+
+        String scriptSrc = getCspDirective(csp, "script-src");
+        assertTrue(scriptSrc.contains("'self'"), "script-src must allow 'self': " + csp);
+        String scriptNonce = getNonce(scriptSrc);
+        assertFalse(scriptSrc.contains("'unsafe-inline'"), "script-src must not allow 'unsafe-inline': " + csp);
+        assertFalse(scriptSrc.contains("'unsafe-eval'"), "script-src must not allow 'unsafe-eval': " + csp);
+
+        String styleSrc = getCspDirective(csp, "style-src");
+        assertTrue(styleSrc.contains("'self'"), "style-src must allow 'self': " + csp);
+        assertTrue(styleSrc.contains("'unsafe-inline'"), "style-src must retain the compatibility fallback: " + csp);
+
+        String styleSrcElem = getCspDirective(csp, "style-src-elem");
+        assertTrue(styleSrcElem.contains("'self'"), "style-src-elem must allow 'self': " + csp);
+        assertFalse(styleSrcElem.contains("'unsafe-inline'"), "style-src-elem must not allow 'unsafe-inline': " + csp);
+        String styleNonce = getNonce(styleSrcElem);
+        assertEquals(styleNonce, scriptNonce, "The script and style CSP nonces must match");
+
+        String styleSrcAttr = getCspDirective(csp, "style-src-attr");
+        assertTrue(styleSrcAttr.contains("'unsafe-inline'"), "style-src-attr must allow 'unsafe-inline': " + csp);
+    }
+
+    @Test
+    public void test003InlineScriptNonces() {
+        renderPage(PageAbout.class);
+
+        String expectedNonce = getNonce(getCspDirective(getContentSecurityPolicyHeader(), "script-src"));
 
         List<TagTester> inlineScripts = TagTester.createTags(
                         tester.getLastResponseAsString(),
@@ -86,7 +109,27 @@ public class TestPageAbout extends AbstractInitializedGuiIntegrationTest {
                 })
                 .toList();
         assertFalse(inlineScripts.isEmpty(), "Expected at least one inline executable script");
-        inlineScripts.forEach(script -> assertEquals(script.getAttribute("nonce"), nonce));
+        inlineScripts.forEach(script -> assertEquals(
+                script.getAttribute("nonce"), expectedNonce,
+                "Every executable inline script must use the nonce from script-src"));
+    }
+
+    private String getContentSecurityPolicyHeader() {
+        String csp = tester.getLastResponse().getHeader("Content-Security-Policy");
+        assertNotNull(csp, "Expected a Content-Security-Policy response header");
+        return csp;
+    }
+
+    private String getCspDirective(String csp, String directiveName) {
+        Matcher matcher = Pattern.compile("(?:^|;)\\s*" + Pattern.quote(directiveName) + "\\s+([^;]+)").matcher(csp);
+        assertTrue(matcher.find(), "Expected " + directiveName + " directive in: " + csp);
+        return matcher.group(1).trim();
+    }
+
+    private String getNonce(String directive) {
+        Matcher matcher = CSP_NONCE_PATTERN.matcher(directive);
+        assertTrue(matcher.find(), "Expected a nonce source in CSP directive: " + directive);
+        return matcher.group(1);
     }
 
     private Properties loadMidpointSystemProperties() throws Exception {
