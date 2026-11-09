@@ -23,6 +23,8 @@ import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqale.SqaleUtils;
@@ -39,6 +41,7 @@ import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
 import com.evolveum.midpoint.repo.sqlbase.mapping.DefaultItemSqlMapper;
 import com.evolveum.midpoint.repo.sqlbase.mapping.ResultListRowTransformer;
 import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.RetrieveOption;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.util.MiscUtil;
@@ -400,6 +403,29 @@ public class QAuditEventRecordMapping
         }
     }
 
+    /**
+     * Returns true if the item is explicitly excluded from retrieval, i.e. there is a `dontRetrieve` option
+     * for exactly this item. Other forms of retrieve options (e.g. for the root) are not considered, so that the
+     * default behavior (loading everything) is preserved for existing callers.
+     */
+    private static boolean isExplicitlyExcluded(
+            ItemName itemName, Collection<SelectorOptions<GetOperationOptions>> options) {
+        if (options == null) {
+            return false;
+        }
+        for (SelectorOptions<GetOperationOptions> option : options) {
+            if (option == null || option.getOptions() == null
+                    || option.getOptions().getRetrieve() != RetrieveOption.EXCLUDE) {
+                continue;
+            }
+            ItemPath path = option.getItemPath();
+            if (path != null && !path.isEmpty() && path.equivalent(itemName)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     @Override
     public ResultListRowTransformer<AuditEventRecordType, QAuditEventRecord, MAuditEventRecord> createRowTransformer(
             SqlQueryContext<AuditEventRecordType, QAuditEventRecord, MAuditEventRecord> sqlQueryContext,
@@ -425,26 +451,32 @@ public class QAuditEventRecordMapping
                     }
                 }
 
-                QAuditDelta qd = QAuditDeltaMapping.get().defaultAlias();
-                jdbcSession.newQuery()
-                        .select(qd)
-                        .from(qd)
-                        .where(qd.recordId.in(rowMap.keySet())
-                                // here between is OK, it's inclusive on both sides
-                                .and(qd.timestamp.between(minTimestamp, maxTimestamp)))
-                        .fetch()
-                        .forEach(d -> rowMap.get(d.recordId).addDelta(d));
+                // Deltas and payloads can be big (deltas are also expensive to parse), so we load them
+                // only if they are not explicitly excluded by the retrieve options.
+                if (!isExplicitlyExcluded(F_DELTA, options)) {
+                    QAuditDelta qd = QAuditDeltaMapping.get().defaultAlias();
+                    jdbcSession.newQuery()
+                            .select(qd)
+                            .from(qd)
+                            .where(qd.recordId.in(rowMap.keySet())
+                                    // here between is OK, it's inclusive on both sides
+                                    .and(qd.timestamp.between(minTimestamp, maxTimestamp)))
+                            .fetch()
+                            .forEach(d -> rowMap.get(d.recordId).addDelta(d));
+                }
 
-                QAuditPayload qp = QAuditPayloadMapping.get().defaultAlias();
-                jdbcSession.newQuery()
-                        .select(qp)
-                        .from(qp)
-                        .where(qp.recordId.in(rowMap.keySet())
-                                // here between is OK, it's inclusive on both sides
-                                .and(qp.timestamp.between(minTimestamp, maxTimestamp)))
-                        .orderBy(qp.recordId.asc(), qp.ordinal.asc())
-                        .fetch()
-                        .forEach(p -> rowMap.get(p.recordId).addPayload(p));
+                if (!isExplicitlyExcluded(F_PAYLOAD, options)) {
+                    QAuditPayload qp = QAuditPayloadMapping.get().defaultAlias();
+                    jdbcSession.newQuery()
+                            .select(qp)
+                            .from(qp)
+                            .where(qp.recordId.in(rowMap.keySet())
+                                    // here between is OK, it's inclusive on both sides
+                                    .and(qp.timestamp.between(minTimestamp, maxTimestamp)))
+                            .orderBy(qp.recordId.asc(), qp.ordinal.asc())
+                            .fetch()
+                            .forEach(p -> rowMap.get(p.recordId).addPayload(p));
+                }
 
                 QAuditRefValue qr = QAuditRefValueMapping.get().defaultAlias();
                 jdbcSession.newQuery()
