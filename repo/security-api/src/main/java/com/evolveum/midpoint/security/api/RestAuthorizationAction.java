@@ -39,6 +39,8 @@ public enum RestAuthorizationAction implements DisplayableValue<String> {
     FIND_SHADOW_OWNER("findShadowOwner", "Find shadow owner", "FIND_SHADOW_OWNER_HELP"),
     IMPORT_SHADOW("importShadow", "Import shadow", "IMPORT_SHADOW_HELP"),
     SEARCH_OBJECTS("searchObjects", "Search objects", "SEARCH_OBJECTS_HELP"),
+    /** Besides this one, the `authorization-model-3#auditRead` action is required as well. */
+    SEARCH_AUDIT_RECORDS("searchAuditRecords", "Search audit records", "SEARCH_AUDIT_RECORDS_HELP"),
     IMPORT_FROM_RESOURCE("importFromResource", "Import from resource", "IMPORT_FROM_RESOURCE_HELP"),
     TEST_RESOURCE("testResource", "Test resource", "TEST_RESOURCE_HELP"),
     SUSPEND_TASK("suspendTask", "Suspend task", "SUSPEND_TASK_HELP"),

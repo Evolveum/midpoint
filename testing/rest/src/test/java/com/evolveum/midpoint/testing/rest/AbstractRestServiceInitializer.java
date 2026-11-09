@@ -72,12 +72,16 @@ public abstract class AbstractRestServiceInitializer extends AbstractGuiIntegrat
     public static final File USER_REST_LOG_FILE = new File(BASE_REPO_DIR, "user-rest-log.xml");
     public static final String USER_REST_LOG_NAME = "rest-log";
     public static final String USER_REST_LOG_PASSWORD = "r3stL0gR34d";
+    public static final File USER_REST_AUDIT_FILE = new File(BASE_REPO_DIR, "user-rest-audit.xml");
+    public static final String USER_REST_AUDIT_NAME = "rest-audit";
+    public static final String USER_REST_AUDIT_PASSWORD = "r3stAud1tR34d";
 
     public static final File ROLE_SUPERUSER_FILE = new File(BASE_REPO_DIR, "role-superuser.xml");
     public static final File ROLE_ENDUSER_FILE = new File(BASE_REPO_DIR, "role-enduser.xml");
     public static final File ROLE_REST_FILE = new File(BASE_REPO_DIR, "role-rest.xml");
     public static final File ROLE_REST_LIMITED_FILE = new File(BASE_REPO_DIR, "role-rest-limited.xml");
     public static final File ROLE_REST_LOG_FILE = new File(BASE_REPO_DIR, "role-rest-log.xml");
+    public static final File ROLE_REST_AUDIT_FILE = new File(BASE_REPO_DIR, "role-rest-audit.xml");
     public static final File ROLE_READER_FILE = new File(BASE_REPO_DIR, "role-reader.xml");
 
     public static final File SYSTEM_CONFIGURATION_FILE = new File(BASE_REPO_DIR, "system-configuration.xml");
