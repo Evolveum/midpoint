@@ -16,8 +16,6 @@ import javax.xml.namespace.QName;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.Page;
-import org.apache.wicket.ajax.markup.html.AjaxLink;
-import org.apache.wicket.ajax.markup.html.form.AjaxButton;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -32,8 +30,6 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.page.admin.cases.PageCaseWorkItem;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
@@ -56,7 +52,6 @@ public class TestApprovalFormAdditionalDelta extends AbstractInitializedGuiInteg
         TestPostgresContainer.ensureStarted();
     }
 
-    private static final Trace LOGGER_TEST = TraceManager.getTrace(TestApprovalFormAdditionalDelta.class);
 
     private static final File DIR = new File("./src/test/resources/approval-form");
     private static final File POLICY_RULES_FILE = new File(DIR, "policy-rules.xml");
@@ -108,7 +103,6 @@ public class TestApprovalFormAdditionalDelta extends AbstractInitializedGuiInteg
         String joinerOid = findJoinerOid(result);
         CaseWorkItemType workItem = approvalCase.getWorkItem().get(0);
         String workItemId = approvalCase.getOid() + ":" + workItem.getId();
-        LOGGER_TEST.info("DBG-FORM test: case={} workItem={}", approvalCase.getOid(), workItemId);
 
         // approver (manager) opens the work item and edits the custom form
         PrismObject<UserType> manager = repositoryService.getObject(UserType.class, MANAGER_OID, null, result);
@@ -138,7 +132,6 @@ public class TestApprovalFormAdditionalDelta extends AbstractInitializedGuiInteg
         CaseType closedCase = getCase(approvalCase.getOid());
         String caseDelta = String.valueOf(closedCase.getApprovalContext() == null
                 ? null : closedCase.getApprovalContext().getDeltasToApprove());
-        LOGGER_TEST.info("DBG-FORM test: closed case deltasToApprove={}", caseDelta);
         assertTrue("work-item completion must carry the manager's description in the case delta",
                 caseDelta.contains(ENTERED_DESCRIPTION));
         assertTrue("work-item completion must carry the manager's extension value in the case delta",
@@ -174,14 +167,6 @@ public class TestApprovalFormAdditionalDelta extends AbstractInitializedGuiInteg
         // expand the work item row (its name link opens the details with the custom form)
         tester.executeAjaxEvent(WORK_ITEM_ROW_LINK, "click");
 
-        // DIAGNOSTIC: what the page holds after expanding the row
-        LOGGER_TEST.info("DBG-FORM test101: response mentions customForm={} detailsView={}",
-                tester.getLastResponseAsString().contains("customForm"),
-                tester.getLastResponseAsString().contains("workitemsTable:details"));
-        tester.getLastRenderedPage().visitChildren(FormComponent.class, (component, visit) -> {
-            LOGGER_TEST.info("DBG-FORM test101: form component {}", component.getPageRelativePath());
-        });
-
         // the custom form inputs of the expanded details, in form field order: description, cost center, position
         List<FormComponent<?>> inputs = findCustomFormInputs(tester.getLastRenderedPage());
         assertEquals("expected the three custom form inputs in the expanded details", 3, inputs.size());
@@ -194,7 +179,6 @@ public class TestApprovalFormAdditionalDelta extends AbstractInitializedGuiInteg
         CaseType closedCase = getCase(approvalCase.getOid());
         String caseDelta = String.valueOf(closedCase.getApprovalContext() == null
                 ? null : closedCase.getApprovalContext().getDeltasToApprove());
-        LOGGER_TEST.info("DBG-FORM test101: closed case deltasToApprove={}", caseDelta);
         assertTrue("approve from the work items tab must carry the manager's description in the case delta",
                 caseDelta.contains(ENTERED_DESCRIPTION));
         assertTrue("approve from the work items tab must carry the manager's extension value in the case delta",
@@ -218,33 +202,6 @@ public class TestApprovalFormAdditionalDelta extends AbstractInitializedGuiInteg
             }
         });
         return inputs;
-    }
-
-    /**
-     * DIAGNOSTIC: opens the case page on the work items tab (the path the approver uses in the GUI) and lists its
-     * buttons, so the expand and approve components can be addressed.
-     */
-    @Test
-    public void test050DumpCaseWorkItemsPage() throws Exception {
-        Task task = getTestTask();
-        OperationResult result = task.getResult();
-        CaseType approvalCase = setupApprovalCase(task, result);
-        String joinerOid = findJoinerOid(result);
-
-        PrismObject<UserType> manager = repositoryService.getObject(UserType.class, MANAGER_OID, null, result);
-        login(manager);
-        PageParameters params = new PageParameters();
-        params.add(OnePageParameterEncoder.PARAMETER, approvalCase.getOid());
-        params.add("panelId", "caseWorkItems");
-        tester.startPage(PageCase.class, params);
-        tester.assertRenderedPage(PageCase.class);
-
-        tester.getLastRenderedPage().visitChildren(Component.class, (component, visit) -> {
-            if (component instanceof AjaxLink<?> || component instanceof AjaxButton) {
-                LOGGER_TEST.info("DBG-FORM dump: {} id={} enabled={}", component.getPageRelativePath(),
-                        component.getId(), component.isEnabledInHierarchy());
-            }
-        });
     }
 
     /**
