@@ -18,6 +18,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.provisioning.api.ProvisioningOperationContext;
 import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
@@ -34,6 +35,7 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -343,7 +345,8 @@ class LinkUpdater<F extends ProjectionHolderType> {
                     new ObjectReferenceType()
                             .oid(projectionOid)
                             .type(ShadowType.COMPLEX_TYPE)
-                            .relation(relation));
+                            .relation(relation)
+                            .targetName(determineLinkTargetName()));
         } else {
             linksToAdd = emptyList();
         }
@@ -355,6 +358,27 @@ class LinkUpdater<F extends ProjectionHolderType> {
                 .addRealValues(linksToAdd)
                 .asObjectDelta(focusContext.getOid());
         executeFocusDelta(delta, OP_LINK_ACCOUNT, result);
+    }
+
+    /**
+     * Determines the name of the projection shadow to be stored as targetName of the linkRef.
+     * Returns null if it cannot be determined (the link is then stored without a name).
+     */
+    private @Nullable PolyStringType determineLinkTargetName() {
+        PrismObject<ShadowType> shadow = projCtx.getObjectNewOrCurrentOrOld();
+        if (shadow == null) {
+            return null;
+        }
+        PolyString name = shadow.getName();
+        if (name != null) {
+            return PolyString.toPolyStringType(name);
+        }
+        try {
+            return PolyString.toPolyStringType(ShadowUtil.determineShadowName(shadow.asObjectable()));
+        } catch (SchemaException e) {
+            LOGGER.debug("Couldn't determine name of shadow {}, linkRef will be left without target name", projectionOid, e);
+            return null;
+        }
     }
 
     private boolean checkOidPresent() throws SchemaException, ConfigurationException {
