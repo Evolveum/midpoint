@@ -17,15 +17,12 @@ import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
 import com.evolveum.midpoint.web.component.input.validator.NotNullValidator;
-import com.evolveum.midpoint.web.util.ExpressionUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.validation.IValidatable;
 import org.springframework.stereotype.Component;
 
 import javax.xml.namespace.QName;
@@ -49,9 +46,8 @@ public class TargetOfFocusMappingPanelFactory extends SourceOrTargetOfMappingPan
     }
 
     /**
-     * Focus mapping has no implicit target. With "as is" (also the default for an empty expression) or "path"
-     * expression, a missing target fails the evaluation (NPE on missing output definition), so the target is required
-     * for them. Other expressions (e.g. a script used only for its side effects) can stay without target.
+     * Focus mapping has no implicit target, so the target is always required.
+     * Without it the mapping evaluation fails (NPE on missing output definition).
      */
     @Override
     public void configure(
@@ -61,43 +57,7 @@ public class TargetOfFocusMappingPanelFactory extends SourceOrTargetOfMappingPan
             IModel<PrismPropertyWrapper<VariableBindingDefinitionType>> wrapperModel = panelCtx.getItemWrapperModel();
             FormComponent<String> input = inputPanel.getBaseFormComponent();
             input.setLabel(() -> wrapperModel.getObject().getDisplayName());
-            input.add(new TargetRequiredValidator(wrapperModel));
-        }
-    }
-
-    private static class TargetRequiredValidator extends NotNullValidator<String> {
-
-        private final IModel<PrismPropertyWrapper<VariableBindingDefinitionType>> targetWrapperModel;
-
-        TargetRequiredValidator(IModel<PrismPropertyWrapper<VariableBindingDefinitionType>> targetWrapperModel) {
-            super("Required");
-            this.targetWrapperModel = targetWrapperModel;
-        }
-
-        @Override
-        public void validate(IValidatable<String> validatable) {
-            if (isTargetRequired(targetWrapperModel.getObject())) {
-                super.validate(validatable);
-            }
-        }
-    }
-
-    private static boolean isTargetRequired(PrismPropertyWrapper<VariableBindingDefinitionType> targetWrapper) {
-        if (targetWrapper == null || targetWrapper.getParent() == null) {
-            return true;
-        }
-        try {
-            PrismPropertyWrapper<ExpressionType> expressionWrapper =
-                    targetWrapper.getParent().findProperty(MappingType.F_EXPRESSION);
-            ExpressionType expression = expressionWrapper != null && expressionWrapper.getValue() != null
-                    ? expressionWrapper.getValue().getRealValue()
-                    : null;
-            ExpressionUtil.ExpressionEvaluatorType evaluatorType = ExpressionUtil.getExpressionType(expression);
-            return evaluatorType == null
-                    || evaluatorType == ExpressionUtil.ExpressionEvaluatorType.AS_IS
-                    || evaluatorType == ExpressionUtil.ExpressionEvaluatorType.PATH;
-        } catch (SchemaException e) {
-            return true;
+            input.add(new NotNullValidator<>("Required"));
         }
     }
 
