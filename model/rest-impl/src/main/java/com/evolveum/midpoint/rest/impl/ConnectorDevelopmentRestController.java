@@ -205,6 +205,7 @@ public class ConnectorDevelopmentRestController extends AbstractRestController {
         var result = createSubresult(task, IS_CONNECTOR_ALREADY_PRESENT);
 
         try {
+            checkDevelopmentToolsEnabled();
             return createResponse(
                     HttpStatus.OK,
                     connectorDevelopmentService.isConnectorAlreadyPresent(
