@@ -1,0 +1,37 @@
+<systemConfiguration xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+                     xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+                     oid="00000000-0000-0000-0000-000000000001">
+    <name>approval form policy rules</name>
+    <globalPolicyRule>
+        <name>pippo-manager-approval-with-form</name>
+        <policyConstraints>
+            <objectState>
+                <filter>
+                    <q:equal>
+                        <q:path>givenName</q:path>
+                        <q:value>pippo</q:value>
+                    </q:equal>
+                </filter>
+            </objectState>
+        </policyConstraints>
+        <policyActions>
+            <approval>
+                <compositionStrategy>
+                    <order>20</order>
+                </compositionStrategy>
+                <approvalSchema>
+                    <stage>
+                        <name>Manager completes form</name>
+                        <approverRef oid="a0000000-0000-0000-0000-00000000a001" type="UserType"/>
+                        <evaluationStrategy>firstDecides</evaluationStrategy>
+                        <outcomeIfNoApprovers>reject</outcomeIfNoApprovers>
+                        <formRef oid="f0000000-0000-0000-0000-00000000f001" type="FormType"/>
+                    </stage>
+                </approvalSchema>
+            </approval>
+        </policyActions>
+        <focusSelector>
+            <type>UserType</type>
+        </focusSelector>
+    </globalPolicyRule>
+</systemConfiguration>
