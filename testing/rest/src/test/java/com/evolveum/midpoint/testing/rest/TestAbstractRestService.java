@@ -9,6 +9,7 @@ package com.evolveum.midpoint.testing.rest;
 import static org.testng.AssertJUnit.*;
 
 import java.io.File;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -35,6 +36,7 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.rest.impl.AuditRecordRedactor;
+import com.evolveum.midpoint.rest.impl.AuditSearchGuard;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SearchResultList;
@@ -2091,6 +2093,44 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
         assertTimestampsOrdered(records, false);
     }
 
+    /** A query anchored by timestamp only must not cover more than the maximal time window (31 days by default). */
+    @Test
+    public void test905SearchAuditRecordsWithTooLongTimeWindow() {
+        assertAuditSearchRejected(auditQuery(timestampCondition(">=", 40), 10), "longer than the allowed maximum");
+    }
+
+    /** An old, but narrow time range is fine. */
+    @Test
+    public void test906SearchAuditRecordsWithOldNarrowTimeWindow() throws Exception {
+        WebClient client = prepareClient();
+        client.path(AUDIT_SEARCH_PATH);
+
+        when();
+        Response response = client.post(auditQuery(
+                timestampCondition(">=", 60) + " and " + timestampCondition("<", 40), 10));
+
+        then();
+        displayResponse(response);
+        assertStatus(response, 200);
+        parseAuditRecords(response.readEntity(String.class));
+    }
+
+    /** The time window is not limited for queries resolved by an indexed identifier (here, the target). */
+    @Test
+    public void test907SearchAuditRecordsByTargetWithLongTimeWindow() throws Exception {
+        WebClient client = prepareClient();
+        client.path(AUDIT_SEARCH_PATH);
+
+        when();
+        Response response = client.post(auditQuery(timestampCondition(">=", 365) + " and " + targetIsJack(), 10));
+
+        then();
+        displayResponse(response);
+        assertStatus(response, 200);
+        assertFalse("No audit records found",
+                parseAuditRecords(response.readEntity(String.class)).getObject().isEmpty());
+    }
+
     @Test
     public void test910SearchAuditRecordsWithoutMaxSize() {
         assertAuditSearchRejected(auditQuery(auditAnchor(), null), "maxSize");
@@ -2264,10 +2304,32 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
         assertNull("Delta content was not removed", record.getDelta().get(0).getObjectDelta());
     }
 
+    /** Parsing of the configured maximal time window. */
+    @Test
+    public void test932MaxTimeWindowConfiguration() {
+        Duration defaultWindow = AuditSearchGuard.Limits.DEFAULT_MAX_TIME_WINDOW;
+        assertEquals(defaultWindow, AuditSearchGuard.Limits.parseMaxTimeWindow(null));
+        assertEquals(defaultWindow, AuditSearchGuard.Limits.parseMaxTimeWindow(" "));
+        assertEquals(Duration.ofDays(7), AuditSearchGuard.Limits.parseMaxTimeWindow("P7D"));
+        assertEquals(Duration.ofHours(12), AuditSearchGuard.Limits.parseMaxTimeWindow(" PT12H "));
+        assertNull("Zero should switch the limit off", AuditSearchGuard.Limits.parseMaxTimeWindow("0"));
+        assertNull("Zero should switch the limit off", AuditSearchGuard.Limits.parseMaxTimeWindow("P0D"));
+        assertEquals("Invalid value should fall back to the default",
+                defaultWindow, AuditSearchGuard.Limits.parseMaxTimeWindow("one month"));
+        assertEquals("Negative value should fall back to the default",
+                defaultWindow, AuditSearchGuard.Limits.parseMaxTimeWindow("-P1D"));
+    }
+
     /** A day back; all audit records created by this test class are newer. */
     private String auditAnchor() {
         return "timestamp >= \""
                 + XmlTypeConverter.createXMLGregorianCalendar(System.currentTimeMillis() - 86_400_000L).toXMLFormat() + "\"";
+    }
+
+    private String timestampCondition(String operator, int daysAgo) {
+        return "timestamp " + operator + " \""
+                + XmlTypeConverter.createXMLGregorianCalendar(System.currentTimeMillis() - daysAgo * 86_400_000L).toXMLFormat()
+                + "\"";
     }
 
     private String targetIsJack() {

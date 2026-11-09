@@ -6,18 +6,25 @@
 
 package com.evolveum.midpoint.rest.impl;
 
+import java.time.Duration;
+import java.time.Instant;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
+import javax.xml.datatype.XMLGregorianCalendar;
 
 import org.apache.commons.configuration2.Configuration;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.*;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
@@ -39,6 +46,11 @@ import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
  * `repoId` in the same direction is added as the tie-breaker. This makes paging deterministic.
  * . The top-level conjunction (AND) of the filter must contain an indexed "anchor" (see {@link #isIndexedAnchor(ObjectFilter)}),
  * unless {@link Limits#requireIndexedAnchor()} is switched off.
+ * . A query anchored by `timestamp` only must not cover a longer time range than {@link Limits#maxTimeWindow()}:
+ * from the (highest) lower bound to the (lowest) upper bound, or to the current time if there is no upper bound.
+ * An anchored `timestamp` range alone does not prevent the database from walking the whole range, e.g. when the query
+ * contains a selective condition on a non-indexed item. Queries anchored by an indexed identifier (see
+ * {@link #isEqualityAnchor(ObjectFilter)}) are not limited, as they are resolved by a different index.
  * . Paths with special symbols - most notably dereferencing (`targetRef/@/name`) - and reference target filters are rejected,
  * as they are evaluated by joining into the main repository tables without any authorization.
  * . Filter expressions are rejected; only plain values are supported.
@@ -52,6 +64,7 @@ public class AuditSearchGuard {
     static final String CONFIG_MAX_PAGE_SIZE = "restAudit.maxPageSize";
     static final String CONFIG_MAX_OFFSET = "restAudit.maxOffset";
     static final String CONFIG_REQUIRE_INDEXED_ANCHOR = "restAudit.requireIndexedAnchor";
+    static final String CONFIG_MAX_TIME_WINDOW = "restAudit.maxTimeWindow";
 
     /** Equality on these items is an "anchor": it is resolved by an index. */
     private static final Set<ItemName> INDEXED_EQUALITY_ITEMS = Set.of(
@@ -66,13 +79,16 @@ public class AuditSearchGuard {
      * @param maxPageSize Maximal allowed value of `paging/maxSize`.
      * @param maxOffset Maximal allowed value of `paging/offset`.
      * @param requireIndexedAnchor Whether the filter must contain an indexed anchor.
+     * @param maxTimeWindow Maximal time range covered by a query anchored by `timestamp` only; null means no limit.
      */
-    public record Limits(int maxPageSize, int maxOffset, boolean requireIndexedAnchor) {
+    public record Limits(int maxPageSize, int maxOffset, boolean requireIndexedAnchor, @Nullable Duration maxTimeWindow) {
 
         public static final int DEFAULT_MAX_PAGE_SIZE = 1000;
         public static final int DEFAULT_MAX_OFFSET = 10_000;
+        public static final Duration DEFAULT_MAX_TIME_WINDOW = Duration.ofDays(31);
 
-        public static final Limits DEFAULT = new Limits(DEFAULT_MAX_PAGE_SIZE, DEFAULT_MAX_OFFSET, true);
+        public static final Limits DEFAULT =
+                new Limits(DEFAULT_MAX_PAGE_SIZE, DEFAULT_MAX_OFFSET, true, DEFAULT_MAX_TIME_WINDOW);
 
         /**
          * Reads the limits from the `midpoint.webApplication` configuration section.
@@ -87,7 +103,38 @@ public class AuditSearchGuard {
             return new Limits(
                     positiveOrDefault(webAppConfiguration, CONFIG_MAX_PAGE_SIZE, DEFAULT_MAX_PAGE_SIZE),
                     nonNegativeOrDefault(webAppConfiguration, CONFIG_MAX_OFFSET, DEFAULT_MAX_OFFSET),
-                    webAppConfiguration.getBoolean(CONFIG_REQUIRE_INDEXED_ANCHOR, true));
+                    webAppConfiguration.getBoolean(CONFIG_REQUIRE_INDEXED_ANCHOR, true),
+                    parseMaxTimeWindow(webAppConfiguration.getString(CONFIG_MAX_TIME_WINDOW)));
+        }
+
+        /**
+         * Parses the maximal time window: an ISO-8601 duration with days, hours, minutes or seconds
+         * (e.g. `P31D`, `PT12H`). Zero (`0`, `P0D`, `PT0S`) switches the limit off.
+         */
+        public static @Nullable Duration parseMaxTimeWindow(@Nullable String value) {
+            if (value == null || value.isBlank()) {
+                return DEFAULT_MAX_TIME_WINDOW;
+            }
+            String trimmed = value.trim();
+            if ("0".equals(trimmed)) {
+                return null;
+            }
+            try {
+                Duration duration = Duration.parse(trimmed);
+                if (duration.isZero()) {
+                    return null;
+                } else if (duration.isNegative()) {
+                    LOGGER.warn("Invalid value of {}: {}, using the default of {}",
+                            CONFIG_MAX_TIME_WINDOW, value, DEFAULT_MAX_TIME_WINDOW);
+                    return DEFAULT_MAX_TIME_WINDOW;
+                } else {
+                    return duration;
+                }
+            } catch (DateTimeParseException e) {
+                LOGGER.warn("Invalid value of {}: {} (expected an ISO-8601 duration like P31D or PT12H), "
+                        + "using the default of {}", CONFIG_MAX_TIME_WINDOW, value, DEFAULT_MAX_TIME_WINDOW);
+                return DEFAULT_MAX_TIME_WINDOW;
+            }
         }
 
         private static int positiveOrDefault(Configuration configuration, String key, int defaultValue) {
@@ -146,8 +193,72 @@ public class AuditSearchGuard {
                     + "on an indexed item: 'timestamp >= ...' (or '>'), or equality on 'eventIdentifier', "
                     + "'requestIdentifier', 'sessionIdentifier', 'repoId', or 'targetRef' with an OID.");
         }
+        checkTimeWindow(filter);
         query.setPaging(checkAndNormalizePaging(query.getPaging()));
         return anchored;
+    }
+
+    private void checkTimeWindow(@Nullable ObjectFilter filter) throws RejectedException {
+        Duration maxTimeWindow = limits.maxTimeWindow();
+        if (maxTimeWindow == null) {
+            return;
+        }
+        List<ObjectFilter> conjuncts = topLevelConjuncts(filter);
+        if (conjuncts.stream().anyMatch(AuditSearchGuard::isEqualityAnchor)) {
+            return; // resolved by a selective index, the time range does not matter
+        }
+        Long from = null;
+        Long to = null;
+        for (ObjectFilter conjunct : conjuncts) {
+            if (conjunct instanceof GreaterFilter<?> greaterFilter && isTimestampBound(greaterFilter)) {
+                for (Long millis : timestampValues(greaterFilter)) {
+                    from = from == null ? millis : Math.max(from, millis);
+                }
+            } else if (conjunct instanceof LessFilter<?> lessFilter && isTimestampBound(lessFilter)) {
+                for (Long millis : timestampValues(lessFilter)) {
+                    to = to == null ? millis : Math.min(to, millis);
+                }
+            }
+        }
+        if (from == null) {
+            // No lower bound: the query was either rejected by the anchor rule,
+            // or anchors are not required at all (a deliberately permissive configuration).
+            return;
+        }
+        long now = System.currentTimeMillis();
+        long end = to != null ? Math.min(to, now) : now; // there are no records from the future
+        long window = end - from;
+        if (window > maxTimeWindow.toMillis()) {
+            throw new RejectedException("The 'timestamp' range of the query (from " + Instant.ofEpochMilli(from)
+                    + " to " + (to != null && to < now ? Instant.ofEpochMilli(to) : "now") + ", i.e. "
+                    + formatDays(window) + ") is longer than the allowed maximum of "
+                    + formatDays(maxTimeWindow.toMillis())
+                    + ". Narrow the range (e.g. add 'timestamp < ...') and query the time windows one by one, "
+                    + "or filter by an indexed identifier: 'eventIdentifier', 'requestIdentifier', 'sessionIdentifier', "
+                    + "'repoId', or 'targetRef' with an OID.");
+        }
+    }
+
+    private static boolean isTimestampBound(ComparativeFilter<?> filter) {
+        return filter.getFullPath().equivalent(AuditEventRecordType.F_TIMESTAMP)
+                && filter.getRightHandSidePath() == null
+                && hasValues(filter);
+    }
+
+    private static List<Long> timestampValues(ComparativeFilter<?> filter) throws RejectedException {
+        List<Long> millis = new ArrayList<>();
+        for (PrismPropertyValue<?> value : filter.getValues()) {
+            if (value.getRealValue() instanceof XMLGregorianCalendar calendar) {
+                millis.add(XmlTypeConverter.toMillis(calendar));
+            } else {
+                throw new RejectedException("Unsupported value of 'timestamp' in the filter: " + value.getRealValue());
+            }
+        }
+        return millis;
+    }
+
+    private static String formatDays(long millis) {
+        return String.format(Locale.ROOT, "%.1f days", millis / 86_400_000.0);
     }
 
     private ObjectPaging checkAndNormalizePaging(@Nullable ObjectPaging paging) throws RejectedException {
@@ -246,10 +357,16 @@ public class AuditSearchGuard {
     }
 
     private static boolean hasIndexedAnchor(@Nullable ObjectFilter filter) {
+        return topLevelConjuncts(filter).stream().anyMatch(AuditSearchGuard::isIndexedAnchor);
+    }
+
+    private static List<ObjectFilter> topLevelConjuncts(@Nullable ObjectFilter filter) {
         if (filter instanceof AndFilter andFilter) {
-            return andFilter.getConditions().stream().anyMatch(AuditSearchGuard::isIndexedAnchor);
+            return andFilter.getConditions();
+        } else if (filter != null) {
+            return List.of(filter);
         } else {
-            return isIndexedAnchor(filter);
+            return List.of();
         }
     }
 
@@ -262,11 +379,16 @@ public class AuditSearchGuard {
      * . `targetRef` with an explicit OID.
      */
     static boolean isIndexedAnchor(@Nullable ObjectFilter filter) {
-        if (filter instanceof GreaterFilter<?> greaterFilter) {
-            return greaterFilter.getFullPath().equivalent(AuditEventRecordType.F_TIMESTAMP)
-                    && greaterFilter.getRightHandSidePath() == null
-                    && hasValues(greaterFilter);
-        } else if (filter instanceof EqualFilter<?> equalFilter) {
+        return filter instanceof GreaterFilter<?> greaterFilter && isTimestampBound(greaterFilter)
+                || isEqualityAnchor(filter);
+    }
+
+    /**
+     * Equality on `eventIdentifier`, `requestIdentifier`, `sessionIdentifier` or `repoId`, or `targetRef` with
+     * an explicit OID. These are resolved by (selective) indexes, regardless of the `timestamp` range.
+     */
+    static boolean isEqualityAnchor(@Nullable ObjectFilter filter) {
+        if (filter instanceof EqualFilter<?> equalFilter) {
             ItemPath path = equalFilter.getFullPath();
             return INDEXED_EQUALITY_ITEMS.stream().anyMatch(path::equivalent)
                     && equalFilter.getRightHandSidePath() == null
