@@ -167,7 +167,15 @@ public abstract class PageAbstractAttributeVerification<MA extends ModuleAuthent
                         } catch (Exception e) {
                             hiddenFieldModel.setObject(null);
                         }
-                        target.add(item.get("parameterValue"));
+                        target.add(item.get(ID_PARAMETER_VALUE));
+                        target.add(getFeedback());
+                    }
+
+                    @Override
+                    protected void onError(AjaxRequestTarget target, RuntimeException e) {
+                        hiddenFieldModel.setObject(null);
+                        target.add(item.get(ID_PARAMETER_VALUE));
+                        target.add(getFeedback());
                     }
                 };
             }
