@@ -34,6 +34,7 @@ public class AppenderFormatPanelFactory extends AbstractInputGuiComponentFactory
     public void register() {
         getRegistry().addToRegistry(this);
     }
+
     @Override
     protected InputPanel getPanel(PrismPropertyPanelContext<AppenderFormatType> panelCtx) {
         return new DropDownChoicePanel<>(panelCtx.getComponentId(), new AppenderFormatModel(panelCtx),
@@ -43,9 +44,9 @@ public class AppenderFormatPanelFactory extends AbstractInputGuiComponentFactory
 
     @Override
     public <IW extends ItemWrapper<?, ?>, VW extends PrismValueWrapper<?>> boolean match(IW wrapper, VW valueWrapper) {
-        if (!AppenderConfigurationType.F_FORMAT.equals( wrapper.getItemName())){
-        return false;
-    }
+        if (!AppenderConfigurationType.F_FORMAT.equals(wrapper.getItemName())) {
+            return false;
+        }
         PrismContainerValueWrapper<?> parent = wrapper.getParent();
         return parent != null && parent.getRealValue() instanceof AppenderConfigurationType;
     }

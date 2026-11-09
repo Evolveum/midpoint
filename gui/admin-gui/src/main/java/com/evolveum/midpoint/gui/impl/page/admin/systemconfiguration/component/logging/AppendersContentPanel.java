@@ -67,7 +67,7 @@ public class AppendersContentPanel extends MultivalueContainerListPanelWithDetai
 
     private DropDownChoicePanel<QName> newAppenderChoice;
 
-    private IModel<PrismContainerWrapper<AppenderConfigurationType>> model;
+    private final IModel<PrismContainerWrapper<AppenderConfigurationType>> model;
 
     public AppendersContentPanel(String id, AssignmentHolderDetailsModel model, ContainerPanelConfigurationType configurationType) {
         super(id, AppenderConfigurationType.class, configurationType);
