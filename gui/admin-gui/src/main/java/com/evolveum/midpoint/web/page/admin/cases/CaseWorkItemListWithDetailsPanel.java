@@ -32,6 +32,7 @@ import com.evolveum.midpoint.web.component.data.column.AjaxLinkColumn;
 import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.page.admin.workflow.EvidenceUploadStateAware;
+import com.evolveum.midpoint.web.component.prism.DynamicFormPanel;
 import com.evolveum.midpoint.web.page.admin.workflow.WorkItemDetailsPanel;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
@@ -94,7 +95,11 @@ public abstract class CaseWorkItemListWithDetailsPanel extends MultivalueContain
 
             @Override
             protected Component getCustomForm() {
-                return workItemDetails != null ? workItemDetails.getCustomForm() : null;
+                if (workItemDetails != null) {
+                    return workItemDetails.getCustomForm();
+                }
+                // the custom approval form is rendered in the details of the expanded work item row
+                return findExpandedCustomForm();
             }
 
             @Override
@@ -223,6 +228,16 @@ public abstract class CaseWorkItemListWithDetailsPanel extends MultivalueContain
      */
     protected boolean showOnlyWorkItemData() {
         return false;
+    }
+
+    /** The custom approval form (DynamicFormPanel) rendered in the details of the expanded work item, if any. */
+    protected Component findExpandedCustomForm() {
+        DynamicFormPanel<?>[] found = new DynamicFormPanel<?>[1];
+        getDetailsPanelContainer().visitChildren(DynamicFormPanel.class, (panel, visit) -> {
+            found[0] = (DynamicFormPanel<?>) panel;
+            visit.stop();
+        });
+        return found[0];
     }
 
     private CaseWorkItemType unwrapRowModel(IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel) {
