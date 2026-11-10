@@ -63,6 +63,7 @@ import java.util.Objects;
 import static com.evolveum.midpoint.gui.api.util.LocalizationUtil.translate;
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationStatusInfoUtils.loadAssociationSuggestions;
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationStatusInfoUtils.loadObjectTypeSuggestions;
+import static com.evolveum.midpoint.gui.impl.util.StatusInfoTableUtil.bySuggestion;
 import static com.evolveum.midpoint.gui.impl.util.StatusInfoTableUtil.createLinkStyleActionsColumn;
 import static com.evolveum.midpoint.web.component.menu.cog.MenuDividerPanel.createSectionDividerNoHeader;
 
@@ -294,8 +295,11 @@ public abstract class SchemaHandlingObjectsPanel<C extends Containerable> extend
             public @NotNull List<InlineMenuItem> getInlineMenuItems() {
                 List<InlineMenuItem> inlineMenuItems = super.getInlineMenuItems();
                 if (isStatisticsAllowed()) {
-                    inlineMenuItems.add(0, createObjectTypeStatisticsMenu());
-                    inlineMenuItems.add(1, createSectionDividerNoHeader());
+                    InlineMenuItem statisticsMenu = createObjectTypeStatisticsMenu();
+                    inlineMenuItems.add(0, statisticsMenu);
+                    InlineMenuItem divider = createSectionDividerNoHeader();
+                    divider.setVisibilityChecker(statisticsMenu.getVisibilityChecker());
+                    inlineMenuItems.add(1, divider);
                 }
                 return inlineMenuItems;
             }
@@ -315,6 +319,7 @@ public abstract class SchemaHandlingObjectsPanel<C extends Containerable> extend
                 return InlineMenuItemBuilder.create()
                         .label(createStringResource("SmartMappingTable.objectTypeStatistics.resourceAttribute"))
                         .icon("fa fa-bar-chart")
+                        .visibilityChecker(bySuggestion(false, this::getStatusInfo))
                         .action(new ColumnMenuAction<>() {
                             @Override
                             public void onClick(AjaxRequestTarget target) {
