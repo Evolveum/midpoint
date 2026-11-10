@@ -6,6 +6,7 @@
 
 package com.evolveum.midpoint.gui.impl.validator;
 
+import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.schema.constants.RelationTypes;
 
 import org.apache.commons.lang3.StringUtils;
@@ -36,8 +37,10 @@ public class RelationValidator implements IValidator<String> {
         }
 
         ValidationError error = new ValidationError();
-        error.addKey("RelationPanel.relation.identifier.must.be.qname");
-        error.setMessage("Relation identifier must be in the form of URI.");
+        error.setMessage(LocalizationUtil.translate(
+                "RelationPanel.relation.identifier.must.be.qname",
+                null,
+                "Relation identifier must be in the form of URI."));
         validatable.error(error);
     }
 }
