@@ -110,6 +110,7 @@
     </test>
     <test name="Other" preserve-order="false" verbose="1">
         <classes>
+            <class name="com.evolveum.midpoint.schema.policy.PolicyVisitorPlaygroundTest"></class>
             <class name="com.evolveum.midpoint.schema.TestDiffEquals"/>
             <class name="com.evolveum.midpoint.schema.TestSchemaSanity"/>
             <class name="com.evolveum.midpoint.schema.TestParseTask"/>

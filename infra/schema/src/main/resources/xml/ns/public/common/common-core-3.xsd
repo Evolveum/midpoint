@@ -1689,6 +1689,24 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="indexedPolicyRules" type="tns:IndexedPolicyRuleType" minOccurs="0">
+                        <xsd:annotation>
+
+                            <xsd:documentation>
+                                Repository-maintained index of policy rules contained in this object.
+                                Derived from the rules on every store; never stored in the full object;
+                                returned only when explicitly requested by a retrieve option.
+                                Read-only; modifications are rejected.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:since>4.12.0</a:since>
+                                <a:operational>true</a:operational>
+                                <a:access>read</a:access>
+                                <a:displayName>IndexedPolicyRules.details</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+
 
                 </xsd:sequence>
             </xsd:extension>
