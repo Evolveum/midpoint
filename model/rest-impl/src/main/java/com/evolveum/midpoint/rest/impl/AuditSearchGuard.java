@@ -16,18 +16,22 @@ import java.util.Set;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import org.apache.commons.configuration2.Configuration;
+import org.apache.commons.configuration2.ex.ConversionException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 /**
  * Validates and normalizes audit record queries coming through REST, so that a REST client cannot overload
@@ -103,7 +107,7 @@ public class AuditSearchGuard {
             return new Limits(
                     positiveOrDefault(webAppConfiguration, CONFIG_MAX_PAGE_SIZE, DEFAULT_MAX_PAGE_SIZE),
                     nonNegativeOrDefault(webAppConfiguration, CONFIG_MAX_OFFSET, DEFAULT_MAX_OFFSET),
-                    webAppConfiguration.getBoolean(CONFIG_REQUIRE_INDEXED_ANCHOR, true),
+                    booleanOrDefault(webAppConfiguration, CONFIG_REQUIRE_INDEXED_ANCHOR, true),
                     parseMaxTimeWindow(webAppConfiguration.getString(CONFIG_MAX_TIME_WINDOW)));
         }
 
@@ -138,7 +142,7 @@ public class AuditSearchGuard {
         }
 
         private static int positiveOrDefault(Configuration configuration, String key, int defaultValue) {
-            int value = configuration.getInt(key, defaultValue);
+            int value = intOrDefault(configuration, key, defaultValue);
             if (value <= 0) {
                 LOGGER.warn("Invalid value of {}: {}, using the default of {}", key, value, defaultValue);
                 return defaultValue;
@@ -147,12 +151,33 @@ public class AuditSearchGuard {
         }
 
         private static int nonNegativeOrDefault(Configuration configuration, String key, int defaultValue) {
-            int value = configuration.getInt(key, defaultValue);
+            int value = intOrDefault(configuration, key, defaultValue);
             if (value < 0) {
                 LOGGER.warn("Invalid value of {}: {}, using the default of {}", key, value, defaultValue);
                 return defaultValue;
             }
             return value;
+        }
+
+        /** A value that cannot be converted must not prevent midPoint from starting; the default is used instead. */
+        private static int intOrDefault(Configuration configuration, String key, int defaultValue) {
+            try {
+                return configuration.getInt(key, defaultValue);
+            } catch (ConversionException e) {
+                LOGGER.warn("Invalid value of {}: {}, using the default of {}",
+                        key, configuration.getString(key), defaultValue);
+                return defaultValue;
+            }
+        }
+
+        private static boolean booleanOrDefault(Configuration configuration, String key, boolean defaultValue) {
+            try {
+                return configuration.getBoolean(key, defaultValue);
+            } catch (ConversionException e) {
+                LOGGER.warn("Invalid value of {}: {}, using the default of {}",
+                        key, configuration.getString(key), defaultValue);
+                return defaultValue;
+            }
         }
     }
 
@@ -173,10 +198,6 @@ public class AuditSearchGuard {
     public AuditSearchGuard(@NotNull Limits limits, @NotNull QueryFactory queryFactory) {
         this.limits = limits;
         this.queryFactory = queryFactory;
-    }
-
-    public @NotNull Limits getLimits() {
-        return limits;
     }
 
     /**
@@ -228,14 +249,17 @@ public class AuditSearchGuard {
         long now = System.currentTimeMillis();
         long end = to != null ? Math.min(to, now) : now; // there are no records from the future
         long window = end - from;
+        if (end >= from && window < 0) {
+            window = Long.MAX_VALUE; // overflow: the lower bound is extremely far in the past
+        }
         if (window > maxTimeWindow.toMillis()) {
             throw new RejectedException("The 'timestamp' range of the query (from " + Instant.ofEpochMilli(from)
                     + " to " + (to != null && to < now ? Instant.ofEpochMilli(to) : "now") + ", i.e. "
-                    + formatDays(window) + ") is longer than the allowed maximum of "
-                    + formatDays(maxTimeWindow.toMillis())
+                    + formatDuration(window) + ") is longer than the allowed maximum of "
+                    + formatDuration(maxTimeWindow.toMillis())
                     + ". Narrow the range (e.g. add 'timestamp < ...') and query the time windows one by one, "
-                    + "or filter by an indexed identifier: 'eventIdentifier', 'requestIdentifier', 'sessionIdentifier', "
-                    + "'repoId', or 'targetRef' with an OID.");
+                    + "or add equality on an indexed identifier ('eventIdentifier', 'requestIdentifier', "
+                    + "'sessionIdentifier' or 'repoId'), or 'targetRef' with an OID; ranges on these do not lift the limit.");
         }
     }
 
@@ -257,8 +281,27 @@ public class AuditSearchGuard {
         return millis;
     }
 
-    private static String formatDays(long millis) {
-        return String.format(Locale.ROOT, "%.1f days", millis / 86_400_000.0);
+    /** Exact (to the millisecond), so that a range just over the limit does not read as equal to it. */
+    static String formatDuration(long millis) {
+        Duration duration = Duration.ofMillis(millis);
+        List<String> parts = new ArrayList<>();
+        addPart(parts, duration.toDays(), "day");
+        addPart(parts, duration.toHoursPart(), "hour");
+        addPart(parts, duration.toMinutesPart(), "minute");
+        int seconds = duration.toSecondsPart();
+        int fraction = duration.toMillisPart();
+        if (fraction > 0) {
+            parts.add(String.format(Locale.ROOT, "%d.%03d seconds", seconds, fraction));
+        } else {
+            addPart(parts, seconds, "second");
+        }
+        return parts.isEmpty() ? "0 seconds" : String.join(" ", parts);
+    }
+
+    private static void addPart(List<String> parts, long value, String unit) {
+        if (value > 0) {
+            parts.add(value + " " + unit + (value == 1 ? "" : "s"));
+        }
     }
 
     private ObjectPaging checkAndNormalizePaging(@Nullable ObjectPaging paging) throws RejectedException {
@@ -342,9 +385,37 @@ public class AuditSearchGuard {
             if (valueFilter.getRightHandSidePath() != null) {
                 throw new RejectedException("Comparing with another item (right-hand side path) is not supported.");
             }
+            if (valueFilter.getFullPath().equivalent(AuditEventRecordType.F_CHANGED_ITEM)) {
+                checkChangedItemValues(valueFilter);
+            }
         } else if (!(filter instanceof FullTextFilter)) {
+            // (Full-text filter is supported: it searches the content of audit record payloads, not the message.)
             throw new RejectedException(
                     "Filter of type " + filter.getClass().getSimpleName() + " is not supported for audit records.");
+        }
+    }
+
+    /**
+     * Changed item paths are stored canonicalized with namespaces (see `ChangedItemPathComputer`), while
+     * a query value is canonicalized as it is. So an unqualified path (`changedItem = fullName`) can never
+     * match anything; instead of silently returning nothing, such a query is rejected.
+     */
+    private static void checkChangedItemValues(ValueFilter<?, ?> filter) throws RejectedException {
+        List<? extends PrismValue> values = filter.getValues();
+        if (values == null) {
+            return;
+        }
+        for (PrismValue value : values) {
+            Object realValue = value != null ? value.getRealValue() : null;
+            ItemPath path = realValue instanceof ItemPathType itemPathType ? itemPathType.getItemPath() : null;
+            if (path != null && path.getSegments().stream()
+                    .anyMatch(segment -> ItemPath.isName(segment) && !QNameUtil.hasNamespace(ItemPath.toName(segment)))) {
+                throw new RejectedException("The 'changedItem' path '" + path + "' must be namespace-qualified, "
+                        + "e.g. 'c:fullName' or 'c:credentials/c:password/c:value'; an unqualified path never matches. "
+                        + "In an XML request, declare the prefix on the query element "
+                        + "(xmlns:c=\"http://midpoint.evolveum.com/xml/ns/public/common/common-3\"); "
+                        + "in JSON and YAML, the standard prefixes are predefined.");
+            }
         }
     }
 
@@ -361,12 +432,19 @@ public class AuditSearchGuard {
     }
 
     private static List<ObjectFilter> topLevelConjuncts(@Nullable ObjectFilter filter) {
+        List<ObjectFilter> conjuncts = new ArrayList<>();
+        collectConjuncts(filter, conjuncts);
+        return conjuncts;
+    }
+
+    /** Nested conjunctions (e.g. `a and (b and c)`) are flattened, as they are equivalent to a single one. */
+    private static void collectConjuncts(@Nullable ObjectFilter filter, List<ObjectFilter> conjuncts) {
         if (filter instanceof AndFilter andFilter) {
-            return andFilter.getConditions();
+            for (ObjectFilter condition : andFilter.getConditions()) {
+                collectConjuncts(condition, conjuncts);
+            }
         } else if (filter != null) {
-            return List.of(filter);
-        } else {
-            return List.of();
+            conjuncts.add(filter);
         }
     }
 
@@ -384,14 +462,16 @@ public class AuditSearchGuard {
     }
 
     /**
-     * Equality on `eventIdentifier`, `requestIdentifier`, `sessionIdentifier` or `repoId`, or `targetRef` with
-     * an explicit OID. These are resolved by (selective) indexes, regardless of the `timestamp` range.
+     * Equality (without a matching rule) on `eventIdentifier`, `requestIdentifier`, `sessionIdentifier` or `repoId`,
+     * or `targetRef` with an explicit OID. These are resolved by (selective) indexes, regardless of the `timestamp` range.
      */
     static boolean isEqualityAnchor(@Nullable ObjectFilter filter) {
         if (filter instanceof EqualFilter<?> equalFilter) {
             ItemPath path = equalFilter.getFullPath();
             return INDEXED_EQUALITY_ITEMS.stream().anyMatch(path::equivalent)
                     && equalFilter.getRightHandSidePath() == null
+                    // A matching rule (e.g. stringIgnoreCase) wraps the column in a function, so the index is not used.
+                    && equalFilter.getMatchingRule() == null
                     && hasValues(equalFilter);
         } else if (filter instanceof RefFilter refFilter) {
             if (!refFilter.getFullPath().equivalent(AuditEventRecordType.F_TARGET_REF) || refFilter.getFilter() != null) {

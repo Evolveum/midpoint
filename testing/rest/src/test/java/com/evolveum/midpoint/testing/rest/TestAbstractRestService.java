@@ -52,6 +52,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ExecuteScriptResponseType;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordListType;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
+import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.PipelineItemType;
 import com.evolveum.prism.xml.ns._public.query_3.OrderDirectionType;
@@ -2096,7 +2097,9 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
     /** A query anchored by timestamp only must not cover more than the maximal time window (31 days by default). */
     @Test
     public void test905SearchAuditRecordsWithTooLongTimeWindow() {
-        assertAuditSearchRejected(auditQuery(timestampCondition(">=", 40), 10), "longer than the allowed maximum");
+        // The durations are exact, so that a range just over the limit does not read as equal to it.
+        assertAuditSearchRejected(auditQuery(timestampCondition(">=", 40), 10),
+                "longer than the allowed maximum of 31 days.", "(from ", "40 days", "equality on");
     }
 
     /** An old, but narrow time range is fine. */
@@ -2320,6 +2323,66 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
                 defaultWindow, AuditSearchGuard.Limits.parseMaxTimeWindow("-P1D"));
     }
 
+    /**
+     * Search by a changed item. Changed items are stored namespace-qualified, so the path must be qualified as well.
+     * The `c` prefix is declared by the request (XML), or predefined (JSON, YAML).
+     */
+    @Test
+    public void test940SearchAuditRecordsByChangedItem() throws Exception {
+        WebClient client = prepareClient();
+        client.path(AUDIT_SEARCH_PATH);
+
+        when("searching for the password change of jack (made in test900)");
+        Response response = client.post(auditQuery(auditAnchor() + " and " + targetIsJack()
+                + " and changedItem = c:credentials/c:password/c:value", 100));
+
+        then();
+        displayResponse(response);
+        assertStatus(response, 200);
+        AuditEventRecordListType records = parseAuditRecords(response.readEntity(String.class));
+        assertFalse("No audit records about jack's password change found", records.getObject().isEmpty());
+        for (AuditEventRecordType record : records.getObject()) {
+            assertEquals("Wrong event type", AuditEventTypeType.MODIFY_OBJECT, record.getEventType());
+        }
+    }
+
+    /** An unqualified changed item path never matches a stored one; it is rejected instead of returning nothing. */
+    @Test
+    public void test941SearchAuditRecordsByUnqualifiedChangedItem() {
+        assertAuditSearchRejected(
+                auditQuery(auditAnchor() + " and changedItem = credentials/password/value", 10),
+                "must be namespace-qualified");
+    }
+
+    /** Invalid values are reported by the query language parser by runtime exceptions; they are client errors. */
+    @Test
+    public void test942SearchAuditRecordsWithUnknownEnumValue() {
+        assertAuditSearchRejected(auditQuery(auditAnchor() + " and outcome = \"bogus\"", 10),
+                "Invalid query", "bogus");
+    }
+
+    /** Reference target filter without the target type fails in the parser; it must be a client error, not 500. */
+    @Test
+    public void test943SearchAuditRecordsWithReferenceTargetFilterWithoutType() {
+        assertAuditSearchRejected(auditQuery(auditAnchor() + " and targetRef matches (@ matches (name = \"jack\"))", 10),
+                "Invalid query");
+    }
+
+    /** Full-text filter is accepted: it searches the content of audit record payloads (not the message). */
+    @Test
+    public void test944SearchAuditRecordsByFullText() throws Exception {
+        WebClient client = prepareClient();
+        client.path(AUDIT_SEARCH_PATH);
+
+        when();
+        Response response = client.post(auditQuery(auditAnchor() + " and . fullText \"no-such-payload-word\"", 10));
+
+        then();
+        displayResponse(response);
+        assertStatus(response, 200);
+        assertTrue("No payload should match", parseAuditRecords(response.readEntity(String.class)).getObject().isEmpty());
+    }
+
     /** A day back; all audit records created by this test class are newer. */
     private String auditAnchor() {
         return "timestamp >= \""
@@ -2374,13 +2437,13 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
         }
     }
 
-    private void assertAuditSearchRejected(QueryType query, String expectedMessagePart) {
+    private void assertAuditSearchRejected(QueryType query, String... expectedMessageParts) {
         WebClient client = prepareClient();
         client.path(AUDIT_SEARCH_PATH);
-        assertAuditSearchRejected(client, query, expectedMessagePart);
+        assertAuditSearchRejected(client, query, expectedMessageParts);
     }
 
-    private void assertAuditSearchRejected(WebClient client, QueryType query, String expectedMessagePart) {
+    private void assertAuditSearchRejected(WebClient client, QueryType query, String... expectedMessageParts) {
         when();
         Response response = client.post(query);
 
@@ -2390,8 +2453,10 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
         OperationResultType result = response.readEntity(OperationResultType.class);
         displayValue("result", result);
         String message = Objects.requireNonNullElse(result.getMessage(), "");
-        assertTrue("Message '" + message + "' does not contain '" + expectedMessagePart + "'",
-                message.contains(expectedMessagePart));
+        for (String expectedMessagePart : expectedMessageParts) {
+            assertTrue("Message '" + message + "' does not contain '" + expectedMessagePart + "'",
+                    message.contains(expectedMessagePart));
+        }
     }
 
     // endregion

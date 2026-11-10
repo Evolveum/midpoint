@@ -70,8 +70,6 @@ public class AuditRecordRedactor {
     /** What parts of audit records the client asked for. */
     public record Includes(boolean delta, boolean deltaExecutionResult, boolean payload) {
 
-        public static final Includes NONE = new Includes(false, false, false);
-
         public static @NotNull Includes parse(@Nullable List<String> values) throws AuditSearchGuard.RejectedException {
             boolean delta = false;
             boolean executionResult = false;

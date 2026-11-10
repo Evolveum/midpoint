@@ -108,8 +108,14 @@ public class AuditRestController extends AbstractRestController implements Initi
         ObjectQuery query;
         try {
             query = prismContext.getQueryConverter().createObjectQuery(AuditEventRecordType.class, queryType);
-        } catch (SchemaException e) {
-            throw new AuditSearchGuard.RejectedException("Invalid query: " + e.getMessage(), e);
+        } catch (SchemaException | RuntimeException e) {
+            // The query comes from the client, so a failure to convert it is a client error. Besides SchemaException,
+            // the query language parser throws runtime exceptions for some invalid input (an unknown enum value,
+            // an undeclared namespace prefix, a reference target filter without the target type).
+            logger.debug("Audit search query could not be converted", e);
+            throw new AuditSearchGuard.RejectedException("Invalid query: "
+                    + (e.getMessage() != null ? e.getMessage() : "the query could not be parsed ("
+                    + e.getClass().getSimpleName() + ")"), e);
         }
 
         AuditSearchGuard guard = new AuditSearchGuard(limits, prismContext.queryFactory());
