@@ -471,7 +471,11 @@
             <xsd:element name="constraint" type="xsd:QName" minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="action" type="xsd:QName" minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="markRef" type="tns:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
-                <a:objectReferenceTargetType>tns:MarkType</a:objectReferenceTargetType>
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:objectReferenceTargetType>tns:MarkType</a:objectReferenceTargetType>
+                    </xsd:appinfo>
+                </xsd:annotation>
             </xsd:element>
             <!-- one element per target-bearing constraint kind, so that "exclusion of X"
                  and "requirement of X" are different queries -->
@@ -496,7 +500,11 @@
         <xsd:sequence>
             <xsd:element name="targetRef" type="tns:ObjectReferenceType" minOccurs="0"/>
             <xsd:element name="targetArchetypeRef" type="tns:ObjectReferenceType" minOccurs="0">
-                <a:objectReferenceTargetType>tns:ArchetypeType</a:objectReferenceTargetType>
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:objectReferenceTargetType>tns:ArchetypeType</a:objectReferenceTargetType>
+                    </xsd:appinfo>
+                </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
