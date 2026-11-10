@@ -11,6 +11,7 @@ import java.io.InputStream;
 import java.io.Serial;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
@@ -302,6 +303,7 @@ public class DocumentationConnectorStepPanel extends AbstractWizardStepPanel<Con
                         } catch (CommonException e) {
                             throw new RuntimeException(e);
                         }
+                        getTilesModel().detach();
                         adjustPagingIfEmpty();
                         refresh(target);
                     }
@@ -509,12 +511,31 @@ public class DocumentationConnectorStepPanel extends AbstractWizardStepPanel<Con
                     @Override
                     protected void onError(AjaxRequestTarget target) {
                         WebComponentUtil.refreshFeedbacks((MarkupContainer) getPanel(), target);
+                        target.addListener(new AjaxRequestTarget.IListener() {
+                            @Override
+                            public void onAfterRespond(Map<String, Component> map, AjaxRequestTarget responseTarget) {
+                                clearPopupFeedback(getPanel());
+                            }
+                        });
                     }
                 };
             }
 
             @Override
+            protected boolean isCancelButtonVisible() {
+                return true;
+            }
+
+            @Override
+            protected void processCancel(AjaxRequestTarget target) {
+                clearPopupFeedback(getPanel());
+                removeUnconfirmedDocumentationSources();
+                super.processCancel(target);
+            }
+
+            @Override
             protected void processHide(AjaxRequestTarget target) {
+                clearPopupFeedback(getPanel());
                 var newValue = (PrismContainerValueWrapper<ConnDevDocumentationSourceType>) getPanel().getDefaultModelObject();
                 if (newValue != null && StringUtils.isNotEmpty(newValue.getRealValue().getName())) {
                     newValue.setSelected(true);
@@ -526,6 +547,30 @@ public class DocumentationConnectorStepPanel extends AbstractWizardStepPanel<Con
         };
         popup.setOutputMarkupId(true);
         getPageBase().showMainPopup(popup, target);
+    }
+
+    private void clearPopupFeedback(Component popupComponent) {
+        MarkupContainer popupPanel = (MarkupContainer) popupComponent;
+        popupPanel.getFeedbackMessages().clear();
+        popupPanel.visitChildren(Component.class, (component, visit) -> component.getFeedbackMessages().clear());
+    }
+
+    private void removeUnconfirmedDocumentationSources() {
+        try {
+            PrismContainerWrapper<ConnDevDocumentationSourceType> container =
+                    getDetailsModel().getObjectWrapper().findContainer(ConnectorDevelopmentType.F_DOCUMENTATION_SOURCE);
+            List<PrismContainerValueWrapper<ConnDevDocumentationSourceType>> confirmed = valuesModel.getObject();
+            List<PrismContainerValueWrapper<ConnDevDocumentationSourceType>> unconfirmed = container.getValues().stream()
+                    .filter(value -> value.getStatus() == ValueStatus.ADDED)
+                    .filter(value -> !confirmed.contains(value))
+                    .toList();
+            unconfirmed.forEach(value -> {
+                container.getValues().remove(value);
+                container.getItem().remove(value.getNewValue());
+            });
+        } catch (SchemaException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private void onUploadFilePerformed(AjaxRequestTarget target) {
@@ -630,6 +675,7 @@ public class DocumentationConnectorStepPanel extends AbstractWizardStepPanel<Con
 
     @Override
     public boolean onNextPerformed(AjaxRequestTarget target) {
+        removeUnconfirmedDocumentationSources();
         try {
             valuesModel.getObject().stream()
                     .filter(value -> value.getStatus() != ValueStatus.ADDED)

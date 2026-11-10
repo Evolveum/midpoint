@@ -177,6 +177,15 @@ public abstract class WaitingConnectorStepPanel extends AbstractWizardStepPanel<
         addOrReplace(createWaitingPanel());
     }
 
+    /** Token of the task this panel waited for, or null unless the task has already finished successfully. */
+    protected final String getFinishedTaskToken() {
+        if (statusModel == null || !statusModel.isLoaded()) {
+            return null;
+        }
+        SmartGeneratingDto status = statusModel.getObject();
+        return status.isFinished() && !status.isFailed() ? tokenModel.getObject() : null;
+    }
+
     private void createStatusModel() {
         statusModel = new LoadableModel<>() {
             @Override
@@ -246,6 +255,7 @@ public abstract class WaitingConnectorStepPanel extends AbstractWizardStepPanel<
         LoggingUtils.logUnexpectedException(LOGGER, "Couldn't submit task for {}", e, getActivityType());
         CommonException cause = ExceptionUtil.findCause(e, CommonException.class);
         result.recordFatalError(cause != null ? cause : e);
+        getSession().getFeedbackMessages().clear();
         getPageBase().showResult(result);
         return new SmartGeneratingDto() {
             @Override
@@ -268,9 +278,10 @@ public abstract class WaitingConnectorStepPanel extends AbstractWizardStepPanel<
     private void initLayout() {
         getTextLabel().add(VisibleEnableBehaviour.ALWAYS_INVISIBLE);
         getSubtextLabel().add(VisibleEnableBehaviour.ALWAYS_INVISIBLE);
+        getSubtextLabel().getParent().add(VisibleEnableBehaviour.ALWAYS_INVISIBLE);
         getButtonContainer().add(AttributeAppender.replace("class", "d-flex align-items-center flex-nowrap flex-row mt-3 gap-2 wizard-actions-strip col-12"));
         getButtonContainer().add(AttributeAppender.append("class", isOnlyChildCentered() ? " only-child-centered" : ""));
-        getFeedback().add(AttributeAppender.replace("class", "col-12 feedbackContainer"));
+        getFeedback().add(AttributeAppender.replace("class", "col-12 feedbackContainer mt-n5"));
 
         addOrReplace(createWaitingPanel());
     }

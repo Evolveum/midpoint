@@ -88,14 +88,10 @@ public class AuthScriptsConnectorStepPanel extends ScriptConnectorStepPanel {
         return ConnectorDevelopmentArtifacts.KnownArtifactType.AUTHENTICATION_CUSTOMIZATION;
     }
 
-    /**
-     * The selected auth type(s) may already be natively implemented by the connector (e.g. OAuth2
-     * client credentials - see connector-scimrest's OAuth2TokenManager) - a custom script here is
-     * an optional customization on top, not a requirement.
-     */
+    /** The authentication script customizes the authentication; it does not belong to an object class. */
     @Override
-    protected boolean isScriptOptional() {
-        return true;
+    protected boolean isRepairAvailable() {
+        return false;
     }
 
     @Override

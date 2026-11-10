@@ -7,14 +7,21 @@
 package com.evolveum.midpoint.gui.impl.component.wizard.withnavigation;
 
 import com.evolveum.midpoint.gui.api.component.wizard.WizardStep;
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
+import com.evolveum.midpoint.gui.impl.page.admin.connector.development.ConnectorDevelopmentDetailsModel;
+import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.ConnectorDevelopmentWizardUtil;
 import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.web.component.util.SerializableConsumer;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
 
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.wicket.Page;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.request.cycle.RequestCycle;
 import org.apache.wicket.util.io.IClusterable;
 import org.jetbrains.annotations.NotNull;
 
@@ -225,6 +232,15 @@ public abstract class AbstractWizardController<AH extends AssignmentHolderType, 
     }
 
     public void previous() {
+        AjaxRequestTarget target = RequestCycle.get().find(AjaxRequestTarget.class).orElse(null);
+        if (target != null && hasUnsavedChanges()) {
+            showUnsavedStepChangesConfirmation(target, t -> doPrevious());
+            return;
+        }
+        doPrevious();
+    }
+
+    private void doPrevious() {
         if (showSummaryPanel) {
             return;
         }
@@ -236,6 +252,54 @@ public abstract class AbstractWizardController<AH extends AssignmentHolderType, 
         } else {
             activePartItem.previous();
         }
+    }
+
+    /**
+     * Whether there are unsaved changes that would be lost by navigating away from the active step:
+     * in the main object wrapper, in the separate testing resource wrapper (for steps editing it -
+     * checked generically, so it keeps working for every step that happens to use the testing
+     * resource, not just the ones we know about today), or outside any Prism wrapper entirely (e.g.
+     * a live script editor - {@link WizardStep#hasUnsavedStepChanges()}, which individual steps with that kind
+     * of state override themselves, since it can't be detected generically).
+     */
+    boolean hasUnsavedChanges() {
+        boolean mainWrapperDelta = getHelper().getDetailsModel().hasDelta();
+        boolean testingResourceDelta = getHelper().getDetailsModel() instanceof ConnectorDevelopmentDetailsModel connectorDetailsModel
+                && ConnectorDevelopmentWizardUtil.hasUnsavedTestingResourceChanges(connectorDetailsModel);
+        boolean stepChanges = getActiveStep().hasUnsavedStepChanges();
+        return mainWrapperDelta || testingResourceDelta || stepChanges;
+    }
+
+    void showUnsavedStepChangesConfirmation(AjaxRequestTarget target, SerializableConsumer<AjaxRequestTarget> afterAction) {
+        PageBase page = WebComponentUtil.getPageBase(getPanel());
+        UnsavedStepChangesConfirmationPanel popup = new UnsavedStepChangesConfirmationPanel(page.getMainPopupBodyId()) {
+            @Override
+            protected void onSavePerformed(AjaxRequestTarget target) {
+                if (getActiveStep().hasUnsavedStepChanges()) {
+                    if (!getActiveStep().saveUnsavedStepChanges(target)) {
+                        return;
+                    }
+                } else {
+                    getHelper().onSaveObjectPerformed(target);
+                }
+                afterAction.accept(target);
+                target.add(getPanel());
+            }
+
+            @Override
+            protected void onDiscardPerformed(AjaxRequestTarget target) {
+                page.hideMainPopup(target);
+                getHelper().getDetailsModel().reloadPrismObjectModel();
+                getHelper().refreshValueModel();
+                if (getHelper().getDetailsModel() instanceof ConnectorDevelopmentDetailsModel connectorDetailsModel) {
+                    ConnectorDevelopmentWizardUtil.discardTestingResourceChanges(connectorDetailsModel);
+                }
+                getActiveStep().discardUnsavedStepChanges();
+                afterAction.accept(target);
+                target.add(getPanel());
+            }
+        };
+        page.showMainPopup(popup, target);
     }
 
     public WizardStep getNextPanel() {
