@@ -6,6 +6,7 @@
 
 package com.evolveum.midpoint.gui.impl.validator;
 
+import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 
 import org.apache.commons.lang3.StringUtils;
@@ -49,10 +50,10 @@ public class SchemaDefinitionNameValidator implements IValidator<QName> {
             normalizedName = StringUtils.deleteWhitespace(normalizedName);
 
             ValidationError error = new ValidationError();
-            error.addKey("SchemaDefinitionNameValidator.invalidName");
-            error.setVariable("0", value.getLocalPart());
-            error.setVariable("1", normalizedName);
-            error.setMessage("Name '" + value.getLocalPart() + "' is not valid. Try '" + normalizedName + "'.");
+            error.setMessage(LocalizationUtil.translate(
+                    "SchemaDefinitionNameValidator.invalidName",
+                    new Object[] { value.getLocalPart(), normalizedName },
+                    "Name '" + value.getLocalPart() + "' is not valid. Try '" + normalizedName + "'."));
             validatable.error(error);
         }
     }
