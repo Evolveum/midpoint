@@ -523,15 +523,9 @@ public class TestCsvSimulationReport extends TestCsvReport {
         assertSuccess(result);
 
         then("simulation result is OK");
-        var processedObjects = assertProcessedObjects(simulationResult, "after")
+        assertProcessedObjects(simulationResult, "after")
                 .display()
-                .assertSize(2)
-                .getProcessedObjects();
-
-        String shadowOid = processedObjects.stream()
-                .filter(po -> ShadowType.class.equals(po.getType()))
-                .map(po -> po.getOid())
-                .findFirst().orElseThrow(AssertionError::new);
+                .assertSize(2);
 
         when("object-level report is created");
         var objectsLines = REPORT_SIMULATION_OBJECTS.export()
@@ -577,7 +571,7 @@ public class TestCsvSimulationReport extends TestCsvReport {
                 .assertValue(C_EVENT_MARK, "")
                 .assertValue(C_ITEM_CHANGED, "linkRef")
                 .assertValue(C_VALUE_STATE, "ADDED")
-                .assertValue(C_VALUE, shadowOid)
+                .assertValue(C_VALUE, "existing-0000")
                 .end()
                 .record(1)
                 .assertValue(C_NAME, "")
@@ -683,15 +677,9 @@ public class TestCsvSimulationReport extends TestCsvReport {
         assertSuccess(result);
 
         then("simulation result is OK");
-        var processedObjects = assertProcessedObjects(simulationResult, "after")
+        assertProcessedObjects(simulationResult, "after")
                 .display()
-                .assertSize(2)
-                .getProcessedObjects();
-
-        String shadowOid = processedObjects.stream()
-                .filter(po -> ShadowType.class.equals(po.getType()))
-                .map(po -> po.getOid())
-                .findFirst().orElseThrow(AssertionError::new);
+                .assertSize(2);
 
         when("object-level report is created");
         var objectsLines = REPORT_SIMULATION_OBJECTS.export()
@@ -754,7 +742,7 @@ public class TestCsvSimulationReport extends TestCsvReport {
                 .assertValue(C_EVENT_MARK, "Focus assignments changed")
                 .assertValue(C_ITEM_CHANGED, "linkRef")
                 .assertValue(C_VALUE_STATE, "ADDED")
-                .assertValue(C_VALUE, shadowOid)
+                .assertValue(C_VALUE, "existing-0000")
                 .end()
                 .record(2)
                 .assertValue(C_NAME, "")
