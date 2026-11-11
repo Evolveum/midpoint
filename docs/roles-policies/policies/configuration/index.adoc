@@ -27,6 +27,7 @@ compliance:
 :page-since: "4.9"
 :page-upkeep-status: green
 :page-moved-from: /midpoint/reference/roles-policies/classification/
+:page-moved-from: /midpoint/reference/roles-policies/policies/classification/
 
 This describes how to configure policies in midPoint.
 
