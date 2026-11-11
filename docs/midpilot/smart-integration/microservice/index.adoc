@@ -1,4 +1,4 @@
-= Smart Integration microservice
+= Smart Integration Microservice
 :page-toc: top
 :page-since: "4.11.0"
 :page-upkeep-status: green
@@ -6,9 +6,15 @@
 
 == Overview
 
-The *Smart Integration microservice* is a separate service that provides the AI part of the xref:../recommendations/index.adoc[smart recommendations].
-MidPoint prepares the data for a recommendation (for example the object class schema or statistics), sends it to the microservice, and processes the result.
+The *Smart Integration Microservice* is the implementation of Smart Integration AI Service, that provides the AI part of the xref:../recommendations/index.adoc[smart recommendations].
+MidPoint prepares the data for a recommendation (for example the object class schema or statistics), sends it to the microservice (either self-hosted or hosted by Evolveum), and processes the result.
 The microservice builds prompts from the data, calls a large language model (LLM) and returns a structured response.
+
+NOTE: Smart Integration AI Service is a term used in general for the service outside midPoint, which serves the APIs necessary for the Smart Recommendations.
+The term Smart Integration Microservice refers to a particular implementation of the AI service.
+This text is mostly about the Microservice, but some aspects applies also in broader context of the AI Service (e.g. the `serviceApiKey` configuration).
+
+NOTE: In this text we will refer to the "Smart Integration Microservice" simply as "the microservice".
 
 The microservice is written in Python and built on FastAPI.
 It runs in the Hypercorn server and uses LangChain to call the LLM.
@@ -22,14 +28,11 @@ midPoint ── HTTP/JSON ──→ Smart Integration microservice ──→ LLM
                                                   └──→ Langfuse (optional tracing)
 ----
 
-* *MidPoint* calls the microservice whenever a recommendation needs AI.
-The calls are made by the service client in the `smart-impl` module.
-* *Smart Integration microservice* has no database.
+* *MidPoint* calls the microservice (AI service in general) whenever a recommendation needs AI.
+* *Smart Integration Microservice* has no database.
 It processes each request independently, using only the data in the request.
 * *LLM provider* is any service with an OpenAI-compatible chat API, for example OpenRouter or a self-hosted model.
 * *Langfuse* receives traces of requests and LLM calls when tracing is enabled, see xref:logging.adoc[].
-
-== Communication with midPoint
 
 MidPoint communicates with the microservice using HTTP and JSON:
 
@@ -37,43 +40,47 @@ MidPoint communicates with the microservice using HTTP and JSON:
 * The health check is a `GET /health` request.
 MidPoint uses it to get the AI provider name and model shown in the GUI.
 
-The connection is configured in the `<smartIntegration>` container of the system configuration, see xref:../configuration.adoc[]:
+
+== MidPoint side configuration
+
+The connection details are configured in the `<smartIntegration>` container of the system configuration, see xref:../configuration.adoc[]:
 
 [cols="35%,65%",options="header"]
 |===
 | Setting | Description
 
 | `serviceUrl`
-| URL of the microservice.
+| URL of the microservice (AI service in general).
 It can be overridden by the `midpoint.smartIntegration.serviceUrlOverride` system property.
 
 | `serviceApiKey`
-| API key sent in the `X-Gravitee-Api-Key` header of every request.
+| API key sent in the header of every request.
 The microservice itself does not check the key.
+But in broader context of AI service, it can be used, (and it is by Evolveum's hosted AI Service) e.g. for authentication.
 
 | `serviceResponseTimeout`
 | Maximum time midPoint waits for a response, 120 seconds by default.
-The microservice has its own timeout for LLM calls, see xref:configuration.adoc[].
+The microservice has also its own timeout for LLM calls, see xref:configuration.adoc[].
 |===
-
-Item paths and type names in requests use a shortened format, see xref:../service-item-paths.adoc[].
-
-MidPoint records the communication with the microservice in the audit trail, see xref:../security/auditing-logging.adoc[].
 
 == Data sent to the LLM
 
-The microservice passes the data from the request to the LLM provider as part of the prompts.
+The AI service passes the data from the request to the LLM provider as part of the prompts.
 Which data midPoint sends depends on the data access permissions granted to the operation, see xref:../security/data-access-permissions.adoc[].
+
+Item paths and type names in requests use a shortened format, see xref:../service-item-paths.adoc[].
+
+MidPoint records the communication with the AI service in the audit trail, see xref:../security/auditing-logging.adoc[].
 
 == Topics
 
-* xref:endpoints/index.adoc[Microservice endpoints] - List of endpoints, common behavior, response metadata and errors.
+* xref:endpoints/index.adoc[AI service endpoints] - List of endpoints, common behavior, response metadata and errors.
 ** xref:endpoints/suggest-object-type.adoc[Suggest object type endpoint] - Object types (kind, intent, delineation) for an object class from its schema and statistics.
 ** xref:endpoints/suggest-focus-type.adoc[Suggest focus type endpoint] - Focus type for an object type from its kind, intent and attribute names.
 ** xref:endpoints/match-schema.adoc[Match schema endpoint] - Pairs of resource attributes and focus properties.
 ** xref:endpoints/suggest-mapping.adoc[Suggest mapping endpoint] - MEL transformation script inferred from examples of values.
 ** xref:endpoints/suggest-categorical-mapping.adoc[Suggest categorical mapping endpoint] - MEL script mapping categorical resource values to allowed midPoint values.
-** xref:endpoints/health.adoc[Health check endpoint] - Status of the microservice, the LLM provider and Langfuse, and the AI provider name and model.
-* xref:logging.adoc[Microservice logging] - Log format and levels, request logs and correlation and Langfuse tracing.
-* xref:configuration.adoc[Microservice configuration] - Environment variables of the microservice: LLM provider and model, timeouts, logging and tracing.
-* xref:deployment.adoc[Microservice deployment]
+** xref:endpoints/health.adoc[Health check endpoint] - Status of the AI service, the LLM provider and Langfuse, and the AI provider name and model.
+* xref:logging.adoc[AI service logging] - Log format and levels, request logs and correlation and Langfuse tracing.
+* xref:configuration.adoc[AI service configuration] - Environment variables of the AI service: LLM provider and model, timeouts, logging and tracing.
+* xref:deployment.adoc[AI service deployment]
