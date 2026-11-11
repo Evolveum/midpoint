@@ -19,6 +19,7 @@ public class NumberOfObjectsWidgetPanel extends BasePanel<NumberOfObjectsWidgetD
 
     private static final String ID_HEADER_ICON = "headerIcon";
     private static final String ID_HEADER_LABEL = "headerLabel";
+    private static final String ID_ADD_BUTTON = "addButton";
 
     private static final String ID_NUMBER = "number";
 
@@ -44,6 +45,15 @@ public class NumberOfObjectsWidgetPanel extends BasePanel<NumberOfObjectsWidgetD
         Label headerLabel = new Label(ID_HEADER_LABEL, getModelObject().getTitle());
         headerLabel.setOutputMarkupId(true);
         add(headerLabel);
+
+        AjaxLink<?> addButton = new AjaxLink<>(ID_ADD_BUTTON) {
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                NumberOfObjectsWidgetPanel.this.getModelObject().addPerformed(target);
+            }
+        };
+        addButton.setOutputMarkupId(true);
+        add(addButton);
 
         Label statusLabel = new Label(ID_NUMBER, getModelObject().getNumber());
         statusLabel.setOutputMarkupId(true);

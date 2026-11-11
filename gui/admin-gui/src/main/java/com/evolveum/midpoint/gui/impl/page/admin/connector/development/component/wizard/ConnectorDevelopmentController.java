@@ -62,8 +62,6 @@ public class ConnectorDevelopmentController extends AbstractWizardController<Con
         RELATIONSHIPS,
         INIT_RELATIONSHIP,
         RELATIONSHIP,
-        EXPORT_CONNECTOR,
-        UPLOAD_CONNECTOR,
         NEXT
     }
 
@@ -129,14 +127,6 @@ public class ConnectorDevelopmentController extends AbstractWizardController<Con
 
     public void initNewRelationship(AjaxRequestTarget target) {
         setPartItem(new InitRelationshipConnectorDevPartItem(getHelper()), target);
-    }
-
-    public void exportConnector(AjaxRequestTarget target) {
-        setPartItem(new ExportConnectorDevPartItem(getHelper()), target);
-    }
-
-    public void uploadConnector(AjaxRequestTarget target) {
-        setPartItem(new UploadConnectorDevPartItem(getHelper()), target);
     }
 
     public void editBasicInformation(AjaxRequestTarget target) {

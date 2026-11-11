@@ -47,4 +47,11 @@ public abstract class NumberOfObjectsWidgetDto implements Serializable {
     }
 
     public abstract void openListOfObjects(AjaxRequestTarget target);
+
+    /**
+     * Starts adding a new object of the type shown by the widget.
+     *
+     * @param target ajax request target
+     */
+    public abstract void addPerformed(AjaxRequestTarget target);
 }
