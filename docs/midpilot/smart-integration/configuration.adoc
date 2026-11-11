@@ -6,7 +6,7 @@
 
 == Overview
 
-Smart Integration is configured globally in the system configuration (`SystemConfigurationType`), in the `<smartIntegration>` container (`SmartIntegrationConfigurationType`).
+Smart Integration is configured globally in the system configuration, in the `<smartIntegration>` container.
 All settings are optional.
 If a setting is missing, its default value is used.
 
@@ -25,17 +25,17 @@ The Smart Integration microservice has its own configuration, see xref:microserv
 | `serviceUrl`
 | `string`
 | -
-| URL of the Smart Integration microservice, see <<Microservice connection>>.
+| URL of the Smart Integration AI service, see <<AI service connection>>.
 
 | `serviceApiKey`
-| `ProtectedStringType`
+| `protected string`
 | -
-| API key sent with every request to the microservice.
+| API key sent with every request to the AI service.
 
 | `serviceResponseTimeout`
 | `duration`
 | 120 seconds
-| Maximum time to wait for a response from the microservice.
+| Maximum time to wait for a response from the AI service.
 
 | `statisticsTtl`
 | `duration`
@@ -60,12 +60,12 @@ The Smart Integration microservice has its own configuration, see xref:microserv
 | `connectorGenerationUrl`
 | `string`
 | -
-| URL of the code generation microservice, see <<Connector generator>>.
+| URL of the code generation AI service, see <<Connector generator>>.
 
 | `connectorGeneratorApiKey`
-| `ProtectedStringType`
+| `protected string`
 | -
-| API key sent with every request to the code generation microservice.
+| API key sent with every request to the code generation AI service.
 
 | `connectorFrameworkUrl`
 | `string`
@@ -80,24 +80,26 @@ The Smart Integration microservice has its own configuration, see xref:microserv
 | `connectorGenerationTransientErrorTimeout`
 | `duration`
 | `PT15S`
-| How long transient gateway errors of the code generation microservice are tolerated.
+| How long transient gateway errors of the code generation AI service are tolerated.
 |===
 
-== Microservice connection
+== AI service connection
 
-The `serviceUrl`, `serviceApiKey` and `serviceResponseTimeout` settings configure the connection to the Smart Integration microservice.
-The microservice provides the AI part of the recommendations, see xref:microservice/index.adoc[Smart Integration microservice].
+The `serviceUrl`, `serviceApiKey` and `serviceResponseTimeout` settings configure the connection to the Smart Integration AI service.
+The AI service provides the AI part of the recommendations, see xref:microservice/index.adoc[Smart Integration microservice].
+The Smart Integration AI service is implemented as its own microservice, which you can self-host, or you can leverage Evolveum's hosted AI service.
 
 [cols="30%,70%",options="header"]
 |===
 | Setting | Description
 
 | `serviceUrl`
-| Base URL of the microservice, for example `https://smart-integration.example.com`.
+| Base URL of the AI service, for example `https://smart-integration.example.com`.
 
 | `serviceApiKey`
-| API key sent in the `X-Gravitee-Api-Key` HTTP header of every request, including the health check.
-It is intended for an API gateway in front of the microservice.
+| API key sent in the HTTP header of every request, including the health check.
+Used mainly to authenticate with Evolveum's hosted AI services.
+If you self-host the microservice yourself, it's up to you and your deployment to handle this key (or ignore it altogether).
 The value is stored encrypted, like other protected strings in midPoint.
 If it is not set, no header is sent.
 
@@ -106,12 +108,12 @@ If it is not set, no header is sent.
 The default is 120 seconds.
 |===
 
-If the URL is not configured, operations that call the microservice fail with the error `Smart integration service URL is not configured`.
-Operations that do not use the microservice, such as the xref:recommendations/associations/associations-recommendation.adoc[associations] and xref:recommendations/synchronization/synchronization-recommendation.adoc[synchronization] recommendations, work without it.
+If the URL is not configured, operations that call the AI service fail with the error `Smart integration service URL is not configured`.
+Operations that do not use the AI service, such as the xref:recommendations/associations/associations-recommendation.adoc[associations] and xref:recommendations/synchronization/synchronization-recommendation.adoc[synchronization] recommendations, work without it.
 
 == Reuse of statistics and schema matches
 
-Statistics and schema matches are stored as `SmartIntegrationArtifactType` objects and reused by later recommendations.
+Statistics and schema matches are stored as smart integration artifacts and reused by later recommendations.
 Each of them expires after the configured time-to-live, counted from its `timestamp`:
 
 [cols="30%,70%",options="header"]
@@ -132,7 +134,7 @@ A shorter time-to-live makes the recommendations reflect changes in the resource
 
 == Mappings recommendation
 
-`mappingSuggestionRetryCount` sets how many times midPoint asks the microservice again when an AI-generated mapping script fails validation.
+`mappingSuggestionRetryCount` sets how many times midPoint asks the AI service again when an AI-generated mapping script fails validation.
 The maximum number of attempts is `1 + mappingSuggestionRetryCount`.
 `0` disables retries.
 A negative value is ignored and the default `1` is used.
@@ -155,10 +157,10 @@ The connector generator must be enabled separately, see xref:../connector-genera
 | Setting | Description
 
 | `connectorGenerationUrl`
-| URL of the code generation microservice.
+| URL of the code generation AI service.
 
 | `connectorGeneratorApiKey`
-| API key sent with every request to the code generation microservice.
+| API key sent with every request to the code generation AI service.
 The value is stored encrypted.
 
 | `connectorFrameworkUrl`
@@ -168,7 +170,7 @@ The value is stored encrypted.
 | URL of the SQL connector framework template.
 
 | `connectorGenerationTransientErrorTimeout`
-| Maximum time for which HTTP `502 Bad Gateway` and `504 Gateway Timeout` errors are tolerated while midPoint monitors asynchronous jobs of the code generation microservice.
+| Maximum time for which HTTP `502 Bad Gateway` and `504 Gateway Timeout` errors are tolerated while midPoint monitors asynchronous jobs of the code generation AI service.
 |===
 
 == Example

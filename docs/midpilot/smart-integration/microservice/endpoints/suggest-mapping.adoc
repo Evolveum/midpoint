@@ -10,7 +10,7 @@
 
 The endpoint recommends a MEL transformation script for a mapping between one resource attribute and one focus property.
 The script is inferred from examples of values on both sides.
-MidPoint calls it with the `SUGGEST_MAPPING` method, see xref:../../recommendations/mappings/mappings-recommendation.adoc[].
+See xref:../../recommendations/mappings/mappings-recommendation.adoc[].
 
 == Request
 
