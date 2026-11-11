@@ -424,17 +424,22 @@ public class ConnectorDevelopmentServiceImpl implements ConnectorDevelopmentServ
                     ), task, result);
         }
 
-        public String submitExportConnector(Task task, OperationResult result) {
+        public String submitExportConnector(String version, boolean saveToConnectorDirectory, boolean updateConnectorVersion,
+                Task task, OperationResult result) {
             return submitTask("Exporting connector for " + connectorNameForTasks(),
                     new WorkDefinitionsType().exportConnector(new ConnDevExportConnectorWorkDefinitionType()
                             .connectorDevelopmentRef(stateObject.getOid(), ConnectorDevelopmentType.COMPLEX_TYPE)
+                            .version(version)
+                            .saveToConnectorDirectory(saveToConnectorDirectory)
+                            .updateConnectorVersion(updateConnectorVersion)
                     ), task, result);
         }
 
-        public String submitUploadConnector(Task task, OperationResult result) {
+        public String submitUploadConnector(String version, Task task, OperationResult result) {
             return submitTask("Uploading connector for " + connectorNameForTasks(),
                     new WorkDefinitionsType().uploadConnector(new ConnDevUploadConnectorWorkDefinitionType()
                             .connectorDevelopmentRef(stateObject.getOid(), ConnectorDevelopmentType.COMPLEX_TYPE)
+                            .version(version)
                     ), task, result);
         }
 

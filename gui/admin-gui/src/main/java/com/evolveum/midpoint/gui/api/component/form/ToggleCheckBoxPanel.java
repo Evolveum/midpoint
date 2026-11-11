@@ -24,6 +24,8 @@ import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnChang
 import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
 
+import com.github.openjson.JSONObject;
+
 import java.io.Serial;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -138,14 +140,14 @@ public class ToggleCheckBoxPanel extends InputPanel {
         boolean state = getState();
         String stateString = state ? "on" : "off";
         String checkboxId = getPanelComponent().getMarkupId();
+        Map<String, Object> toggleOptions = createSwitchOptions();
+        String toggleOptionsJs = toggleOptions.isEmpty() ? "" : new JSONObject(toggleOptions).toString();
 
-//        Map<String, Object> options = createSwitchOptions();
-//        StringBuilder optionsJs = buildOptionsJs(options);
         String js = String.format(
                 "document.getElementById('%s')" +
-                        "    .bootstrapToggle()" +
+                        "    .bootstrapToggle(%s)" +
                         "    .%s();",
-                checkboxId, stateString
+                checkboxId, toggleOptionsJs, stateString
         );
 
         response.render(OnDomReadyHeaderItem.forScript(js));
