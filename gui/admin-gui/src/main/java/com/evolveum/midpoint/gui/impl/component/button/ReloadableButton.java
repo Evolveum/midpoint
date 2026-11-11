@@ -75,7 +75,7 @@ public abstract class ReloadableButton extends AjaxIconButton {
     }
 
     private void initReloadBehavior() {
-        reloadedBehaviour = new AjaxSelfUpdatingTimerBehavior(Duration.ofSeconds(5)) {
+        reloadedBehaviour = new AjaxSelfUpdatingTimerBehavior(getReloadInterval()) {
 
             @Override
             protected void onPostProcessTarget(AjaxRequestTarget target) {
@@ -88,17 +88,19 @@ public abstract class ReloadableButton extends AjaxIconButton {
 
                 Task task = pageBase.createSimpleTask(OPERATION_LOAD_TASK);
                 @Nullable PrismObject<TaskType> taskBean = WebModelServiceUtils.loadObject(
-                        TaskType.class, taskOidForReloaded, null, true, pageBase, task, task.getResult());
+                        TaskType.class, taskOidForReloaded,
+                        pageBase.getOperationOptionsBuilder().item(TaskType.F_RESULT).retrieve().build(),
+                        true, pageBase, task, task.getResult());
                 if (taskBean == null || WebComponentUtil.isClosedTask(taskBean.asObjectable())) {
                     stop(target);
+                    onTaskClosed(taskOidForReloaded, target);
                     taskOidForReloaded = null;
                     refresh(target);
                 } else if (WebComponentUtil.isSuspendedTask(taskBean.asObjectable())) {
                     OperationResult taskResult = OperationResult.createOperationResult(taskBean.asObjectable().getResult());
                     if (taskResult != null && (taskResult.isFatalError() || taskResult.isPartialError())) {
                         stop(target);
-                        pageBase.showResult(taskResult);
-                        target.add(pageBase.getFeedbackPanel());
+                        onTaskFailed(taskResult, target);
                         taskOidForReloaded = null;
                     }
                     refresh(target);
@@ -115,6 +117,35 @@ public abstract class ReloadableButton extends AjaxIconButton {
     // I think problem is because reload button is inside another ajax updated component. Need to investigate more.
     protected boolean reloadComponentEveryPoll() {
         return true;
+    }
+
+    /**
+     * Interval of checking the state of the running task.
+     *
+     * @return reload interval
+     */
+    protected Duration getReloadInterval() {
+        return Duration.ofSeconds(5);
+    }
+
+    /**
+     * Called when the running task is closed, before the task oid is cleared.
+     *
+     * @param taskOid oid of the closed task
+     * @param target ajax request target
+     */
+    protected void onTaskClosed(String taskOid, AjaxRequestTarget target) {
+    }
+
+    /**
+     * Called when the running task is suspended with an error.
+     *
+     * @param taskResult result of the failed task
+     * @param target ajax request target
+     */
+    protected void onTaskFailed(OperationResult taskResult, AjaxRequestTarget target) {
+        pageBase.showResult(taskResult);
+        target.add(pageBase.getFeedbackPanel());
     }
 
     private LoadableDetachableModel<String> createIconModel() {

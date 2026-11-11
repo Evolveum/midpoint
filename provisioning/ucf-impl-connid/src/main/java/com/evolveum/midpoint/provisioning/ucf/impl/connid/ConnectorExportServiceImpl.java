@@ -58,15 +58,16 @@ public class ConnectorExportServiceImpl implements ConnectorExportService {
     }
 
     @Override
-    public File packAsJar(String directory, File targetFile, Map<String, Map<String, String>> propertyOverrides)
+    public File getConnectorDirectory() {
+        return bundleDirectory;
+    }
+
+    @Override
+    public File packAsJar(String directory, File targetFile, String version, Map<String, Map<String, String>> propertyOverrides)
             throws IOException {
         var bundleDir = validateBundleDir(directory);
-        var manifestFile = new File(bundleDir, MANIFEST_PATH);
         return writeAtomically(targetFile, tmpFile -> {
-            Manifest manifest;
-            try (var manifestStream = new FileInputStream(manifestFile)) {
-                manifest = new Manifest(manifestStream);
-            }
+            var manifest = manifestWithVersion(bundleDir, version);
             // The bundle's own manifest becomes the jar's official one, so it must not also be
             // written again as a regular entry by writeFileEntries() below.
             try (var jar = new JarOutputStream(new FileOutputStream(tmpFile), manifest)) {
@@ -76,15 +77,28 @@ public class ConnectorExportServiceImpl implements ConnectorExportService {
     }
 
     @Override
-    public File packAsZip(String directory, File targetFile, Map<String, Map<String, String>> propertyOverrides, Collection<String> excludedPathPrefixes)
+    public File packAsZip(String directory, File targetFile, String version, Map<String, Map<String, String>> propertyOverrides, Collection<String> excludedPathPrefixes)
             throws IOException {
         var bundleDir = validateBundleDir(directory);
         return writeAtomically(targetFile, tmpFile -> {
             try (var zip = new ZipOutputStream(new FileOutputStream(tmpFile))) {
+                zip.putNextEntry(new ZipEntry(MANIFEST_PATH));
+                manifestWithVersion(bundleDir, version).write(zip);
+                zip.closeEntry();
                 writeEntries(zip, bundleDir, propertyOverrides,
-                        entryName -> excludedPathPrefixes.stream().noneMatch(entryName::startsWith));
+                        entryName -> !MANIFEST_PATH.equals(entryName)
+                                && excludedPathPrefixes.stream().noneMatch(entryName::startsWith));
             }
         });
+    }
+
+    private Manifest manifestWithVersion(File bundleDir, String version) throws IOException {
+        Manifest manifest;
+        try (var manifestStream = new FileInputStream(new File(bundleDir, MANIFEST_PATH))) {
+            manifest = new Manifest(manifestStream);
+        }
+        manifest.getMainAttributes().put(ConnectorInstallationServiceImpl.MANIFEST_CONNECTOR_VERSION, version);
+        return manifest;
     }
 
     /** Writes to a {@code .tmp} sibling of {@code targetFile} first, then atomically renames it into place. */

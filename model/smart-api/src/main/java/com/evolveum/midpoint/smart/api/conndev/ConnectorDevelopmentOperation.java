@@ -48,15 +48,29 @@ public interface ConnectorDevelopmentOperation {
      */
     String submitCopyConnector(Task task, OperationResult result);
 
-    String submitExportConnector(Task task, OperationResult result);
+    /**
+     * Packages the connector into a deployable connector jar.
+     *
+     * @param version version of the exported bundle, or null to keep the current connector version
+     * @param saveToConnectorDirectory whether the jar is saved to the connector directory, where it is loaded as a new connector
+     * @param task task
+     * @param result operation result
+     * @return token of the submitted task
+     */
+    String submitExportConnector(String version, boolean saveToConnectorDirectory, Task task, OperationResult result);
 
     /**
      * Same as {@link #submitExportConnector}, but the packaged bundle excludes {@code lib/}
-     * (third-party dependency jars). Currently used by the wizard's "Upload connector" action,
+     * (third-party dependency jars). Currently used by the wizard's "Project ZIP" export,
      * which just downloads this slimmer bundle - a future version of that action is expected to
      * upload it to another microservice instead.
+     *
+     * @param version version of the exported bundle, or null to keep the current connector version
+     * @param task task
+     * @param result operation result
+     * @return token of the submitted task
      */
-    String submitUploadConnector(Task task, OperationResult result);
+    String submitUploadConnector(String version, Task task, OperationResult result);
 
     // Midpoint local (+ download framework)
 

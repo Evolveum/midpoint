@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Map;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinitionFactory;
 import com.evolveum.midpoint.repo.common.activity.run.AbstractActivityRun;
 import com.evolveum.midpoint.repo.common.activity.run.ActivityRunInstantiationContext;
@@ -12,9 +13,12 @@ import com.evolveum.midpoint.repo.common.activity.run.LocalActivityRun;
 import com.evolveum.midpoint.repo.common.reports.ReportSupportUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.smart.impl.conndev.ConnectorDevelopmentBackend;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.LocalizableMessageBuilder;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -53,10 +57,12 @@ public class ExportConnectorActivityHandler
     public static class WorkDefinition extends AbstractWorkDefinition<ConnDevExportConnectorWorkDefinitionType> {
 
         final String explicitVersion;
+        final boolean saveToConnectorDirectory;
 
         public WorkDefinition(WorkDefinitionFactory.@NotNull WorkDefinitionInfo info) throws ConfigurationException {
             super(info);
             explicitVersion = typedDefinition.getVersion();
+            saveToConnectorDirectory = Boolean.TRUE.equals(typedDefinition.isSaveToConnectorDirectory());
         }
     }
 
@@ -89,19 +95,21 @@ public class ExportConnectorActivityHandler
                     ? getWorkDefinition().explicitVersion
                     : connDef.getVersion();
 
-            // Fixes the manifest in the midPoint home bundle directory to the exported version.
-            // This is a local, in-place write; it does not create a new ConnId bundle URI, so no
-            // re-registration with the running ConnId framework happens (and none is needed for
-            // producing the export artifact).
-            beans.connectorService.editableConnectorFor(connDef.getDirectory())
-                    .renameBundle(connDef.getGroupId(), connDef.getArtifactId(), version);
+            var saveToConnectorDirectory = getWorkDefinition().saveToConnectorDirectory;
+            if (saveToConnectorDirectory) {
+                checkConnectorVersionNotExists(connDef, version, task, result);
+            }
 
             var fileName = MiscUtil.fixFileName(connDef.getArtifactId() + "-connector-" + version + ".jar");
-            var targetFile = new File(ReportSupportUtil.getOrCreateExportDir(), fileName);
+            var targetDirectory = saveToConnectorDirectory
+                    ? beans.connectorExportService.getConnectorDirectory()
+                    : ReportSupportUtil.getOrCreateExportDir();
+            var targetFile = new File(targetDirectory, fileName);
             try {
                 beans.connectorExportService.packAsJar(
                         connDef.getDirectory(),
                         targetFile,
+                        version,
                         Map.of(CONFIGURATION_OVERRIDE_FILE, Map.of(DEVELOPMENT_MODE_PROPERTY, "false")));
             } catch (IOException e) {
                 throw new SystemException("Couldn't pack connector bundle into " + targetFile, e);
@@ -118,6 +126,25 @@ public class ExportConnectorActivityHandler
             state.setWorkStateItemRealValues(ConnDevExportConnectorWorkStateType.F_RESULT, exportResult);
             state.flushPendingTaskModifications(result);
             return ActivityRunResult.success();
+        }
+
+        private void checkConnectorVersionNotExists(ConnDevConnectorType connDef, String version, Task task, OperationResult result)
+                throws CommonException {
+            var beans = ConnDevBeans.get();
+            var bundle = beans.modelService.getObject(ConnectorType.class, connDef.getConnectorRef().getOid(), null, task, result)
+                    .asObjectable()
+                    .getConnectorBundle();
+            var query = PrismContext.get().queryFor(ConnectorType.class)
+                    .item(ConnectorType.F_CONNECTOR_BUNDLE).eq(bundle)
+                    .and().item(ConnectorType.F_CONNECTOR_VERSION).eq(version)
+                    .build();
+            if (!beans.modelService.searchObjects(ConnectorType.class, query, null, task, result).isEmpty()) {
+                throw new ObjectAlreadyExistsException(new LocalizableMessageBuilder()
+                        .key("ExportConnectorActivityHandler.connectorVersionExists")
+                        .args(bundle, version)
+                        .fallbackMessage("Connector " + bundle + " version " + version + " already exists")
+                        .build());
+            }
         }
     }
 }

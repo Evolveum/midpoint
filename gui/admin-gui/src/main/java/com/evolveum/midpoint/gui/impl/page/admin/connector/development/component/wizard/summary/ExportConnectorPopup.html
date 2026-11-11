@@ -1,0 +1,82 @@
+<!--
+  ~ Copyright (C) 2026 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+    <div class="d-flex flex-column gap-3">
+        <p class="m-0 text-secondary">
+            <wicket:message key="ExportConnectorPopup.description"/>
+        </p>
+
+        <div>
+            <div class="fw-semibold mb-2">
+                <wicket:message key="ExportConnectorPopup.type"/>
+            </div>
+            <div class="row g-3" wicket:id="type">
+                <div class="col-6" wicket:id="types">
+                    <div class="gen-list-group h-100">
+                        <label class="gen-list-item d-flex align-items-center gap-3 p-3 m-0 h-100 fw-normal">
+                            <input type="radio" class="form-check-input mt-0 flex-shrink-0" wicket:id="typeRadio"/>
+                            <i wicket:id="typeIcon"></i>
+                            <span wicket:id="typeLabel"></span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div wicket:id="destinationSection">
+            <div class="fw-semibold mb-2">
+                <wicket:message key="ExportConnectorPopup.destination"/>
+            </div>
+            <div class="d-flex flex-column gap-2" wicket:id="destination">
+                <div class="gen-list-group" wicket:id="destinations">
+                    <label class="gen-list-item d-flex align-items-center gap-3 p-3 m-0 fw-normal">
+                        <input type="radio" class="form-check-input mt-0 flex-shrink-0" wicket:id="destinationRadio"/>
+                        <span class="d-flex flex-column gap-1">
+                            <span class="fw-semibold" wicket:id="destinationLabel"></span>
+                            <small class="text-secondary" wicket:id="destinationDescription"></small>
+                        </span>
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <div wicket:id="optionalSection">
+            <div class="fw-semibold mb-2" wicket:id="optionalTitle">
+                <wicket:message key="ExportConnectorPopup.optional"/>
+            </div>
+            <div class="border rounded">
+                <div class="px-3 py-2" wicket:id="changeVersion"></div>
+                <div class="p-3 d-flex flex-column gap-2" wicket:id="versionSection">
+                    <span class="fw-semibold">
+                        <wicket:message key="ExportConnectorPopup.newVersion"/>
+                    </span>
+                    <input type="text" class="form-control" wicket:id="version"/>
+                    <small class="text-secondary">
+                        <wicket:message key="ExportConnectorPopup.newVersion.help"/>
+                    </small>
+                    <div class="alert alert-info d-flex align-items-center gap-2 mb-0 mt-2">
+                        <i class="fa fa-info-circle"></i>
+                        <span wicket:id="versionChange"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="feedbackContainer">
+            <div wicket:id="feedback" class="messagePanel"/>
+        </div>
+    </div>
+
+    <wicket:fragment wicket:id="buttons">
+        <div class="d-flex w-100 justify-content-between">
+            <a class="btn btn-link" wicket:id="cancel"></a>
+            <a wicket:id="export"></a>
+        </div>
+    </wicket:fragment>
+</wicket:panel>
+</html>

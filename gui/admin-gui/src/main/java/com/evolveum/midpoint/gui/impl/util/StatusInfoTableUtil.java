@@ -12,9 +12,7 @@ import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizar
 import java.io.Serial;
 import java.io.Serializable;
 import java.time.Duration;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 
@@ -426,14 +424,6 @@ public class StatusInfoTableUtil {
                         return "d-flex m-0 fw-normal text-body";
                     }
                 };
-            }
-
-            @Override
-            protected @NotNull Map<String, Object> createSwitchOptions() {
-                Map<String, Object> options = new LinkedHashMap<>();
-                options.put("onColor", "purple");
-                options.put("size", "mini");
-                return options;
             }
 
             @Override

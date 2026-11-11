@@ -96,19 +96,13 @@ public class UploadConnectorActivityHandler
                     ? getWorkDefinition().explicitVersion
                     : connDef.getVersion();
 
-            // Fixes the manifest in the midPoint home bundle directory to the exported version.
-            // This is a local, in-place write; it does not create a new ConnId bundle URI, so no
-            // re-registration with the running ConnId framework happens (and none is needed for
-            // producing the export artifact).
-            beans.connectorService.editableConnectorFor(connDef.getDirectory())
-                    .renameBundle(connDef.getGroupId(), connDef.getArtifactId(), version);
-
             var fileName = MiscUtil.fixFileName(connDef.getArtifactId() + "-connector-" + version + ".zip");
             var targetFile = new File(ReportSupportUtil.getOrCreateExportDir(), fileName);
             try {
                 beans.connectorExportService.packAsZip(
                         connDef.getDirectory(),
                         targetFile,
+                        version,
                         Map.of(CONFIGURATION_OVERRIDE_FILE, Map.of(DEVELOPMENT_MODE_PROPERTY, "false")),
                         ZIP_EXCLUDED_PATH_PREFIXES);
             } catch (IOException e) {
