@@ -18,7 +18,9 @@ public enum DataAccessPermission implements Describable {
     SCHEMA_ACCESS(stringResource("DataAccessPermission.schema.title"),
             stringResource("DataAccessPermission.schema.description")),
     RAW_DATA_ACCESS(stringResource("DataAccessPermission.rawData.title"),
-            stringResource("DataAccessPermission.rawData.description"));
+            stringResource("DataAccessPermission.rawData.description")),
+    EXISTING_OBJECT_TYPES_ACCESS(stringResource("DataAccessPermission.existingObjectTypes.title"),
+            stringResource("DataAccessPermission.existingObjectTypes.description"));
 
     private final StringResourceModel title;
     private final StringResourceModel description;
@@ -45,6 +47,7 @@ public enum DataAccessPermission implements Describable {
             case SCHEMA_ACCESS -> DataAccessPermissionType.SCHEMA_ACCESS;
             case RAW_DATA_ACCESS -> DataAccessPermissionType.RAW_DATA_ACCESS;
             case STATISTICS_ACCESS -> DataAccessPermissionType.STATISTICS_ACCESS;
+            case EXISTING_OBJECT_TYPES_ACCESS -> DataAccessPermissionType.EXISTING_OBJECT_TYPES_ACCESS;
         };
     }
 }

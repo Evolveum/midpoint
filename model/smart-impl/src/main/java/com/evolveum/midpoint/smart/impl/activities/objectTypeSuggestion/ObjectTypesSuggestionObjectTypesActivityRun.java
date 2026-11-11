@@ -83,6 +83,7 @@ class ObjectTypesSuggestionObjectTypesActivityRun
                                     SmartIntegrationArtifactType.class, statisticsOid, null, result)));
             suggestedTypes = SmartIntegrationBeans.get().smartIntegrationService.suggestObjectTypes(
                     resourceOid, objectClassName, statistics,
+                    getWorkDefinition().getPermissions(),
                     getWorkDefinition().getRegenerateMode(),
                     getWorkDefinition().getPreviousDelineations(), task, result);
             LOGGER.debug("AI-based suggestions to be written to the work state:\n{}",

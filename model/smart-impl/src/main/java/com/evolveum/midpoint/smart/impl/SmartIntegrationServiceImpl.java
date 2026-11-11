@@ -662,6 +662,7 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
             String resourceOid,
             QName objectClassName,
             ObjectSetStatisticsType statistics,
+            List<DataAccessPermissionType> permissions,
             @Nullable RegenerateMode regenerateMode,
             @Nullable List<ResourceObjectTypeDefinitionType> previousObjectTypes,
             Task task,
@@ -676,7 +677,8 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
         try (var serviceClient = this.clientFactory.getServiceClient(result)) {
             authorizeSmartIntegration(task, result);
             var op = this.objectTypesSuggestionOperationFactory.create(
-                    serviceClient, resourceOid, objectClassName, regenerateMode, previousObjectTypes, task, result);
+                    serviceClient, resourceOid, objectClassName, permissions,
+                    regenerateMode, previousObjectTypes, task, result);
             var types = op.suggestObjectTypes(statistics, result);
             LOGGER.debug("Object types suggestion:\n{}", types.debugDump(1));
             return types;

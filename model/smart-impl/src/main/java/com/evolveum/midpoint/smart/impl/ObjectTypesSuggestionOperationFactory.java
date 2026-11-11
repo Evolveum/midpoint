@@ -14,6 +14,7 @@ import com.evolveum.midpoint.smart.api.RegenerateMode;
 import com.evolveum.midpoint.smart.api.ServiceClient;
 import com.evolveum.midpoint.smart.impl.scoring.ObjectTypeFiltersValidator;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.DataAccessPermissionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
 
 @Component
@@ -29,6 +30,7 @@ public class ObjectTypesSuggestionOperationFactory {
             ServiceClient client,
             String resourceOid,
             QName objectClassName,
+            List<DataAccessPermissionType> permissions,
             @Nullable RegenerateMode regenerateMode,
             @Nullable List<ResourceObjectTypeDefinitionType> previousObjectTypes,
             Task task,
@@ -36,6 +38,6 @@ public class ObjectTypesSuggestionOperationFactory {
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
             ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
         var ctx = OperationContext.init(client, resourceOid, objectClassName, task, parentResult);
-        return new ObjectTypesSuggestionOperation(ctx, filtersValidator, regenerateMode, previousObjectTypes);
+        return new ObjectTypesSuggestionOperation(ctx, filtersValidator, permissions, regenerateMode, previousObjectTypes);
     }
 }

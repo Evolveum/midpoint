@@ -44,6 +44,7 @@ import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import java.util.Date;
+import java.util.List;
 
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.*;
 
@@ -52,6 +53,11 @@ import static com.evolveum.midpoint.schema.constants.SchemaConstants.*;
 public class TestObjectTypesSuggestionOperation extends AbstractSmartIntegrationTest {
 
     private static final File TEST_DIR = new File(TEST_RESOURCES_DIR, "smart/object-types-suggestion");
+
+    private static final List<DataAccessPermissionType> FULL_PERMISSIONS = List.of(
+            DataAccessPermissionType.SCHEMA_ACCESS,
+            DataAccessPermissionType.STATISTICS_ACCESS,
+            DataAccessPermissionType.EXISTING_OBJECT_TYPES_ACCESS);
 
     private static DummyScenario dummyScenario;
 
@@ -161,7 +167,7 @@ public class TestObjectTypesSuggestionOperation extends AbstractSmartIntegration
         TestServiceClientFactory.mockServiceClient(clientFactoryMock, mockClient);
         var statistics = computeStatistics(OC_ACCOUNT_QNAME, task, result);
         var op = objectTypesSuggestionOperationFactory.create(
-                mockClient, RESOURCE_DUMMY.oid, OC_ACCOUNT_QNAME, null, null, task, result);
+                mockClient, RESOURCE_DUMMY.oid, OC_ACCOUNT_QNAME, FULL_PERMISSIONS, null, null, task, result);
         ObjectTypesSuggestionType suggestion = op.suggestObjectTypes(statistics, result);
 
         assertThat(suggestion.getObjectType()).hasSize(1);
@@ -209,7 +215,7 @@ public class TestObjectTypesSuggestionOperation extends AbstractSmartIntegration
         TestServiceClientFactory.mockServiceClient(clientFactoryMock, mockClient);
         var statistics = computeStatistics(OC_ACCOUNT_QNAME, task, result);
         var op = objectTypesSuggestionOperationFactory.create(
-                mockClient, RESOURCE_DUMMY.oid, OC_ACCOUNT_QNAME, null, null, task, result);
+                mockClient, RESOURCE_DUMMY.oid, OC_ACCOUNT_QNAME, FULL_PERMISSIONS, null, null, task, result);
         var suggestion = op.suggestObjectTypes(statistics, result);
 
         assertThat(suggestion.getObjectType()).hasSize(2);
@@ -245,7 +251,7 @@ public class TestObjectTypesSuggestionOperation extends AbstractSmartIntegration
         TestServiceClientFactory.mockServiceClient(clientFactoryMock, mockClient);
         var statistics = computeStatistics(OC_ACCOUNT_QNAME, task, result);
         var op = objectTypesSuggestionOperationFactory.create(
-                mockClient, RESOURCE_DUMMY.oid, OC_ACCOUNT_QNAME, null, null, task, result);
+                mockClient, RESOURCE_DUMMY.oid, OC_ACCOUNT_QNAME, FULL_PERMISSIONS, null, null, task, result);
         var suggestion = op.suggestObjectTypes(statistics, result);
 
         assertThat(suggestion.getObjectType()).hasSize(1);
@@ -275,7 +281,7 @@ public class TestObjectTypesSuggestionOperation extends AbstractSmartIntegration
         TestServiceClientFactory.mockServiceClient(clientFactoryMock, mockClient);
         var statistics = computeStatistics(OC_ACCOUNT_QNAME, task, result);
         var op = objectTypesSuggestionOperationFactory.create(
-                mockClient, RESOURCE_DUMMY.oid, OC_ACCOUNT_QNAME, null, null, task, result);
+                mockClient, RESOURCE_DUMMY.oid, OC_ACCOUNT_QNAME, FULL_PERMISSIONS, null, null, task, result);
         var suggestion = op.suggestObjectTypes(statistics, result);
 
         assertThat(suggestion.getObjectType()).hasSize(1);
@@ -304,7 +310,7 @@ public class TestObjectTypesSuggestionOperation extends AbstractSmartIntegration
                         .filter("attributes/type = 'contractor'"));
         TestServiceClientFactory.mockServiceClient(clientFactoryMock, firstClient);
         var firstOp = objectTypesSuggestionOperationFactory.create(
-                firstClient, RESOURCE_DUMMY.oid, OC_ACCOUNT_QNAME, null, null, task, result);
+                firstClient, RESOURCE_DUMMY.oid, OC_ACCOUNT_QNAME, FULL_PERMISSIONS, null, null, task, result);
         var firstSuggestion = firstOp.suggestObjectTypes(statistics, result);
         assertThat(firstSuggestion.getObjectType()).hasSize(1);
         var contractorType = firstSuggestion.getObjectType().get(0);
@@ -330,7 +336,7 @@ public class TestObjectTypesSuggestionOperation extends AbstractSmartIntegration
                         .filter("attributes/type = 'manager'"));
         TestServiceClientFactory.mockServiceClient(clientFactoryMock, secondClient);
         var secondOp = objectTypesSuggestionOperationFactory.create(
-                secondClient, RESOURCE_DUMMY.oid, OC_ACCOUNT_QNAME, null, null, task, result);
+                secondClient, RESOURCE_DUMMY.oid, OC_ACCOUNT_QNAME, FULL_PERMISSIONS, null, null, task, result);
         var secondSuggestion = secondOp.suggestObjectTypes(statistics, result);
 
         assertThat(secondSuggestion.getObjectType()).hasSize(1);

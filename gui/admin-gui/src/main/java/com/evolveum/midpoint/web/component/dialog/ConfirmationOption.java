@@ -40,6 +40,11 @@ public record ConfirmationOption<T extends Describable>(
                 DataAccessPermission.STATISTICS_ACCESS,
                 null
         ));
+        records.add(new ConfirmationOption<>(
+                Model.of(true),
+                DataAccessPermission.EXISTING_OBJECT_TYPES_ACCESS,
+                null
+        ));
         return records;
     }
 

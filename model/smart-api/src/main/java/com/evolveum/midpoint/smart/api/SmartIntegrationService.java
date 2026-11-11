@@ -197,6 +197,7 @@ public interface SmartIntegrationService {
             String resourceOid,
             QName objectClassName,
             ObjectSetStatisticsType statistics,
+            List<DataAccessPermissionType> permissions,
             @Nullable RegenerateMode regenerateMode,
             @Nullable List<ResourceObjectTypeDefinitionType> previousObjectTypes,
             Task task,

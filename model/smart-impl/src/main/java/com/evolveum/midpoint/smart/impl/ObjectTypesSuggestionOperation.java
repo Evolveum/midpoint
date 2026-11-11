@@ -37,6 +37,7 @@ import com.evolveum.midpoint.smart.impl.scoring.ObjectTypeFiltersValidator;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.DataAccessPermissionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTypesSuggestionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
@@ -61,17 +62,20 @@ class ObjectTypesSuggestionOperation {
     private final OperationContext ctx;
     private final ObjectTypeFiltersValidator filtersValidator;
     private final QName typeName;
+    private final List<DataAccessPermissionType> permissions;
     @Nullable private final RegenerateMode regenerateMode;
     @Nullable private final List<ResourceObjectTypeDefinitionType> previousObjectTypes;
 
     ObjectTypesSuggestionOperation(
             OperationContext context,
             ObjectTypeFiltersValidator filtersValidator,
+            List<DataAccessPermissionType> permissions,
             @Nullable RegenerateMode regenerateMode,
             @Nullable List<ResourceObjectTypeDefinitionType> previousObjectTypes) {
         this.ctx = context;
         this.filtersValidator = filtersValidator;
         this.typeName = ctx.objectClassDefinition.getTypeName();
+        this.permissions = permissions;
         this.regenerateMode = regenerateMode;
         this.previousObjectTypes = previousObjectTypes;
     }
@@ -331,8 +335,10 @@ class ObjectTypesSuggestionOperation {
                 siRequest.getPreviousDelineation().add(toSiSuggestedObjectType(objectType));
             }
         }
-        for (var existingObjectType : getExistingObjectTypes()) {
-            siRequest.getExistingObjectTypes().add(toSiSuggestedObjectType(existingObjectType));
+        if (permissions.contains(DataAccessPermissionType.EXISTING_OBJECT_TYPES_ACCESS)) {
+            for (var existingObjectType : getExistingObjectTypes()) {
+                siRequest.getExistingObjectTypes().add(toSiSuggestedObjectType(existingObjectType));
+            }
         }
         var siResponse = ctx.serviceClient.invoke(SUGGEST_OBJECT_TYPES, siRequest, SiSuggestObjectTypesResponseType.class,
                 ctx.callContext(parentResult));

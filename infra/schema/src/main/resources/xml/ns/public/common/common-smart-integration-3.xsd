@@ -1020,6 +1020,14 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
+            <xsd:enumeration value="existingObjectTypesAccess">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <xsd:documentation>Permission to access existing object type definitions.</xsd:documentation>
+                        <jaxb:typesafeEnumMember name="EXISTING_OBJECT_TYPES_ACCESS"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
         </xsd:restriction>
     </xsd:simpleType>
 
