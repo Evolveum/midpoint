@@ -331,10 +331,33 @@ class ObjectTypesSuggestionOperation {
                 siRequest.getPreviousDelineation().add(toSiSuggestedObjectType(objectType));
             }
         }
+        for (var existingObjectType : getExistingObjectTypes()) {
+            siRequest.getExistingObjectTypes().add(toSiSuggestedObjectType(existingObjectType));
+        }
         var siResponse = ctx.serviceClient.invoke(SUGGEST_OBJECT_TYPES, siRequest, SiSuggestObjectTypesResponseType.class,
                 ctx.callContext(parentResult));
         stripBlankStrings(siResponse);
         return siResponse;
+    }
+
+    /**
+     * Returns object types already defined in the resource's schema handling for this object class.
+     * They are sent to the microservice as locked context so it does not re-suggest them.
+     */
+    private List<ResourceObjectTypeDefinitionType> getExistingObjectTypes() {
+        var schemaHandling = ctx.resource.getSchemaHandling();
+        if (schemaHandling == null) {
+            return List.of();
+        }
+        var existing = new ArrayList<ResourceObjectTypeDefinitionType>();
+        for (var objectType : schemaHandling.getObjectType()) {
+            var delineation = objectType.getDelineation();
+            QName objectClass = delineation != null ? delineation.getObjectClass() : null;
+            if (QNameUtil.match(objectClass, typeName)) {
+                existing.add(objectType);
+            }
+        }
+        return existing;
     }
 
     // FIXME we should fix prism parsing in midPoint to avoid this
@@ -350,7 +373,7 @@ class ObjectTypesSuggestionOperation {
             ResourceObjectTypeDefinitionType objectType) {
         var si = new SiSuggestedObjectTypeType()
                 .kind(objectType.getKind() != null ? objectType.getKind().value() : null)
-                .intent(objectType.getIntent())
+                .intent(StringUtils.defaultIfBlank(objectType.getIntent(), SchemaConstants.INTENT_DEFAULT))
                 .displayName(objectType.getDisplayName())
                 .description(objectType.getDescription());
         var delineation = objectType.getDelineation();

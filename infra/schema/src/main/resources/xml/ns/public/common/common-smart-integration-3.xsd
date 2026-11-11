@@ -1146,6 +1146,14 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="existingObjectTypes" type="tns:SiSuggestedObjectTypeType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Object types already defined in the resource schema handling for this object class.
+                        The microservice treats them as locked context and does not suggest them again.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
 

@@ -335,6 +335,18 @@ public class TestObjectTypesSuggestionOperation extends AbstractSmartIntegration
 
         assertThat(secondSuggestion.getObjectType()).hasSize(1);
         assertThat(secondSuggestion.getObjectType().get(0).getIntent()).isEqualTo("manager");
+
+        var request = (SiSuggestObjectTypesRequestType) ((MockServiceClientImpl) secondClient).getLastRequest();
+        assertThat(request.getExistingObjectTypes())
+                .anySatisfy(t -> {
+                    assertThat(t.getKind()).isEqualTo("account");
+                    assertThat(t.getIntent()).isEqualTo("default");
+                })
+                .anySatisfy(t -> {
+                    assertThat(t.getKind()).isEqualTo("account");
+                    assertThat(t.getIntent()).isEqualTo("contractor");
+                    assertThat(t.getFilter()).containsExactly("attributes/type = 'contractor'");
+                });
     }
 
     @Test
