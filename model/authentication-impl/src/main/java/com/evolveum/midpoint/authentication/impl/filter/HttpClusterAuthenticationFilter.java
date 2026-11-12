@@ -62,10 +62,7 @@ public class HttpClusterAuthenticationFilter extends HttpAuthenticationFilter<St
     @Override
     protected void onUnsuccessfulAuthentication(HttpServletRequest request, HttpServletResponse response, AuthenticationException failed) throws IOException {
         response.setHeader("WWW-Authenticate", AuthenticationModuleNameConstants.CLUSTER + " realm=\"midpoint\"");
-        response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
-        response.getWriter().write(" test error ");
-        response.getWriter().flush();
-        response.getWriter().close();
+        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
     }
 
     @Override
