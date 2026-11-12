@@ -2,7 +2,7 @@
 doc-type: intro
 midpoint-feature: policy-concept
 ---
-= Policy Configuration
+= Policy configuration
 :page-toc: top
 :page-nav-title: Policy Configuration
 :page-since: "4.9"
@@ -53,12 +53,12 @@ This shows the following typical examples of how policies can be used:
 For more, see xref:/midpoint/reference/roles-policies/policies/policy-rule-examples/[policy rule examples].
 
 [[regulatory_compliance_example]]
-=== Regulatory Compliance Example
+=== Regulatory compliance example
 
 +++<iframe width="852" height="480" src="https://www.youtube.com/embed/UrJx_grnmdk?start=589" frameborder="0" allowfullscreen></iframe>+++
 
 [[generic_policy_example]]
-=== Generic Policy Example
+=== Generic policy example
 
 The following generic policy enforces an approval workflow for any assignment of roles or services.
 Specifically, it requires that all owners of the requested object (e.g. role or service) must explicitly approve the assignment before it is completed.
@@ -99,7 +99,7 @@ Specifically, it requires that all owners of the requested object (e.g. role or 
 </policy>
 ----
 
-== See Also
+== See also
 
 * xref:../policy-rules/[]
 
