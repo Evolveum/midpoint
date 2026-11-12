@@ -51,6 +51,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
+import com.evolveum.midpoint.web.component.behavior.JavaScriptEventBehavior;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -293,8 +294,9 @@ public abstract class EndpointsConnectorStepPanel extends AbstractWizardStepPane
         // server-side selectedModel is updated below, in the "change" handler, atomically with
         // the actual value commit, so there is no race with clicking Next (a plain AjaxLink that
         // does not submit the form / re-read the radio group on its own).
-        manualOperation.getBaseFormComponent().add(AttributeAppender.append(
-                "onfocus", "document.getElementById('" + manualRadio.getMarkupId() + "').checked = true;"));
+        manualOperation.getBaseFormComponent().add(new JavaScriptEventBehavior(
+                "focus",
+                () -> "document.getElementById('" + manualRadio.getMarkupId() + "').checked = true;"));
         manualOperation.getBaseFormComponent().add(new AjaxFormComponentUpdatingBehavior("change") {
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
@@ -306,8 +308,9 @@ public abstract class EndpointsConnectorStepPanel extends AbstractWizardStepPane
 
         TextField<String> manualUri = new TextField<>(ID_MANUAL_URI, manualUriModel);
         manualUri.setOutputMarkupId(true);
-        manualUri.add(AttributeAppender.append(
-                "onfocus", "document.getElementById('" + manualRadio.getMarkupId() + "').checked = true;"));
+        manualUri.add(new JavaScriptEventBehavior(
+                "focus",
+                () -> "document.getElementById('" + manualRadio.getMarkupId() + "').checked = true;"));
         manualUri.add(new AjaxFormComponentUpdatingBehavior("change") {
             @Override
             protected void onUpdate(AjaxRequestTarget target) {

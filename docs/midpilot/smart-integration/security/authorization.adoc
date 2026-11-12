@@ -6,7 +6,7 @@
 
 == Overview
 
-Smart Integration recommendation operations send resource and midPoint data to the external Smart Integration microservice (which may use an LLM) and create background tasks.
+Smart Integration recommendation operations send resource and midPoint data to the external Smart Integration AI Service (which may use an LLM) and create background tasks.
 Access to them is controlled by a dedicated authorization, enforced on the backend service, the REST API, and in the GUI.
 
 Statistics are not covered by this authorization; they are protected by regular object-scoped model authorizations.
@@ -35,6 +35,7 @@ Superuser has both authorizations via `+http://midpoint.evolveum.com/xml/ns/publ
 No other out-of-the-box role grants them.
 Grant them explicitly to custom roles that should use Smart Integration, e.g. resource administrators.
 
+[#statistics-and-smart-integration-artifacts]
 == Statistics and Smart Integration Artifacts
 
 Object type and object class statistics, as well as schema match results, are stored as `SmartIntegrationArtifactType` objects.

@@ -6,6 +6,9 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.connection;
 
+import java.net.URI;
+import java.net.URISyntaxException;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -273,8 +276,9 @@ public class BaseUrlConnectorStepPanel extends AbstractFormWizardStepPanel<Conne
 
     @Override
     public boolean onNextPerformed(AjaxRequestTarget target) {
-        if (StringUtils.isBlank(getCurrentUrlValue())) {
-            getPageBase().error(createStringResource("BaseUrlConnectorStepPanel.urlRequired").getString());
+        String urlError = validateUrl(getCurrentUrlValue());
+        if (urlError != null) {
+            getPageBase().error(urlError);
             target.add(getFeedback());
             return false;
         }
@@ -286,6 +290,24 @@ public class BaseUrlConnectorStepPanel extends AbstractFormWizardStepPanel<Conne
             target.add(getFeedback());
         }
         return false;
+    }
+
+    private String validateUrl(String url) {
+        if (StringUtils.isBlank(url)) {
+            return createStringResource("BaseUrlConnectorStepPanel.urlRequired").getString();
+        }
+        String trimmed = url.trim();
+        try {
+            URI uri = new URI(trimmed);
+            boolean httpScheme = "http".equalsIgnoreCase(uri.getScheme()) || "https".equalsIgnoreCase(uri.getScheme());
+            return httpScheme && StringUtils.isNotEmpty(uri.getAuthority()) ? null : invalidUrlMessage();
+        } catch (URISyntaxException e) {
+            return createStringResource("BaseUrlConnectorStepPanel.urlInvalid.syntax", e.getMessage()).getString();
+        }
+    }
+
+    private String invalidUrlMessage() {
+        return createStringResource("BaseUrlConnectorStepPanel.urlInvalid").getString();
     }
 
     private String getCurrentUrlValue() {

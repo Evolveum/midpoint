@@ -19,8 +19,10 @@ import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.markup.html.TransparentWebMarkupContainer;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
@@ -73,7 +75,6 @@ public class PagePostAuthentication extends PageAbstractFlow {
     private static final String ID_MAIN_PANEL = "main";
     private static final String ID_PASSWORD_PANEL = "password";
 
-
     private IModel<UserType> userModel;
     private PrismObjectWrapper<UserType> objectWrapper;
     private Panel mainPanel;
@@ -85,6 +86,12 @@ public class PagePostAuthentication extends PageAbstractFlow {
 
     public PagePostAuthentication(PageParameters pageParameters) {
         super(pageParameters);
+    }
+
+    @Override
+    protected void addDefaultBodyStyle(TransparentWebMarkupContainer body) {
+        super.addDefaultBodyStyle(body);
+        body.add(AttributeModifier.append("class", "page-post-authentication"));
     }
 
     @Override
