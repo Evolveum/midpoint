@@ -245,11 +245,8 @@ public abstract class SingleSearchItemPanel<S extends AbstractSearchItemWrapper>
                 response.render(OnDomReadyHeaderItem.forScript(
                         "var element = document.getElementById('" + markupId + "');"
                                 + "if (element) { element.addEventListener('keydown', function(event) { "
-                                + "if (event.keyCode == 13){"
-                                + "var autocompletePopup = document.getElementsByClassName(\"wicket-aa-container\");"
-                                + "if(autocompletePopup != null && autocompletePopup[0].style.display == \"none\"){"
-                                + "$('[about=\"searchSimple\"]').click();}}"
-                                + ";}, true); }"));
+                                + "window.MidPointTheme.triggerSearchOnEnterIfAutocompleteClosed(event, 'searchSimple');"
+                                + "}, true); }"));
             }
         });
         return autoCompletePanel;

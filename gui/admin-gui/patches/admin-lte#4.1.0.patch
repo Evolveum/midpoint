@@ -1,7 +1,8 @@
 diff --git admin-lte/dist/js/adminlte.esm.js admin-lte/dist/js/adminlte.esm.js
 --- admin-lte/dist/js/adminlte.esm.js
 +++ admin-lte/dist/js/adminlte.esm.js
-@@ -1092,18 +1092,6 @@ class AccessibilityManager {
+@@ -1092,18 +1092,7 @@ class AccessibilityManager {
++        // Reduced-motion CSS is bundled externally to avoid CSP-incompatible <style> injection.
          if (prefersReducedMotion) {
              document.body.classList.add('reduce-motion');
              document.documentElement.style.scrollBehavior = 'auto';

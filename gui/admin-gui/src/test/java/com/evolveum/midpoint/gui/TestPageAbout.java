@@ -15,10 +15,6 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.wicket.Component;
-import org.apache.wicket.behavior.Behavior;
-import org.apache.wicket.markup.head.CssHeaderItem;
-import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.util.tester.TagTester;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.DirtiesContext;
@@ -47,7 +43,6 @@ public class TestPageAbout extends AbstractInitializedGuiIntegrationTest {
     private static final String RAW_GIT_HASH = "[0-9a-fA-F]{7,64}";
     private static final Set<String> INVALID_GIT_VALUES = Set.of("unknown", "null");
     private static final Pattern CSP_NONCE_PATTERN = Pattern.compile("'nonce-([^']+)'");
-    private static final String TEST_CSS_ID = "csp-nonce-test-css";
 
     @Test
     public void test001AboutPageShowsGeneratedGitMetadata() throws Exception {
