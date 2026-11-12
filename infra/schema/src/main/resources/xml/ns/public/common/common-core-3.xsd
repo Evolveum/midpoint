@@ -16111,6 +16111,22 @@
             </xsd:enumeration>
         </xsd:restriction>
     </xsd:simpleType>
+    <xsd:complexType name="JsonCustomFieldType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Custom field added to every JSON log record, as a name and value pair.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:displayName>JsonCustomFieldType.details</a:displayName>
+                <a:since>4.12</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="name" type="xsd:string"/>
+            <xsd:element name="value" type="xsd:string" />
+        </xsd:sequence>
+    </xsd:complexType>
 
     <xsd:simpleType name="AppenderFormatType">
         <xsd:annotation>
@@ -16203,14 +16219,13 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="customFields" type="xsd:string" minOccurs="0">
+            <xsd:element name="customField" type="tns:JsonCustomFieldType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Fixed fields added to every record, as a JSON object,
-                        e.g. {"application":"midpoint","environment":"prod"}.
+                        Custom fields added to every JSON log record. Each field has a name and a value.
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <a:displayName>JsonFormatConfigurationType.customFields</a:displayName>
+                        <a:displayName>JsonFormatConfigurationType.customField</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>

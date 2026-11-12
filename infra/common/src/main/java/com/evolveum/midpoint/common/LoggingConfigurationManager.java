@@ -14,6 +14,10 @@ import java.nio.charset.StandardCharsets;
 import java.time.DateTimeException;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
@@ -29,11 +33,9 @@ import org.apache.commons.text.StringEscapeUtils;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.VisibleForTesting;
 import org.slf4j.bridge.SLF4JBridgeHandler;
-import tools.jackson.core.JacksonException;
-import tools.jackson.databind.DeserializationFeature;
-import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.databind.node.ObjectNode;
 
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.common.configuration.api.ProfilingMode;
@@ -69,8 +71,8 @@ public class LoggingConfigurationManager {
 
     private static final String SHORTENED_THROWABLE_CONVERTER_CLASS_NAME = ShortenedThrowableConverter.class.getName();
 
-    private static final ObjectMapper JSON_VALIDATOR = JsonMapper.builder().enable(DeserializationFeature
-            .FAIL_ON_TRAILING_TOKENS).build();
+
+    private static final ObjectMapper JSON_MAPPER = JsonMapper.builder().build();
 
     /**
      * Used by ALT and TRACING appenders when the root appender has no pattern (e.g. it uses JSON format).
@@ -534,8 +536,20 @@ public class LoggingConfigurationManager {
         String indent = "\t\t\t";
         appendEscapedProp(sb, indent, "timestampPattern", json.getTimestampPattern());
         appendEscapedProp(sb, indent, "timeZone", json.getTimeZone());
-        appendEscapedProp(sb, indent, "customFields", json.getCustomFields());
+      //  appendEscapedProp(sb, indent, "customFields", json.getCustomField());
+        prepareCustomFieldsProperty(sb,json.getCustomField() );
         prepareStacktraceProperties(sb, indent, json);
+    }
+
+    private static void prepareCustomFieldsProperty(StringBuilder sb, List<JsonCustomFieldType> customFields) {
+        if (customFields.isEmpty()) {
+            return;
+        }
+        ObjectNode node = JSON_MAPPER.createObjectNode(); // keeps the order of insertion
+        for (JsonCustomFieldType field : customFields) {
+            node.put(field.getName(), field.getValue());
+        }
+        appendEscapedProp(sb, "\t,\t,\t", "customFields", JSON_MAPPER.writeValueAsString(node));
     }
 
     private static void prepareStacktraceProperties(StringBuilder sb, String indent, JsonFormatConfigurationType json) {
@@ -583,18 +597,36 @@ public class LoggingConfigurationManager {
             throw new SchemaException("Maximum stack trace depth must be at least 1 in JSON settings of appender '"
                     + appenderName + "'.");
         }
-        String customFields = json.getCustomFields();
+        List<JsonCustomFieldType> customFields = json.getCustomField();
         if (customFields != null) {
-            try {
-                JsonNode node = JSON_VALIDATOR.readTree(customFields);
-                if (node == null || !node.isObject()) {
-                    throw new SchemaException("Custom fields must be a JSON object in JSON settings of appender '"
-                            + appenderName + "'.");
-                }
-            } catch (JacksonException e) {
-                throw new SchemaException("Custom fields are not valid JSON in JSON settings of appender '"
-                        + appenderName + "': " + e.getOriginalMessage(), e);
-            }
+            validateCustomFields(appenderName, customFields);
+        }
+    }
+
+    private static void validateCustomFields(String appenderName, List<JsonCustomFieldType> customFields)
+            throws SchemaException {
+        if (customFields.stream().anyMatch(field -> StringUtils.isBlank(field.getName()))) {
+            throw new SchemaException("Custom field name must not be empty in appender '" + appenderName + "'.");
+        }
+
+        Optional<String> duplicateName = customFields.stream()
+                .collect(Collectors.groupingBy(JsonCustomFieldType::getName, Collectors.counting()))
+                .entrySet().stream()
+                .filter(entry -> entry.getValue() > 1)
+                .map(Map.Entry::getKey)
+                .findFirst();
+        if (duplicateName.isPresent()) {
+            throw new SchemaException("Custom field name '" + duplicateName.get()
+                    + "' is used more than once in appender '" + appenderName + "'.");
+        }
+
+        Optional<String> nameWithoutValue = customFields.stream()
+                .filter(field -> field.getValue() == null)
+                .map(JsonCustomFieldType::getName)
+                .findFirst();
+        if (nameWithoutValue.isPresent()) {
+            throw new SchemaException("Custom field '" + nameWithoutValue.get()
+                    + "' has no value in appender '" + appenderName + "'.");
         }
     }
 

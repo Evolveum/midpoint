@@ -137,8 +137,8 @@ public class LoggingConfigurationManagerTest {
         String customFields = "{\"app\":\"midpoint\",\"note\":\"a<b & c 'x'\"}";
 
         JsonFormatConfigurationType json = new JsonFormatConfigurationType();
-        json.setCustomFields(customFields);
-
+        json.getCustomField().add(customField("app", "midpoint"));
+        json.getCustomField().add(customField("note", "a<b & c 'x' \"q\" \\"));
         FileAppenderConfigurationType appenderConfig = new FileAppenderConfigurationType();
         appenderConfig.setName("ESCAPING_JSON");
         appenderConfig.setFileName(logFile.getAbsolutePath());
@@ -233,20 +233,6 @@ public class LoggingConfigurationManagerTest {
         assertThat(limited.length()).isLessThan(full.length());
     }
 
-    @Test(expectedExceptions = SchemaException.class)
-    public void testJsonCustomFieldsNotJsonFails() throws Exception {
-        AppenderConfigurationType appender = jsonAppender("JSON");
-        appender.getJson().setCustomFields("app:MidPointTest");
-        LoggingConfigurationManager.prepareCommonAppenderFooter(new StringBuilder(), appender);
-    }
-
-    @Test
-    public void testJsonCustomFieldsObjectIsAccepted() throws Exception {
-        AppenderConfigurationType appender = jsonAppender("JSON");
-        appender.getJson().setCustomFields("{\"app\":\"MidPointTest\"}");
-        LoggingConfigurationManager.prepareCommonAppenderFooter(new StringBuilder(), appender);   // no exception
-    }
-
     private String logExceptionThroughJsonAppender(String name, JsonFormatConfigurationType json)
             throws Exception {
         File logFile = new File("target/test-json-" + name + ".log");
@@ -295,6 +281,13 @@ public class LoggingConfigurationManagerTest {
         } catch (Exception e) {
             return new RuntimeException("level " + depth, e);
         }
+    }
+
+    private static JsonCustomFieldType customField(String name, String value) {
+        JsonCustomFieldType field = new JsonCustomFieldType();
+        field.setName(name);
+        field.setValue(value);
+        return field;
     }
 
 }
