@@ -337,9 +337,18 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
             protected boolean isDuplicationSupported() {
                 return false;
             }
+
+            @Override
+            protected String getTableContainerAdditionalCssClasses() {
+                return AbstractRoleMemberPanel.this.getMemberTableContainerAdditionalCssClasses();
+            }
         };
         childrenListPanel.setOutputMarkupId(true);
         memberContainer.add(childrenListPanel);
+    }
+
+    protected String getMemberTableContainerAdditionalCssClasses() {
+        return null;
     }
 
     protected SearchContext getDefaultMemberSearchBoxConfig() {
