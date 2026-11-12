@@ -35,6 +35,12 @@ public interface MidpointConfiguration {
     String MIDPOINT_MODEL_ORG_TREE_SEARCH_WIDTH_BATCH_SIZE_PROPERTY =
             "midpoint.model.orgTreeSearchWidthBatchSize";
 
+    /** Whether the REST API is enabled. */
+    String REST_API_ENABLED_PROPERTY = "midpoint.rest.api.enabled";
+
+    /** Whether the cluster REST endpoints are enabled */
+    String REST_CLUSTER_ENABLED_PROPERTY = "midpoint.rest.cluster.enabled";
+
     // Names of configuration sections
     String AUDIT_CONFIGURATION = "midpoint.audit";
     String SYSTEM_CONFIGURATION = "midpoint.system";
@@ -51,6 +57,8 @@ public interface MidpointConfiguration {
     String WORKFLOW_CONFIGURATION = "midpoint.workflow";
     String INTERNALS_CONFIGURATION = "midpoint.internals";
     String EXPRESSIONS_CONFIGURATION = "midpoint.expressions";
+    String REST_CONFIGURATION = "midpoint.rest";
+    String ACTUATOR_CONFIGURATION = "midpoint.actuator";
 
     String ADMINISTRATOR_INITIAL_PASSWORD = "midpoint.administrator.initialPassword";
 
@@ -129,6 +137,12 @@ public interface MidpointConfiguration {
 
     /** Returns "midpoint.connectors" section of the system configuration. */
     @NotNull ConnectorsConfigurationSection getConnectorsSection();
+
+    /** Returns "midpoint.rest" section of the startup configuration ({@code config.xml}, {@code -D} options). */
+    @NotNull RestConfigurationSection getRestConfigurationSection();
+
+    /** Returns "midpoint.actuator" section of the startup configuration ({@code config.xml}, {@code -D} options). */
+    @NotNull ActuatorConfigurationSection getActuatorConfigurationSection();
 
     /**
      * Returns {@code true} if unsafe scripting languages (Groovy, full Velocity, Python, etc) are disallowed globally
