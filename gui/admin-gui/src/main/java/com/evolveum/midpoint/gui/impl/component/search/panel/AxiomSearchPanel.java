@@ -15,6 +15,7 @@ import com.evolveum.midpoint.prism.impl.query.lang.AxiomQueryContentAssistImpl;
 import com.evolveum.midpoint.prism.query.Suggestion;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.behavior.JavaScriptEventBehavior;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
 
@@ -146,7 +147,9 @@ public class AxiomSearchPanel extends BasePanel<AxiomQueryWrapper> {
             }
         });
 
-        queryDslField.add(AttributeAppender.append("onkeydown", "window.MidPointTheme.triggerAutocompleteShortcut(event, this);"));
+        queryDslField.add(new JavaScriptEventBehavior(
+                "keydown",
+                "window.MidPointTheme.triggerAutocompleteShortcut(event, this);"));
         queryDslField.add(AttributeAppender.append("autocomplete", "off"));
         add(queryDslField);
 

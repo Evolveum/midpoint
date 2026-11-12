@@ -8,6 +8,7 @@ package com.evolveum.midpoint.gui.impl.validator;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
+import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.prism.PrismContext;
 
 import com.evolveum.midpoint.xml.ns._public.prism_schema_3.PrismSchemaType;
@@ -62,9 +63,10 @@ public class SchemaDefaultPrefixValidator implements IValidator<String> {
         }
 
         ValidationError error = new ValidationError();
-        error.addKey("SchemaDefaultPrefixValidator.prefixExist");
-        error.setVariable("0", value);
-        error.setMessage("Prefix '" + value + "' already exist.");
+        error.setMessage(LocalizationUtil.translate(
+                "SchemaDefaultPrefixValidator.prefixExist",
+                new Object[] { value },
+                "Prefix '" + value + "' already exist."));
         validatable.error(error);
     }
 }

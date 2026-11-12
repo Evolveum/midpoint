@@ -49,7 +49,7 @@ public abstract class AjaxDownloadBehaviorFromFile extends AbstractAjaxBehavior 
         }
 
         // the timeout is needed to let Wicket release the channel
-        target.appendJavaScript("setTimeout(\"window.location.href='" + url + "'\", 100);");
+        target.appendJavaScript("setTimeout(function() { window.location.href='" + url + "'; }, 100);");
     }
 
     public void onRequest() {

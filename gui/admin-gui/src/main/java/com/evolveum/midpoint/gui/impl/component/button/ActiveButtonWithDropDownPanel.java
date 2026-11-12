@@ -11,18 +11,16 @@ import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.web.component.AjaxButton;
 
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
+import com.evolveum.midpoint.web.component.behavior.JavaScriptEventBehavior;
 
 import org.apache.wicket.AttributeModifier;
-import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.behavior.Behavior;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
 
 import java.util.List;
 
@@ -104,22 +102,9 @@ public abstract class ActiveButtonWithDropDownPanel<T> extends BasePanel<List<T>
                     }
                 };
 
-                ajaxSubmitPanel.add(new Behavior() {
-
-                    private static final long serialVersionUID = 1L;
-
-                    @Override
-                    public void bind(Component component) {
-                        super.bind(component);
-
-                        component.add(AttributeModifier.replace("onkeydown",
-                                Model.of(
-                                        "if (event.keyCode == 32){"
-                                                + "this.click();"
-                                                + "}"
-                                )));
-                    }
-                });
+                ajaxSubmitPanel.add(new JavaScriptEventBehavior(
+                        "keydown",
+                        "if (event.keyCode == 32){this.click();}"));
 
                 item.add(ajaxSubmitPanel);
             }

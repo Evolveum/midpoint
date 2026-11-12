@@ -1,4 +1,4 @@
-= Microservice configuration
+= Configuration
 :page-toc: top
 :page-since: "4.11.0"
 :page-upkeep-status: green
@@ -6,7 +6,7 @@
 
 == Overview
 
-The Smart Integration microservice is configured by environment variables.
+The Smart Integration Microservice is configured by environment variables.
 It has no configuration file, and it does not read any configuration from midPoint.
 
 The variables are grouped into sections.
@@ -81,10 +81,10 @@ The API key is not included in the message.
 
 === Provider and model in midPoint
 
-The microservice returns `LLM__PROVIDER_NAME` and `LLM__MODEL_NAME` in the response of the xref:endpoints/health.adoc[health check].
+The microservice returns `LLM\__PROVIDER_NAME` and `LLM__MODEL_NAME` in the response of the xref:endpoints/health.adoc[health check].
 MidPoint shows them in the GUI, so that the user knows which AI provider and model process the data.
 
-The health check also verifies that the LLM provider is reachable with the configured API key and that `LLM__MODEL_NAME` is among the models offered by the provider.
+The health check also verifies that the LLM provider is reachable with the configured API key and that `LLM__MODEL_NAME` and is among the models offered by the provider.
 If not, the health check reports an error.
 
 === Timeouts
@@ -92,7 +92,7 @@ If not, the health check reports an error.
 `LLM__REQUEST_TIMEOUT` limits the whole processing of one LLM call, including a retry when the answer of the model cannot be parsed.
 When the time runs out, the call is cancelled and the request fails with the HTTP status `504`.
 
-MidPoint has its own timeout for waiting for the response, `serviceResponseTimeout` (120 seconds by default), see xref:../configuration.adoc#_microservice_connection[Microservice connection].
+MidPoint has its own timeout for waiting for the response, `serviceResponseTimeout` (120 seconds by default), see xref:../configuration.adoc#_ai_service_connection[AI service connection].
 Keep the midPoint timeout at least as long as `LLM__REQUEST_TIMEOUT`.
 Otherwise midPoint stops waiting before the microservice can return the result or the timeout error.
 
