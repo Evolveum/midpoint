@@ -99,51 +99,11 @@ Specifically, it requires that all owners of the requested object (e.g. role or 
 </policy>
 ----
 
-== Privileged Access Classification
-
-MidPoint contains a pre-defined classification `Privileged access`.
-This classification is meant to mark roles that provide privileged access to systems.
-
-.Privileged access
-TIP: Privileged access is defined as an entitlement which allows performing activities that typical entities in the system cannot perform. See glossref:privileged-entitlement[].
-
-Classification `Privileged access` is an ordinary midPoint classification in its essence.
-It is meant to classify application roles that represent privileged entitlements of identity resources, such as `Domain Admins` or `root` groups.
-
-// TODO: How this classification is used, how to report all privileged access, dashboard, etc.
-
-== Further Tips
-
-* Classifications can be used to place requirements on users that have access to classified systems.
-E.g. Category III classification in the <<example,example above>> can be used to make sure that users accessing category III systems have enrolled in a multi-factor authentication.
-However, the details how the multi-factor authentication is set up is specific to the authentication (access management) system used in conjunction with midPoint.
-MidPoint cannot enforce multi-factor authentication alone.
-// TODO: create an example for this: Add new clearance "access to internal information", which will be required by cat.III. This clearance will be included in "Employee" archetype and in "NDA" clearance.
-// TODO: Refer from ISO 27001 5.14
-
-* Classifications (labels) can be used to set up certification policies.
-E.g. certify access to category III systems every 6 months, certify access to category II annually and category I is certified bi-annually.
-// TODO: create an example for this, after 4.9 when new certification settles in.
-// TODO: Refer from ISO 27001 5.13
-
-* As clearances are assigned to users using ordinary feature:assignment[assignments], feature:access-certification[access certification] features can be used to regularly re-certify the clearances. Furthermore, the feature:schema-activation[activation mechanisms] of the assignment can be used to assign clearances for a limited time period.
-// TODO: create an example for this, after 4.9 when new certification settles in.
-// TODO: Refer from ISO 27001 5.6
-
-// TODO * As classifications (labels) are assigned to relevant objects using ordinary feature:assignment[assignments], feature:access-certification[access certification] features can be used to regularly re-certify the classifications.
-// TODO: we need ability to replace assignment in certification, not just removal of assignment
-// TODO: create an example for this, after 4.9 when new certification settles in.
-// TODO: Refer from ISO 27001 5.12
-
-// TODO: recommendation: model all "special" privileges or states as clearances, e.g. NDA, security trainings, clearances based on inspections and investigations. This means that they can be re-verified using ordinary certification. (ISO27001 5.16)
-
 == See Also
 
 * xref:../policy-rules/[]
 
 * xref:../metaroles/[]
-
-* xref:/midpoint/features/planned/classification/[]
 
 * xref:/midpoint/reference/schema/policy[]
 
