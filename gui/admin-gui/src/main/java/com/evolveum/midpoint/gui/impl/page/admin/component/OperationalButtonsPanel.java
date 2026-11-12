@@ -15,7 +15,6 @@ import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.behavior.Behavior;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.link.AbstractLink;
@@ -46,6 +45,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxCompositedIconSubmitButton;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
+import com.evolveum.midpoint.web.component.behavior.JavaScriptEventBehavior;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
 import com.evolveum.midpoint.web.component.dialog.DeleteConfirmationPanel;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
@@ -109,22 +109,9 @@ public class OperationalButtonsPanel<O extends ObjectType> extends BasePanel<Pri
                     }
 
                     if (button instanceof AbstractLink) {
-                        button.add(new Behavior() {
-
-                            @Serial private static final long serialVersionUID = 1L;
-
-                            @Override
-                            public void bind(Component component) {
-                                super.bind(component);
-
-                                component.add(AttributeModifier.replace("onkeydown",
-                                        Model.of(
-                                                "if (event.keyCode == 32 || event.keyCode == 13){"
-                                                        + "this.click();"
-                                                        + "}"
-                                        )));
-                            }
-                        });
+                        button.add(new JavaScriptEventBehavior(
+                                "keydown",
+                                "if (event.keyCode == 32 || event.keyCode == 13){this.click();}"));
                         button.add(AttributeAppender.append("role", "button"));
                         button.add(AttributeAppender.append("tabindex", "0"));
                     }

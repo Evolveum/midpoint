@@ -45,6 +45,7 @@ Moreover, midPoint 4.11.0 made a significant leap towards secure-by-default conf
 
 * Failed password reset attempts are now recorded in the audit log, improving security monitoring and troubleshooting.
 * Improved Spring Security initialization by replacing ignored URL patterns with a dedicated security filter chain, preserving existing authentication behavior.
+* Hardened Content Security Policy by removing unsafe-inline and unsafe-eval JavaScript permissions and restricting inline CSS in <style> elements.
 // TODO
 
 ==== User Interface
