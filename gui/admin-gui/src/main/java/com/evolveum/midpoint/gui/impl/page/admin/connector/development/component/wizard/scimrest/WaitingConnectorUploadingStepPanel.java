@@ -52,6 +52,7 @@ public class WaitingConnectorUploadingStepPanel extends WaitingConnectorStepPane
 
     public WaitingConnectorUploadingStepPanel(WizardPanelHelper<? extends Containerable, ConnectorDevelopmentDetailsModel> helper) {
         super(helper);
+        markAsReloaded(); // Package the current files instead of reusing a previous task result
     }
 
     @Override
