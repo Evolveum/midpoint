@@ -81,6 +81,10 @@ The best way how to avoid configuration discrepancy like this is to have common 
 If that is not possible or practical, make sure that all nodes use the same settings.
 ====
 
+Cluster nodes also expose a privileged direct communication interface.
+Node admission itself is based on registration in the shared repository, the direct HTTP interface is not a node-enrollment mechanism.
+Before deploying a production cluster, review xref:./security.adoc[Secure Intra-Cluster Communication], including its TLS, network isolation, repository protection, and trust assumptions.
+
 When deploying clustered nodes, ensure your *system time is synchronized* across all nodes (using link:https://en.wikipedia.org/wiki/Network_Time_Protocol[NTP] or similar service).
 Otherwise, unexpected behaviour may occur, such as tasks restarting on different nodes.
 
@@ -162,6 +166,11 @@ the node URLs used for intra-cluster communication (e.g., `https://node1.acme.or
     ** `*$path*` for midPoint URL path: obtained dynamically from the servlet container.
 . Computed based on the protocol scheme obtained dynamically from the Tomcat objects, host name, port, and servlet path as `scheme://host:port/path`.
 
+The resulting URL determines where a node sends its cluster authentication credential.
+Treat node URLs, URL overrides, and the configuration used to derive them as security-sensitive values.
+Use HTTPS and restrict permission to modify node objects and cluster URL configuration.
+See xref:./security.adoc#destination-url-trust[Destination URL Trust] for details.
+
 When troubleshooting these mechanisms, you can set logging to `DEBUG` for `com.evolveum.midpoint.task.quartzimpl.cluster.NodeRegistrar` (or the whole task manager module).
 
 === Define URL pattern for inter-node communication
@@ -220,14 +229,17 @@ To summarize, *all communication regarding work distribution happens between the
 
 However, there are *situations when nodes need to talk to each other* directly.
 A notable occasion requiring node-to-node communication is *cache invalidation*.
-When a node changes data in the midPoint database, the node informs other nodes about the need to invalidate their cache.
+For object types and caches configured for cluster-wide invalidation, the node changing data informs other eligible nodes about the need to invalidate their caches.
 See also <<technical-insight-into-cache,Technical Insight into Cache>>.
 
-Another reason for nodes to communicate directly is user session handling.
+Another reason for nodes to communicate directly is *user session handling*.
 After an operation on one node changes user attributes, such as assigned roles or permissions,
 the node propagates this information to other nodes to let them know
 they need to update their information on what the user can or cannot do.
 They may need to drop the session altogether if the user has been deactivated.
+
+Other direct operations include remote scheduler and task control, and transferring node-local report or connector output files.
+These messages are synchronous and are not stored in a durable inter-node queue.
 
 These situations requiring direct node-to-node communication are the reason why you need to specify an HTTP URL pattern.
 It is used by midPoint nodes to communicate among themselves.
@@ -237,16 +249,18 @@ It is used by midPoint nodes to communicate among themselves.
 Since midPoint 4.0, nodes communicate over HTTP instead of JMX.
 ====
 
-=== You May Get Redirected Between Nodes
+=== Retrieving Reports from Another Node
 
-To help you understand the intra-cluster communication further,
-here is an example of a situation when direct node-to-node communication does not happen, although you may expect it would.
+To help you understand intra-cluster communication further,
+here is an example of a situation where nodes communicate directly with each other.
 
-If a node runs a task to feature:reporting[create a report], for example, the resulting report file is saved on the local file system of the node.
-If user sitting on a different node requests the report for download,
-the node on which the user is asks the central DB for the location of the report
-and then redirects the user to the node with the generated report.
-Hence, inter-node communication does not occur in this case.
+If a node runs a task to feature:reporting[create a report], the resulting report file is saved on that node's local file system.
+If a user connected to a different node requests the report for download,
+the node handling the request first checks whether the file is available locally.
+If it is not, the node retrieves the file from another node through the authenticated cluster HTTP interface
+and serves it to the user's browser without redirecting them to another node.
+
+Hence, direct inter-node communication occurs when the report file is not available locally.
 
 == Technical Insight into Cache
 
@@ -275,8 +289,8 @@ These are the critical criteria your configuration must meet:
 Here are a few common issues, their possible causes, and tips on how to resolve them:
 
 . *Unauthorized errors (401)*
-    ** Cause: Missing or invalid subscription ID or misconfigured REST authentication.
-    ** Fix: Set a valid subscription ID in System > System Configuration > Deployment Information > Subscriptions Identifier. Ensure nodes can authenticate via REST (e.g., shared secrets or OAuth2 if configured).
+    ** Cause: Missing or invalid subscription ID, invalid cluster-node credentials, incorrect source address, or inconsistent repository encryption keys.
+    ** Fix: Set a valid subscription ID in System > System Configuration > Deployment Information > Subscriptions Identifier. Verify node registration, source addresses, shared encryption keys, and cluster-node authentication.
 . *Node discovery failures*
     ** Cause: Incorrect `intraClusterHttpUrlPattern` setting or firewall rules blocking HTTP(S) traffic.
     ** Fix: Check your deployment configuration and all possibly related network settings. Test connectivity between nodes using `curl` or a similar tool.
@@ -319,3 +333,5 @@ The following aspects must be the same on all cluster nodes:
 * xref:/midpoint/reference/tasks/activities/distribution/[]
 
 * xref:/midpoint/get-started/install/system-requirements/[]
+
+* xref:./security.adoc[Secure Intra-Cluster Communication]

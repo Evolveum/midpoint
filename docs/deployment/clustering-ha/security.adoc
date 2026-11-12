@@ -1,0 +1,271 @@
+---
+midpoint-feature: ha
+doc-type: config
+---
+= Secure Intra-Cluster Communication
+:page-nav-title: Secure Cluster Communication
+:page-upkeep-status: yellow
+:page-toc: top
+:page-description: Understand the security model, trust assumptions, and deployment requirements of midPoint intra-cluster communication.
+:page-keywords: clustering, security, authentication, TLS, node communication
+
+MidPoint cluster nodes coordinate primarily through a shared repository.
+For operations that require an immediate response from a particular node, they also communicate directly over HTTP or HTTPS.
+This page describes the security model of this direct communication and the responsibilities of deployment administrators.
+
+[IMPORTANT]
+====
+Cluster communication is a privileged internal interface.
+Do not expose cluster endpoints to untrusted networks.
+Use HTTPS and network-level access controls for production deployments.
+====
+
+== Security Responsibilities
+
+[%autowidth]
+|===
+| Category | Description
+
+| Enforced by midPoint
+| Per-node secret authentication, source-address verification, rejection of unknown and `DOWN` nodes, and authentication checks on cluster operations.
+
+| Deployment responsibilities
+| Protection of the shared repository and encryption keys, trusted node configuration, unique node identifiers, and restricted repository access.
+| Recommended but not enforced
+| HTTPS for cluster communication, network isolation, restricted access to cluster endpoints, and outbound network restrictions.
+|===
+
+== Communication Architecture
+
+All nodes in a cluster use the same midPoint repository.
+Node registrations, tasks, activity state, work buckets, and other shared state are stored there.
+Each node runs its own Quartz scheduler, while the shared database coordinates task scheduling and prevents conflicting execution.
+Task scheduling through the shared database and direct cluster HTTP authentication are separate mechanisms.
+
+Some operations use direct node-to-node HTTP communication instead of, or in addition to, the shared repository.
+These operations include:
+
+* Cache invalidation.
+* Listing and terminating user sessions.
+* Reading scheduler information and starting or stopping a scheduler.
+* Stopping a task on the node where it is running and retrieving that node's task state.
+* Retrieving or deleting report output and connector development files stored on a node-local file system.
+
+The shared repository is the durable source of cluster state.
+Direct HTTP calls are synchronous operational messages and are not a durable messaging system.
+
+== Node Registration and Discovery
+
+Each running instance registers a `NodeType` object in the shared repository.
+The object contains the node identifier, hostname, IP addresses, operational state, last check-in time, intra-cluster URL, and protected authentication secret.
+
+There is no HTTP admission or node-enrollment endpoint.
+During startup, midPoint creates or updates the local NodeType record and manages its authentication secret.
+The node becomes visible to its peers through this shared repository state, independently of any direct HTTP request to another node.
+
+Nodes are registered through the shared repository, so anyone with sufficient access to create or modify node records can influence cluster membership.
+Therefore, repository credentials and direct database access must be protected.
+
+The node periodically updates its registration and check-in time.
+Other nodes discover peers by searching these node objects.
+Nodes that stop cleanly are marked `DOWN`. Stale nodes can also be recognized using their last check-in time.
+
+Stale `UP` nodes can be marked `DOWN` by cluster maintenance.
+A node in the `STARTING` state is allowed to authenticate because startup processing can require direct cluster communication.
+Currently, a node that remains in `STARTING` beyond the startup timeout is reported in the log but is not automatically changed to `DOWN` by that check.
+Configured dead-node cleanup can remove a non-checking-in record later.
+Do not treat the startup timeout alone as immediate credential revocation.
+
+Each node identifier must be unique.
+All nodes sharing one repository must use compatible cluster configuration and must be able to decrypt protected values stored by the other nodes.
+
+See xref:./index.adoc#how-intra-cluster-urls-are-determined[How Intra-Cluster URLs Are Determined] and xref:./managing-cluster-nodes.adoc[Manage Cluster Nodes] for configuration and lifecycle details.
+
+== Cluster Authentication
+
+Direct requests use a dedicated HTTP authorization scheme:
+
+[source,http]
+----
+Authorization: Cluster <base64-encoded-node-secret>
+----
+
+Base64 is an encoding, not encryption.
+The confidentiality of this header depends on TLS and network protection.
+The credential is reusable until it is rotated and is not cryptographically bound to an individual request.
+
+=== Outgoing Requests
+
+Before sending a request, the initiating node decrypts its own stored authentication secret and places its Base64-encoded value in the `Authorization` header.
+The credential identifies the sending node, not the destination node.
+
+=== Incoming Requests
+
+The receiving node:
+
+. Selects eligible registered node objects using the HTTP peer address.
+. Excludes nodes in the `DOWN` state. Nodes in the `STARTING` state are eligible because they can issue requests during startup.
+. Decrypts the stored secrets of the matching registered nodes and checks whether one matches the secret provided in the request.
+. Creates an authenticated node identity for the matching node.
+
+The peer address is the address reported by the servlet request.
+Node authentication does not use `X-Forwarded-For` or similar forwarded-client headers.
+If a reverse proxy, NAT gateway, or service mesh is placed between cluster nodes, this can be the intermediary address instead of the originating node address.
+The network topology and registered node addresses must be configured consistently.
+Only trusted intermediaries should be able to reach the cluster endpoints in such a deployment.
+
+When multiple nodes share the same source address, midPoint uses their check-in status to identify the active node where possible.
+If multiple eligible nodes remain, `localNodeClusteringEnabled` must be enabled to distinguish them by their individual authentication secrets.
+
+Unknown, removed, or DOWN nodes cannot authenticate. Invalid cluster credentials are rejected with HTTP `401` without creating an HTTP session or rendering a GUI error page.
+
+=== Secret Lifecycle
+
+Every node has an independently generated authentication secret.
+There is no single cluster-wide HTTP secret.
+
+The secret is:
+
+* Generated when the node is first registered.
+* Stored in the shared repository as a `ProtectedStringType`, encrypted using the midPoint protector.
+* Automatically replaced after approximately ten days.
+* Decrypted from repository storage when sending requests or validating credentials received from other nodes.
+
+Consequently, all cluster nodes must have compatible encryption keys for repository-protected values.
+Copying only trusted TLS certificates is not sufficient. Nodes must also have the keys needed to decrypt protected repository data.
+Protect these encryption keys and the shared repository because they are essential to cluster security.
+
+Secret rotation replaces the stored credential without an old-secret grace period.
+During rotation, a request using a previously cached secret may be rejected.
+The current implementation does not automatically retry such requests with the refreshed secret.
+
+== Cluster Endpoints and Authorization
+
+The cluster controller is mapped under all of these prefixes:
+
+* `/ws/cluster`
+* `/rest/cluster`
+* `/api/cluster`
+
+MidPoint-generated calls use `/ws/cluster`.
+The other mappings expose the same controller operations and security checks.
+
+[%autowidth]
+|===
+| Method and path | Capability
+
+| `POST /event/invalidation/`
+| Invalidate all applicable local caches.
+
+| `POST /event/invalidation/{type}`
+| Invalidate local caches for an object type.
+
+| `POST /event/invalidation/{type}/{oid}`
+| Invalidate local caches for an object.
+
+| `POST /event/terminateSession/`
+| Terminate matching sessions on the receiving node.
+
+| `GET /event/listUserSession`
+| Return information about locally logged-in sessions.
+
+| `GET /scheduler/information`
+| Return local scheduler information.
+
+| `POST /scheduler/start`
+| Start the local scheduler.
+
+| `POST /scheduler/stop`
+| Stop the local scheduler.
+
+| `POST /tasks/{oid}/stop`
+| Stop a local task run.
+
+| `GET /tasks/{oid}`
+| Return task state from the node.
+
+| `GET /reportFiles?filename=...`
+| Retrieve a report, connector artifact, or other supported node-local output file.
+
+| `DELETE /reportFiles?filename=...`
+| Delete a supported node-local output file.
+|===
+
+Each controller operation verifies node authentication.
+Ordinary user authentication, including administrator authentication, is not accepted in place of node authentication.
+
+After a node is authenticated, there is no per-operation node authorization.
+All authenticated cluster nodes are therefore treated as equally trusted and can invoke any cluster controller operation.
+
+== Destination URL Trust
+
+The destination for an outgoing request is taken from the target node's `url` property.
+The URL is derived in the order described in xref:./index.adoc#how-intra-cluster-urls-are-determined[How Intra-Cluster URLs Are Determined], including the administrator-controlled `urlOverride` value.
+
+The node URL determines where the sending node transmits its cluster credential.
+Therefore, node URLs and related configuration must be protected against unauthorized changes.
+Only trusted administrators should be allowed to modify node records, and access to the shared repository must be restricted.
+
+The current cluster authentication mechanism does not independently verify that the configured destination belongs to the intended node.
+Changing a node's URL can therefore cause another node to send its reusable authentication credential to an unintended HTTP server.
+Restrict outgoing network connections and use HTTPS with certificate validation to reduce this risk.
+
+The outgoing cluster HTTP client does not follow redirects, so the credential is not forwarded to a redirect destination.
+However, this does not protect against a malicious destination configured directly in the node URL.
+
+== Transport Security
+
+MidPoint supports both HTTP and HTTPS node URLs.
+HTTPS is not required by the cluster implementation.
+However, protected transport is required for a secure production deployment. Use HTTPS for all direct intra-cluster communication.
+
+When HTTPS is used, the underlying HTTP client normally verifies the server certificate and hostname, according to the configured TLS settings.
+
+For production deployments:
+
+* Use HTTPS for every intra-cluster URL.
+* Use certificates whose names match the configured node URLs.
+* Install only the required certification authorities in the truststore.
+* Do not disable certificate or hostname verification.
+* Restrict inbound access to all three cluster endpoint prefixes to expected cluster peers or trusted internal proxies.
+* Restrict outbound access from nodes to required cluster destinations and other explicitly needed services.
+* Do not route cluster traffic through an untrusted public load balancer or proxy.
+
+If TLS is terminated at a reverse proxy, protect the proxy-to-midPoint hop as part of the cluster network.
+The proxy address, not a forwarded client-address header, is used for source-address matching.
+
+See xref:/midpoint/reference/security/crypto/ssl-connections-client-side-/[Client-Side SSL Connections]
+and xref:/midpoint/reference/security/crypto/keystore-configuration/[Keystore Configuration] for truststore and keystore configuration.
+
+== Failure and Consistency Semantics
+
+Cluster broadcasts contact eligible nodes sequentially. A slow peer can therefore delay calls to later peers and the operation that initiated the broadcast.
+
+MidPoint does not configure cluster-specific HTTP connection or response timeouts. The effective values depend on the underlying HTTP transport and its configuration.
+
+Each eligible node is normally contacted once per broadcast. Failed cache invalidations are logged but are not automatically retried or replayed when a node becomes available again. Communication failures with one node do not prevent attempts to contact the remaining nodes.
+
+Role changes are marked for clusterwide cache invalidation because they can affect cached authorizations on other nodes. However, invalidation delivery is best-effort and does not guarantee immediate authorization revocation in existing GUI sessions.
+
+Repository caches can recover according to their own expiration and version-checking behavior. Other derived or session-related state does not necessarily have the same periodic recovery mechanism. Do not rely solely on clusterwide invalidation for security-critical authorization revocation without verifying the required consistency behavior.
+
+After a communication outage, review cluster communication errors and refresh affected caches or sessions where necessary.
+
+== Privileged Node-Local File Access
+
+The cluster report-file endpoints allow authenticated nodes to read and delete files using the file-system permissions of the midPoint process.
+
+File path validation does not always prevent access to files outside the intended directories.
+Symbolic links may also allow access outside these directories.
+Administrators should restrict file-system permissions and use dedicated directories for reports, exports, imports, and other generated files.
+
+When retrieving a file through the cluster interface, midPoint loads the entire file into memory before sending it. Large files or multiple concurrent requests can therefore increase memory consumption.
+
+== Related Documentation
+
+* xref:./index.adoc[High Availability with Clustering]
+* xref:./managing-cluster-nodes.adoc[Manage Cluster Nodes]
+* xref:/midpoint/reference/tasks/task-manager/[Task Manager]
+* xref:/midpoint/reference/security/crypto/keystore-configuration/[Keystore Configuration]
+* xref:/midpoint/reference/security/crypto/ssl-connections-client-side-/[Client-Side SSL Connections]
+* link:https://guide.evolveum.com/projects/cra-enhancements/risk-analysis/[MidPoint Threat Model]
