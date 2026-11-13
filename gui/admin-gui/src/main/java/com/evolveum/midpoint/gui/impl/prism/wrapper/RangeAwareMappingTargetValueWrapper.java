@@ -42,7 +42,7 @@ public class RangeAwareMappingTargetValueWrapper
         ValueSetDefinitionType previousRange = previous != null ? previous.getSet() : null;
         boolean rangeChanged = false;
 
-        if (shouldApplyDefaultRange(target)) {
+        if (shouldApplyDefaultRange(previous, target)) {
             target = target.clone();
             target.setSet(defaultRange(target));
             rangeChanged = !Objects.equals(previousRange, target.getSet());
@@ -66,8 +66,12 @@ public class RangeAwareMappingTargetValueWrapper
         }
     }
 
-    private boolean shouldApplyDefaultRange(VariableBindingDefinitionType target) {
+    private boolean shouldApplyDefaultRange(VariableBindingDefinitionType previous, VariableBindingDefinitionType target) {
         if (target == null || target.getPath() == null) {
+            return false;
+        }
+        if (previous != null && previous.getPath() != null
+                && previous.getPath().getItemPath().equivalent(target.getPath().getItemPath())) {
             return false;
         }
         if (target.getSet() == null) {
