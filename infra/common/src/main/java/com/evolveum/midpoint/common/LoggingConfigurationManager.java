@@ -363,27 +363,34 @@ public class LoggingConfigurationManager {
     private static String getPatternOrDefault(AppenderConfigurationType appender) {
         return StringUtils.isNotBlank(appender.getPattern()) ? appender.getPattern() : DEFAULT_ROOT_APPENDER_PATTERN;
     }
-
     private static void prepareAltAppenderConfiguration(StringBuilder sb, AppenderConfigurationType appender,
             MidpointConfiguration midpointConfiguration) {
         String altFilename = getAltAppenderFilename(midpointConfiguration);
         String altPrefix = getAltAppenderPrefix(midpointConfiguration);
+        prepareAltAppenderConfiguration(sb,appender,altFilename,altPrefix);
+    }
+
+    @VisibleForTesting
+    static void prepareAltAppenderConfiguration(StringBuilder sb, AppenderConfigurationType appender,
+            String altFilename, String altPrefix) {
         String pattern = getPatternOrDefault(appender);
+
         if (StringUtils.isNotEmpty(altFilename)) {
             sb.append("\t<appender name=\"" + ALT_APPENDER_NAME + "\" class=\"ch.qos.logback.core.FileAppender\">\n")
                     .append("\t\t\t\t<file>").append(altFilename).append("</file>\n")
-                    .append("\t\t\t\t<format class=\"ch.qos.logback.classic.PatternLayout\">\n")
+                    .append("\t\t\t\t<layout class=\"ch.qos.logback.classic.PatternLayout\">\n")
                     .append("\t\t\t\t\t<pattern>").append(altPrefix).append(pattern).append("</pattern>\n")
-                    .append("\t\t\t\t</format>\n")
+                    .append("\t\t\t\t</layout>\n")
                     .append("\t\t\t</appender>\n");
         } else {
             sb.append("\t<appender name=\"" + ALT_APPENDER_NAME + "\" class=\"ch.qos.logback.core.ConsoleAppender\">\n")
-                    .append("\t\t\t\t<format class=\"ch.qos.logback.classic.PatternLayout\">\n")
+                    .append("\t\t\t\t<layout class=\"ch.qos.logback.classic.PatternLayout\">\n")
                     .append("\t\t\t\t\t<pattern>").append(altPrefix).append(pattern).append("</pattern>\n")
-                    .append("\t\t\t\t</format>\n")
+                    .append("\t\t\t\t</layout>\n")
                     .append("\t\t\t</appender>\n");
         }
     }
+
 
     private static boolean isAltAppenderEnabled(MidpointConfiguration midpointConfiguration) {
         Configuration config = midpointConfiguration.getConfiguration();
@@ -480,9 +487,9 @@ public class LoggingConfigurationManager {
     @VisibleForTesting
     static void prepareTracingAppenderConfiguration(StringBuilder sb, AppenderConfigurationType appender) {
         sb.append("\t<appender name=\"" + TRACING_APPENDER_NAME + "\" class=\"").append(TRACING_APPENDER_CLASS_NAME).append("\">\n")
-                .append("\t\t<format class=\"ch.qos.logback.classic.PatternLayout\">\n")
+                .append("\t\t<layout class=\"ch.qos.logback.classic.PatternLayout\">\n")
                 .append("\t\t\t<pattern>").append(getPatternOrDefault(appender)).append("</pattern>\n")
-                .append("\t\t</format>\n")
+                .append("\t\t</layout>\n")
                 .append("\t</appender>\n");
     }
 

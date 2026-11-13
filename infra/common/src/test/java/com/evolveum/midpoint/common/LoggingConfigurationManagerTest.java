@@ -18,6 +18,11 @@ import java.nio.file.Files;
 import ch.qos.logback.classic.LoggerContext;
 import ch.qos.logback.classic.joran.JoranConfigurator;
 import ch.qos.logback.classic.util.LogbackMDCAdapter;
+
+import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
+
+import org.apache.commons.configuration2.BaseConfiguration;
+import org.apache.commons.configuration2.Configuration;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -125,6 +130,8 @@ public class LoggingConfigurationManagerTest {
 
         assertThat(sb.toString())
                 .doesNotContain("null")
+                .doesNotContain("<format")
+                .contains("<layout class=\"ch.qos.logback.classic.PatternLayout\">")
                 .contains("%msg%n");
     }
 
@@ -184,7 +191,7 @@ public class LoggingConfigurationManagerTest {
                 .endsWith("}")
                 .contains("\"message\":\"message with custom fields\"")
                 .contains("\"app\":\"midpoint\"")
-                .contains("\"note\":\"a<b & c 'x'\"");
+                .contains("\"note\":\"a<b & c 'x' \\\"q\\\" \\\\\"");
     }
 
     @Test(expectedExceptions = SchemaException.class)
@@ -232,6 +239,26 @@ public class LoggingConfigurationManagerTest {
         assertThat(limited).contains("\"stack_trace\"");
         assertThat(limited.length()).isLessThan(full.length());
     }
+
+// ------------------------------------------------------------------------------------------
+// ALT appender
+// ------------------------------------------------------------------------------------------
+
+    @Test
+    public void testAltAppenderToConsoleUsesPatternLayout() {
+        String xml = altAppenderXml(null, "ALT: ");
+
+        assertThat(xml)
+                .contains("ch.qos.logback.core.ConsoleAppender")
+                .contains("<layout class=\"ch.qos.logback.classic.PatternLayout\">")
+                .contains("<pattern>ALT: %msg%n</pattern>")
+                .doesNotContain("<format");
+    }
+
+// ------------------------------------------------------------------------------------------
+// Helper methods
+// ------------------------------------------------------------------------------------------
+
 
     private String logExceptionThroughJsonAppender(String name, JsonFormatConfigurationType json)
             throws Exception {
@@ -288,6 +315,20 @@ public class LoggingConfigurationManagerTest {
         field.setName(name);
         field.setValue(value);
         return field;
+    }
+
+    private static AppenderConfigurationType textAppender(String name, String pattern) {
+        AppenderConfigurationType appender = new AppenderConfigurationType();
+        appender.setName(name);
+        appender.setPattern(pattern);
+        return appender;
+    }
+    /** XML of the ALT appender for the given file name (null = console) and prefix. */
+    private static String altAppenderXml(String fileName, String prefix) {
+        StringBuilder sb = new StringBuilder();
+        LoggingConfigurationManager.prepareAltAppenderConfiguration(
+                sb, textAppender("ROOT", "%msg%n"), fileName, prefix);
+        return sb.toString();
     }
 
 }
