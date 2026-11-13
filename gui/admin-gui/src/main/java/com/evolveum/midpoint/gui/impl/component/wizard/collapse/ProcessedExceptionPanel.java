@@ -245,6 +245,7 @@ public class ProcessedExceptionPanel extends BasePanel<OperationResultWrapper> {
             }
         };
         fixButton.setOutputMarkupId(true);
+        fixButton.add(new VisibleBehaviour(() -> wrapper.getFixAction() != null || wrapper.getFixPanelId() != null));
         return fixButton;
     }
 

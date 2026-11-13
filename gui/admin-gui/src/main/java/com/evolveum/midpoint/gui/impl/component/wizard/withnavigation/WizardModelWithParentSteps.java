@@ -131,6 +131,13 @@ public abstract class WizardModelWithParentSteps extends WizardModel implements 
         operationResultCollapsedItem.removeOperationResult(panelId);
     }
 
+    /**
+     * Shows the list of failed operations in the drawer.
+     */
+    public void showOperationResults() {
+        select(operationResultCollapsedItem);
+    }
+
     /** Whether any drawer entry is still pending - used to auto-close the drawer once the last one is gone. */
     public boolean hasOperationResults() {
         return !operationResultCollapsedItem.getResults().isEmpty();

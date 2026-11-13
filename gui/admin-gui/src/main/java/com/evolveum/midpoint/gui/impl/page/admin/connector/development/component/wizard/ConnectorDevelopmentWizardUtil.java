@@ -6,6 +6,8 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard;
 
+import com.evolveum.midpoint.gui.api.component.wizard.WizardModel;
+import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
 import com.evolveum.midpoint.gui.api.page.PageAdminLTE;
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.prism.wrapper.*;
@@ -18,8 +20,10 @@ import com.evolveum.midpoint.gui.impl.component.wizard.collapse.log.OperationRes
 import com.evolveum.midpoint.gui.impl.component.wizard.withnavigation.WizardModelWithParentSteps;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.ConnectorDevelopmentDetailsModel;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.RepairObjectClassButton;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.ScriptConnectorStepPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.AttributeVerificationStatus;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -30,6 +34,10 @@ import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.OrderDirection;
 import com.evolveum.midpoint.schema.SearchResultList;
+import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
+import com.evolveum.midpoint.schema.processor.ShadowSimpleAttribute;
+import com.evolveum.midpoint.schema.processor.ShadowSimpleAttributeDefinition;
+import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.schema.TaskExecutionMode;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -67,10 +75,12 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
+import javax.xml.namespace.QName;
 
 public class ConnectorDevelopmentWizardUtil {
 
@@ -400,6 +410,157 @@ public class ConnectorDevelopmentWizardUtil {
             AbstractWizardStepPanel<?> step, String panelId, OperationResult result, AjaxRequestTarget target) {
         OperationResultLogProvider provider = OperationResultLogProvider.fromLines(getConnectorLogs(result));
         reportOperationLogs(step, panelId, provider, target);
+    }
+
+    /**
+     * Shows connector errors and logs of the operation in the wizard drawer.
+     *
+     * @param step the step that ran the operation
+     * @param scriptPanelType the script step opened by the fix action
+     * @param result the result of the operation
+     * @param target the request target
+     */
+    public static void reportConnectorResults(
+            AbstractWizardStepPanel<ConnectorDevelopmentDetailsModel> step, String scriptPanelType,
+            OperationResult result, AjaxRequestTarget target) {
+        if (step.getWizard() instanceof WizardModelWithParentSteps wizardModel) {
+            collectConnectorResults(result, connIdResult ->
+                    wizardModel.addOperationResult(step.getStepId(), scriptPanelType, connIdResult,
+                            scriptPanelType != null ? fixScriptAction(step, scriptPanelType) : null));
+            refreshDrawerPanel(step, target);
+            reportConnectorLogs(step, step.getStepId(), result, target);
+        }
+    }
+
+    /**
+     * Tells whether the wizard drawer holds any operation results.
+     *
+     * @param wizard the wizard showing the drawer
+     * @return true if there is something to show
+     */
+    public static boolean hasOperationResults(WizardModel wizard) {
+        return wizard instanceof WizardModelWithParentSteps wizardModel && wizardModel.hasOperationResults();
+    }
+
+    /**
+     * Joins values into a comma-separated text.
+     *
+     * @param values the values
+     * @return the text
+     */
+    public static String formatValues(Collection<?> values) {
+        return values.stream()
+                .map(String::valueOf)
+                .collect(Collectors.joining(", "));
+    }
+
+    /**
+     * Compares the sent values with the retrieved ones regardless of their order, ignoring empty values.
+     *
+     * @param expected values sent to the script
+     * @param retrieved values retrieved from the external system
+     * @return MATCH if both have the same values, otherwise MISMATCH
+     */
+    public static AttributeVerificationStatus compareValues(Collection<?> expected, Collection<?> retrieved) {
+        return toStrings(expected).equals(toStrings(retrieved))
+                ? AttributeVerificationStatus.MATCH : AttributeVerificationStatus.MISMATCH;
+    }
+
+    private static Set<String> toStrings(Collection<?> values) {
+        return values.stream()
+                .filter(Objects::nonNull)
+                .map(String::valueOf)
+                .filter(value -> !value.isEmpty())
+                .collect(Collectors.toSet());
+    }
+
+    /**
+     * Joins values of the primary identifiers of the shadow into a comma-separated text.
+     *
+     * @param shadow the shadow
+     * @return the text, or null if the shadow has no attributes
+     */
+    public static String formatPrimaryIdentifiers(ShadowType shadow) {
+        Collection<ShadowSimpleAttribute<?>> identifiers = shadow != null ? ShadowUtil.getPrimaryIdentifiers(shadow) : null;
+        return identifiers == null ? null : formatValues(identifiers.stream().map(ShadowSimpleAttribute::getRealValue).toList());
+    }
+
+    /**
+     * Returns the display name of the attribute, or its name when it has none.
+     *
+     * @param attribute the attribute definition
+     * @return the title of the attribute
+     */
+    public static String getAttributeTitle(ShadowSimpleAttributeDefinition<?> attribute) {
+        return StringUtils.defaultIfBlank(attribute.getDisplayName(), attribute.getItemName().getLocalPart());
+    }
+
+    /**
+     * Returns OIDs of the objects recorded as test objects of the connector development.
+     *
+     * @param detailsModel the model of the connector development
+     * @return the OIDs
+     */
+    public static List<String> getTestObjectOids(ConnectorDevelopmentDetailsModel detailsModel) {
+        ConnDevTestingType testing = detailsModel.getObjectType().getTesting();
+        if (testing == null) {
+            return List.of();
+        }
+        return testing.getTestObject().stream()
+                .map(ObjectReferenceType::getOid)
+                .toList();
+    }
+
+    /**
+     * Creates a wrapper for modifying attributes of an existing shadow.
+     *
+     * @param page the page used to find the wrapper factory
+     * @param shadow the existing shadow
+     * @param task the task
+     * @param result the result
+     * @return the wrapper whose delta contains only the changes of the attributes
+     */
+    public static ShadowWrapper createShadowWrapperForModification(PageAdminLTE page, PrismObject<ShadowType> shadow,
+            Task task, OperationResult result) throws SchemaException {
+        return createShadowWrapper(page, shadow, ItemStatus.NOT_CHANGED, task, result);
+    }
+
+    /**
+     * Creates a wrapper for a new shadow of the object class on the testing resource.
+     *
+     * @param page the page used to find the wrapper factory
+     * @param resourceModel the model of the testing resource
+     * @param objectClassName the local name of the object class
+     * @param task the task
+     * @param result the result
+     * @return the wrapper whose delta adds the new shadow
+     */
+    public static ShadowWrapper createShadowWrapperForAdd(PageAdminLTE page, ResourceDetailsModel resourceModel,
+            String objectClassName, Task task, OperationResult result) throws SchemaException {
+        PrismObject<ShadowType> shadow = new ShadowType()
+                .resourceRef(resourceModel.getObjectWrapper().getOid(), ResourceType.COMPLEX_TYPE)
+                .objectClass(getObjectClassDefinition(resourceModel, objectClassName).getObjectClassName())
+                .asPrismObject();
+        return createShadowWrapper(page, shadow, ItemStatus.ADDED, task, result);
+    }
+
+    private static ShadowWrapper createShadowWrapper(PageAdminLTE page, PrismObject<ShadowType> shadow, ItemStatus status,
+            Task task, OperationResult result) throws SchemaException {
+        WrapperContext context = new WrapperContext(task, result);
+        context.setCreateIfEmpty(true);
+        return (ShadowWrapper) page.findObjectWrapperFactory(shadow.getDefinition())
+                .createObjectWrapper(shadow, status, context);
+    }
+
+    private static ResourceObjectDefinition getObjectClassDefinition(ResourceDetailsModel resourceModel,
+            String objectClassName) {
+        ResourceObjectDefinition objectClassDefinition =
+                resourceModel.findResourceObjectClassDefinition(new QName(objectClassName));
+        if (objectClassDefinition == null) {
+            throw new IllegalStateException("No definition of object class " + objectClassName
+                    + " in the testing resource schema");
+        }
+        return objectClassDefinition;
     }
 
     public static <C extends PrismContainerWrapper<?>> boolean existContainerValue(C container, ItemPath path) {

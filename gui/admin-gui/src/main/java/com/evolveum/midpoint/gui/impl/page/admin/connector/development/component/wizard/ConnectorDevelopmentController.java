@@ -6,9 +6,11 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard;
 
+import com.evolveum.midpoint.gui.api.component.result.Toast;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardStep;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
+import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 import com.evolveum.midpoint.gui.impl.component.wizard.withnavigation.AbstractWizardController;
 import com.evolveum.midpoint.gui.impl.component.wizard.withnavigation.AbstractWizardPartItem;
@@ -38,14 +40,27 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnDevRelationInfoT
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorDevelopmentType;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.request.cycle.RequestCycle;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 public class ConnectorDevelopmentController extends AbstractWizardController<ConnectorDevelopmentType, ConnectorDevelopmentDetailsModel> {
 
     private static final Trace LOGGER = TraceManager.getTrace(ConnectorDevelopmentController.class);
+
+    /**
+     * Parts of the wizard setting up a capability of an object class.
+     */
+    private static final Set<ConnectorDevelopmentStatusType> CAPABILITY_PARTS = Set.of(
+            ConnectorDevelopmentStatusType.OBJECT_CLASS_SEARCH_ALL,
+            ConnectorDevelopmentStatusType.OBJECT_CLASS_SEARCH_BY_ID,
+            ConnectorDevelopmentStatusType.OBJECT_CLASS_SEARCH_FILTER,
+            ConnectorDevelopmentStatusType.OBJECT_CLASS_CREATE,
+            ConnectorDevelopmentStatusType.OBJECT_CLASS_UPDATE,
+            ConnectorDevelopmentStatusType.OBJECT_CLASS_DELETE);
 
     enum ConnectorDevelopmentStatusType {
         INIT,
@@ -462,6 +477,9 @@ public class ConnectorDevelopmentController extends AbstractWizardController<Con
             int index = addWizardPartOnEnd(partItem);
             clearInProgressPart();
             setActiveWizardPartIndex(index);
+            if (CAPABILITY_PARTS.contains(oldActivePartItem.getIdentifierForWizardStatus())) {
+                showCapabilityCompletedToast();
+            }
             return;
         }
 
@@ -474,5 +492,16 @@ public class ConnectorDevelopmentController extends AbstractWizardController<Con
         }
 
         super.resolveFinishPart(oldActivePartItem);
+    }
+
+    private void showCapabilityCompletedToast() {
+        RequestCycle.get().find(AjaxRequestTarget.class).ifPresent(target -> new Toast()
+                .success()
+                .icon("fas fa-circle-check")
+                .title(LocalizationUtil.translate("ConnectorDevelopmentController.capabilityCompleted"))
+                .body(LocalizationUtil.translate("ConnectorDevelopmentController.capabilityCompletedText"))
+                .autohide(true)
+                .delay(5_000)
+                .show(target));
     }
 }

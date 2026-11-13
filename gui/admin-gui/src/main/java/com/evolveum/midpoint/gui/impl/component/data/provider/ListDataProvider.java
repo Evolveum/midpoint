@@ -8,6 +8,7 @@ package com.evolveum.midpoint.gui.impl.component.data.provider;
 
 import java.io.Serializable;
 import java.lang.reflect.InvocationTargetException;
+import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 
@@ -65,6 +66,12 @@ public class ListDataProvider<T extends Serializable> extends BaseSortableDataPr
 
     @SuppressWarnings("unchecked")
     protected <V extends Comparable<V>> void sort(List<T> list) {
+        Comparator<T> comparator = getComparator(getSort().getProperty());
+        if (comparator != null) {
+            list.sort(getSort().isAscending() ? comparator : comparator.reversed());
+            return;
+        }
+
         list.sort((o1, o2) -> {
             SortParam<String> sortParam = getSort();
             String propertyName = sortParam.getProperty();
@@ -78,6 +85,16 @@ public class ListDataProvider<T extends Serializable> extends BaseSortableDataPr
             int comparison = ObjectUtils.compare(prop1, prop2, true);
             return sortParam.isAscending() ? comparison : -comparison;
         });
+    }
+
+    /**
+     * Returns the ascending order of the rows for the sort property, used instead of sorting by the bean property.
+     *
+     * @param property the sort property of the column
+     * @return the comparator, or null to sort by the bean property of the same name
+     */
+    protected Comparator<T> getComparator(String property) {
+        return null;
     }
 
     @Override
