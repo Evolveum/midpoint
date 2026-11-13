@@ -1,0 +1,110 @@
+---
+doc-type: intro
+midpoint-feature: policy-concept
+---
+= Policy configuration
+:page-toc: top
+:page-nav-title: Policy Configuration
+:page-since: "4.9"
+:page-upkeep-status: green
+:page-description: This article introduces configuration of policies in midPoint.
+:page-keywords: policy, access control, lifecycle management, approval, generic policy, observer, controller
+
+Policies help you implement your organizational and business rules in midPoint.
+This article introduces configuration of policies in midPoint.
+
+You can apply policies to a wide range of scenarios, such as (but not limited to):
+
+* Access control - You can automatically expire access after a period of time, or define access rules that only allow users from a certain region to access specific systems.
+* xref:/midpoint/reference/roles-policies/policies/segregation-of-duties/[Segregation of duties (SoD)] - You can define rules that prevent assigning conflicting roles.
+* Lifecycle management - You can define a policy that automatically revokes roles or disables accounts when employment is terminated.
+* Approvals - Before granting access to sensitive roles or systems, you can trigger approvals.
+
+In all of the situations, you can use what we call _generic policies_.
+These can define a wide range of rules and constraints that can be applied to various objects and scenarios within the system.
+Generic policies are often used to enforce business rules and compliance requirements that are not directly related to information classification or user clearance levels.
+They provide a flexible mechanism for defining and applying policies that can be tailored to the specific needs of an organization.
+
+For example, see the <<generic_policy_example,generic policy example>> below.
+
+== Configuration
+
+Policies can have varying complexity.
+Some may be very simple, and they can used as _observers_. +
+For example, they can only "mark" an object with a property based on an evaluated condition.
+You can use such policies to indicate that a user has passed a certification, has a certain qualification, or to indicate a change in their lifecycle stage, for example that they are in their probation period, have been off-boarded, etc.
+
+Other policies may be more complex and they can be better described as _controllers_.
+
+These can actively shape the system behavior based on dynamic conditions, roles, states, and business logic.
+An example of such a policy set up could be a xref:/midpoint/reference/roles-policies/policies/segregation-of-duties/[Segregation of Duties (SoD)] implementation.
+
+For details on a more complex policy setup, refer to xref:../classification[].
+
+[[examples]]
+== Examples
+
+This shows the following typical examples of how policies can be used:
+
+* <<regulatory_compliance_example,Regulatory Compliance Example>>
+* <<generic_policy_example,Generic Policy Example>>
+* xref:../classification/[]
+
+For more, see xref:/midpoint/reference/roles-policies/policies/policy-rule-examples/[policy rule examples].
+
+[[regulatory_compliance_example]]
+=== Regulatory compliance example
+
++++<iframe width="852" height="480" src="https://www.youtube.com/embed/UrJx_grnmdk?start=589" frameborder="0" allowfullscreen></iframe>+++
+
+[[generic_policy_example]]
+=== Generic policy example
+
+The following generic policy enforces an approval workflow for any assignment of roles or services.
+Specifically, it requires that all owners of the requested object (e.g. role or service) must explicitly approve the assignment before it is completed.
+
+[source,xml]
+----
+<policy oid="e5f05e74-d0e6-45bf-b793-9345ba1df3bf"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <name>Approval by owner</name>
+    <description>Owner of the requested object (role, service) must approve the request.</description>
+    <assignment>
+        <identifier>org-approval-policies</identifier>
+        <targetRef oid="e7a48bb0-5361-4862-bf44-cd970c7ad021" type="OrgType"/>
+    </assignment>
+    <inducement>
+        <policyRule>
+            <name>approval-by-owner</name>
+            <policyConstraints>
+                <assignment/>
+            </policyConstraints>
+            <policyActions>
+                <approval>
+                    <compositionStrategy>
+                        <order>60</order>
+                    </compositionStrategy>
+                    <approvalSchema>
+                        <stage>
+                            <name>Owners (all)</name>
+                            <approverRelation>owner</approverRelation>
+                            <evaluationStrategy>allMustApprove</evaluationStrategy>
+                            <outcomeIfNoApprovers>reject</outcomeIfNoApprovers>
+                        </stage>
+                    </approvalSchema>
+                </approval>
+            </policyActions>
+        </policyRule>
+    </inducement>
+</policy>
+----
+
+== See also
+
+* xref:../policy-rules/[]
+
+* xref:../metaroles/[]
+
+* xref:/midpoint/reference/schema/policy[]
+
+* xref:/midpoint/features/current/information-classification[]
