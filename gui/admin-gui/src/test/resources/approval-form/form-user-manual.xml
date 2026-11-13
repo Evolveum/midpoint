@@ -1,0 +1,38 @@
+<form xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      oid="f0000000-0000-0000-0000-00000000f001">
+    <name>Approval user form</name>
+    <formDefinition>
+        <display>
+            <label>Manager form</label>
+        </display>
+        <authorization>
+            <phase>execution</phase>
+        </authorization>
+        <formItems list="true">
+            <formField>
+                <binding>
+                    <path>description</path>
+                </binding>
+                <display>
+                    <label>Description</label>
+                </display>
+            </formField>
+            <formField>
+                <binding>
+                    <path>costCenter</path>
+                </binding>
+                <display>
+                    <label>Cost center</label>
+                </display>
+            </formField>
+            <formField>
+                <binding>
+                    <path>extension/UserExt-2</path>
+                </binding>
+                <display>
+                    <label>Primary position</label>
+                </display>
+            </formField>
+        </formItems>
+    </formDefinition>
+</form>

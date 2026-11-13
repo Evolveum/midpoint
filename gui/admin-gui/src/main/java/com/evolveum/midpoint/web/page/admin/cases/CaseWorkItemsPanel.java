@@ -43,6 +43,7 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.WorkItemId;
+import com.evolveum.midpoint.schema.util.cases.ApprovalContextUtil;
 import com.evolveum.midpoint.schema.util.cases.CaseTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.component.data.column.*;
@@ -353,6 +354,14 @@ public class CaseWorkItemsPanel extends ContainerableListPanel<CaseWorkItemType,
         return menu;
     }
 
+    private static boolean hasCustomApprovalForm(CaseWorkItemType workItem) {
+        if (workItem == null) {
+            return false;
+        }
+        ApprovalStageDefinitionType stage = ApprovalContextUtil.getCurrentStageDefinition(CaseTypeUtil.getCase(workItem));
+        return stage != null && stage.getFormRef() != null && stage.getFormRef().getOid() != null;
+    }
+
     private void workItemActionPerformed(IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel, boolean approved,
             AjaxRequestTarget target) {
         List<PrismContainerValueWrapper<CaseWorkItemType>> selectedWorkItems = new ArrayList<>();
@@ -372,6 +381,14 @@ public class CaseWorkItemsPanel extends ContainerableListPanel<CaseWorkItemType,
         final PrismObject<UserType> powerDonor = StringUtils.isNotEmpty(getPowerDonorOidParameterValue()) ?
                 WebModelServiceUtils.loadObject(UserType.class, getPowerDonorOidParameterValue(),
                         CaseWorkItemsPanel.this.getPageBase(), task, result) : null;
+        // A bulk approve has no custom form, so values entered in a custom approval form would be silently dropped.
+        // Such work items must be approved from their details, where the form is available.
+        if (approved && selectedWorkItems.stream().anyMatch(item -> hasCustomApprovalForm(item.getRealValue()))) {
+            warn("This work item has a custom approval form. Open the work item and approve it from its details, so the form values are sent with the approval.");
+            target.add(getPageBase().getFeedbackPanel());
+            return;
+        }
+
         OperationResult completeWorkItemResult = new OperationResult(OPERATION_COMPLETE_WORK_ITEM);
         selectedWorkItems.forEach(workItemToReject -> WebComponentUtil.workItemApproveActionPerformed(target,
                 workItemToReject.getRealValue(), null, powerDonor, approved, completeWorkItemResult,
