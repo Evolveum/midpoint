@@ -16111,6 +16111,127 @@
             </xsd:enumeration>
         </xsd:restriction>
     </xsd:simpleType>
+    <xsd:complexType name="JsonCustomFieldType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Custom field added to every JSON log record, as a name and value pair.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:displayName>JsonCustomFieldType.details</a:displayName>
+                <a:since>4.12</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="name" type="xsd:string"/>
+            <xsd:element name="value" type="xsd:string" />
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:simpleType name="AppenderFormatType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Output format of a logging appender.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.12</a:since>
+                <jaxb:typesafeEnumClass/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="PATTERN">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Text output formatted by the "pattern" element (default).
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="PATTERN"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="JSON">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        One JSON object per log record.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="JSON"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:complexType name="JsonFormatConfigurationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Settings of the JSON format of a logging appender.
+                Used only if the appender format is JSON, otherwise ignored.
+                Values that are not specified keep the defaults of the encoder.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:displayName>JsonFormatConfigurationType.details</a:displayName>
+                <a:since>4.12</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="timestampPattern" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Pattern of the timestamp field (java.time.format.DateTimeFormatter),
+                        e.g. yyyy-MM-dd'T'HH:mm:ss.SSSZ. If not specified, ISO 8601 is used.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>JsonFormatConfigurationType.timestampPattern</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="timeZone" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Time zone of the timestamp, e.g. UTC or Europe/Bratislava.
+                        If not specified, the time zone of the server is used.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>JsonFormatConfigurationType.timeZone</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="includeStacktrace" type="xsd:boolean" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Whether the stack trace of an exception is part of the record. Default is true.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>JsonFormatConfigurationType.includeStacktrace</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="maxStacktraceDepth" type="xsd:int" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Maximum number of stack trace elements written for each exception.
+                        If not specified, the whole stack trace is written.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>JsonFormatConfigurationType.maxStacktraceDepth</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="customField" type="tns:JsonCustomFieldType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Custom fields added to every JSON log record. Each field has a name and a value.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>JsonFormatConfigurationType.customField</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
 
     <xsd:complexType name="AppenderConfigurationType">
         <xsd:annotation>
@@ -16126,7 +16247,7 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="pattern" type="xsd:string">
+            <xsd:element name="pattern" type="xsd:string" minOccurs="0">
                 <xsd:annotation>
                     <xsd:appinfo>
                         <a:displayName>AppenderConfigurationType.pattern</a:displayName>
@@ -16137,6 +16258,30 @@
             <xsd:annotation>
                     <xsd:appinfo>
                         <a:displayName>AppenderConfigurationType.name</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+
+            <xsd:element name="format" type="tns:AppenderFormatType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Output format of the appender. If not specified, PATTERN is used.
+                        With JSON, the "pattern" element is not used to format the output of this appender.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>AppenderConfigurationType.formatFormat</a:displayName>
+                        <a:since>4.12</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="json" type="tns:JsonFormatConfigurationType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Settings of the JSON format. Used only if the format is JSON, otherwise ignored.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>AppenderConfigurationType.json</a:displayName>
+                        <a:since>4.12</a:since>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
