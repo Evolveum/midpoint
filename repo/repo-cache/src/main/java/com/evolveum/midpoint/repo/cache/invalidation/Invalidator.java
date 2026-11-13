@@ -37,6 +37,7 @@ import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FunctionLibraryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
@@ -104,6 +105,8 @@ public class Invalidator {
                 clearQueryResultsLocally(localQueryCache, type, oid, additionalInfo, matchingRuleRegistry);
             }
             boolean clusterwide = TYPES_ALWAYS_INVALIDATED_CLUSTERWIDE.contains(type) ||
+                    // Role changes can affect authorizations cached by principals on other nodes.
+                    AbstractRoleType.class.isAssignableFrom(type) ||
                     globalObjectCache.hasClusterwideInvalidationFor(type) ||
                     globalVersionCache.hasClusterwideInvalidationFor(type) ||
                     globalQueryCache.hasClusterwideInvalidationFor(type);

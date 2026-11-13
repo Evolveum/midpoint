@@ -11,17 +11,23 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType.DISABLED;
 
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 
+import com.evolveum.midpoint.CacheInvalidationContext;
 import com.evolveum.midpoint.authentication.api.MidpointSessionRegistry;
 import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
+import com.evolveum.midpoint.repo.api.ClusterwideCacheInvalidationDispatcher;
+import com.evolveum.midpoint.repo.api.ClusterwideCacheInvalidationListener;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 
 import com.evolveum.midpoint.schema.util.SimpleExpressionUtil;
 
 import com.evolveum.midpoint.test.IntegrationTestTools;
 
-import jakarta.xml.bind.JAXBElement;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.session.SessionInformation;
 import org.springframework.security.core.session.SessionRegistryImpl;
 import org.springframework.test.annotation.DirtiesContext;
@@ -41,6 +47,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 @ContextConfiguration(locations = { "classpath:ctx-model-test-main.xml" })
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class TestGuiProfiledPrincipalManager extends AbstractInternalModelIntegrationTest {
+
+    private static final String ROLE_CLUSTERWIDE_INVALIDATION_OID = "f32e5728-2fc7-4a88-9ec2-dd43333c2f36";
+
+    @Autowired private ClusterwideCacheInvalidationDispatcher clusterwideCacheInvalidationDispatcher;
 
     @Test
     public void test100DeputyNoLimits() throws Exception {
@@ -127,6 +137,72 @@ public class TestGuiProfiledPrincipalManager extends AbstractInternalModelIntegr
         then("profiles of both sessions are invalid");
         assertThat(olderPrincipal.getCompiledGuiProfile().isInvalid()).as("older session profile invalid").isTrue();
         assertThat(newerPrincipal.getCompiledGuiProfile().isInvalid()).as("newer session profile invalid").isTrue();
+    }
+
+    @Test
+    public void test250RoleModificationIsInvalidatedClusterwide() throws Exception {
+        given("a concrete role and an invalidation listener");
+        OperationResult result = createOperationResult();
+        deleteClusterwideInvalidationRoleIfPresent(result);
+        RoleType role = new RoleType()
+                .oid(ROLE_CLUSTERWIDE_INVALIDATION_OID)
+                .name("clusterwide-invalidation-test-role")
+                .activation(new ActivationType().administrativeStatus(ActivationStatusType.ENABLED));
+
+        AtomicInteger matchingEvents = new AtomicInteger();
+        AtomicReference<Class<? extends ObjectType>> invalidatedType = new AtomicReference<>();
+        AtomicReference<Boolean> clusterwide = new AtomicReference<>();
+        ClusterwideCacheInvalidationListener listener = new ClusterwideCacheInvalidationListener() {
+            @Override
+            public <O extends ObjectType> void invalidate(
+                    Class<O> type, String oid, boolean isClusterwide, CacheInvalidationContext context) {
+                if (ROLE_CLUSTERWIDE_INVALIDATION_OID.equals(oid)) {
+                    matchingEvents.incrementAndGet();
+                    invalidatedType.set(type);
+                    clusterwide.set(isClusterwide);
+                }
+            }
+        };
+        boolean listenerRegistered = false;
+
+        try {
+            repositoryService.addObject(role.asPrismObject(), null, result);
+            clusterwideCacheInvalidationDispatcher.registerListener(listener);
+            listenerRegistered = true;
+
+            when("the role activation is modified through the repository cache");
+            repositoryService.modifyObject(
+                    RoleType.class,
+                    ROLE_CLUSTERWIDE_INVALIDATION_OID,
+                    prismContext.deltaFor(RoleType.class)
+                            .item(RoleType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS)
+                            .replace(ActivationStatusType.DISABLED)
+                            .asItemDeltas(),
+                    result);
+
+            then("the concrete role invalidation is marked clusterwide");
+            assertThat(matchingEvents.get()).isEqualTo(1);
+            assertThat(invalidatedType.get()).isEqualTo(RoleType.class);
+            assertThat(clusterwide.get()).isTrue();
+        } finally {
+            try {
+                if (listenerRegistered) {
+                    clusterwideCacheInvalidationDispatcher.unregisterListener(listener);
+                }
+            } finally {
+                deleteClusterwideInvalidationRoleIfPresent(result);
+            }
+        }
+    }
+
+    private void deleteClusterwideInvalidationRoleIfPresent(OperationResult result) {
+        OperationResult cleanupResult =
+                new OperationResult(result.getOperation() + ".deleteClusterwideInvalidationRoleIfPresent");
+        try {
+            repositoryService.deleteObject(RoleType.class, ROLE_CLUSTERWIDE_INVALIDATION_OID, cleanupResult);
+        } catch (ObjectNotFoundException ignored) {
+            // The fixture is already absent, which is the desired state.
+        }
     }
 
     private static class TestSessionRegistry extends SessionRegistryImpl implements MidpointSessionRegistry {
