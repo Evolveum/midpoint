@@ -42,7 +42,7 @@ public class RestEndpointPath {
             pathMatcher("/api/**"));
 
     public enum Kind {
-        /** Not a REST endpoint; not affected by the REST switches. */
+        /** Not a REST endpoint; not affected by the REST startup options. */
         NOT_REST,
         /** REST API endpoint under {@code /ws}, {@code /rest} or {@code /api}. */
         API,
