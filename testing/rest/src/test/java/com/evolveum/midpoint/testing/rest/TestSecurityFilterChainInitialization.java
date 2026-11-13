@@ -11,6 +11,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
+import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
 
@@ -26,13 +27,21 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.common.rest.MidpointAbstractProvider;
+import com.evolveum.midpoint.CacheInvalidationContext;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.repo.api.CacheInvalidationDispatcher;
+import com.evolveum.midpoint.repo.api.CacheInvalidationEventSpecification;
+import com.evolveum.midpoint.repo.api.CacheInvalidationListener;
+import com.evolveum.midpoint.repo.api.ClusterwideCacheInvalidationDispatcher;
+import com.evolveum.midpoint.repo.api.ClusterwideCacheInvalidationListener;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeOperationalStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
@@ -43,6 +52,11 @@ public class TestSecurityFilterChainInitialization extends RestServiceInitialize
 
     private static final String TEST_NODE_OID = "58d99ed2-9b42-4f37-8b7b-2a393eecf701";
     private static final String TEST_NODE_SECRET = "ClusterSecuritySecret1";
+    private static final String REMOVED_NODE_OID = "18ca67c2-d98d-4fd3-a462-2379ae18ef3b";
+    private static final String DOWN_NODE_OID = "59083a64-12bd-4397-983a-e1b798fc7050";
+    private static final String CHANGED_ADDRESS_NODE_OID = "22bbb817-181a-42a4-bc1b-438e9603e3f3";
+    private static final List<String> SYNTHETIC_NODE_OIDS =
+            List.of(TEST_NODE_OID, REMOVED_NODE_OID, DOWN_NODE_OID, CHANGED_ADDRESS_NODE_OID);
     private static final List<String> LOOPBACK_ADDRESSES = List.of("127.0.0.1", "0:0:0:0:0:0:0:1", "::1");
 
     private static final String[] PUBLIC_STATIC_RESOURCE_PATHS = {
@@ -57,11 +71,13 @@ public class TestSecurityFilterChainInitialization extends RestServiceInitialize
     @LocalServerPort private int serverPort;
 
     @Autowired private Protector protector;
+    @Autowired private CacheInvalidationDispatcher cacheInvalidationDispatcher;
+    @Autowired private ClusterwideCacheInvalidationDispatcher clusterwideCacheInvalidationDispatcher;
 
     @Override
     public void initSystem(Task initTask, OperationResult result) throws Exception {
         super.initSystem(initTask, result);
-        deleteNodeIfPresent(TEST_NODE_OID, result);
+        removeSyntheticClusterNodes(result);
         getRepositoryService().addObject(createTestNode(TEST_NODE_OID, "cluster-security-test-node", TEST_NODE_SECRET)
                 .asPrismObject(), null, result);
     }
@@ -69,7 +85,7 @@ public class TestSecurityFilterChainInitialization extends RestServiceInitialize
     @AfterClass(alwaysRun = true)
     public void removeSyntheticClusterNodes() {
         OperationResult result = new OperationResult("removeSyntheticClusterNodes");
-        deleteNodeIfPresent(TEST_NODE_OID, result);
+        removeSyntheticClusterNodes(result);
     }
 
     @DataProvider(name = "clusterPrefixes")
@@ -239,6 +255,140 @@ public class TestSecurityFilterChainInitialization extends RestServiceInitialize
         assertClusterRequestRejected(prefix, "Cluster ***not-base64***", "Cluster");
     }
 
+    @Test
+    public void test242RemovedNodeCredentialIsRejected() throws Exception {
+        String secret = "RemovedNodeSecret1";
+        OperationResult result = new OperationResult("test242RemovedNodeCredentialIsRejected");
+
+        try {
+            replaceDefaultNodeWithSyntheticNode(
+                    REMOVED_NODE_OID, "removed-cluster-security-test-node", secret, result);
+            assertClusterCredentialAccepted(secret);
+
+            getRepositoryService().deleteObject(NodeType.class, REMOVED_NODE_OID, result);
+
+            assertClusterRequestRejected("/ws/cluster", clusterHeader(secret), "Cluster");
+        } finally {
+            removeSyntheticNodeAndRestoreDefault(REMOVED_NODE_OID, result);
+        }
+    }
+
+    @Test
+    public void test244DownNodeCredentialIsRejected() throws Exception {
+        String secret = "DownNodeSecret1";
+        OperationResult result = new OperationResult("test244DownNodeCredentialIsRejected");
+
+        try {
+            replaceDefaultNodeWithSyntheticNode(
+                    DOWN_NODE_OID, "down-cluster-security-test-node", secret, result);
+            assertClusterCredentialAccepted(secret);
+
+            getRepositoryService().modifyObject(
+                    NodeType.class,
+                    DOWN_NODE_OID,
+                    getPrismContext().deltaFor(NodeType.class)
+                            .item(NodeType.F_OPERATIONAL_STATE)
+                            .replace(NodeOperationalStateType.DOWN)
+                            .asItemDeltas(),
+                    result);
+
+            assertClusterRequestRejected("/ws/cluster", clusterHeader(secret), "Cluster");
+        } finally {
+            removeSyntheticNodeAndRestoreDefault(DOWN_NODE_OID, result);
+        }
+    }
+
+    @Test
+    public void test246ChangedSourceAddressRejectsExistingCredential() throws Exception {
+        String secret = "ChangedAddressNodeSecret1";
+        OperationResult result = new OperationResult("test246ChangedSourceAddressRejectsExistingCredential");
+
+        try {
+            replaceDefaultNodeWithSyntheticNode(
+                    CHANGED_ADDRESS_NODE_OID, "changed-address-cluster-security-test-node", secret, result);
+            assertClusterCredentialAccepted(secret);
+
+            getRepositoryService().modifyObject(
+                    NodeType.class,
+                    CHANGED_ADDRESS_NODE_OID,
+                    getPrismContext().deltaFor(NodeType.class)
+                            .item(NodeType.F_IP_ADDRESS)
+                            .replace("192.0.2.1")
+                            .asItemDeltas(),
+                    result);
+
+            assertClusterRequestRejected("/ws/cluster", clusterHeader(secret), "Cluster");
+        } finally {
+            removeSyntheticNodeAndRestoreDefault(CHANGED_ADDRESS_NODE_OID, result);
+        }
+    }
+
+    @Test
+    public void test250ReceivedClusterInvalidationIsDispatchedLocallyWithoutRebroadcast() {
+        String oid = "62a83cb4-cd27-4741-bf3d-8902d58c34ea";
+        RecordingInvalidationListener listener = new RecordingInvalidationListener(oid);
+        clusterwideCacheInvalidationDispatcher.registerListener(listener);
+        cacheInvalidationDispatcher.registerListener(listener);
+
+        try {
+            WebClient client = prepareClusterClient(
+                    "/ws/cluster", validClusterHeader(), "/event/invalidation/roles/" + oid);
+            try (Response response = client.post(null)) {
+                assertThat(response.getStatus()).isEqualTo(Response.Status.OK.getStatusCode());
+            }
+
+            assertThat(listener.clusterwideInvocations).isEqualTo(1);
+            assertThat(listener.localInvocations).isEqualTo(1);
+            assertThat(listener.localType).isEqualTo(RoleType.class);
+            assertThat(listener.localOid).isEqualTo(oid);
+            assertThat(listener.clusterwide).isFalse();
+            assertThat(listener.localContext).isNotNull();
+            assertThat(listener.localContext.isFromRemoteNode()).isTrue();
+        } finally {
+            cacheInvalidationDispatcher.unregisterListener(listener);
+            clusterwideCacheInvalidationDispatcher.unregisterListener(listener);
+        }
+    }
+
+    private static class RecordingInvalidationListener implements CacheInvalidationListener, ClusterwideCacheInvalidationListener {
+
+        private final String expectedOid;
+        private volatile int clusterwideInvocations;
+        private volatile int localInvocations;
+        private volatile Class<? extends ObjectType> localType;
+        private volatile String localOid;
+        private volatile CacheInvalidationContext localContext;
+        private volatile boolean clusterwide;
+
+        private RecordingInvalidationListener(String expectedOid) {
+            this.expectedOid = expectedOid;
+        }
+
+        @Override
+        public Collection<CacheInvalidationEventSpecification> getEventSpecifications() {
+            return CacheInvalidationEventSpecification.ALL_AVAILABLE_EVENTS;
+        }
+
+        @Override
+        public <O extends ObjectType> void invalidate(Class<O> type, String oid, CacheInvalidationContext context) {
+            if (expectedOid.equals(oid)) {
+                localInvocations++;
+                localType = type;
+                localOid = oid;
+                localContext = context;
+            }
+        }
+
+        @Override
+        public <O extends ObjectType> void invalidate(
+                Class<O> type, String oid, boolean clusterwide, CacheInvalidationContext context) {
+            if (expectedOid.equals(oid)) {
+                clusterwideInvocations++;
+                this.clusterwide = clusterwide;
+            }
+        }
+    }
+
     private WebClient prepareRootClient(String username, String password) {
         WebClient client = WebClient.create(rootUrl());
         client.accept(getAcceptHeader());
@@ -254,6 +404,13 @@ public class TestSecurityFilterChainInitialization extends RestServiceInitialize
         }
         client.path(prefix + path);
         return client;
+    }
+
+    private void assertClusterCredentialAccepted(String secret) {
+        try (Response response = prepareClusterClient(
+                "/ws/cluster", clusterHeader(secret), "/scheduler/information").get()) {
+            assertThat(response.getStatus()).isEqualTo(Response.Status.OK.getStatusCode());
+        }
     }
 
     private void assertClusterRequestRejected(String prefix, String authorization, String expectedChallengeScheme) {
@@ -291,12 +448,37 @@ public class TestSecurityFilterChainInitialization extends RestServiceInitialize
         return node;
     }
 
+    private void addSyntheticNode(String oid, String identifier, String secret, OperationResult result) throws Exception {
+        deleteNodeIfPresent(oid, result);
+        getRepositoryService().addObject(createTestNode(oid, identifier, secret).asPrismObject(), null, result);
+    }
+
+    private void replaceDefaultNodeWithSyntheticNode(
+            String oid, String identifier, String secret, OperationResult result) throws Exception {
+        deleteNodeIfPresent(TEST_NODE_OID, result);
+        addSyntheticNode(oid, identifier, secret, result);
+    }
+
+    private void removeSyntheticNodeAndRestoreDefault(String oid, OperationResult result) throws Exception {
+        try {
+            deleteNodeIfPresent(oid, result);
+        } finally {
+            addSyntheticNode(TEST_NODE_OID, "cluster-security-test-node", TEST_NODE_SECRET, result);
+        }
+    }
+
     private void deleteNodeIfPresent(String oid, OperationResult result) {
         OperationResult cleanupResult = new OperationResult(result.getOperation() + ".deleteNodeIfPresent");
         try {
             getRepositoryService().deleteObject(NodeType.class, oid, cleanupResult);
         } catch (ObjectNotFoundException ignored) {
             // The fixture is already absent, which is the desired state.
+        }
+    }
+
+    private void removeSyntheticClusterNodes(OperationResult result) {
+        for (String oid : SYNTHETIC_NODE_OIDS) {
+            deleteNodeIfPresent(oid, result);
         }
     }
 
