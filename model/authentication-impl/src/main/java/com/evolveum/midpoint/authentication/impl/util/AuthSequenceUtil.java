@@ -223,7 +223,7 @@ public class AuthSequenceUtil {
     public static boolean isClusterSequence(HttpServletRequest httpRequest) {
         String localePath = httpRequest.getRequestURI().substring(httpRequest.getContextPath().length());
         String channel = searchChannelByPath(localePath);
-        if (SchemaConstants.CHANNEL_REST_URI.equals(channel)) {
+        if (SchemaConstants.CHANNEL_REST_URI.equals(channel) && RestEndpointPath.isClusterEndpoint(httpRequest)) {  //TODO review needed
             String header = httpRequest.getHeader("Authorization");
             if (header != null) {
                 String type = header.split(" ")[0];
