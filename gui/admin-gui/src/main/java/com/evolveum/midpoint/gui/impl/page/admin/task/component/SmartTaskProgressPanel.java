@@ -15,6 +15,7 @@ import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.component.util.EnableBehaviour;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 import org.apache.wicket.Component;
@@ -39,6 +40,7 @@ public abstract class SmartTaskProgressPanel extends BasePanel<TaskType> impleme
     private static final String ID_CONTAINER = "container";
     private static final String ID_BUTTONS = "buttons";
     private static final String ID_STOP = "stop";
+    private static final String ID_CANCEL = "cancel";
     private static final String ID_NAVIGATE_TO_TASK = "navigateToTask";
     private static final String ID_SHOW_RESULT = "showResult";
 
@@ -103,8 +105,19 @@ public abstract class SmartTaskProgressPanel extends BasePanel<TaskType> impleme
                 onStop(target);
             }
         };
+        stopButton.add(new VisibleBehaviour(() -> !isShowResultsEnable()));
         stopButton.showTitleAsLabel(true);
         footer.add(stopButton);
+
+        AjaxIconButton cancelButton = new AjaxIconButton(ID_CANCEL, Model.of(""), createStringResource("Button.cancel")) {
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                getPageBase().hideMainPopup(target);
+            }
+        };
+        cancelButton.showTitleAsLabel(true);
+        cancelButton.add(new VisibleBehaviour(this::isShowResultsEnable));
+        footer.add(cancelButton);
 
         footer.add(buildViewTaskButton());
 
