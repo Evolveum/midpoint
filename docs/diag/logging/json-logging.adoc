@@ -1,0 +1,226 @@
+= JSON Logging
+:page-nav-title: JSON Logging
+:page-toc: top
+:page-midpointVersion: "4.12"
+:page-description: JSON Logging
+:page-upkeep-status: green
+:page-doc-type: guide
+:page-visibility: draft
+:page-search-alias: JSON log
+
+
+MidPoint can write log records in the JSON format, one JSON object per line.
+This format is intended for processing by machines, for example by SIEM  or other log management tools.
+
+The format is a property of an xref:/midpoint/reference/diag/logging/configuration/[appender].
+This means that you can combine formats freely.
+For example, `midpoint.log` can stay in the text format for people, while a second appender writes the same records to a JSON file for the SIEM.
+
+== Basic Configuration
+
+Set the `format` of an appender to `JSON`:
+
+[source,xml]
+----
+<logging>
+    <appender id="1" xsi:type="c:FileAppenderConfigurationType">
+        <name>MIDPOINT_JSON</name>
+        <format>JSON</format>
+        <fileName>${midpoint.home}/log/midpoint-json.log</fileName>
+        <maxHistory>10</maxHistory>
+        <maxFileSize>100MB</maxFileSize>
+        <append>true</append>
+    </appender>
+    <classLogger id="2">
+        <level>INFO</level>
+        <package>com.evolveum.midpoint</package>
+        <appender>MIDPOINT_JSON</appender>
+    </classLogger>
+</logging>
+----
+
+As with any other appender, nothing is written to the file until a class logger (or the root logger) refers to the appender.
+
+In the user interface, select the format of the appender in _Configuration_ -> _System_ -> _Logging_ -> _Appenders_.
+The list of appenders shows the format of each appender.
+
+[NOTE]
+====
+An appender without the `format` element uses the `PATTERN` format, so existing configurations work without any change.
+====
+
+[%autowidth]
+|===
+| Format | Description
+
+| `PATTERN`
+| Default. Each record is a line of text defined by the `pattern` element.
+
+| `JSON`
+| Each record is one JSON object. The `pattern` element is not used and can be omitted.
+|===
+
+== Example of a Record
+
+A record looks like this (shortened and wrapped for readability; in the file, it is one line):
+
+[source,json]
+----
+{
+"@timestamp":"16.11.2026T08:30:46",
+"@version":"1",
+"message":"New JDBC session created (session Y913Ed, connection HikariProxyConnection@1580470322 ...",
+"logger_name":"com.evolveum.midpoint.repo.sqlbase.JdbcSession",
+"thread_name":"http-nio-8080-exec-7",
+"level":"DEBUG",
+"level_value":10000,
+"version":"261112","app":"MidpointLocal"
+}
+----
+
+The record uses the standard fields of the Logstash JSON format:
+
+[%autowidth]
+|===
+| Field | Description
+
+| `@timestamp`
+| Time of the record.
+
+| `@version`
+| Version of the record format (always `1`). It is not the version of midPoint.
+
+| `message`
+| Text of the message.
+
+| `logger_name`
+| Name of the logger.
+
+| `thread_name`
+| Name of the thread.
+
+| `level`, `level_value`
+| Log level of the record, as text and as a number.
+
+| `stack_trace`
+| Stack trace, if the record has an exception (see below).
+|===
+
+Values from the logging context (MDC) and the xref:#custom-fields[custom fields] are added to the record as additional fields.
+
+== JSON Format Settings
+
+The optional `json` element of the appender customizes the JSON format.
+It is used only if the `format` is `JSON`; otherwise it is ignored.
+The values that are not specified keep their defaults.
+
+[source,xml]
+----
+<appender id="1" xsi:type="c:FileAppenderConfigurationType">
+    <name>MIDPOINT_JSON</name>
+    <format>JSON</format>
+    <json>
+        <timestampPattern>yyyy-MM-dd'T'HH:mm:ss.SSSZ</timestampPattern>
+        <timeZone>UTC</timeZone>
+        <includeStacktrace>true</includeStacktrace>
+        <maxStacktraceDepth>10</maxStacktraceDepth>
+        <customField id="2">
+            <name>application</name>
+            <value>midpoint</value>
+        </customField>
+    </json>
+    <fileName>${midpoint.home}/log/midpoint-json.log</fileName>
+</appender>
+----
+
+[%autowidth]
+|===
+| Item | Description | Default
+
+| `timestampPattern`
+| Pattern of the `@timestamp` field.
+It uses the syntax of `java.time.format.DateTimeFormatter`.
+| ISO 8601
+
+| `timeZone`
+| Time zone of the timestamp, for example `UTC` or `Europe/Bratislava`.
+| Time zone of the server
+
+| `includeStacktrace`
+| Whether the stack trace of an exception is written to the `stack_trace` field.
+| `true`
+
+| `maxStacktraceDepth`
+| Maximum number of stack trace elements written for each exception in the chain of causes.
+The value must be at least 1.
+It is ignored if the stack trace is not included.
+| No limit
+
+| `customField`
+| Fixed field added to every record.
+See below.
+| None
+|===
+
+[#custom-fields]
+=== Custom Fields
+
+A custom field is a fixed name and value pair added to every record.
+It is useful for identifying the source of the records in the SIEM, for example the application, the environment or the instance.
+The `customField` element can be repeated.
+
+[source,xml]
+----
+<json>
+    <customField id="1">
+        <name>application</name>
+        <value>midpoint</value>
+    </customField>
+    <customField id="2">
+        <name>environment</name>
+        <value>production</value>
+    </customField>
+</json>
+----
+
+The result in each record is:
+
+[source,json]
+----
+"application": "midpoint", "environment": "production"
+----
+
+Both the `name` and the `value` are mandatory.
+The names must be unique within the appender.
+The value is always written as a JSON string, even if it looks like a number.
+
+=== Stack Traces
+
+By default, the whole stack trace of an exception is written to the `stack_trace` field.
+Stack traces can be long.
+Use `maxStacktraceDepth` to limit the number of elements written for each exception in the chain of causes, or set `includeStacktrace` to `false` to omit the field completely.
+
+== Limitations
+
+* The JSON format cannot be used with xref:/midpoint/reference/diag/logging/syslog-logging/[syslog appenders].
+* The `pattern` element is not used for the `JSON` format.
+For an appender with the `PATTERN` format (or without a format), the `pattern` is required.
+* The alternative logging (`midpoint.logging.alt.*` properties) and the tracing output keep using the text format.
+*  Encoder settings that are not listed above (for example, names of the standard fields) cannot be changed in the logging configuration.
+
+[NOTE]
+====
+If the logging configuration is not valid, for example, the time zone is unknown or a field name is missing, midPoint cannot apply it.
+The reason is written to `midpoint.log` (`Couldn't apply logging configuration`) and the previous logging setup remains in effect.
+====
+
+== Implementation Notes
+
+The JSON format is provided by the https://github.com/logfellow/logstash-logback-encoder[logstash-logback-encoder] library.
+
+== See Also
+
+* xref:/midpoint/reference/diag/logging/configuration/[Logging Configuration]
+* xref:/midpoint/reference/diag/logging/syslog-logging/[Syslog Logging]
+* xref:/midpoint/reference/diag/logging/initial-logging/[Initial Logging Setup]
+* xref:/midpoint/reference/concepts/system-configuration-object/[System Configuration Object]
