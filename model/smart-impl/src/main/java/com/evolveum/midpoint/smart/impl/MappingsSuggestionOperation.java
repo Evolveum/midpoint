@@ -193,8 +193,13 @@ class MappingsSuggestionOperation {
                 ItemPath shadowAttrPath = PrismContext.get().itemPathParser().asItemPath(matchPair.getShadowAttributePath());
                 ItemPath focusPropPath = PrismContext.get().itemPathParser().asItemPath(matchPair.getFocusPropertyPath());
 
+                String matchPairDescription = shadowAttrPath + " <-> " + focusPropPath;
+                // Created here (on the calling thread), because OperationResult is not thread-safe:
+                // concurrent createSubresult calls on the same parent could lose subresults.
+                OperationResult mappingResult = result.createSubresult(
+                        "Mapping suggestion for the %s pair".formatted(matchPairDescription));
+
                 AtomicReference<Operation> operationReference = new AtomicReference<>();
-                AtomicReference<OperationResult> mappingResultReference = new AtomicReference<>();
                 var future = CompletableFuture.supplyAsync(() -> {
                     Authentication oldAuthentication = SecurityUtil.getAuthentication();
                     HttpConnectionInformation oldConnectionInformation = ctx.b.securityContextManager.getStoredConnectionInformation();
@@ -202,13 +207,8 @@ class MappingsSuggestionOperation {
                         SecurityContextHolder.getContext().setAuthentication(authentication);
                         ctx.b.securityContextManager.storeConnectionInformation(connectionInformation);
 
-                        String matchPairDescription = shadowAttrPath + " <-> " + focusPropPath;
                         var op = mappingsSuggestionState.recordProcessingStart(matchPairDescription);
-
                         operationReference.set(op);
-                        OperationResult mappingResult = result.createSubresult(
-                                "Mapping suggestion for the %s pair".formatted(matchPairDescription));
-                        mappingResultReference.set(mappingResult);
 
                         if (shouldSkipReadOnlyAttribute(shadowAttrPath)) {
                             LOGGER.debug("Skipping read-only attribute for {} mapping: {}", direction, shadowAttrPath);
@@ -220,7 +220,7 @@ class MappingsSuggestionOperation {
                         var valuePairsForValidation = ValuesPairSample.of(focusPropPath, shadowAttrPath, direction)
                                 .from(shadowsForValidation);
 
-                        mappingsSuggestionState.flush(result);
+                        mappingsSuggestionState.flush(mappingResult);
                         return suggestMapping(matchPair, valuePairsForLLM, valuePairsForValidation, mappingResult);
                     } catch (Exception e) {
                         throw new RuntimeException(e);
@@ -239,7 +239,6 @@ class MappingsSuggestionOperation {
                 }).exceptionally(e -> {
                     Throwable cause = unwrapCompletionException(e);
                     Operation op = operationReference.get();
-                    OperationResult mappingResult = mappingResultReference.get();
 
                     if (cause instanceof LowQualityMappingException) {
                         LOGGER.debug("Skipping mapping due to low quality: {}", cause.getMessage());
@@ -258,7 +257,6 @@ class MappingsSuggestionOperation {
                     }
                     return null;
                 }).thenRun(() -> {
-                    OperationResult mappingResult = mappingResultReference.get();
                     mappingsSuggestionState.flushIfNeeded(mappingResult);
                     mappingResult.close();
                 });
