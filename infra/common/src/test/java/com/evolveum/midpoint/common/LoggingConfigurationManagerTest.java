@@ -12,17 +12,13 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 
 import ch.qos.logback.classic.LoggerContext;
 import ch.qos.logback.classic.joran.JoranConfigurator;
 import ch.qos.logback.classic.util.LogbackMDCAdapter;
-
-import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
-
-import org.apache.commons.configuration2.BaseConfiguration;
-import org.apache.commons.configuration2.Configuration;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -140,9 +136,6 @@ public class LoggingConfigurationManagerTest {
         File logFile = new File("target/test-json-escaping.log");
         Files.deleteIfExists(logFile.toPath());
 
-        // custom fields with characters that are special in XML
-        String customFields = "{\"app\":\"midpoint\",\"note\":\"a<b & c 'x'\"}";
-
         JsonFormatConfigurationType json = new JsonFormatConfigurationType();
         json.getCustomField().add(customField("app", "midpoint"));
         json.getCustomField().add(customField("note", "a<b & c 'x' \"q\" \\"));
@@ -168,7 +161,8 @@ public class LoggingConfigurationManagerTest {
         assertThat(fullLogbackXml)
                 .contains("&lt;")
                 .contains("&amp;")
-                .doesNotContain("a<b & c");
+                .doesNotContain("a<b & c")
+                .containsPattern("\\t\\t\\t<customFields>");
 
         // 2. logback parses the XML and the encoder gets the original JSON
         LoggerContext context = new LoggerContext();
@@ -181,7 +175,7 @@ public class LoggingConfigurationManagerTest {
 
             context.getLogger("com.evolveum.midpoint.test").info("message with custom fields");
         } finally {
-            context.stop();                     // closes the appender and flushes the file
+            context.stop();
         }
 
         // 3. the log record contains the fields unchanged
@@ -240,6 +234,64 @@ public class LoggingConfigurationManagerTest {
         assertThat(limited.length()).isLessThan(full.length());
     }
 
+    @Test(expectedExceptions = SchemaException.class)
+    public void testJsonCustomFieldEmptyNameFails() throws Exception {
+        AppenderConfigurationType appender = jsonAppender("JSON");
+        appender.getJson().getCustomField().add(customField(" ", "x"));
+        LoggingConfigurationManager.prepareCommonAppenderFooter(new StringBuilder(), appender);
+    }
+
+    @Test(expectedExceptions = SchemaException.class)
+    public void testJsonCustomFieldDuplicateNameFails() throws Exception {
+        AppenderConfigurationType appender = jsonAppender("JSON");
+        appender.getJson().getCustomField().add(customField("app", "a"));
+        appender.getJson().getCustomField().add(customField("app", "b"));
+        LoggingConfigurationManager.prepareCommonAppenderFooter(new StringBuilder(), appender);
+    }
+
+    @Test(expectedExceptions = SchemaException.class)
+    public void testJsonCustomFieldWithoutValueFails() throws Exception {
+        AppenderConfigurationType appender = jsonAppender("JSON");
+        appender.getJson().getCustomField().add(customField("app", null));
+        LoggingConfigurationManager.prepareCommonAppenderFooter(new StringBuilder(), appender);
+    }
+
+    @Test(expectedExceptions = SchemaException.class)
+    public void testJsonMaxStacktraceDepthZeroFails() throws Exception {
+        AppenderConfigurationType appender = jsonAppender("JSON");
+        appender.getJson().setMaxStacktraceDepth(0);
+        LoggingConfigurationManager.prepareCommonAppenderFooter(new StringBuilder(), appender);
+    }
+
+    @Test
+    public void testJsonMaxStacktraceDepthOneIsAccepted() throws Exception {
+        AppenderConfigurationType appender = jsonAppender("JSON");
+        appender.getJson().setMaxStacktraceDepth(1);
+        LoggingConfigurationManager.prepareCommonAppenderFooter(new StringBuilder(), appender);
+    }
+
+    @Test
+    public void testJsonTimestampPatternAndTimeZoneAreApplied() throws Exception {
+        JsonFormatConfigurationType json = new JsonFormatConfigurationType();
+        json.setTimeZone("UTC");
+        json.setTimestampPattern("yyyy-MM-dd'T'HH:mm:ss'Z'");
+
+        String line = logExceptionThroughJsonAppender("TIMESTAMP", json);
+
+        assertThat(line).containsPattern("\"@timestamp\":\"\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z\"");
+    }
+    @Test
+    public void testJsonSettingsAreIgnoredForTextFormat() throws Exception {
+        AppenderConfigurationType appender = textAppender("TEXT", "%msg%n");
+        appender.setJson(new JsonFormatConfigurationType());
+        appender.getJson().setTimeZone("Not/AZone");   // would fail for the JSON format
+
+        StringBuilder sb = new StringBuilder();
+        LoggingConfigurationManager.prepareCommonAppenderFooter(sb, appender);
+
+        assertThat(sb.toString()).contains("<pattern>%msg%n</pattern>").doesNotContain("LogstashEncoder");
+    }
+
 // ------------------------------------------------------------------------------------------
 // ALT appender
 // ------------------------------------------------------------------------------------------
@@ -253,12 +305,49 @@ public class LoggingConfigurationManagerTest {
                 .contains("<layout class=\"ch.qos.logback.classic.PatternLayout\">")
                 .contains("<pattern>ALT: %msg%n</pattern>")
                 .doesNotContain("<format");
+
+
+    }
+
+    @Test
+    public void testAltAppenderToFileWritesRecordWithPrefix() throws Exception {
+
+        File logFile = new File("target/test-alt.log");
+        Files.deleteIfExists(logFile.toPath());
+
+        String appenderXml = altAppenderXml(logFile.getAbsolutePath(), "ALT: ");
+
+        assertThat(appenderXml)
+                .contains("ch.qos.logback.core.FileAppender")
+                .contains("<layout class=\"ch.qos.logback.classic.PatternLayout\">")
+                .doesNotContain("<format");
+
+        String fullLogbackXml = "<configuration>\n" + appenderXml
+                + "    <root level=\"INFO\">\n"
+                + "        <appender-ref ref=\"ALT_LOG\" />\n"
+                + "    </root>\n"
+                + "</configuration>";
+
+        LoggerContext context = new LoggerContext();          // own context, not the global one
+        context.setMDCAdapter(new LogbackMDCAdapter());
+        try {
+            JoranConfigurator configurator = new JoranConfigurator();
+            configurator.setContext(context);
+            configurator.doConfigure(
+                    new ByteArrayInputStream(fullLogbackXml.getBytes(StandardCharsets.UTF_8)));
+
+            context.getLogger("com.evolveum.midpoint.test").info("hello");
+        } finally {
+            context.stop();                                     // closes the appender and flushes the file
+        }
+
+        // if the layout element were not recognized, the pattern and the prefix would be missing
+        assertThat(Files.readString(logFile.toPath()).trim()).isEqualTo("ALT: hello");
     }
 
 // ------------------------------------------------------------------------------------------
 // Helper methods
 // ------------------------------------------------------------------------------------------
-
 
     private String logExceptionThroughJsonAppender(String name, JsonFormatConfigurationType json)
             throws Exception {
@@ -330,5 +419,4 @@ public class LoggingConfigurationManagerTest {
                 sb, textAppender("ROOT", "%msg%n"), fileName, prefix);
         return sb.toString();
     }
-
 }

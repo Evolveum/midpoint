@@ -543,12 +543,11 @@ public class LoggingConfigurationManager {
         String indent = "\t\t\t";
         appendEscapedProp(sb, indent, "timestampPattern", json.getTimestampPattern());
         appendEscapedProp(sb, indent, "timeZone", json.getTimeZone());
-      //  appendEscapedProp(sb, indent, "customFields", json.getCustomField());
-        prepareCustomFieldsProperty(sb,json.getCustomField() );
+        prepareCustomFieldsProperty(sb,indent,json.getCustomField() );
         prepareStacktraceProperties(sb, indent, json);
     }
 
-    private static void prepareCustomFieldsProperty(StringBuilder sb, List<JsonCustomFieldType> customFields) {
+    private static void prepareCustomFieldsProperty(StringBuilder sb, String indent, List<JsonCustomFieldType> customFields) {
         if (customFields.isEmpty()) {
             return;
         }
@@ -556,7 +555,7 @@ public class LoggingConfigurationManager {
         for (JsonCustomFieldType field : customFields) {
             node.put(field.getName(), field.getValue());
         }
-        appendEscapedProp(sb, "\t,\t,\t", "customFields", JSON_MAPPER.writeValueAsString(node));
+        appendEscapedProp(sb, indent, "customFields", JSON_MAPPER.writeValueAsString(node));
     }
 
     private static void prepareStacktraceProperties(StringBuilder sb, String indent, JsonFormatConfigurationType json) {
