@@ -10,11 +10,13 @@ import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHold
 import com.evolveum.midpoint.prism.Containerable;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.event.IEvent;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.component.wizard.BasicWizardStepPanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.impl.event.FormComponentUpdatingEvent;
 import com.evolveum.midpoint.web.component.message.FeedbackAlerts;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
@@ -93,6 +95,16 @@ public abstract class AbstractWizardStepPanel<AHDM extends AssignmentHolderDetai
     @Override
     protected void updateFeedbackPanels(AjaxRequestTarget target) {
         target.add(getFeedback());
+    }
+
+    @Override
+    public void onEvent(IEvent<?> event) {
+        super.onEvent(event);
+
+        if (event.getPayload() instanceof FormComponentUpdatingEvent updatingEvent
+                && contains(updatingEvent.component(), true)) {
+            updatingEvent.AjaxRequestTarget().add(getFeedback());
+        }
     }
 
     @Override
