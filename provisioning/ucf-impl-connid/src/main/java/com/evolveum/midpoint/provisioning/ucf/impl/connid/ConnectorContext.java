@@ -6,6 +6,8 @@
 
 package com.evolveum.midpoint.provisioning.ucf.impl.connid;
 
+import javax.xml.namespace.QName;
+
 /**
  * A restricted access to basic data about the {@link ConnectorInstanceConnIdImpl}.
  * Created to avoid circular dependencies from called components to the connector instance,
@@ -18,4 +20,7 @@ interface ConnectorContext {
     boolean isLegacySchema();
 
     String getHumanReadableName();
+
+    /** Whether generation constraints explicitly exclude this object class. */
+    boolean isObjectClassExcludedFromSchema(QName objectClassName);
 }

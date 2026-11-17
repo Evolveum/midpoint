@@ -222,8 +222,34 @@ class ConnIdSchemaParser {
             return null;
         }
 
+        /** Applies generation constraints to non-embedded reference targets. */
+        private boolean shouldSkipReference(AttributeInfo attributeInfo) {
+            if (!attributeInfo.isReference() || attributeInfo.isEmbedded()) {
+                return false;
+            }
+
+            var targetClass = attributeInfo.getReferencedObjectClassName();
+            if (targetClass == null) {
+                return false;
+            }
+
+            var targetName = connIdObjectClassNameToUcf(targetClass, legacySchema);
+            if (shouldBeGenerated(targetName)) {
+                return false;
+            }
+
+            LOGGER.trace("Skipping reference {}.{}: target object class {} is excluded",
+                    connIdClassInfo.getType(), attributeInfo.getName(), targetName);
+
+            return true;
+        }
+
         private void parseAttributeInfo(ItemName xsdItemName, AttributeInfo connIdAttrInfo) throws SchemaException {
             var connIdAttrName = connIdAttrInfo.getName();
+
+            if (shouldSkipReference(connIdAttrInfo)) {
+                return;
+            }
 
             // This is the default type name for the reference attributes. Should be resource-wide unique.
             Supplier<String> referenceTypeNameSupplier = () -> "_" + objectClassXsdNameLocal + "_" + connIdAttrName;

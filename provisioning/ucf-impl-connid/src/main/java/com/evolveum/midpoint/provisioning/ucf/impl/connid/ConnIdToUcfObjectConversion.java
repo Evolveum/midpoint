@@ -376,9 +376,36 @@ class ConnIdToUcfObjectConversion {
             }
         }
 
+        /** Recognizes references omitted from the schema because their target classes were excluded. */
+        private boolean hasOnlyExcludedReferenceValues(Attribute attribute) {
+            var values = attribute.getValue();
+            if (values == null || values.isEmpty()) {
+                // Empty values provide no target class; keep the normal schema validation.
+                return false;
+            }
+            for (var value : values) {
+                if (!(value instanceof ConnectorObjectReference reference)) {
+                    return false;
+                }
+                var targetClass = connIdObjectClassNameToUcf(reference.getValue().getObjectClass(), isLegacySchema());
+                if (targetClass == null || !connectorContext.isObjectClassExcludedFromSchema(targetClass)) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
         private void convertOtherAttribute(Attribute connIdAttr, String connIdAttrName)
                 throws SchemaException {
             var convertedAttrName = connIdAttributeNameToUcf(connIdAttrName, null, resourceObjectDefinition);
+
+            if (resourceObjectDefinition.findAttributeDefinition(
+                    convertedAttrName, resourceSchema.isCaseIgnoreAttributeNames()) == null
+                    && hasOnlyExcludedReferenceValues(connIdAttr)) {
+                LOGGER.trace("Skipping returned reference {}.{}: target object classes are excluded",
+                        connectorObjectFragment.getObjectClass(), connIdAttrName);
+                return;
+            }
 
             //noinspection rawtypes
             ShadowAttributeDefinition mpDefinition = resourceObjectDefinition.findShadowAttributeDefinitionRequired(

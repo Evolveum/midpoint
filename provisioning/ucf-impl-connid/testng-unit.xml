@@ -9,6 +9,7 @@
 <suite name="unit" parallel="none" >
     <test name="UCF ConnId Implementation Unit Tests" preserve-order="false" parallel="none" verbose="1">
         <classes>
+            <class name="com.evolveum.midpoint.provisioning.ucf.impl.connid.TestConnIdReferenceFiltering"/>
             <class name ="com.evolveum.midpoint.provisioning.ucf.impl.connid.TestConnectorFactoryConnIdImpl"/>
         </classes>
     </test>

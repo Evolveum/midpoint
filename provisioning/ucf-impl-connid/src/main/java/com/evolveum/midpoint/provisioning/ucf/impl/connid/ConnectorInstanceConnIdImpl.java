@@ -2182,6 +2182,12 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance, Connector
         return configuredLegacySchema;
     }
 
+    @Override
+    public boolean isObjectClassExcludedFromSchema(QName objectClassName) {
+        var selected = getConfigurationRequired().objectClassesToGenerate();
+        return !selected.isEmpty() && !selected.contains(objectClassName);
+    }
+
     public boolean isLegacySchema() {
         //noinspection ReplaceNullCheck
         if (configuredLegacySchema != null) {
