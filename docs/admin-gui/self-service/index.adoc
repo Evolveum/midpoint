@@ -259,6 +259,7 @@ _**oldPasswordIfExists**_ (User must supply old password, if exists, to change t
 | Additional configurability applied when changing or resetting a password.
 This applies when user is changing or resetting his own password. It does NOT apply
 when administrator changes password of other user. Default value is _**alwaysConfigure**_.
+The current hint is not shown on this page, the user can only set a new one.
 | _**alwaysConfigure**_ (Always configurable password hint, during changing and resetting password.)
 
 _**neverConfigure**_ (Never configurable password hint, during changing and resetting password.)
