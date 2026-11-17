@@ -43,3 +43,7 @@ GUI related changes require logout/login of the user.
     </logging>
 </systemConfiguration>
 ----
+
+== See Also
+
+* xref:/midpoint/reference/diag/logging/json-logging/[JSON Logging]
