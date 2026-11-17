@@ -10,7 +10,6 @@ import java.util.Collection;
 
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
-import com.evolveum.midpoint.gui.api.prism.wrapper.ItemMandatoryHandler;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemVisibilityHandler;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
@@ -42,9 +41,8 @@ public class ProtectedStringTypeWrapperImpl extends PrismPropertyWrapperImpl<Pro
     }
 
     @Override
-    public boolean isVisible(PrismContainerValueWrapper<?> parent, ItemVisibilityHandler visibilityHandler,
-            ItemMandatoryHandler mandatoryHandler) {
-        return !isPasswordHintOfAnotherUser() && super.isVisible(parent, visibilityHandler, mandatoryHandler);
+    public boolean isVisible(PrismContainerValueWrapper<?> parent, ItemVisibilityHandler visibilityHandler) {
+        return !isPasswordHintOfAnotherUser() && super.isVisible(parent, visibilityHandler);
     }
 
     /** The password hint is a personal reminder of the user's own password, other users must not see it. */
