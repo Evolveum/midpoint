@@ -287,7 +287,8 @@ Panels applicable for all FocusType objects:
 
 | Password
 | `password`
-| Password panel, might be grouped under credentials in the future
+| Password panel, might be grouped under credentials in the future.
+The password hint is shown only on the user's own details page.
 | 50
 
 | Activation
