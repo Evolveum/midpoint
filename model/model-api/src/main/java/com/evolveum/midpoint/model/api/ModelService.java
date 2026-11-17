@@ -619,6 +619,8 @@ public interface ModelService {
     /**
      * Import objects from file.
      *
+     * The language of the file content (XML, JSON or YAML) is auto-detected.
+     *
      * Invocation of this method may be switched to background.
      */
     void importObjectsFromFile(File input, ImportOptionsType options, Task task, OperationResult parentResult) throws FileNotFoundException;

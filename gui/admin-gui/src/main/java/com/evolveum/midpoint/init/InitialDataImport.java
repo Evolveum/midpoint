@@ -9,9 +9,11 @@ package com.evolveum.midpoint.init;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -40,13 +42,18 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 /**
  * Imports initial data objects as needed, ignoring already imported objects.
  * Initial objects are found on the classpath using defined pattern to match
- * resources under {@code initial-objects} directory.
+ * resources under {@code initial-objects} directory. Objects can be provided
+ * in XML, JSON or YAML format (distinguished by the file extension).
  */
 public class InitialDataImport extends DataImport {
 
     private static final Trace LOGGER = TraceManager.getTrace(InitialDataImport.class);
 
-    private static final String INITIAL_OBJECTS_RESOURCE_PATTERN = "classpath*:/initial-objects/**/*.xml";
+    private static final String[] INITIAL_OBJECTS_RESOURCE_PATTERNS = {
+            "classpath*:/initial-objects/**/*.xml",
+            "classpath*:/initial-objects/**/*.json",
+            "classpath*:/initial-objects/**/*.yaml",
+    };
 
     public void init() throws SchemaException {
         init(false);
@@ -67,9 +74,12 @@ public class InitialDataImport extends DataImport {
         importStats.put(ImportResult.ERROR, new AtomicInteger());
         importStats.put(ImportResult.SKIPPED, new AtomicInteger());
         try {
-            Resource[] resources = new PathMatchingResourcePatternResolver()
-                    .getResources(INITIAL_OBJECTS_RESOURCE_PATTERN);
-            Arrays.sort(resources, Comparator.comparing(Resource::getFilename));
+            PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
+            List<Resource> resources = new ArrayList<>();
+            for (String pattern : INITIAL_OBJECTS_RESOURCE_PATTERNS) {
+                resources.addAll(Arrays.asList(resolver.getResources(pattern)));
+            }
+            resources.sort(Comparator.comparing(Resource::getFilename));
 
             SecurityContext securityContext = provideFakeSecurityContext();
             for (Resource resource : resources) {

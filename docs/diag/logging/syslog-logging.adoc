@@ -104,3 +104,5 @@ In case that you are running midPoint cluster this configuration needs to be app
 * xref:log-levels.adoc[]
 
 * xref:useful-loggers.adoc[]
+
+* xref:/midpoint/reference/diag/logging/json-logging/[JSON Logging]
