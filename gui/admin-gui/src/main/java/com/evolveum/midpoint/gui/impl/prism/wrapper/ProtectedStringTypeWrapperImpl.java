@@ -8,10 +8,16 @@ package com.evolveum.midpoint.gui.impl.prism.wrapper;
 
 import java.util.Collection;
 
+import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
+import com.evolveum.midpoint.gui.api.prism.wrapper.ItemMandatoryHandler;
+import com.evolveum.midpoint.gui.api.prism.wrapper.ItemVisibilityHandler;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
@@ -33,6 +39,22 @@ public class ProtectedStringTypeWrapperImpl extends PrismPropertyWrapperImpl<Pro
             valueWrapper.setStatus(ValueStatus.DELETED);
         }
         return super.getDelta();
+    }
+
+    @Override
+    public boolean isVisible(PrismContainerValueWrapper<?> parent, ItemVisibilityHandler visibilityHandler,
+            ItemMandatoryHandler mandatoryHandler) {
+        return !isPasswordHintOfAnotherUser() && super.isVisible(parent, visibilityHandler, mandatoryHandler);
+    }
+
+    /** The password hint is a personal reminder of the user's own password, other users must not see it. */
+    private boolean isPasswordHintOfAnotherUser() {
+        if (!SchemaConstants.PATH_PASSWORD_HINT.equivalent(getPath().namedSegmentsOnly())) {
+            return false;
+        }
+        PrismObjectWrapper<?> objectWrapper = findObjectWrapper();
+        MidPointPrincipal principal = AuthUtil.getPrincipalUser();
+        return objectWrapper == null || principal == null || !principal.getOid().equals(objectWrapper.getOid());
     }
 
 
