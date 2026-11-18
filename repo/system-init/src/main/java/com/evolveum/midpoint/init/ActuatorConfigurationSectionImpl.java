@@ -12,6 +12,7 @@ import java.util.Map;
 
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
@@ -28,8 +29,9 @@ import com.evolveum.midpoint.common.configuration.api.ActuatorConfigurationSecti
 record ActuatorConfigurationSectionImpl(Map<String, Boolean> endpointOptions, @Nullable Boolean allOption)
         implements ActuatorConfigurationSection {
 
+    private static final String ENABLED_SUFFIX = ".enabled";
+
     static ActuatorConfigurationSectionImpl create(Configuration configuration) {
-        String ENABLED_SUFFIX = ".enabled";
         Map<String, Boolean> endpointOptions = new HashMap<>();
         for (Iterator<String> keys = configuration.getKeys(); keys.hasNext(); ) {
             String key = keys.next();
