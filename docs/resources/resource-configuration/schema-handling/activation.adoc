@@ -1,3 +1,7 @@
+---
+midpoint-feature: schema-activation
+doc-type: config
+---
 = Resource Schema Handling: Activation
 :page-nav-title: Activation
 :page-wiki-name: Resource Schema Handling: Activation
