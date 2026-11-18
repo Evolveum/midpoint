@@ -19,7 +19,6 @@ import com.evolveum.midpoint.web.component.behavior.JavaScriptEventBehavior;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
 
-import com.evolveum.midpoint.web.page.admin.configuration.component.QueryPlaygroundPanel;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -46,7 +45,7 @@ public class AxiomSearchPanel extends BasePanel<AxiomQueryWrapper> {
 
     @Serial private static final long serialVersionUID = 1L;
 
-    private static final Trace LOGGER = TraceManager.getTrace(QueryPlaygroundPanel.class);
+    private static final Trace LOGGER = TraceManager.getTrace(AxiomSearchPanel.class);
     private static final String ID_AXIOM_QUERY_FIELD = "axiomQueryField";
     private static final String ID_ADVANCED_ERROR = "advancedError";
     private static String idAxiomQueryInputField;
@@ -133,9 +132,9 @@ public class AxiomSearchPanel extends BasePanel<AxiomQueryWrapper> {
                                 mapper.writeValueAsString(suggestions.isEmpty()
                                         ? List.of(new Suggestion("", createStringResource("QueryLanguage.contentAssist.codeCompletions.noSuggestion").getString(), 0)) // If list is empty, add noSuggestion item
                                         : suggestions.stream()
-                                        .map(suggestion -> !suggestion.alias().isEmpty()
+                                        .map(suggestion -> StringUtils.isNotEmpty(suggestion.alias())
                                                 ? new Suggestion(suggestion.name(), createStringResource(suggestion.alias()).getString(), suggestion.priority()) // translate alias
-                                                : suggestion)
+                                                : new Suggestion(suggestion.name(), "", suggestion.priority()))
                                         .sorted(Comparator.comparingInt(Suggestion::priority).reversed()) // sorted suggestions by priority from max to min weigh
                                         .toList()
                                 ) + ", '" + idAxiomQueryInputField + "');"
