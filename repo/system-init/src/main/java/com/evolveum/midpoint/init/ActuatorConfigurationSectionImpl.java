@@ -6,37 +6,61 @@
 
 package com.evolveum.midpoint.init;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 
 import org.apache.commons.configuration2.Configuration;
+import org.apache.commons.lang3.StringUtils;
 import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
 import com.evolveum.midpoint.common.configuration.api.ActuatorConfigurationSection;
 
 /**
  * Provides typed access to the "actuator" section of the config.xml file.
  *
- * The endpoints are the ones exposed in {@code application.yml} ({@code management.endpoints.web.exposure.include}).
- * If an endpoint is exposed there, it must be listed here as well, otherwise it stays disabled.
+ * @param endpointOptions Values of the per-endpoint options ({@code <endpoint>.enabled}) that are set,
+ * without the {@value ActuatorConfigurationSection#ALL} option.
+ * @param allOption Value of the {@code all.enabled} option; {@code null} if not set.
  */
 @NullMarked
-record ActuatorConfigurationSectionImpl(Set<String> enabledEndpoints) implements ActuatorConfigurationSection {
-
-    /** Known actuator endpoints. */
-    private static final Set<String> ENDPOINTS = Set.of("health", "info", "metrics", "env", "threaddump", "heapdump");
-
-    /** Suffix of the per-endpoint keys within the section, e.g. {@code metrics.enabled}. */
-    private static final String ENABLED_SUFFIX = ".enabled";
+record ActuatorConfigurationSectionImpl(Map<String, Boolean> endpointOptions, @Nullable Boolean allOption)
+        implements ActuatorConfigurationSection {
 
     static ActuatorConfigurationSectionImpl create(Configuration configuration) {
-        Set<String> enabled = new HashSet<>();
-        for (String endpoint : ENDPOINTS) {
-            boolean enabledByDefault = ActuatorConfigurationSection.isEnabledByDefault(endpoint);
-            if (configuration.getBoolean(endpoint + ENABLED_SUFFIX, enabledByDefault)) {
-                enabled.add(endpoint);
+        String ENABLED_SUFFIX = ".enabled";
+        Map<String, Boolean> endpointOptions = new HashMap<>();
+        for (Iterator<String> keys = configuration.getKeys(); keys.hasNext(); ) {
+            String key = keys.next();
+            String endpointId = StringUtils.removeEnd(key, ENABLED_SUFFIX);
+            if (!endpointId.equals(key) && !endpointId.isEmpty() && !endpointId.contains(".")
+                    && !ALL.equals(endpointId)) {
+                endpointOptions.put(endpointId, configuration.getBoolean(key));
             }
         }
-        return new ActuatorConfigurationSectionImpl(Set.copyOf(enabled));
+        return new ActuatorConfigurationSectionImpl(
+                Map.copyOf(endpointOptions),
+                configuration.getBoolean(ALL + ENABLED_SUFFIX, null));
+    }
+
+    @Override
+    public boolean isEndpointEnabled(String endpointId) {
+        Boolean option = endpointOptions.get(endpointId);
+        if (option != null) {
+            return option;
+        }
+        if (allOption != null) {
+            return allOption;
+        }
+        return ActuatorConfigurationSection.isEnabledByDefault(endpointId);
+    }
+
+    @Override
+    public boolean isAnyEndpointEnabled() {
+        return Boolean.TRUE.equals(allOption)
+                || endpointOptions.containsValue(true)
+                // health is enabled unless switched off by its own option or by "all"
+                || isEndpointEnabled("health");
     }
 }

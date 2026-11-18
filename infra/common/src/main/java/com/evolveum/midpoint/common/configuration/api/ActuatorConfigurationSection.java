@@ -6,8 +6,6 @@
 
 package com.evolveum.midpoint.common.configuration.api;
 
-import java.util.Set;
-
 import org.jspecify.annotations.NullMarked;
 
 /**
@@ -15,16 +13,30 @@ import org.jspecify.annotations.NullMarked;
  *
  * Each actuator endpoint has its own startup option {@code midpoint.actuator.<endpoint>.enabled}
  * (e.g. {@code midpoint.actuator.metrics.enabled}).
- * The {@code health} endpoint is enabled by default, all other endpoints are disabled by default.
+ * The common actuator endpoints enabling/disabling is possible with the value {@value #ALL}
+ * ({@code midpoint.actuator.all.enabled}).
+ * If neither is set, only the {@code health} endpoint is enabled.
  */
 @NullMarked
 public interface ActuatorConfigurationSection {
 
-    /** Identifiers of the enabled actuator endpoints. */
-    Set<String> enabledEndpoints();
+    /** Name of the option that stands for all endpoints. */
+    String ALL = "all";
 
-    /** Is the endpoint enabled when its startup option is not set? Only {@code health} is. */
-    static boolean isEnabledByDefault(String endpoint) {
-        return "health".equals(endpoint);
+    /**
+     * Returns true if the actuator endpoint is enabled.
+     * Its own option wins, then the {@value #ALL} option, then the default (see {@link #isEnabledByDefault(String)}).
+     */
+    boolean isEndpointEnabled(String endpointId);
+
+    /** Returns true if at least one actuator endpoint is enabled. Used for the discovery page ({@code /actuator}). */
+    boolean isAnyEndpointEnabled();
+
+    /**
+     * Returns true if the endpoint is enabled when neither its own option nor the {@value #ALL} option is set.
+     * This holds only for {@code health}.
+     */
+    static boolean isEnabledByDefault(String endpointId) {
+        return "health".equals(endpointId);
     }
 }
