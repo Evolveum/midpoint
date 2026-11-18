@@ -62,7 +62,7 @@ public class RestEndpointPath {
         }
     }
 
-    /** Is the first raw (not decoded) path segment after the context path one of the REST prefixes? */
+    /** Returns true if the first raw (not decoded) path segment after the context path is one of the REST prefixes. */
     private static boolean hasRawRestPrefix(HttpServletRequest request) {
         String path = request.getRequestURI().substring(request.getContextPath().length());
         String firstSegment = StringUtils.substringBefore(StringUtils.removeStart(path, "/"), "/");
