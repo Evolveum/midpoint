@@ -85,7 +85,7 @@ public class VerticalFormPrismReferenceValuePanel<R extends Referencable> extend
 
             @Override
             protected boolean isButtonLabelVisible() {
-                return !getSettings().isDisplayedInColumn();
+                return getSettings() == null || !getSettings().isDisplayedInColumn();
             }
 
             @Override
