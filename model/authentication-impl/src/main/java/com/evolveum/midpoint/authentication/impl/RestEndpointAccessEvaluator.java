@@ -33,8 +33,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
  * </ul>
  *
  * The startup options are read once, at startup.
- *
- * TODO Review the default for the intra-cluster endpoints (it is not confirmed yet).
  */
 @Component
 public class RestEndpointAccessEvaluator implements ApplicationListener<ContextRefreshedEvent> {
