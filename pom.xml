@@ -243,6 +243,7 @@
         <!-- CVE-2026-110879; keep both aligned, they share jackson-annotations (2.21). Must match Prism. -->
         <jackson-2-bom.version>2.21.8</jackson-2-bom.version>
         <jackson-bom.version>3.1.8</jackson-bom.version>
+        <json-smart.version>2.6.1</json-smart.version>
         <!-- END of Spring Boot dependencies overrides -->
 
         <!-- security fix for CVE-2025-48976 -->
