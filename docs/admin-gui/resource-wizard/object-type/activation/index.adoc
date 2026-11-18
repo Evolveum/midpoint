@@ -1,3 +1,7 @@
+---
+midpoint-feature: schema-activation
+doc-type: config
+---
 = Resource wizard: Object type activation
 :page-nav-title: Activation
 :experimental:
