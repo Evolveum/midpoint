@@ -6,7 +6,7 @@
 
 package com.evolveum.midpoint.common.configuration.api;
 
-import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.Nullable;
 import org.jspecify.annotations.NullMarked;
 
 /**

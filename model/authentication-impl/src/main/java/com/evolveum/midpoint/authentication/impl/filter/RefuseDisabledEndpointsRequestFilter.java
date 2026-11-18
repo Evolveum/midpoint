@@ -14,7 +14,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jspecify.annotations.NonNull;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import com.evolveum.midpoint.authentication.impl.ActuatorEndpointAccessEvaluator;
@@ -49,8 +48,8 @@ public class RefuseDisabledEndpointsRequestFilter extends OncePerRequestFilter {
     }
 
     @Override
-    protected void doFilterInternal(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response,
-            @NonNull FilterChain chain) throws IOException, ServletException {
+    protected void doFilterInternal(@NotNull HttpServletRequest request, @NotNull HttpServletResponse response,
+            @NotNull FilterChain chain) throws IOException, ServletException {
         if (!isEndpointEnabled(request)) {
             LOGGER.debug("Request to {} rejected with 404, because the {} is disabled",
                     request.getRequestURI(), describeDisabledEndpoint(request));

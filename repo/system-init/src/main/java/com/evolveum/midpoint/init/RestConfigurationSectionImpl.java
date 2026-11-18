@@ -7,7 +7,7 @@
 package com.evolveum.midpoint.init;
 
 import org.apache.commons.configuration2.Configuration;
-import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.Nullable;
 import org.jspecify.annotations.NullMarked;
 
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
