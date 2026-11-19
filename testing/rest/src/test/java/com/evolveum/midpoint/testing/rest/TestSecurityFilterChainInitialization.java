@@ -16,14 +16,19 @@ import jakarta.ws.rs.core.Response;
 import org.apache.cxf.jaxrs.client.WebClient;
 import org.apache.cxf.message.Message;
 import org.springframework.boot.test.web.server.LocalServerPort;
+import org.springframework.test.context.TestPropertySource;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.common.rest.MidpointAbstractProvider;
+import com.evolveum.midpoint.task.api.TaskConstants;
 
 /**
  * End-to-end checks that public resources and application endpoints retain
  * their expected HTTP security behavior.
+ *
+ * The metrics actuator is enabled by its startup option, other actuators keep their defaults (bug:12960).
  */
+@TestPropertySource(properties = "midpoint.actuator.metrics.enabled=true")
 public class TestSecurityFilterChainInitialization extends RestServiceInitializer {
 
     private static final String[] PUBLIC_STATIC_RESOURCE_PATHS = {
@@ -33,6 +38,15 @@ public class TestSecurityFilterChainInitialization extends RestServiceInitialize
             "/fonts/font-evosome.woff",
             "/static/midpoint.css",
             "/favicon.ico",
+    };
+
+    private static final String CLUSTER_PATH = "/ws/cluster" + TaskConstants.GET_LOCAL_SCHEDULER_INFORMATION_REST_PATH;
+
+    private static final String[] DISABLED_ACTUATOR_PATHS = {
+            "/actuator/info",
+            "/actuator/env",
+            "/actuator/threaddump",
+            "/actuator/heapdump",
     };
 
     @LocalServerPort private int serverPort;
@@ -165,6 +179,67 @@ public class TestSecurityFilterChainInitialization extends RestServiceInitialize
         WebClient administrator = prepareRootClient(USER_ADMINISTRATOR_USERNAME, USER_ADMINISTRATOR_PASSWORD);
         administrator.path("/ws/rest/users");
         assertThat(administrator.get().getStatus()).isEqualTo(Response.Status.OK.getStatusCode());
+    }
+
+    /**
+     * Intra-cluster endpoints are disabled by default on a node that is not clustered,
+     * independently of the REST API, which is enabled in these tests.
+     */
+    @Test
+    public void test200ClusterEndpointsAreDisabledOnNonClusteredNode() {
+        given("node is not clustered");
+        assertThat(taskManager.isClustered()).as("clustered").isFalse();
+
+        when("calling an intra-cluster endpoint");
+        Response response = getWithBasicAuthentication(CLUSTER_PATH, USER_ADMINISTRATOR_USERNAME, USER_ADMINISTRATOR_PASSWORD);
+
+        then("404 is returned");
+        assertThat(response.getStatus()).isEqualTo(Response.Status.NOT_FOUND.getStatusCode());
+    }
+
+    /**
+     * Actuator endpoints other than health are disabled by default, metrics is enabled by its startup option.
+     * Disabled endpoints end with 404 before authentication, so even a wrong password is not audited.
+     * The discovery page lists only the enabled endpoints.
+     */
+    @Test
+    public void test210OnlyEnabledActuatorEndpointsAreAvailable() {
+        given("metrics is enabled by the startup option, other actuators keep their defaults");
+        getDummyAuditService().clear();
+
+        when("calling disabled actuator endpoints with a wrong password");
+        for (String path : DISABLED_ACTUATOR_PATHS) {
+            Response response = getWithBasicAuthentication(path, USER_ADMINISTRATOR_USERNAME, "wrong-password");
+
+            then("404 is returned for " + path);
+            assertNotFoundWithoutAuthentication(response, path);
+        }
+
+        and("no authentication was attempted");
+        displayDumpable("Audit", getDummyAuditService());
+        getDummyAuditService().assertNoRecord();
+
+        when("calling metrics and the discovery page");
+        Response metrics = getWithBasicAuthentication("/actuator/metrics", USER_ADMINISTRATOR_USERNAME, USER_ADMINISTRATOR_PASSWORD);
+        Response discovery = getWithBasicAuthentication("/actuator", USER_ADMINISTRATOR_USERNAME, USER_ADMINISTRATOR_PASSWORD);
+
+        then("metrics is available and the discovery page lists only health and metrics");
+        assertThat(metrics.getStatus()).isEqualTo(Response.Status.OK.getStatusCode());
+        assertThat(discovery.getStatus()).isEqualTo(Response.Status.OK.getStatusCode());
+        assertThat(discovery.readEntity(String.class))
+                .contains("/actuator/health", "/actuator/metrics")
+                .doesNotContain("/actuator/info", "/actuator/env");
+    }
+
+    private Response getWithBasicAuthentication(String path, String username, String password) {
+        WebClient client = prepareRootClient(username, password);
+        client.path(path);
+        return client.get();
+    }
+
+    private void assertNotFoundWithoutAuthentication(Response response, String path) {
+        assertThat(response.getStatus()).as("status for %s", path).isEqualTo(Response.Status.NOT_FOUND.getStatusCode());
+        assertThat(response.getHeaderString("WWW-Authenticate")).as("authentication challenge for %s", path).isNull();
     }
 
     private WebClient prepareRootClient(String username, String password) {
