@@ -46,6 +46,9 @@ Moreover, midPoint 4.11.0 made a significant leap towards secure-by-default conf
 * Failed password reset attempts are now recorded in the audit log, improving security monitoring and troubleshooting.
 * Improved Spring Security initialization by replacing ignored URL patterns with a dedicated security filter chain, preserving existing authentication behavior.
 * Hardened Content Security Policy by removing unsafe-inline and unsafe-eval JavaScript permissions and restricting inline CSS in <style> elements.
+* The REST API and most of the Spring Boot Actuator endpoints are disabled by default and can be enabled by startup options.
+Requests to a disabled endpoint end with HTTP 404 (Not Found) before authentication.
+See <<_behavior_changes_since_4_10,Behavior Changes>>.
 // TODO
 
 ==== User Interface
@@ -692,6 +695,24 @@ These settings prevent executing arbitrary code on the underlying operating syst
 The initial system configuration assigns the `safe`, `reporting` and `configuration` expression profiles to object types, and sets MEL as the default script language.
 Existing deployments keep their `config.xml` and system configuration, but it is recommended to adapt them in a similar way.
 See xrefv:/midpoint/reference/master/expressions/expressions/configuration/[], xrefv:/midpoint/reference/master/expressions/expressions/profiles/[], xrefv:/midpoint/reference/master/expressions/expressions/security/[], and xrefv:/midpoint/reference/master/connector-generator/enable/[].
+
+* The REST API is disabled by default.
++
+Since midPoint 4.12, the REST API is not available until an administrator enables it explicitly.
+Requests to the REST API (`/ws/rest`, `/rest`, `/api`) end with HTTP 404 (Not Found) before authentication, so they cause no authentication attempt and no audit record.
+Deployments that use the REST API (e.g. Studio, the Java client library, the connector generator REST API, or custom integrations) have to enable it by the `midpoint.rest.api.enabled` startup option, set in `config.xml`, as a JVM option, or as an environment variable.
+The intra-cluster REST endpoints (`/ws/cluster`) do not depend on this option: they are enabled automatically on a clustered node (`clustered` set to `true`) and disabled on a non-clustered node.
+The `midpoint.rest.cluster.enabled` startup option overrides this automatic behavior, set in the same ways as the REST API option.
+Do not disable the intra-cluster endpoints on a clustered node, otherwise the nodes cannot communicate with each other.
+See xrefv:/midpoint/reference/master/interfaces/rest/#enabling-the-rest-api[Enabling the REST API] and xrefv:/midpoint/reference/master/deployment/clustering-ha/#intra-cluster-rest-endpoints[Intra-Cluster REST Endpoints].
+
+* Only the _health_ Spring Boot Actuator endpoint is enabled by default.
++
+Since midPoint 4.12, the actuator endpoints that expose sensitive information about the running midPoint are not available until an administrator enables them explicitly.
+These endpoints (_info_, _env_, _metrics_, _threaddump_, _heapdump_) have to be enabled by the `midpoint.actuator.<endpoint>.enabled` or `midpoint.actuator.all.enabled` startup options.
+Requests to a disabled endpoint end with HTTP 404 (Not Found) before authentication, and the endpoint is not listed on the `/actuator` discovery page.
+Monitoring that reads e.g. the _metrics_ endpoint has to enable it after the upgrade.
+See xrefv:/midpoint/reference/master/deployment/spring-boot-actuator-endpoints/#enabling-actuator-endpoints[Enabling Actuator Endpoints].
 
 
 ++++
