@@ -21,8 +21,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.CacheInvalidationContext;
+import com.evolveum.midpoint.prism.delta.ChangeType;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.api.ClusterwideCacheInvalidationDispatcher;
+import com.evolveum.midpoint.repo.api.ModifyObjectResult;
 import com.evolveum.midpoint.repo.api.RepositoryOperationResult;
 import com.evolveum.midpoint.repo.cache.global.GlobalCacheQueryValue;
 import com.evolveum.midpoint.repo.cache.global.GlobalObjectCache;
@@ -38,9 +42,12 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FunctionLibraryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
  * Contains functionality related to cache entry invalidation.
@@ -53,6 +60,13 @@ public class Invalidator {
     private static final List<Class<?>> TYPES_ALWAYS_INVALIDATED_CLUSTERWIDE = Arrays.asList(
             SystemConfigurationType.class,
             FunctionLibraryType.class);
+
+    // Keep aligned with the UserType paths used by GuiProfiledPrincipalManagerImpl.
+    private static final Set<ItemPath> USER_CLUSTERWIDE_INVALIDATION_PATHS = Set.of(
+            FocusType.F_ASSIGNMENT,
+            FocusType.F_ACTIVATION,
+            RoleType.F_ADMIN_GUI_CONFIGURATION,
+            ObjectType.F_LIFECYCLE_STATE);
 
     @Autowired private GlobalQueryCache globalQueryCache;
     @Autowired private GlobalObjectCache globalObjectCache;
@@ -105,6 +119,7 @@ public class Invalidator {
                 clearQueryResultsLocally(localQueryCache, type, oid, additionalInfo, matchingRuleRegistry);
             }
             boolean clusterwide = TYPES_ALWAYS_INVALIDATED_CLUSTERWIDE.contains(type) ||
+                    isSecurityRelevantUserChange(type, additionalInfo) ||
                     // Role changes can affect authorizations cached by principals on other nodes.
                     AbstractRoleType.class.isAssignableFrom(type) ||
                     globalObjectCache.hasClusterwideInvalidationFor(type) ||
@@ -118,6 +133,32 @@ public class Invalidator {
         } finally {
             result.computeStatusIfUnknown();
         }
+    }
+
+    private static <T extends ObjectType> boolean isSecurityRelevantUserChange(Class<T> type, RepositoryOperationResult additionalInfo) {
+        if (!UserType.class.isAssignableFrom(type)) {
+            return false;
+        }
+        if (additionalInfo == null) {
+            return true;
+        }
+        if (additionalInfo.getChangeType() == ChangeType.ADD) {
+            return false;
+        }
+        if (additionalInfo.getChangeType() == ChangeType.DELETE
+                || !(additionalInfo instanceof ModifyObjectResult<?> modifyResult)
+                || modifyResult.isOverwrite()) {
+            return true;
+        }
+
+        for (ItemDelta<?, ?> modification : modifyResult.getModifications()) {
+            for (ItemPath path : USER_CLUSTERWIDE_INVALIDATION_PATHS) {
+                if (modification.getPath().startsWith(path)) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     private <T extends ObjectType> void clearQueryResultsLocally(LocalQueryCache cache, Class<T> type, String oid,

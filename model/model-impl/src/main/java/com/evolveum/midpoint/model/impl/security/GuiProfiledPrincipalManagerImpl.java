@@ -79,6 +79,11 @@ public class GuiProfiledPrincipalManagerImpl
 
     // TODO consider also roleMembershipRef
     private static final Set<ItemPath> ASSIGNMENTS_AND_ADMIN_GUI_PATHS = ImmutableSet.of(FocusType.F_ASSIGNMENT, RoleType.F_ADMIN_GUI_CONFIGURATION, FocusType.F_ACTIVATION);
+    private static final Set<ItemPath> USER_INVALIDATION_PATHS = ImmutableSet.<ItemPath>builder()
+            .addAll(ASSIGNMENTS_AND_ADMIN_GUI_PATHS)
+            // Lifecycle changes can affect effective activation and assignments.
+            .add(ObjectType.F_LIFECYCLE_STATE)
+            .build();
     private static final Set<ItemPath> ABSTRACT_ROLE_INVALIDATION_PATHS = ImmutableSet.<ItemPath>builder()
             .addAll(ASSIGNMENTS_AND_ADMIN_GUI_PATHS)
             // Authorization and inducement changes can affect effective user permissions.
@@ -95,7 +100,7 @@ public class GuiProfiledPrincipalManagerImpl
 
     private static final Collection<CacheInvalidationEventSpecification> CACHE_EVENT_SPECIFICATION =
             ImmutableSet.<CacheInvalidationEventSpecification>builder()
-            .add(CacheInvalidationEventSpecification.of(UserType.class,ASSIGNMENTS_AND_ADMIN_GUI_PATHS,MODIFY_DELETE_CHANGES))
+            .add(CacheInvalidationEventSpecification.of(UserType.class, USER_INVALIDATION_PATHS, MODIFY_DELETE_CHANGES))
             .add(CacheInvalidationEventSpecification.of(ArchetypeType.class, ARCHETYPE_INVALIDATION_PATHS, MODIFY_DELETE_CHANGES))
             .add(CacheInvalidationEventSpecification.of(AbstractRoleType.class, ABSTRACT_ROLE_INVALIDATION_PATHS, MODIFY_DELETE_CHANGES))
             .add(CacheInvalidationEventSpecification.of(SystemConfigurationType.class, ImmutableSet.of(SystemConfigurationType.F_ADMIN_GUI_CONFIGURATION), MODIFY_DELETE_CHANGES))
@@ -483,14 +488,17 @@ public class GuiProfiledPrincipalManagerImpl
         }
     }
 
+    @SuppressWarnings("java:S2445")
     private <O extends ObjectType> void invalidateCompiledProfile(GuiProfiledPrincipal principal, Class<O> type, String oid) {
-        CompiledGuiProfile compiledProfile = principal.getCompiledGuiProfile();
-        LOGGER.debug("Checking {} if it is derived from {}", principal, oid);
-        LOGGER.trace("      is actually derived from {}", compiledProfile.getDependencies());
+        synchronized (principal) {
+            CompiledGuiProfile compiledProfile = principal.getCompiledGuiProfile();
+            LOGGER.debug("Checking {} if it is derived from {}", principal, oid);
+            LOGGER.trace("      is actually derived from {}", compiledProfile.getDependencies());
 
-        if (oid == null || compiledProfile.derivedFrom(oid) || SchemaType.class.isAssignableFrom(type)) {
-            LOGGER.debug("Marking profile invalid for {} because of change in {}:{}", principal, type, oid);
-            compiledProfile.markInvalid();
+            if (oid == null || compiledProfile.derivedFrom(oid) || SchemaType.class.isAssignableFrom(type)) {
+                LOGGER.debug("Marking profile invalid for {} because of change in {}:{}", principal, type, oid);
+                compiledProfile.markInvalid();
+            }
         }
     }
 
@@ -505,13 +513,22 @@ public class GuiProfiledPrincipalManagerImpl
                     .locateSecurityPolicy(true));
     }
 
+    @SuppressWarnings("java:S2445")
     @Override
     public @NotNull CompiledGuiProfile refreshCompiledProfile(GuiProfiledPrincipal principal, ProfileCompilerOptions options) {
+        synchronized (principal) {
+            CompiledGuiProfile refreshedProfile = refreshCompiledProfileInternal(principal, options);
+            if (refreshedProfile.isInvalid()) {
+                throw new SystemException("Couldn't refresh invalid GUI profile for " + principal);
+            }
+            return refreshedProfile;
+        }
+    }
+
+    private @NotNull CompiledGuiProfile refreshCompiledProfileInternal(GuiProfiledPrincipal principal, ProfileCompilerOptions options) {
         OperationResult result = new OperationResult("refreshCompiledProfile");
 
         // Maybe focus was also changed, we should probably reload it
-        // TODO: Should recompute / compute be synchronized on principal?
-
         // TODO check also if authorization list is empty (beware, this maybe should be done after principal is fully initialized)
 
         LOGGER.debug("Recomputing GUI profile for {}", principal);

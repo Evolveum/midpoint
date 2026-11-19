@@ -73,7 +73,7 @@ public class CompiledGuiProfile implements DebugDumpable, Serializable {
 
     private Set<String> dependencies = new HashSet<>();
 
-    private boolean invalid = false;
+    private volatile boolean invalid = false;
 
     public String getDefaultTimezone() {
         return defaultTimezone;

@@ -76,7 +76,7 @@ public class MidpointAuthentication extends AbstractAuthenticationToken implemen
     private Object principal;
     private Object credential;
     private String sessionId;
-    private Collection<? extends GrantedAuthority> authorities = AuthorityUtils.NO_AUTHORITIES;
+    private volatile Collection<? extends GrantedAuthority> authorities = AuthorityUtils.NO_AUTHORITIES;
 
     public static final int NO_PROCESSING_MODULE_INDEX = -2;
     public static final int NO_MODULE_FOUND_INDEX = -1;

@@ -32,7 +32,7 @@ import com.evolveum.midpoint.util.DebugUtil;
 public class GuiProfiledPrincipal extends MidPointPrincipal {
     @Serial private static final long serialVersionUID = 1L;
 
-    private CompiledGuiProfile compiledGuiProfile;
+    private volatile CompiledGuiProfile compiledGuiProfile;
     private LoginGuiProfileInputs loginGuiProfileInputs;
 
     private transient int activeSessions = 0;
@@ -43,10 +43,18 @@ public class GuiProfiledPrincipal extends MidPointPrincipal {
 
     @NotNull
     public CompiledGuiProfile getCompiledGuiProfile() {
-        if (compiledGuiProfile == null) {
-            compiledGuiProfile = new CompiledGuiProfile();
+        CompiledGuiProfile profile = compiledGuiProfile;
+        if (profile == null) {
+            // Avoid creating multiple profiles during concurrent initialization.
+            synchronized (this) {
+                profile = compiledGuiProfile;
+                if (profile == null) {
+                    profile = new CompiledGuiProfile();
+                    compiledGuiProfile = profile;
+                }
+            }
         }
-        return compiledGuiProfile;
+        return profile;
     }
 
     public void setCompiledGuiProfile(CompiledGuiProfile compiledGuiProfile) {

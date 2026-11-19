@@ -10,7 +10,6 @@ import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
 import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
 import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
 import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipalManager;
-import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.ProfileCompilerOptions;
 import com.evolveum.midpoint.security.api.SecurityUtil;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -77,40 +76,43 @@ public class FinishAuthenticationFilter extends OncePerRequestFilter {
             return;
         }
 
-        if (mpAuthentication.isAlreadyCompiledGui()) {
-            LOGGER.trace("Skipping compile principal profile, already was compiled.");
-            filterChain.doFilter(request, response);
-            return;
-        }
-
-        if (!(mpAuthentication.getPrincipal() instanceof GuiProfiledPrincipal)) {
+        if (!(mpAuthentication.getPrincipal() instanceof GuiProfiledPrincipal principal)) {
             LOGGER.trace("Skipping compile principal profile, because couldn't find GuiProfiledPrincipal.");
             filterChain.doFilter(request, response);
             return;
         }
 
-        compileGuiProfile(mpAuthentication);
+        compileGuiProfile(mpAuthentication, principal);
 
         filterChain.doFilter(request, response);
     }
 
-    private void compileGuiProfile(MidpointAuthentication mpAuthentication) {
+    @SuppressWarnings("java:S2445")
+    private void compileGuiProfile(MidpointAuthentication mpAuthentication, GuiProfiledPrincipal principal) {
         AuthenticationChannel channel = mpAuthentication.getAuthenticationChannel();
         boolean supportGuiConfig = channel == null || channel.isSupportGuiConfigByChannel();
-        MidPointPrincipal principal = (MidPointPrincipal) mpAuthentication.getPrincipal();
 
         if (!supportGuiConfig) {
             return;
         }
 
-        focusProfileService.refreshCompiledProfile(
-                (GuiProfiledPrincipal) principal,
-                ProfileCompilerOptions.create()
-                        .collectAuthorization(true)
-                        .compileGuiAdminConfiguration(supportGuiConfig)
-                        .locateSecurityPolicy(supportGuiConfig)
-                        .tryReusingSecurityPolicy(true)
-                        .terminateDisabledUserSession(false));
-        mpAuthentication.setAlreadyCompiledGui(true);
+        synchronized (principal) {
+            if (mpAuthentication.isAlreadyCompiledGui() && !principal.getCompiledGuiProfile().isInvalid()) {
+                LOGGER.trace("Skipping compile principal profile, already was compiled and is valid.");
+                mpAuthentication.setAuthorities(principal.getAuthorities());
+                return;
+            }
+
+            focusProfileService.refreshCompiledProfile(
+                    principal,
+                    ProfileCompilerOptions.create()
+                            .collectAuthorization(true)
+                            .compileGuiAdminConfiguration(supportGuiConfig)
+                            .locateSecurityPolicy(supportGuiConfig)
+                            .tryReusingSecurityPolicy(true)
+                            .terminateDisabledUserSession(false));
+            mpAuthentication.setAuthorities(principal.getAuthorities());
+            mpAuthentication.setAlreadyCompiledGui(true);
+        }
     }
 }

@@ -803,7 +803,17 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
         } else {
             CompiledGuiProfile profile = guiProfiledPrincipal.getCompiledGuiProfile();
             if (profile.isInvalid()) {
-                return guiProfiledPrincipalManager.refreshCompiledProfile(guiProfiledPrincipal);
+                synchronized (guiProfiledPrincipal) {
+                    profile = guiProfiledPrincipal.getCompiledGuiProfile();
+                    if (profile.isInvalid()) {
+                        profile = guiProfiledPrincipalManager.refreshCompiledProfile(guiProfiledPrincipal);
+                    }
+                    // Keep the authentication token's authorities in sync with the refreshed principal.
+                    Authentication authentication = securityContextManager.getAuthentication();
+                    if (authentication instanceof MidpointAuthentication midpointAuthentication && midpointAuthentication.getPrincipal() == guiProfiledPrincipal) {
+                        midpointAuthentication.setAuthorities(guiProfiledPrincipal.getAuthorities());
+                    }
+                }
             }
             return profile;
         }

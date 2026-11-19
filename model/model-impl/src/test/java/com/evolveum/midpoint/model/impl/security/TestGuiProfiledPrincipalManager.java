@@ -19,8 +19,10 @@ import com.evolveum.midpoint.CacheInvalidationContext;
 import com.evolveum.midpoint.authentication.api.MidpointSessionRegistry;
 import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
 import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.api.ClusterwideCacheInvalidationDispatcher;
 import com.evolveum.midpoint.repo.api.ClusterwideCacheInvalidationListener;
+import com.evolveum.midpoint.repo.api.RepoAddOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -62,6 +64,8 @@ public class TestGuiProfiledPrincipalManager extends AbstractInternalModelIntegr
     private static final String INDIRECT_OUTER_ROLE_OID = "a1347d64-4e54-4d0e-b6ef-a755aaf5c407";
     private static final String INDIRECT_INTERMEDIATE_ROLE_OID = "a1347d64-4e54-4d0e-b6ef-a755aaf5c408";
     private static final String INDIRECT_USER_OID = "a1347d64-4e54-4d0e-b6ef-a755aaf5c409";
+    private static final String USER_CLUSTERWIDE_INVALIDATION_OID = "a1347d64-4e54-4d0e-b6ef-a755aaf5c410";
+    private static final String USER_LIFECYCLE_INVALIDATION_OID = "a1347d64-4e54-4d0e-b6ef-a755aaf5c411";
 
     @Autowired private ClusterwideCacheInvalidationDispatcher clusterwideCacheInvalidationDispatcher;
 
@@ -205,6 +209,132 @@ public class TestGuiProfiledPrincipalManager extends AbstractInternalModelIntegr
             } finally {
                 deleteClusterwideInvalidationRoleIfPresent(result);
             }
+        }
+    }
+
+    @Test
+    public void test255SecurityRelevantUserChangesAreInvalidatedClusterwide() throws Exception {
+        given("a user and an invalidation listener");
+        OperationResult result = createOperationResult();
+        deleteObjectIfPresent(UserType.class, USER_CLUSTERWIDE_INVALIDATION_OID, result);
+        UserType user = new UserType()
+                .oid(USER_CLUSTERWIDE_INVALIDATION_OID)
+                .name("clusterwide-user-invalidation-test");
+        RecordingInvalidationListener listener =
+                new RecordingInvalidationListener(USER_CLUSTERWIDE_INVALIDATION_OID);
+        clusterwideCacheInvalidationDispatcher.registerListener(listener);
+
+        try {
+            when("the user is created");
+            repositoryService.addObject(user.asPrismObject(), null, result);
+
+            then("creation does not add clusterwide propagation");
+            listener.assertSingleEvent(false);
+
+            when("the activation container is added");
+            listener.reset();
+            repositoryService.modifyObject(
+                    UserType.class,
+                    USER_CLUSTERWIDE_INVALIDATION_OID,
+                    prismContext.deltaFor(UserType.class)
+                            .item(UserType.F_ACTIVATION)
+                            .add(new ActivationType().administrativeStatus(ActivationStatusType.ENABLED))
+                            .asItemDeltas(),
+                    result);
+
+            then("the activation change is clusterwide");
+            listener.assertSingleEvent(true);
+
+            when("the nested administrative status is changed");
+            listener.reset();
+            repositoryService.modifyObject(
+                    UserType.class,
+                    USER_CLUSTERWIDE_INVALIDATION_OID,
+                    prismContext.deltaFor(UserType.class)
+                            .item(UserType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS)
+                            .replace(ActivationStatusType.DISABLED)
+                            .asItemDeltas(),
+                    result);
+
+            then("the nested activation change is clusterwide");
+            listener.assertSingleEvent(true);
+
+            when("an assignment is added");
+            listener.reset();
+            repositoryService.modifyObject(
+                    UserType.class,
+                    USER_CLUSTERWIDE_INVALIDATION_OID,
+                    prismContext.deltaFor(UserType.class)
+                            .item(UserType.F_ASSIGNMENT)
+                            .add(new AssignmentType().description("clusterwide-invalidation-assignment"))
+                            .asItemDeltas(),
+                    result);
+
+            then("the assignment change is clusterwide");
+            listener.assertSingleEvent(true);
+
+            when("the lifecycle state is changed");
+            listener.reset();
+            repositoryService.modifyObject(
+                    UserType.class,
+                    USER_CLUSTERWIDE_INVALIDATION_OID,
+                    prismContext.deltaFor(UserType.class)
+                            .item(UserType.F_LIFECYCLE_STATE)
+                            .replace(SchemaConstants.LIFECYCLE_ACTIVE)
+                            .asItemDeltas(),
+                    result);
+
+            then("the lifecycle change is clusterwide");
+            listener.assertSingleEvent(true);
+
+            when("the user GUI configuration is changed");
+            listener.reset();
+            repositoryService.modifyObject(
+                    UserType.class,
+                    USER_CLUSTERWIDE_INVALIDATION_OID,
+                    prismContext.deltaFor(UserType.class)
+                            .item(UserType.F_ADMIN_GUI_CONFIGURATION)
+                            .add(new AdminGuiConfigurationType().defaultTimezone("UTC"))
+                            .asItemDeltas(),
+                    result);
+
+            then("the GUI configuration change is clusterwide");
+            listener.assertSingleEvent(true);
+
+            when("the description is changed");
+            listener.reset();
+            repositoryService.modifyObject(
+                    UserType.class,
+                    USER_CLUSTERWIDE_INVALIDATION_OID,
+                    prismContext.deltaFor(UserType.class)
+                            .item(UserType.F_DESCRIPTION)
+                            .replace("unrelated change")
+                            .asItemDeltas(),
+                    result);
+
+            then("the unrelated change remains local");
+            listener.assertSingleEvent(false);
+
+            when("the user is overwritten");
+            listener.reset();
+            PrismObject<UserType> overwritten = repositoryService
+                    .getObject(UserType.class, USER_CLUSTERWIDE_INVALIDATION_OID, null, result)
+                    .clone();
+            overwritten.asObjectable().setDescription("overwritten");
+            repositoryService.addObject(overwritten, RepoAddOptions.createOverwrite(), result);
+
+            then("overwrite is clusterwide");
+            listener.assertSingleEvent(true);
+
+            when("the user is deleted");
+            listener.reset();
+            repositoryService.deleteObject(UserType.class, USER_CLUSTERWIDE_INVALIDATION_OID, result);
+
+            then("deletion is clusterwide");
+            listener.assertSingleEvent(true);
+        } finally {
+            clusterwideCacheInvalidationDispatcher.unregisterListener(listener);
+            deleteObjectIfPresent(UserType.class, USER_CLUSTERWIDE_INVALIDATION_OID, result);
         }
     }
 
@@ -493,6 +623,46 @@ public class TestGuiProfiledPrincipalManager extends AbstractInternalModelIntegr
         }
     }
 
+    @Test
+    public void test300UserLifecycleModificationInvalidatesLocalProfile() throws Exception {
+        given("a user with an active GUI session");
+        OperationResult result = createOperationResult();
+        deleteObjectIfPresent(UserType.class, USER_LIFECYCLE_INVALIDATION_OID, result);
+        UserType user = new UserType()
+                .oid(USER_LIFECYCLE_INVALIDATION_OID)
+                .name("lifecycle-invalidation-test-user")
+                .lifecycleState(SchemaConstants.LIFECYCLE_ACTIVE);
+
+        GuiProfiledPrincipalManagerImpl manager = AopTestUtils.getUltimateTargetObject(focusProfileService);
+        Object originalSessionRegistry = ReflectionTestUtils.getField(manager, "sessionRegistry");
+        try {
+            repositoryService.addObject(user.asPrismObject(), null, result);
+            GuiProfiledPrincipal principal = focusProfileService.getPrincipal(user.asPrismObject(), null, result);
+            CompiledGuiProfile profile = principal.getCompiledGuiProfile();
+            assertThat(profile.isInvalid()).as("initial profile invalid").isFalse();
+
+            TestSessionRegistry sessionRegistry = new TestSessionRegistry();
+            sessionRegistry.registerNewSession("lifecycle-invalidation-session", principal);
+            ReflectionTestUtils.setField(manager, "sessionRegistry", sessionRegistry);
+
+            when("the user lifecycle state is changed through the repository cache");
+            repositoryService.modifyObject(
+                    UserType.class,
+                    USER_LIFECYCLE_INVALIDATION_OID,
+                    prismContext.deltaFor(UserType.class)
+                            .item(UserType.F_LIFECYCLE_STATE)
+                            .replace(SchemaConstants.LIFECYCLE_SUSPENDED)
+                            .asItemDeltas(),
+                    result);
+
+            then("the dependent local profile is invalidated");
+            assertThat(profile.isInvalid()).isTrue();
+        } finally {
+            ReflectionTestUtils.setField(manager, "sessionRegistry", originalSessionRegistry);
+            deleteObjectIfPresent(UserType.class, USER_LIFECYCLE_INVALIDATION_OID, result);
+        }
+    }
+
     private void deleteClusterwideInvalidationRoleIfPresent(OperationResult result) {
         OperationResult cleanupResult =
                 new OperationResult(result.getOperation() + ".deleteClusterwideInvalidationRoleIfPresent");
@@ -540,6 +710,40 @@ public class TestGuiProfiledPrincipalManager extends AbstractInternalModelIntegr
         @Override
         public List<SessionInformation> getLoggedInUsersSession(Object principal) {
             return getAllSessions(principal, false);
+        }
+    }
+
+    private static class RecordingInvalidationListener implements ClusterwideCacheInvalidationListener {
+
+        private final String expectedOid;
+        private int matchingEvents;
+        private Class<? extends ObjectType> invalidatedType;
+        private Boolean clusterwide;
+
+        private RecordingInvalidationListener(String expectedOid) {
+            this.expectedOid = expectedOid;
+        }
+
+        @Override
+        public <O extends ObjectType> void invalidate(
+                Class<O> type, String oid, boolean isClusterwide, CacheInvalidationContext context) {
+            if (expectedOid.equals(oid)) {
+                matchingEvents++;
+                invalidatedType = type;
+                clusterwide = isClusterwide;
+            }
+        }
+
+        private void reset() {
+            matchingEvents = 0;
+            invalidatedType = null;
+            clusterwide = null;
+        }
+
+        private void assertSingleEvent(boolean expectedClusterwide) {
+            assertThat(matchingEvents).isEqualTo(1);
+            assertThat(invalidatedType).isEqualTo(UserType.class);
+            assertThat(clusterwide).isEqualTo(expectedClusterwide);
         }
     }
 

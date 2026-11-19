@@ -243,11 +243,15 @@ Cluster broadcasts contact eligible nodes sequentially. A slow peer can therefor
 
 MidPoint does not configure cluster-specific HTTP connection or response timeouts. The effective values depend on the underlying HTTP transport and its configuration.
 
-Each eligible node is normally contacted once per broadcast. Failed cache invalidations are logged but are not automatically retried or replayed when a node becomes available again. Communication failures with one node do not prevent attempts to contact the remaining nodes.
+Each eligible node is normally contacted once per broadcast. Failed cache invalidations are logged but are not automatically retried or replayed when a node becomes available again.
+Communication failures with one node do not prevent attempts to contact the remaining nodes.
 
-Role changes are marked for clusterwide cache invalidation because they can affect cached authorizations on other nodes. However, invalidation delivery is best-effort and does not guarantee immediate authorization revocation in existing GUI sessions.
+Role and security-relevant user changes trigger clusterwide cache invalidation.
+When a GUI profile is invalidated, midPoint refreshes its authorizations before processing the next GUI request.
 
-Repository caches can recover according to their own expiration and version-checking behavior. Other derived or session-related state does not necessarily have the same periodic recovery mechanism. Do not rely solely on clusterwide invalidation for security-critical authorization revocation without verifying the required consistency behavior.
+Repository caches can recover according to their own expiration and version-checking behavior.
+Other derived or session-related state does not necessarily have the same periodic recovery mechanism.
+Do not rely solely on clusterwide invalidation for security-critical authorization revocation without verifying the required consistency behavior.
 
 After a communication outage, review cluster communication errors and refresh affected caches or sessions where necessary.
 
