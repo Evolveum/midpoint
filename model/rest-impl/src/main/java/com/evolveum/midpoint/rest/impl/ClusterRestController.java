@@ -16,8 +16,8 @@ import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.security.api.RestAuthorizationAction;
 
-import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.FileSystemResource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -260,7 +260,7 @@ public class ClusterRestController extends AbstractRestController {
                         // Explicitly needed, because Spring would change content type to "*"
                         // even if application/octet-stream is in produces section
                         .contentType(MediaType.APPLICATION_OCTET_STREAM)
-                        .body(FileUtils.readFileToByteArray(resolution.file));
+                        .body(new FileSystemResource(resolution.file));
             } else {
                 response = ResponseEntity.status(resolution.status).build();
             }

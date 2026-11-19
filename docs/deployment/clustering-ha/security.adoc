@@ -259,7 +259,8 @@ File path validation does not always prevent access to files outside the intende
 Symbolic links may also allow access outside these directories.
 Administrators should restrict file-system permissions and use dedicated directories for reports, exports, imports, and other generated files.
 
-When retrieving a file through the cluster interface, midPoint loads the entire file into memory before sending it. Large files or multiple concurrent requests can therefore increase memory consumption.
+When retrieving a file through the cluster interface, midPoint streams the file directly to the receiving node without loading its entire contents into memory.
+This reduces memory consumption when transferring large files.
 
 == Related Documentation
 

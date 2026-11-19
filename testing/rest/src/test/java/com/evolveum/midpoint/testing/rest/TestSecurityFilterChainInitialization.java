@@ -10,6 +10,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Base64;
 import java.util.Collection;
 import java.util.List;
@@ -22,12 +24,19 @@ import org.apache.cxf.jaxrs.client.WebClient;
 import org.apache.cxf.message.Message;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.web.server.LocalServerPort;
+import org.springframework.core.io.Resource;
+import org.springframework.http.converter.ResourceHttpMessageConverter;
+import org.springframework.mock.http.MockHttpOutputMessage;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.common.rest.MidpointAbstractProvider;
 import com.evolveum.midpoint.CacheInvalidationContext;
+import com.evolveum.midpoint.authentication.impl.module.authentication.NodeAuthenticationTokenImpl;
+import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
+import com.evolveum.midpoint.rest.impl.ClusterRestController;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.api.CacheInvalidationDispatcher;
@@ -73,6 +82,8 @@ public class TestSecurityFilterChainInitialization extends RestServiceInitialize
     @Autowired private Protector protector;
     @Autowired private CacheInvalidationDispatcher cacheInvalidationDispatcher;
     @Autowired private ClusterwideCacheInvalidationDispatcher clusterwideCacheInvalidationDispatcher;
+    @Autowired private ClusterRestController clusterRestController;
+    @Autowired private MidpointConfiguration midpointConfiguration;
 
     @Override
     public void initSystem(Task initTask, OperationResult result) throws Exception {
@@ -347,6 +358,44 @@ public class TestSecurityFilterChainInitialization extends RestServiceInitialize
         } finally {
             cacheInvalidationDispatcher.unregisterListener(listener);
             clusterwideCacheInvalidationDispatcher.unregisterListener(listener);
+        }
+    }
+
+    @Test
+    public void test260ReportFileResponseIsStreamed() throws Exception {
+        byte[] expectedContent = "MID-13003 streamed report".getBytes(StandardCharsets.UTF_8);
+        Path exportDirectory = Path.of(midpointConfiguration.getMidpointHome(), "export");
+        Files.createDirectories(exportDirectory);
+        Path reportFile = Files.createTempFile(exportDirectory, "mid-13003-", ".txt");
+        Files.write(reportFile, expectedContent);
+
+        try {
+            var authentication = new NodeAuthenticationTokenImpl(
+                    getRepositoryService().getObject(
+                            NodeType.class, TEST_NODE_OID, null, new OperationResult("getTestNode")),
+                    "127.0.0.1",
+                    List.of());
+            authentication.setAuthenticated(true);
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+
+            var response = clusterRestController.getReportFile(reportFile.getFileName().toString());
+
+            assertThat(response.getStatusCode()).isEqualTo(org.springframework.http.HttpStatus.OK);
+            assertThat(response.getHeaders().getContentType())
+                    .isEqualTo(org.springframework.http.MediaType.APPLICATION_OCTET_STREAM);
+            assertThat(response.getBody()).isInstanceOf(Resource.class);
+
+            Resource resource = (Resource) response.getBody();
+            var output = new MockHttpOutputMessage();
+            new ResourceHttpMessageConverter().write(
+                    resource, org.springframework.http.MediaType.APPLICATION_OCTET_STREAM, output);
+
+            assertThat(output.getBodyAsBytes()).containsExactly(expectedContent);
+            Files.delete(reportFile);
+            assertThat(reportFile).doesNotExist();
+        } finally {
+            SecurityContextHolder.clearContext();
+            Files.deleteIfExists(reportFile);
         }
     }
 
