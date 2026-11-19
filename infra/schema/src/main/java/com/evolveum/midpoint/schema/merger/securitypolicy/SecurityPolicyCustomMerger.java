@@ -60,13 +60,20 @@ public class SecurityPolicyCustomMerger {
         AuthenticationsPolicyType merged = specific.cloneWithoutId();
         mergeAuthenticationModules(merged, generic.getModules());
         mergeSequences(merged, generic.getSequence());
-        if (CollectionUtils.isEmpty(merged.getIgnoredLocalPath())) {
-            merged.getIgnoredLocalPath().addAll(generic.getIgnoredLocalPath());
-        } else {
-            merged.getIgnoredLocalPath().addAll(
-                    CollectionUtils.union(merged.getIgnoredLocalPath(), generic.getIgnoredLocalPath()));
-        }
+        mergeIgnoredLocalPaths(merged.getIgnoredLocalPath(), generic.getIgnoredLocalPath());
         return merged;
+    }
+
+    /**
+     * Adds only the paths that are not present yet. Re-adding an existing value to a prism property
+     * replaces it (and logs a warning), which also changes the order of values (issue 13428).
+     */
+    private static void mergeIgnoredLocalPaths(List<String> mergedPaths, List<String> pathsToProcess) {
+        for (String path : pathsToProcess) {
+            if (!mergedPaths.contains(path)) {
+                mergedPaths.add(path);
+            }
+        }
     }
 
     private static void mergeAuthenticationModules(AuthenticationsPolicyType mergedAuthentication, AuthenticationModulesType modules) {

@@ -51,7 +51,7 @@ public class PostInitialDataImport extends DataImport {
     private static final String OPERATION_EXECUTE_SCRIPT = DOT_CLASS + "executeScript";
 
     private static final String SUFFIX_FOR_IMPORTED_FILE = "done";
-    private static final String XML_SUFFIX = "xml";
+    private static final String[] SUPPORTED_FILE_SUFFIXES = { "xml", "json", "yaml" };
 
     private BulkActionsService scripting;
 
@@ -80,8 +80,8 @@ public class PostInitialDataImport extends DataImport {
             if (fileExtension.equals(SUFFIX_FOR_IMPORTED_FILE)) {
                 continue;
             }
-            if (!fileExtension.equals(XML_SUFFIX)) {
-                LOGGER.warn("Post-initial import support only xml files. Actual file: " + file.getName());
+            if (!isSupportedFileExtension(fileExtension)) {
+                LOGGER.warn("Post-initial import supports only xml, json and yaml files. Actual file: " + file.getName());
                 continue;
             }
             Item<?, ?> item = null;
@@ -231,6 +231,15 @@ public class PostInitialDataImport extends DataImport {
             }
         }
         return retFiles;
+    }
+
+    private static boolean isSupportedFileExtension(String fileExtension) {
+        for (String suffix : SUPPORTED_FILE_SUFFIXES) {
+            if (suffix.equals(fileExtension)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private boolean checkDirectoryExistence(String dir) {

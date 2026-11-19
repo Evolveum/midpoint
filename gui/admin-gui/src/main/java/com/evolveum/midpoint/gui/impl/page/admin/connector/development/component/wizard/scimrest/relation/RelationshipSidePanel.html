@@ -1,0 +1,21 @@
+<!--
+  ~ Copyright (C) 2026 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+    <div class="d-flex flex-column align-items-start gap-1">
+        <span class="info-badge small py-1 gap-1" wicket:id="objectClassBadge">
+            <i class="fa fa-triangle-exclamation" wicket:id="objectClassWarning"></i>
+            <span wicket:id="objectClassName"></span>
+        </span>
+        <span class="small d-flex align-items-center gap-1" wicket:id="attributeLine">
+            <i class="fa fa-share"></i>
+            <i class="fa fa-triangle-exclamation" wicket:id="attributeWarning"></i>
+            <span wicket:id="attributeName"></span>
+        </span>
+    </div>
+</wicket:panel>
+</html>

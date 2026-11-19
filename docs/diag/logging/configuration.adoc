@@ -142,3 +142,5 @@ See also xref:useful-loggers.adoc[].
 
 * xref:configure-logging-howto.adoc[]
 
+* * xref:/midpoint/reference/diag/logging/json-logging/[JSON Logging]
+

@@ -11,6 +11,7 @@
         <classes>
             <class name="com.evolveum.midpoint.web.TestCleanStartup"/>
             <class name="com.evolveum.midpoint.web.TestMappingSimulationSampling"/>
+            <class name="com.evolveum.midpoint.web.TestInitialObjectsImportLanguages"/>
         </classes>
     </test>
     <test name="Wicket Integration" preserve-order="true" parallel="none" verbose="10">

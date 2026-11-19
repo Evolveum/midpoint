@@ -1,0 +1,12 @@
+{
+  "@ns" : "http://midpoint.evolveum.com/xml/ns/public/common/common-3",
+  "lookupTable" : {
+    "oid" : "a1b2c3d4-0001-4001-8001-000000000001",
+    "name" : "Test JSON Initial Object",
+    "description" : "Lookup table imported from a JSON initial-objects file (test of JSON initial import support).",
+    "row" : [ {
+      "key" : "json-key",
+      "label" : "JSON key"
+    } ]
+  }
+}

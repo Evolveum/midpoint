@@ -12,6 +12,7 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperColumn;
 import com.evolveum.midpoint.gui.impl.component.data.column.LifecycleStateColumn;
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapperColumn;
@@ -159,8 +160,12 @@ public abstract class AbstractMappingsTable<P extends Containerable> extends Abs
                         try {
                             PrismPropertyValue<VariableBindingDefinitionType> newPrismValue
                                     = pageBase.getPrismContext().itemFactory().createPropertyValue();
-                            newPrismValue.setValue(newValue);
-                            sourceItem.add(newPrismValue, pageBase);
+                            sourceItem.getItem().add(newPrismValue);
+                            PrismPropertyValueWrapper<VariableBindingDefinitionType> newValueWrapper =
+                                    WebPrismUtil.createNewValueWrapper(sourceItem, newPrismValue, pageBase);
+                            sourceItem.getValues().add(newValueWrapper);
+                            // We add an empty value first and fill it in afterwards, so the wrapper sees it as changed (MID-11823)
+                            newValueWrapper.setRealValue(newValue);
                         } catch (SchemaException e) {
                             LOGGER.error("Couldn't initialize new value for Source item", e);
                         }
