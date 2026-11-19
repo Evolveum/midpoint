@@ -6,18 +6,18 @@
   -->
 
 <xsd:schema targetNamespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-            xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-            xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-            xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
-            xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-            xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
-            xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
-            xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3"
-            xmlns:jaxb="https://jakarta.ee/xml/ns/jaxb"
-            elementFormDefault="qualified"
-            xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc"
-            jaxb:extensionBindingPrefixes="xjc"
-            jaxb:version="3.0">
+        xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+        xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+        xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3"
+        xmlns:jaxb="https://jakarta.ee/xml/ns/jaxb"
+        elementFormDefault="qualified"
+        xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc"
+        jaxb:extensionBindingPrefixes="xjc"
+        jaxb:version="3.0">
 
     <xsd:annotation>
         <xsd:documentation>
@@ -31,10 +31,10 @@
     <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/query-3"/>
     <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3"/>
 
-    <xsd:include schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-core-3" />
-    <xsd:include schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-gui-3" />
-    <xsd:include schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-workflows-3" />
-    <xsd:include schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-model-context-3" />
+    <xsd:include schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-core-3"/>
+    <xsd:include schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-gui-3"/>
+    <xsd:include schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-workflows-3"/>
+    <xsd:include schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-model-context-3"/>
 
     <xsd:complexType name="PolicyConstraintsType">
         <xsd:annotation>
@@ -438,7 +438,7 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="policyRule" type="tns:IndexedPolicyRuleType"  minOccurs="0" maxOccurs="unbounded">
+            <xsd:element name="policyRule" type="tns:IndexedPolicyRuleType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
                         One value per policy rule in assignments, inducements, mark policy
@@ -461,15 +461,41 @@
 
     <xsd:complexType name="IndexedPolicyRuleType">
         <xsd:annotation>
+            <xsd:documentation>
+                Index entry for one policy rule. Filters combined in one "matches" are evaluated on the same rule.
+            </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
                 <a:since>4.12.0</a:since>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="location" type="tns:PolicyRuleLocationType" minOccurs="0"/>
-            <xsd:element name="constraint" type="xsd:QName" minOccurs="0" maxOccurs="unbounded"/>
-            <xsd:element name="action" type="xsd:QName" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="location" type="tns:PolicyRuleLocationType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Where in the object the rule is defined.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="constraint" type="xsd:QName" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Element names of the constraints anywhere in the rule, e.g. exclusion, modification.
+                        Constraints nested in and/or/not are listed; and/or/not themselves are not.
+                        An unqualified name is taken from the common namespace.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+
+            <xsd:element name="action" type="xsd:QName" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Element names of the policy actions of the rule, e.g. enforcement, notification.
+                        An unqualified name is taken from the common namespace.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+
             <xsd:element name="markRef" type="tns:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:appinfo>
@@ -511,10 +537,36 @@
 
     <xsd:simpleType name="PolicyRuleLocationType">
         <xsd:restriction base="xsd:string">
-            <xsd:enumeration value="assignment"/>
-            <xsd:enumeration value="inducement"/>
-            <xsd:enumeration value="mark"/>
-            <xsd:enumeration value="activity"/>
+            <xsd:enumeration value="assignment">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ASSIGNMENT"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+
+            <xsd:enumeration value="inducement">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="INDUCEMENT"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="mark">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="MARK"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+
+            <xsd:enumeration value="activity">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ACTIVITY"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
         </xsd:restriction>
     </xsd:simpleType>
 
@@ -715,7 +767,7 @@
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
-    <xsd:element name="abstractPolicyConstraint" type="tns:AbstractPolicyConstraintType" />
+    <xsd:element name="abstractPolicyConstraint" type="tns:AbstractPolicyConstraintType"/>
 
     <xsd:complexType name="PolicyConstraintPresentationType">
         <xsd:annotation>
@@ -803,7 +855,7 @@
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
-    <xsd:element name="policyConstraintPresentation" type="tns:PolicyConstraintPresentationType" />
+    <xsd:element name="policyConstraintPresentation" type="tns:PolicyConstraintPresentationType"/>
 
     <xsd:simpleType name="TriggeredPolicyRulesStorageStrategyType">
         <xsd:annotation>
@@ -953,7 +1005,7 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="exclusionPolicyConstraint" type="tns:ExclusionPolicyConstraintType" substitutionGroup="tns:abstractPolicyConstraint" />
+    <xsd:element name="exclusionPolicyConstraint" type="tns:ExclusionPolicyConstraintType" substitutionGroup="tns:abstractPolicyConstraint"/>
 
     <xsd:complexType name="MultiplicityPolicyConstraintType">
         <xsd:annotation>
@@ -996,8 +1048,8 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="minAssigneesPolicyConstraint" type="tns:MultiplicityPolicyConstraintType" substitutionGroup="tns:abstractPolicyConstraint" />
-    <xsd:element name="maxAssigneesPolicyConstraint" type="tns:MultiplicityPolicyConstraintType" substitutionGroup="tns:abstractPolicyConstraint" />
+    <xsd:element name="minAssigneesPolicyConstraint" type="tns:MultiplicityPolicyConstraintType" substitutionGroup="tns:abstractPolicyConstraint"/>
+    <xsd:element name="maxAssigneesPolicyConstraint" type="tns:MultiplicityPolicyConstraintType" substitutionGroup="tns:abstractPolicyConstraint"/>
 
     <xsd:complexType name="ModificationPolicyConstraintType">
         <xsd:annotation>
@@ -1013,7 +1065,7 @@
         <xsd:complexContent>
             <xsd:extension base="tns:AbstractPolicyConstraintType">
                 <xsd:sequence>
-                    <xsd:element name="operation" type="t:ChangeTypeType"  minOccurs="0" maxOccurs="unbounded">
+                    <xsd:element name="operation" type="t:ChangeTypeType" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>
                                 Specifies the operation(s) for which this constraints should be triggered.
@@ -1026,7 +1078,7 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="item" type="t:ItemPathType"  minOccurs="0" maxOccurs="unbounded">
+                    <xsd:element name="item" type="t:ItemPathType" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>
                                 Specification of items that must be modified (all of them) in order for this
@@ -1086,22 +1138,22 @@
                         </xsd:annotation>
                     </xsd:element>
                     <!--<xsd:element name="ignoreItem" type="t:ItemPathType"  minOccurs="0" maxOccurs="unbounded">-->
-                        <!--<xsd:annotation>-->
-                            <!--<xsd:documentation>-->
-                                <!--Modifications of these items are to be ignored.-->
-                                <!--EXPERIMENTAL-->
-                            <!--</xsd:documentation>-->
-                            <!--<xsd:appinfo>-->
-                                <!--<a:experimental>true</a:experimental>-->
-                                <!--<a:since>3.7</a:since>-->
-                            <!--</xsd:appinfo>-->
-                        <!--</xsd:annotation>-->
+                    <!--<xsd:annotation>-->
+                    <!--<xsd:documentation>-->
+                    <!--Modifications of these items are to be ignored.-->
+                    <!--EXPERIMENTAL-->
+                    <!--</xsd:documentation>-->
+                    <!--<xsd:appinfo>-->
+                    <!--<a:experimental>true</a:experimental>-->
+                    <!--<a:since>3.7</a:since>-->
+                    <!--</xsd:appinfo>-->
+                    <!--</xsd:annotation>-->
                     <!--</xsd:element>-->
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="modificationPolicyConstraint" type="tns:ModificationPolicyConstraintType" substitutionGroup="tns:abstractPolicyConstraint" />
+    <xsd:element name="modificationPolicyConstraint" type="tns:ModificationPolicyConstraintType" substitutionGroup="tns:abstractPolicyConstraint"/>
 
     <xsd:simpleType name="SpecialItemSpecificationType">
         <xsd:annotation>
@@ -1180,7 +1232,7 @@
         <xsd:complexContent>
             <xsd:extension base="tns:ModificationPolicyConstraintType">
                 <xsd:sequence>
-                    <xsd:element name="relation" type="xsd:QName"  minOccurs="0" maxOccurs="unbounded">
+                    <xsd:element name="relation" type="xsd:QName" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>
                                 This constraint only applies to relations of the specified type. The value
@@ -1195,7 +1247,7 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="scope" type="tns:AssignmentModificationPolicyConstraintScopeType"  minOccurs="0" maxOccurs="1" default="direct">
+                    <xsd:element name="scope" type="tns:AssignmentModificationPolicyConstraintScopeType" minOccurs="0" maxOccurs="1" default="direct">
                         <xsd:annotation>
                             <xsd:documentation>
                                 Scope of assignment policy constraint application.
@@ -1208,20 +1260,20 @@
                         </xsd:annotation>
                     </xsd:element>
                     <!--<xsd:element name="targetType" type="xsd:QName"  minOccurs="0" maxOccurs="unbounded">-->
-                        <!--<xsd:annotation>-->
-                            <!--<xsd:documentation>-->
-                                <!--This policy only applies to targets of the specified type.-->
-                            <!--</xsd:documentation>-->
-                            <!--<xsd:appinfo>-->
-                                <!--<a:since>3.6</a:since>-->
-                            <!--</xsd:appinfo>-->
-                        <!--</xsd:annotation>-->
+                    <!--<xsd:annotation>-->
+                    <!--<xsd:documentation>-->
+                    <!--This policy only applies to targets of the specified type.-->
+                    <!--</xsd:documentation>-->
+                    <!--<xsd:appinfo>-->
+                    <!--<a:since>3.6</a:since>-->
+                    <!--</xsd:appinfo>-->
+                    <!--</xsd:annotation>-->
                     <!--</xsd:element>-->
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="assignmentModificationPolicyConstraint" type="tns:AssignmentModificationPolicyConstraintType" substitutionGroup="tns:abstractPolicyConstraint" />
+    <xsd:element name="assignmentModificationPolicyConstraint" type="tns:AssignmentModificationPolicyConstraintType" substitutionGroup="tns:abstractPolicyConstraint"/>
 
     <xsd:simpleType name="AssignmentModificationPolicyConstraintScopeType">
         <xsd:annotation>
@@ -1353,8 +1405,8 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="hasAssignmentPolicyConstraint" type="tns:HasAssignmentPolicyConstraintType" substitutionGroup="tns:abstractPolicyConstraint" />
-    <xsd:element name="hasNoAssignmentPolicyConstraint" type="tns:HasAssignmentPolicyConstraintType" substitutionGroup="tns:abstractPolicyConstraint" />
+    <xsd:element name="hasAssignmentPolicyConstraint" type="tns:HasAssignmentPolicyConstraintType" substitutionGroup="tns:abstractPolicyConstraint"/>
+    <xsd:element name="hasNoAssignmentPolicyConstraint" type="tns:HasAssignmentPolicyConstraintType" substitutionGroup="tns:abstractPolicyConstraint"/>
 
     <xsd:complexType name="TimeValidityPolicyConstraintType">
         <xsd:annotation>
@@ -1424,7 +1476,7 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="timeValidityPolicyConstraint" type="tns:TimeValidityPolicyConstraintType" substitutionGroup="tns:abstractPolicyConstraint" />
+    <xsd:element name="timeValidityPolicyConstraint" type="tns:TimeValidityPolicyConstraintType" substitutionGroup="tns:abstractPolicyConstraint"/>
 
     <xsd:complexType name="StatePolicyConstraintType">
         <xsd:annotation>
@@ -1487,8 +1539,8 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="objectStatePolicyConstraintType" type="tns:StatePolicyConstraintType" substitutionGroup="tns:abstractPolicyConstraint" />
-    <xsd:element name="assignmentStatePolicyConstraintType" type="tns:StatePolicyConstraintType" substitutionGroup="tns:abstractPolicyConstraint" />
+    <xsd:element name="objectStatePolicyConstraintType" type="tns:StatePolicyConstraintType" substitutionGroup="tns:abstractPolicyConstraint"/>
+    <xsd:element name="assignmentStatePolicyConstraintType" type="tns:StatePolicyConstraintType" substitutionGroup="tns:abstractPolicyConstraint"/>
 
     <xsd:complexType name="PolicySituationPolicyConstraintType">
         <xsd:annotation>
@@ -1504,7 +1556,7 @@
         <xsd:complexContent>
             <xsd:extension base="tns:AbstractPolicyConstraintType">
                 <xsd:sequence>
-                    <xsd:element name="situation" type="xsd:anyURI"  minOccurs="0" maxOccurs="unbounded">
+                    <xsd:element name="situation" type="xsd:anyURI" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>
                                 Specifies the policy situation URI(s) to look for.
@@ -1519,7 +1571,7 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="situationPolicyConstraint" type="tns:PolicySituationPolicyConstraintType" substitutionGroup="tns:abstractPolicyConstraint" />
+    <xsd:element name="situationPolicyConstraint" type="tns:PolicySituationPolicyConstraintType" substitutionGroup="tns:abstractPolicyConstraint"/>
 
     <xsd:complexType name="CustomPolicyConstraintType">
         <xsd:annotation>
@@ -1551,7 +1603,7 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="customPolicyConstraint" type="tns:CustomPolicyConstraintType" substitutionGroup="tns:abstractPolicyConstraint" />
+    <xsd:element name="customPolicyConstraint" type="tns:CustomPolicyConstraintType" substitutionGroup="tns:abstractPolicyConstraint"/>
 
     <xsd:complexType name="CollectionStatsPolicyConstraintType">
         <xsd:annotation>
@@ -1574,7 +1626,7 @@
         <xsd:complexContent>
             <xsd:extension base="tns:AbstractPolicyConstraintType">
                 <xsd:sequence>
-                    <xsd:element name="collection" type="tns:CollectionSpecificationType"  minOccurs="0" maxOccurs="unbounded">
+                    <xsd:element name="collection" type="tns:CollectionSpecificationType" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>
                                 Refers to "itself" as a collection. This means that it interprets the object
@@ -1609,7 +1661,7 @@
             <xsd:extension base="tns:AbstractPolicyConstraintType"/>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="alwaysTruePolicyConstraint" type="tns:AlwaysTruePolicyConstraintType" substitutionGroup="tns:abstractPolicyConstraint" />
+    <xsd:element name="alwaysTruePolicyConstraint" type="tns:AlwaysTruePolicyConstraintType" substitutionGroup="tns:abstractPolicyConstraint"/>
 
     <xsd:complexType name="OrphanedPolicyConstraintType">
         <xsd:annotation>
@@ -1628,7 +1680,7 @@
             <xsd:extension base="tns:AbstractPolicyConstraintType"/>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="orphanedPolicyConstraint" type="tns:OrphanedPolicyConstraintType" substitutionGroup="tns:abstractPolicyConstraint" />
+    <xsd:element name="orphanedPolicyConstraint" type="tns:OrphanedPolicyConstraintType" substitutionGroup="tns:abstractPolicyConstraint"/>
 
     <xsd:complexType name="TransitionPolicyConstraintType">
         <xsd:annotation>
@@ -1683,9 +1735,9 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="transitionPolicyConstraint" type="tns:TransitionPolicyConstraintType" substitutionGroup="tns:abstractPolicyConstraint" />
+    <xsd:element name="transitionPolicyConstraint" type="tns:TransitionPolicyConstraintType" substitutionGroup="tns:abstractPolicyConstraint"/>
 
-     <xsd:complexType name="PolicyThresholdType">
+    <xsd:complexType name="PolicyThresholdType">
         <xsd:annotation>
             <xsd:documentation>
                 Specifies limits when is the action executed.
@@ -1738,7 +1790,7 @@
                         <a:displayName>PolicyThresholdType.timeInterval</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
-             </xsd:element>
+            </xsd:element>
             <!--  later scope,... -->
         </xsd:sequence>
     </xsd:complexType>
@@ -2033,7 +2085,7 @@
                 Common supertype for policy actions.
             </xsd:documentation>
             <xsd:appinfo>
-                <a:container />
+                <a:container/>
                 <a:since>3.5</a:since>
             </xsd:appinfo>
         </xsd:annotation>
@@ -2092,7 +2144,7 @@
                 Enforcement action. This action stops the operation and results with the error.
             </xsd:documentation>
             <xsd:appinfo>
-                <a:container />
+                <a:container/>
                 <a:since>3.5</a:since>
             </xsd:appinfo>
         </xsd:annotation>
@@ -2106,13 +2158,13 @@
         </xsd:complexContent>
     </xsd:complexType>
 
-     <xsd:complexType name="SuspendTaskPolicyActionType">
+    <xsd:complexType name="SuspendTaskPolicyActionType">
         <xsd:annotation>
             <xsd:documentation>
                 Stop action. This action stops the operation and results with the error.
             </xsd:documentation>
             <xsd:appinfo>
-                <a:container />
+                <a:container/>
                 <a:since>4.0</a:since>
             </xsd:appinfo>
         </xsd:annotation>
@@ -2134,7 +2186,7 @@
                 an error the operation will also end with an error.
             </xsd:documentation>
             <xsd:appinfo>
-                <a:container />
+                <a:container/>
                 <a:since>3.5</a:since>
                 <a:displayName>ApprovalPolicyActionType.details</a:displayName>
                 <a:schemaMigration>
@@ -2268,7 +2320,7 @@
                 Prescribes how individual approval requirements should be composed into overall approval schema.
             </xsd:documentation>
             <xsd:appinfo>
-                <a:container />
+                <a:container/>
                 <a:since>3.5</a:since>
                 <a:experimental>true</a:experimental>
             </xsd:appinfo>
@@ -2513,7 +2565,7 @@
                 TODO
             </xsd:documentation>
             <xsd:appinfo>
-                <a:container />
+                <a:container/>
                 <a:since>3.5</a:since>
                 <a:experimental>true</a:experimental>
             </xsd:appinfo>
@@ -2533,7 +2585,7 @@
                 TODO
             </xsd:documentation>
             <xsd:appinfo>
-                <a:container />
+                <a:container/>
                 <a:since>3.5</a:since>
             </xsd:appinfo>
         </xsd:annotation>
@@ -2552,7 +2604,7 @@
                 TODO
             </xsd:documentation>
             <xsd:appinfo>
-                <a:container />
+                <a:container/>
                 <a:since>3.5</a:since>
                 <a:experimental>true</a:experimental>
             </xsd:appinfo>
@@ -2588,7 +2640,7 @@
                 are configured in the system configuration.
             </xsd:documentation>
             <xsd:appinfo>
-                <a:container />
+                <a:container/>
                 <a:since>3.5</a:since>
                 <a:experimental>true</a:experimental>
                 <a:displayName>NotificationPolicyActionType.details</a:displayName>
@@ -2609,7 +2661,7 @@
                 TODO
             </xsd:documentation>
             <xsd:appinfo>
-                <a:container />
+                <a:container/>
                 <a:since>3.9</a:since>
                 <a:displayName>ExecuteScriptPolicyActionType.details</a:displayName>
             </xsd:appinfo>
@@ -2689,7 +2741,7 @@
                 TODO
             </xsd:documentation>
             <xsd:appinfo>
-                <a:container />
+                <a:container/>
                 <a:since>3.7</a:since>
                 <a:experimental>true</a:experimental>
             </xsd:appinfo>
@@ -2711,12 +2763,12 @@
                     </xsd:element>
                     <!-- TODO we may select what situation(s) we want to record. The default is all applicable ones. -->
                     <!--<xsd:element name="situationConstraints" type="tns:SituationConstraintsStorageStrategyType" minOccurs="0">-->
-                        <!--<xsd:annotation>-->
-                            <!--<xsd:documentation>-->
-                                <!--Should triggers for situation constraints be stored "as is" or should referenced rules be unwrapped?-->
-                                <!--EXPERIMENTAL-->
-                            <!--</xsd:documentation>-->
-                        <!--</xsd:annotation>-->
+                    <!--<xsd:annotation>-->
+                    <!--<xsd:documentation>-->
+                    <!--Should triggers for situation constraints be stored "as is" or should referenced rules be unwrapped?-->
+                    <!--EXPERIMENTAL-->
+                    <!--</xsd:documentation>-->
+                    <!--</xsd:annotation>-->
                     <!--</xsd:element>-->
                 </xsd:sequence>
             </xsd:extension>
@@ -2731,7 +2783,7 @@
                 This is EXPERIMENTAL functionality. It is likely to change in the near future.
             </xsd:documentation>
             <xsd:appinfo>
-                <a:container />
+                <a:container/>
                 <a:since>3.5</a:since>
                 <a:experimental>true</a:experimental>
             </xsd:appinfo>
@@ -2767,7 +2819,7 @@
                 EXPERIMENTAL
             </xsd:documentation>
             <xsd:appinfo>
-                <a:container />
+                <a:container/>
                 <a:since>3.7</a:since>
                 <a:experimental>true</a:experimental>
             </xsd:appinfo>
@@ -2792,7 +2844,7 @@
                 EXPERIMENTAL
             </xsd:documentation>
             <xsd:appinfo>
-                <a:container />
+                <a:container/>
                 <a:since>3.7.1</a:since>
                 <a:experimental>true</a:experimental>
             </xsd:appinfo>
@@ -2820,7 +2872,7 @@
                 EXPERIMENTAL
             </xsd:documentation>
             <xsd:appinfo>
-                <a:container />
+                <a:container/>
                 <a:since>3.7.1</a:since>
                 <a:experimental>true</a:experimental>
                 <a:displayName>LifecycleStateType.details</a:displayName>
@@ -3043,7 +3095,7 @@
                 EXPERIMENTAL
             </xsd:documentation>
             <xsd:appinfo>
-                <a:container />
+                <a:container/>
                 <a:since>3.7.1</a:since>
                 <a:experimental>true</a:experimental>
             </xsd:appinfo>
@@ -3110,7 +3162,7 @@
                 EXPERIMENTAL
             </xsd:documentation>
             <xsd:appinfo>
-                <a:container />
+                <a:container/>
                 <a:since>3.7.1</a:since>
                 <a:experimental>true</a:experimental>
                 <a:displayName>LifecycleStateActionType.details</a:displayName>
@@ -3166,7 +3218,7 @@
                 EXPERIMENTAL
             </xsd:documentation>
             <xsd:appinfo>
-                <a:container />
+                <a:container/>
                 <a:since>3.7.1</a:since>
                 <a:experimental>true</a:experimental>
             </xsd:appinfo>
@@ -3261,7 +3313,7 @@
             </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
-    <xsd:element name="scriptExecutionObject" type="tns:ScriptExecutionObjectType" />
+    <xsd:element name="scriptExecutionObject" type="tns:ScriptExecutionObjectType"/>
 
     <xsd:complexType name="LinkSourceObjectSelectorType">
         <xsd:annotation>
@@ -3290,7 +3342,7 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="linkSourceObjectSelector" type="tns:LinkSourceObjectSelectorType" />
+    <xsd:element name="linkSourceObjectSelector" type="tns:LinkSourceObjectSelectorType"/>
 
     <xsd:complexType name="LinkTargetObjectSelectorType">
         <xsd:annotation>
@@ -3310,7 +3362,7 @@
                     <xsd:element name="changeSituation" type="tns:LinkChangeSituationType" minOccurs="0" default="always">
                         <xsd:annotation>
                             <xsd:documentation>
-                                 In what situations (change-related) does the link match?
+                                In what situations (change-related) does the link match?
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
@@ -3352,7 +3404,7 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="linkTargetObjectSelector" type="tns:LinkTargetObjectSelectorType" />
+    <xsd:element name="linkTargetObjectSelector" type="tns:LinkTargetObjectSelectorType"/>
 
     <xsd:simpleType name="LinkChangeSituationType">
         <xsd:annotation>
@@ -3499,7 +3551,7 @@
             </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
-    <xsd:element name="asynchronousScriptExecution" type="c:AsynchronousScriptExecutionType" />
+    <xsd:element name="asynchronousScriptExecution" type="c:AsynchronousScriptExecutionType"/>
 
     <xsd:simpleType name="AsynchronousScriptExecutionModeType">
         <xsd:annotation>
@@ -3551,30 +3603,30 @@
     <xsd:simpleType name="PolicyStatementTypeType">
         <xsd:annotation>
             <xsd:appinfo>
-                        <jaxb:typesafeEnumClass/>
+                <jaxb:typesafeEnumClass/>
             </xsd:appinfo>
         </xsd:annotation>
-         <xsd:restriction base="xsd:string">
-             <xsd:enumeration value="apply">
-                 <xsd:annotation>
-                     <xsd:documentation>
-                         Specified policy will be applied to object
-                     </xsd:documentation>
-                     <xsd:appinfo>
-                         <jaxb:typesafeEnumMember name="APPLY"/>
-                     </xsd:appinfo>
-                 </xsd:annotation>
-             </xsd:enumeration>
-             <xsd:enumeration value="exclude">
-                 <xsd:annotation>
-                     <xsd:documentation>
-                         Specified policy will be excluded from object
-                     </xsd:documentation>
-                     <xsd:appinfo>
-                         <jaxb:typesafeEnumMember name="EXCLUDE"/>
-                     </xsd:appinfo>
-                 </xsd:annotation>
-             </xsd:enumeration>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="apply">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Specified policy will be applied to object
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="APPLY"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="exclude">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Specified policy will be excluded from object
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="EXCLUDE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
         </xsd:restriction>
     </xsd:simpleType>
 
