@@ -6,16 +6,22 @@
 
 package com.evolveum.midpoint.web.security;
 
+import java.util.List;
+
+import jakarta.servlet.http.HttpServletResponse;
 import org.apache.wicket.Application;
 import org.apache.wicket.core.request.handler.PageProvider;
 import org.apache.wicket.core.request.handler.RenderPageRequestHandler;
 import org.apache.wicket.core.request.handler.RenderPageRequestHandler.RedirectPolicy;
+import org.apache.wicket.core.request.mapper.IMapperContext;
 import org.apache.wicket.core.request.mapper.StalePageException;
 import org.apache.wicket.request.IRequestHandler;
 import org.apache.wicket.request.Url;
 import org.apache.wicket.request.component.IRequestablePage;
 import org.apache.wicket.request.cycle.IRequestCycleListener;
 import org.apache.wicket.request.cycle.RequestCycle;
+import org.apache.wicket.request.handler.resource.ResourceReferenceRequestHandler;
+import org.apache.wicket.request.http.handler.ErrorCodeRequestHandler;
 import org.apache.wicket.settings.RequestLoggerSettings;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
@@ -59,8 +65,28 @@ public class LoggingRequestCycleListener implements IRequestCycleListener {
                     new PageProvider(stalePageException.getPage()),
                     RedirectPolicy.ALWAYS_REDIRECT);
         }
+        if (isWicketResourceRequest(cycle)) {
+            // Failed resource requests are answered with plain 404, consistently with resources that are not found.
+            LOGGER.debug("Failed to serve Wicket resource {}, responding with 404", cycle.getRequest().getUrl(), ex);
+            return new ErrorCodeRequestHandler(HttpServletResponse.SC_NOT_FOUND);
+        }
         LoggingUtils.logUnexpectedException(LOGGER, "Error occurred during page rendering", ex);
         return new RenderPageRequestHandler(new PageProvider(new PageError(ex)));
+    }
+
+    /**
+     * Matches requests handled by Wicket's resource reference mapper (wicket/resource/...).
+     * The URL is checked as well, as the request may fail before any handler is resolved.
+     */
+    private static boolean isWicketResourceRequest(RequestCycle cycle) {
+        if (cycle.getActiveRequestHandler() instanceof ResourceReferenceRequestHandler) {
+            return true;
+        }
+        List<String> segments = cycle.getRequest().getUrl().getSegments();
+        IMapperContext mapperContext = Application.get().getMapperContext();
+        return segments.size() >= 2
+                && mapperContext.getNamespace().equals(segments.get(0))
+                && mapperContext.getResourceIdentifier().equals(segments.get(1));
     }
 
     @Override
