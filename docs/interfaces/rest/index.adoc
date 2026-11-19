@@ -31,6 +31,41 @@ xref:/midpoint/reference/interfaces/rest/endpoints/[REST Endpoints]
 .For a *more technical description* of our REST api please have a look here:
 xref:/midpoint/reference/interfaces/rest/concepts/[Concepts]
 
+[[enabling-the-rest-api]]
+== Enabling the REST API
+
+Since midPoint 4.12, the REST API is *disabled by default*.
+The REST API increases the attack surface of midPoint, so an administrator has to enable it explicitly.
+
+While the REST API is disabled, all requests to the `/ws`, `/rest` and `/api` endpoints end with HTTP 404 (Not Found).
+Such requests are refused before authentication, so they cause no authentication attempt, no lockout counting and no audit record.
+
+The REST API is enabled by the `midpoint.rest.api.enabled` startup option.
+You can set it in the `config.xml` file:
+
+[source,xml]
+----
+<configuration>
+    <midpoint>
+        <rest>
+            <api>
+                <enabled>true</enabled>
+            </api>
+        </rest>
+    </midpoint>
+</configuration>
+----
+
+Alternatively, you can set it as a JVM option (`-Dmidpoint.rest.api.enabled=true`), see xref:/midpoint/reference/deployment/midpoint-home-directory/overriding-config-xml-parameters/[Overriding config.xml parameters].
+In a container (e.g. Docker), you can set it as an environment variable (`MP_SET_midpoint_rest_api_enabled=true`).
+These are equivalent ways of setting the same option, and the option is read only at startup.
+
+Enable the REST API if you use a REST client, such as xref:/midpoint/tools/studio/[MidPoint Studio], the xref:/midpoint/reference/interfaces/midpoint-client-java/[midPoint Client Library] or your own scripts and integrations.
+Even with the REST API enabled, a user needs the REST xref:/midpoint/reference/security/authorization/[authorizations] to use it.
+
+The intra-cluster REST endpoints (`/ws/cluster`) have their own option, which is independent of the REST API.
+They are enabled automatically on a clustered node, see xref:/midpoint/reference/deployment/clustering-ha/#intra-cluster-rest-endpoints[Intra-Cluster REST Endpoints].
+
 == How To Use
 
 The *format of the REST request* depends on the type of web resource you try to invoke, the  operation

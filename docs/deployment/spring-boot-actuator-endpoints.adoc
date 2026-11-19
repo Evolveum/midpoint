@@ -11,45 +11,119 @@
 Midpoint support six Spring Boot Actuator endpoint.
 Each of them is accessible on 'BASE_MIDPOINT_URL'/actuator/'NAME_OF_ENDPOINT'.
 
+[[actuator-endpoints]]
 [%autowidth]
 |===
-| Name of endpoint | Authorization is needed
+| Name of endpoint | Authorization is needed | Enabled by default | Startup option
 
 | _health_
 | no
-
+| yes
+| `midpoint.actuator.health.enabled`
 
 | _threaddump_
 | yes
-
+| no
+| `midpoint.actuator.threaddump.enabled`
 
 | _heapdump_
 | yes
-
+| no
+| `midpoint.actuator.heapdump.enabled`
 
 | _env_
 | yes
-
+| no
+| `midpoint.actuator.env.enabled`
 
 | _info_
 | yes
-
+| no
+| `midpoint.actuator.info.enabled`
 
 | _metrics_
 | yes
-
+| no
+| `midpoint.actuator.metrics.enabled`
 
 |===
 
 xref:/midpoint/reference/security/authorization/actuators/[Spring Boot Actuator Endpoints Authorizations] page shows authorizations for individual endpoint.
 
-You can see all available links on _'BASE_MIDPOINT_URL'/actuator_.
+The discovery page _'BASE_MIDPOINT_URL'/actuator_ lists the links to the enabled endpoints.
 
 All links are available after login by GUI, or you can use REST basic authentication by username and password.
 
-For example by curl:
+For example by curl (the _metrics_ endpoint has to be enabled first, see <<enabling-actuator-endpoints>>):
 
 [source,bash]
 ----
 curl --user administrator:5ecr3t -X GET http://localhost:8080/midpoint/actuator/metrics
 ----
+
+[[enabling-actuator-endpoints]]
+== Enabling Actuator Endpoints
+
+Since midPoint 4.12, only the _health_ endpoint is enabled by default.
+The other endpoints expose sensitive information about the running midPoint (e.g. the environment or a heap dump), so an administrator has to enable them explicitly.
+
+Each endpoint has its own startup option `midpoint.actuator.<endpoint>.enabled`, listed in the <<actuator-endpoints,table of endpoints>>, so enabling one endpoint does not enable the others.
+There is also a common option `midpoint.actuator.all.enabled`, which applies to all endpoints that have no option of their own.
+The `all` option is not set by default.
+
+The state of an endpoint is determined as follows:
+
+. The option of the endpoint wins, if it is set.
+. Otherwise, the `all` option applies, if it is set.
+. Otherwise, the default from the <<actuator-endpoints,table of endpoints>> applies.
+
+For example, `all` set to `true` together with `heapdump` set to `false` enables all endpoints except _heapdump_.
+The `all` option set to `false` disables also _health_, unless _health_ has its own option set to `true`.
+
+A disabled endpoint is not available at all and it is not listed on the discovery page.
+Requests to it end with HTTP 404 (Not Found) before authentication, so they cause no authentication attempt and no audit record.
+The discovery page _'BASE_MIDPOINT_URL'/actuator_ is available if at least one endpoint is enabled.
+
+Enabling an endpoint does not change its authorization.
+The endpoints that need authorization still need it, see xref:/midpoint/reference/security/authorization/actuators/[Spring Boot Actuator Endpoints Authorizations].
+
+The options can be set in the `config.xml` file.
+The following example enables _metrics_ and disables _health_:
+
+[source,xml]
+----
+<configuration>
+    <midpoint>
+        <actuator>
+            <metrics>
+                <enabled>true</enabled>
+            </metrics>
+            <health>
+                <enabled>false</enabled>
+            </health>
+        </actuator>
+    </midpoint>
+</configuration>
+----
+
+The following example enables all endpoints except _heapdump_:
+
+[source,xml]
+----
+<configuration>
+    <midpoint>
+        <actuator>
+            <all>
+                <enabled>true</enabled>
+            </all>
+            <heapdump>
+                <enabled>false</enabled>
+            </heapdump>
+        </actuator>
+    </midpoint>
+</configuration>
+----
+
+Alternatively, the options can be set as JVM options (e.g. `-Dmidpoint.actuator.metrics.enabled=true`), see xref:/midpoint/reference/deployment/midpoint-home-directory/overriding-config-xml-parameters/[Overriding config.xml parameters].
+In a container (e.g. Docker), they can be set as environment variables (e.g. `MP_SET_midpoint_actuator_metrics_enabled=true`).
+These are equivalent ways of setting the same option, and the options are read only at startup.

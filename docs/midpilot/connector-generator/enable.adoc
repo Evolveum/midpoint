@@ -39,6 +39,9 @@ When the connector generator is disabled:
 
 Regular connectors are not affected: existing connectors can still be edited, tested and used for provisioning.
 
+The connector generator REST API is a part of the midPoint REST API.
+Since midPoint 4.12, the REST API is disabled by default, so the connector generator REST API needs also the REST API to be enabled, see xref:/midpoint/reference/interfaces/rest/#enabling-the-rest-api[Enabling the REST API].
+
 == How to enable the connector generator
 
 === Permanently - in config.xml
