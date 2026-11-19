@@ -49,6 +49,17 @@
   }
 }
 
+.gen-select-card:has(input[type="radio"]:checked) {
+  --bs-card-border-color: #{$primary};
+  --bs-card-bg: var(--bs-primary-bg-subtle);
+  color: $primary;
+}
+
+.gen-select-table tr:has(input[type="radio"]:checked) {
+  --bs-table-bg-state: var(--bs-primary-bg-subtle);
+  --bs-table-color-state: #{$primary};
+}
+
 .gen-menu-icon {
   width: 20px;
   height: 20px;
