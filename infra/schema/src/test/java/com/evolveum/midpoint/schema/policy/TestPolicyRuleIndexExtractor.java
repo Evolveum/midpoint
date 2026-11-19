@@ -226,7 +226,36 @@ public class TestPolicyRuleIndexExtractor extends AbstractSchemaTest {
                 .containsExactlyInAnyOrder("modification", "assignment")
                 .doesNotContain("objectModification", "assignmentModification");
     }
+    @Test
+    public void test400ActivityPoliciesCollector() {
+        ActivityPoliciesType top = new ActivityPoliciesType()
+                .policyRef("11111111-0000-0000-0000-000000000001", PolicyType.COMPLEX_TYPE);
+        ActivityPoliciesType nested = new ActivityPoliciesType()
+                .policy(new PolicyRuleType().name("nested"));
+        ActivityPoliciesDefinitionTailoringType changed = new ActivityPoliciesDefinitionTailoringType()
+                .policy(new PolicyRuleType().name("changed"));
 
+        ActivityDefinitionType activity = new ActivityDefinitionType()
+                .policies(top)
+                .composition(new ActivityCompositionType()
+                        .activity(new ActivityDefinitionType()
+                                .composition(new ActivityCompositionType()
+                                        .activity(new ActivityDefinitionType()
+                                                .policies(nested)))))
+                .tailoring(new ActivitiesTailoringType()
+                        .change(new ActivityTailoringType()
+                                .policies(changed)));
+
+        List<ActivityPoliciesType> collected = ActivityPoliciesCollector.collect(activity);
+
+        assertThat(collected).hasSize(3);
+        assertThat(collected.stream()
+                .flatMap(p -> p.getPolicy().stream())
+                .map(PolicyRuleType::getName)
+                .collect(Collectors.toList()))
+                .containsExactlyInAnyOrder("nested", "changed");
+        assertThat(ActivityPoliciesCollector.collect(null)).isEmpty();
+    }
 
 
 
