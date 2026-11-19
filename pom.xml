@@ -212,7 +212,7 @@
         <commons.io.version>2.22.0</commons.io.version>
         <commons.cli>1.9.0</commons.cli>
         <commons.configuration.version>2.15.1</commons.configuration.version>
-        <cxf.version>4.2.3</cxf.version>
+        <cxf.version>4.2.4</cxf.version>
         <cxf-xjc.version>3.3.1</cxf-xjc.version>
         <opendj.version>2.6.2</opendj.version>
         <quartz.version>2.3.2.e3</quartz.version>
@@ -238,12 +238,18 @@
         <maven-javadoc-plugin.version>3.11.2</maven-javadoc-plugin.version>
         <log4j2.version>2.26.1</log4j2.version>
         <rabbit-amqp-client.version>5.37.0</rabbit-amqp-client.version>
+        <!-- keep both aligned, they share jackson-annotations (2.21). Must match Prism. -->
+        <jackson-2-bom.version>2.21.8</jackson-2-bom.version>
+        <jackson-bom.version>3.1.8</jackson-bom.version>
+        <json-smart.version>2.6.1</json-smart.version>
+        <artemis.version>2.57.0</artemis.version>
+        <asm.version>9.11</asm.version>
         <!-- END of Spring Boot dependencies overrides -->
 
         <!-- security fix for CVE-2025-48976 -->
         <commons.fileupload2.version>2.0.0-M5</commons.fileupload2.version>
 
-        <wicket.version>10.11.0</wicket.version>
+        <wicket.version>10.12.0</wicket.version>
         <wicketstuff.version>10.10.0</wicketstuff.version>
         <wicket.chartjs.version>0.6</wicket.chartjs.version>
 
@@ -255,20 +261,16 @@
         <tika.version>3.3.2</tika.version>
         <!-- Version for classgraph must the one declared in Prism -->
         <classgraph.version>4.8.162</classgraph.version>
-        <guava.version>33.7.2-jre</guava.version>
+        <guava.version>33.8.0-jre</guava.version>
         <jcommander.version>1.82</jcommander.version>
         <qpid-broker.version>8.0.4</qpid-broker.version>
-        <!--
-        name matches property from Boot parent
-        <artemis.version>2.33.0</artemis.version>
-        -->
-        <asm.version>9.5</asm.version>
+
         <geronimo-ws-metadata_2.0_spec.version>1.1.3</geronimo-ws-metadata_2.0_spec.version>
         <checkstyle.version>3.1.2</checkstyle.version>
         <commons.csv.version>1.12.0</commons.csv.version>
         <j2html.version>1.4.0</j2html.version>
-        <bouncycastle.version>1.85.2</bouncycastle.version>
-        <bouncycastle.bcpkix.version>1.85</bouncycastle.bcpkix.version>
+        <bouncycastle.version>1.86</bouncycastle.version>
+        <bouncycastle.bcpkix.version>1.86</bouncycastle.bcpkix.version>
         <javax.persistence.version>2.2</javax.persistence.version>
         <keycloak.version>26.0.6</keycloak.version>
         <keycloak.client.version>26.0.4</keycloak.client.version>
@@ -451,6 +453,10 @@
                     <exclusion>
                         <groupId>org.apache.groovy</groupId>
                         <artifactId>groovy-testng</artifactId>
+                    </exclusion>
+                    <exclusion> <!-- Swing console, not used; pulls asm-analysis/tree/util and ivy (CVEs) -->
+                        <groupId>org.apache.groovy</groupId>
+                        <artifactId>groovy-console</artifactId>
                     </exclusion>
                 </exclusions>
             </dependency>
@@ -1204,11 +1210,6 @@
                 <artifactId>nimbus-jose-jwt</artifactId>
                 <version>10.0.2</version>
             </dependency>
-            <dependency>
-                <groupId>net.minidev</groupId>
-                <artifactId>json-smart</artifactId>
-                <version>2.5.2</version>
-            </dependency>
 
             <dependency>
                 <groupId>xml-resolver</groupId>
@@ -1267,7 +1268,7 @@
             <dependency>
                 <groupId>org.apache.ws.xmlschema</groupId>
                 <artifactId>xmlschema-core</artifactId>
-                <version>2.2.5</version>
+                <version>2.3.3</version> <!-- keep aligned with cxf.xmlschema.version of the CXF in use -->
             </dependency>
             <dependency>
                 <groupId>org.jvnet.jaxb2_commons</groupId>
