@@ -79,13 +79,25 @@ public class GuiProfiledPrincipalManagerImpl
 
     // TODO consider also roleMembershipRef
     private static final Set<ItemPath> ASSIGNMENTS_AND_ADMIN_GUI_PATHS = ImmutableSet.of(FocusType.F_ASSIGNMENT, RoleType.F_ADMIN_GUI_CONFIGURATION, FocusType.F_ACTIVATION);
+    private static final Set<ItemPath> ABSTRACT_ROLE_INVALIDATION_PATHS = ImmutableSet.<ItemPath>builder()
+            .addAll(ASSIGNMENTS_AND_ADMIN_GUI_PATHS)
+            // Authorization and inducement changes can affect effective user permissions.
+            .add(AbstractRoleType.F_AUTHORIZATION)
+            .add(AbstractRoleType.F_INDUCEMENT)
+            .build();
+
+    // Archetypes inherit role properties and also have their own policy.
+    private static final Set<ItemPath> ARCHETYPE_INVALIDATION_PATHS = ImmutableSet.<ItemPath>builder()
+            .addAll(ABSTRACT_ROLE_INVALIDATION_PATHS)
+            .add(ArchetypeType.F_ARCHETYPE_POLICY)
+            .build();
     private static final Set<ChangeType> MODIFY_DELETE_CHANGES = CacheInvalidationEventSpecification.MODIFY_DELETE;
 
     private static final Collection<CacheInvalidationEventSpecification> CACHE_EVENT_SPECIFICATION =
             ImmutableSet.<CacheInvalidationEventSpecification>builder()
             .add(CacheInvalidationEventSpecification.of(UserType.class,ASSIGNMENTS_AND_ADMIN_GUI_PATHS,MODIFY_DELETE_CHANGES))
-            .add(CacheInvalidationEventSpecification.of(ArchetypeType.class, ImmutableSet.of(ArchetypeType.F_ARCHETYPE_POLICY, FocusType.F_ASSIGNMENT, RoleType.F_ADMIN_GUI_CONFIGURATION, FocusType.F_ACTIVATION) ,MODIFY_DELETE_CHANGES))
-            .add(CacheInvalidationEventSpecification.of(AbstractRoleType.class,ASSIGNMENTS_AND_ADMIN_GUI_PATHS,MODIFY_DELETE_CHANGES))
+            .add(CacheInvalidationEventSpecification.of(ArchetypeType.class, ARCHETYPE_INVALIDATION_PATHS, MODIFY_DELETE_CHANGES))
+            .add(CacheInvalidationEventSpecification.of(AbstractRoleType.class, ABSTRACT_ROLE_INVALIDATION_PATHS, MODIFY_DELETE_CHANGES))
             .add(CacheInvalidationEventSpecification.of(SystemConfigurationType.class, ImmutableSet.of(SystemConfigurationType.F_ADMIN_GUI_CONFIGURATION), MODIFY_DELETE_CHANGES))
             .add(CacheInvalidationEventSpecification.of(SchemaType.class, ImmutableSet.of(SchemaType.F_DEFINITION), CacheInvalidationEventSpecification.ALL_CHANGES))
             .build();

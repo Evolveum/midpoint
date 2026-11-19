@@ -17,10 +17,12 @@ import java.util.function.Consumer;
 
 import com.evolveum.midpoint.CacheInvalidationContext;
 import com.evolveum.midpoint.authentication.api.MidpointSessionRegistry;
+import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
 import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
 import com.evolveum.midpoint.repo.api.ClusterwideCacheInvalidationDispatcher;
 import com.evolveum.midpoint.repo.api.ClusterwideCacheInvalidationListener;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 
 import com.evolveum.midpoint.schema.util.SimpleExpressionUtil;
@@ -49,6 +51,17 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 public class TestGuiProfiledPrincipalManager extends AbstractInternalModelIntegrationTest {
 
     private static final String ROLE_CLUSTERWIDE_INVALIDATION_OID = "f32e5728-2fc7-4a88-9ec2-dd43333c2f36";
+    private static final String ROLE_AUTHORIZATION_INVALIDATION_OID = "a7777550-9514-4a33-b4e9-f74bde8d86e5";
+    private static final String USER_AUTHORIZATION_INVALIDATION_OID = "5bb4f8fc-dc70-437e-b5f9-efda02871c54";
+    private static final String ARCHETYPE_INVALIDATION_OID = "a1347d64-4e54-4d0e-b6ef-a755aaf5c401";
+    private static final String ARCHETYPE_INDUCED_ROLE_OID = "a1347d64-4e54-4d0e-b6ef-a755aaf5c402";
+    private static final String ARCHETYPE_USER_OID = "a1347d64-4e54-4d0e-b6ef-a755aaf5c403";
+    private static final String INDUCEMENT_ROLE_OID = "a1347d64-4e54-4d0e-b6ef-a755aaf5c404";
+    private static final String INDUCED_ROLE_OID = "a1347d64-4e54-4d0e-b6ef-a755aaf5c405";
+    private static final String INDUCEMENT_USER_OID = "a1347d64-4e54-4d0e-b6ef-a755aaf5c406";
+    private static final String INDIRECT_OUTER_ROLE_OID = "a1347d64-4e54-4d0e-b6ef-a755aaf5c407";
+    private static final String INDIRECT_INTERMEDIATE_ROLE_OID = "a1347d64-4e54-4d0e-b6ef-a755aaf5c408";
+    private static final String INDIRECT_USER_OID = "a1347d64-4e54-4d0e-b6ef-a755aaf5c409";
 
     @Autowired private ClusterwideCacheInvalidationDispatcher clusterwideCacheInvalidationDispatcher;
 
@@ -195,11 +208,328 @@ public class TestGuiProfiledPrincipalManager extends AbstractInternalModelIntegr
         }
     }
 
+    @Test
+    public void test260RoleAuthorizationModificationInvalidatesLocalProfile() throws Exception {
+        given("a user with an authorization-bearing role and a GUI session");
+        OperationResult result = createOperationResult();
+        deleteAuthorizationInvalidationObjectsIfPresent(result);
+
+        RoleType role = new RoleType()
+                .oid(ROLE_AUTHORIZATION_INVALIDATION_OID)
+                .name("authorization-invalidation-test-role")
+                .authorization(new AuthorizationType()
+                        .name("initial-authorization")
+                        .action(AuthorizationConstants.AUTZ_UI_USERS_URL));
+        UserType user = new UserType()
+                .oid(USER_AUTHORIZATION_INVALIDATION_OID)
+                .name("authorization-invalidation-test-user")
+                .assignment(new AssignmentType()
+                        .targetRef(ROLE_AUTHORIZATION_INVALIDATION_OID, RoleType.COMPLEX_TYPE));
+
+        GuiProfiledPrincipalManagerImpl manager = AopTestUtils.getUltimateTargetObject(focusProfileService);
+        Object originalSessionRegistry = ReflectionTestUtils.getField(manager, "sessionRegistry");
+        try {
+            repositoryService.addObject(role.asPrismObject(), null, result);
+            repositoryService.addObject(user.asPrismObject(), null, result);
+
+            GuiProfiledPrincipal principal = focusProfileService.getPrincipal(user.asPrismObject(), null, result);
+            CompiledGuiProfile initialProfile = principal.getCompiledGuiProfile();
+            assertThat(initialProfile.isInvalid()).as("initial profile invalid").isFalse();
+            assertThat(initialProfile.derivedFrom(ROLE_AUTHORIZATION_INVALIDATION_OID))
+                    .as("profile derived from the role")
+                    .isTrue();
+
+            TestSessionRegistry sessionRegistry = new TestSessionRegistry();
+            sessionRegistry.registerNewSession("authorization-invalidation-session", principal);
+            ReflectionTestUtils.setField(manager, "sessionRegistry", sessionRegistry);
+
+            when("an authorization is added to the role through the repository cache");
+            repositoryService.modifyObject(
+                    RoleType.class,
+                    ROLE_AUTHORIZATION_INVALIDATION_OID,
+                    prismContext.deltaFor(RoleType.class)
+                            .item(RoleType.F_AUTHORIZATION)
+                            .add(new AuthorizationType()
+                                    .name("added-authorization")
+                                    .action(AuthorizationConstants.AUTZ_ALL_URL))
+                            .asItemDeltas(),
+                    result);
+
+            then("the existing profile is invalidated");
+            assertThat(initialProfile.isInvalid()).isTrue();
+
+            when("the profile is refreshed and the role authorizations are removed through the repository cache");
+            CompiledGuiProfile refreshedProfile = focusProfileService.refreshCompiledProfile(principal);
+            assertThat(refreshedProfile.isInvalid()).as("refreshed profile invalid").isFalse();
+            repositoryService.modifyObject(
+                    RoleType.class,
+                    ROLE_AUTHORIZATION_INVALIDATION_OID,
+                    prismContext.deltaFor(RoleType.class)
+                            .item(RoleType.F_AUTHORIZATION)
+                            .replace()
+                            .asItemDeltas(),
+                    result);
+
+            then("the refreshed profile is invalidated as well");
+            assertThat(refreshedProfile.isInvalid()).isTrue();
+        } finally {
+            ReflectionTestUtils.setField(manager, "sessionRegistry", originalSessionRegistry);
+            deleteAuthorizationInvalidationObjectsIfPresent(result);
+        }
+    }
+
+    @Test
+    public void test270ArchetypeAuthorizationAndInducementModificationInvalidatesLocalProfile() throws Exception {
+        given("a user assigned to an authorization-bearing archetype and a GUI session");
+        OperationResult result = createOperationResult();
+        deleteArchetypeInvalidationObjectsIfPresent(result);
+
+        RoleType inducedRole = new RoleType()
+                .oid(ARCHETYPE_INDUCED_ROLE_OID)
+                .name("archetype-induced-role");
+        ArchetypeType archetype = new ArchetypeType()
+                .oid(ARCHETYPE_INVALIDATION_OID)
+                .name("authorization-invalidation-test-archetype")
+                .authorization(new AuthorizationType()
+                        .name("initial-archetype-authorization")
+                        .action(AuthorizationConstants.AUTZ_UI_USERS_URL));
+        UserType user = new UserType()
+                .oid(ARCHETYPE_USER_OID)
+                .name("archetype-authorization-invalidation-test-user")
+                .assignment(new AssignmentType()
+                        .targetRef(ARCHETYPE_INVALIDATION_OID, ArchetypeType.COMPLEX_TYPE));
+
+        GuiProfiledPrincipalManagerImpl manager = AopTestUtils.getUltimateTargetObject(focusProfileService);
+        Object originalSessionRegistry = ReflectionTestUtils.getField(manager, "sessionRegistry");
+        try {
+            repositoryService.addObject(inducedRole.asPrismObject(), null, result);
+            repositoryService.addObject(archetype.asPrismObject(), null, result);
+            repositoryService.addObject(user.asPrismObject(), null, result);
+
+            GuiProfiledPrincipal principal = focusProfileService.getPrincipal(user.asPrismObject(), null, result);
+            CompiledGuiProfile initialProfile = principal.getCompiledGuiProfile();
+            assertThat(initialProfile.isInvalid()).as("initial profile invalid").isFalse();
+            assertThat(initialProfile.derivedFrom(ARCHETYPE_INVALIDATION_OID))
+                    .as("profile derived from the archetype")
+                    .isTrue();
+
+            TestSessionRegistry sessionRegistry = new TestSessionRegistry();
+            sessionRegistry.registerNewSession("archetype-invalidation-session", principal);
+            ReflectionTestUtils.setField(manager, "sessionRegistry", sessionRegistry);
+
+            when("an authorization is added to the archetype through the repository cache");
+            repositoryService.modifyObject(
+                    ArchetypeType.class,
+                    ARCHETYPE_INVALIDATION_OID,
+                    prismContext.deltaFor(ArchetypeType.class)
+                            .item(ArchetypeType.F_AUTHORIZATION)
+                            .add(new AuthorizationType()
+                                    .name("added-archetype-authorization")
+                                    .action(AuthorizationConstants.AUTZ_ALL_URL))
+                            .asItemDeltas(),
+                    result);
+
+            then("the existing profile is invalidated");
+            assertThat(initialProfile.isInvalid()).isTrue();
+
+            when("the profile is refreshed and an inducement is added to the archetype through the repository cache");
+            CompiledGuiProfile refreshedProfile = focusProfileService.refreshCompiledProfile(principal);
+            assertThat(refreshedProfile.isInvalid()).as("refreshed profile invalid").isFalse();
+            repositoryService.modifyObject(
+                    ArchetypeType.class,
+                    ARCHETYPE_INVALIDATION_OID,
+                    prismContext.deltaFor(ArchetypeType.class)
+                            .item(ArchetypeType.F_INDUCEMENT)
+                            .add(new AssignmentType()
+                                    .targetRef(ARCHETYPE_INDUCED_ROLE_OID, RoleType.COMPLEX_TYPE))
+                            .asItemDeltas(),
+                    result);
+
+            then("the refreshed profile is invalidated by the archetype inducement change");
+            assertThat(refreshedProfile.isInvalid()).isTrue();
+        } finally {
+            ReflectionTestUtils.setField(manager, "sessionRegistry", originalSessionRegistry);
+            deleteArchetypeInvalidationObjectsIfPresent(result);
+        }
+    }
+
+    @Test
+    public void test280RoleInducementAdditionAndRemovalInvalidatesLocalProfile() throws Exception {
+        given("a user assigned to a role and a GUI session");
+        OperationResult result = createOperationResult();
+        deleteInducementInvalidationObjectsIfPresent(result);
+
+        RoleType inducedRole = new RoleType()
+                .oid(INDUCED_ROLE_OID)
+                .name("induced-authorization-role")
+                .authorization(new AuthorizationType()
+                        .name("induced-authorization")
+                        .action(AuthorizationConstants.AUTZ_UI_USERS_URL));
+        RoleType role = new RoleType()
+                .oid(INDUCEMENT_ROLE_OID)
+                .name("inducement-invalidation-test-role");
+        UserType user = new UserType()
+                .oid(INDUCEMENT_USER_OID)
+                .name("inducement-invalidation-test-user")
+                .assignment(new AssignmentType()
+                        .targetRef(INDUCEMENT_ROLE_OID, RoleType.COMPLEX_TYPE));
+
+        GuiProfiledPrincipalManagerImpl manager = AopTestUtils.getUltimateTargetObject(focusProfileService);
+        Object originalSessionRegistry = ReflectionTestUtils.getField(manager, "sessionRegistry");
+        try {
+            repositoryService.addObject(inducedRole.asPrismObject(), null, result);
+            repositoryService.addObject(role.asPrismObject(), null, result);
+            repositoryService.addObject(user.asPrismObject(), null, result);
+
+            GuiProfiledPrincipal principal = focusProfileService.getPrincipal(user.asPrismObject(), null, result);
+            CompiledGuiProfile initialProfile = principal.getCompiledGuiProfile();
+            assertThat(initialProfile.isInvalid()).as("initial profile invalid").isFalse();
+            assertThat(initialProfile.derivedFrom(INDUCEMENT_ROLE_OID))
+                    .as("profile derived from the assigned role")
+                    .isTrue();
+
+            TestSessionRegistry sessionRegistry = new TestSessionRegistry();
+            sessionRegistry.registerNewSession("inducement-invalidation-session", principal);
+            ReflectionTestUtils.setField(manager, "sessionRegistry", sessionRegistry);
+
+            when("an inducement is added to the assigned role through the repository cache");
+            repositoryService.modifyObject(
+                    RoleType.class,
+                    INDUCEMENT_ROLE_OID,
+                    prismContext.deltaFor(RoleType.class)
+                            .item(RoleType.F_INDUCEMENT)
+                            .add(new AssignmentType()
+                                    .targetRef(INDUCED_ROLE_OID, RoleType.COMPLEX_TYPE))
+                            .asItemDeltas(),
+                    result);
+
+            then("the existing profile is invalidated");
+            assertThat(initialProfile.isInvalid()).isTrue();
+
+            when("the profile is refreshed and the inducement is removed through the repository cache");
+            CompiledGuiProfile refreshedProfile = focusProfileService.refreshCompiledProfile(principal);
+            assertThat(refreshedProfile.isInvalid()).as("refreshed profile invalid").isFalse();
+            assertThat(refreshedProfile.derivedFrom(INDUCED_ROLE_OID))
+                    .as("refreshed profile derived from the induced role")
+                    .isTrue();
+            repositoryService.modifyObject(
+                    RoleType.class,
+                    INDUCEMENT_ROLE_OID,
+                    prismContext.deltaFor(RoleType.class)
+                            .item(RoleType.F_INDUCEMENT)
+                            .replace()
+                            .asItemDeltas(),
+                    result);
+
+            then("the refreshed profile is invalidated as well");
+            assertThat(refreshedProfile.isInvalid()).isTrue();
+        } finally {
+            ReflectionTestUtils.setField(manager, "sessionRegistry", originalSessionRegistry);
+            deleteInducementInvalidationObjectsIfPresent(result);
+        }
+    }
+
+    @Test
+    public void test290IntermediateRoleAuthorizationModificationInvalidatesLocalProfile() throws Exception {
+        given("a user indirectly assigned an authorization-bearing role and a GUI session");
+        OperationResult result = createOperationResult();
+        deleteIndirectInvalidationObjectsIfPresent(result);
+
+        RoleType intermediateRole = new RoleType()
+                .oid(INDIRECT_INTERMEDIATE_ROLE_OID)
+                .name("indirect-intermediate-authorization-role")
+                .authorization(new AuthorizationType()
+                        .name("intermediate-authorization")
+                        .action(AuthorizationConstants.AUTZ_UI_USERS_URL));
+        RoleType outerRole = new RoleType()
+                .oid(INDIRECT_OUTER_ROLE_OID)
+                .name("indirect-outer-role")
+                .inducement(new AssignmentType()
+                        .targetRef(INDIRECT_INTERMEDIATE_ROLE_OID, RoleType.COMPLEX_TYPE));
+        UserType user = new UserType()
+                .oid(INDIRECT_USER_OID)
+                .name("indirect-authorization-invalidation-test-user")
+                .assignment(new AssignmentType()
+                        .targetRef(INDIRECT_OUTER_ROLE_OID, RoleType.COMPLEX_TYPE));
+
+        GuiProfiledPrincipalManagerImpl manager = AopTestUtils.getUltimateTargetObject(focusProfileService);
+        Object originalSessionRegistry = ReflectionTestUtils.getField(manager, "sessionRegistry");
+        try {
+            repositoryService.addObject(intermediateRole.asPrismObject(), null, result);
+            repositoryService.addObject(outerRole.asPrismObject(), null, result);
+            repositoryService.addObject(user.asPrismObject(), null, result);
+
+            GuiProfiledPrincipal principal = focusProfileService.getPrincipal(user.asPrismObject(), null, result);
+            CompiledGuiProfile profile = principal.getCompiledGuiProfile();
+            assertThat(profile.isInvalid()).as("initial profile invalid").isFalse();
+            assertThat(profile.derivedFrom(INDIRECT_OUTER_ROLE_OID))
+                    .as("profile derived from the directly assigned outer role")
+                    .isTrue();
+            assertThat(profile.derivedFrom(INDIRECT_INTERMEDIATE_ROLE_OID))
+                    .as("profile derived from the indirectly assigned intermediate role")
+                    .isTrue();
+
+            TestSessionRegistry sessionRegistry = new TestSessionRegistry();
+            sessionRegistry.registerNewSession("indirect-invalidation-session", principal);
+            ReflectionTestUtils.setField(manager, "sessionRegistry", sessionRegistry);
+
+            when("the intermediate role authorization is modified through the repository cache");
+            repositoryService.modifyObject(
+                    RoleType.class,
+                    INDIRECT_INTERMEDIATE_ROLE_OID,
+                    prismContext.deltaFor(RoleType.class)
+                            .item(RoleType.F_AUTHORIZATION)
+                            .add(new AuthorizationType()
+                                    .name("added-intermediate-authorization")
+                                    .action(AuthorizationConstants.AUTZ_ALL_URL))
+                            .asItemDeltas(),
+                    result);
+
+            then("the dependent profile is invalidated");
+            assertThat(profile.isInvalid()).isTrue();
+        } finally {
+            ReflectionTestUtils.setField(manager, "sessionRegistry", originalSessionRegistry);
+            deleteIndirectInvalidationObjectsIfPresent(result);
+        }
+    }
+
     private void deleteClusterwideInvalidationRoleIfPresent(OperationResult result) {
         OperationResult cleanupResult =
                 new OperationResult(result.getOperation() + ".deleteClusterwideInvalidationRoleIfPresent");
         try {
             repositoryService.deleteObject(RoleType.class, ROLE_CLUSTERWIDE_INVALIDATION_OID, cleanupResult);
+        } catch (ObjectNotFoundException ignored) {
+            // The fixture is already absent, which is the desired state.
+        }
+    }
+
+    private void deleteAuthorizationInvalidationObjectsIfPresent(OperationResult result) {
+        deleteObjectIfPresent(UserType.class, USER_AUTHORIZATION_INVALIDATION_OID, result);
+        deleteObjectIfPresent(RoleType.class, ROLE_AUTHORIZATION_INVALIDATION_OID, result);
+    }
+
+    private void deleteArchetypeInvalidationObjectsIfPresent(OperationResult result) {
+        deleteObjectIfPresent(UserType.class, ARCHETYPE_USER_OID, result);
+        deleteObjectIfPresent(ArchetypeType.class, ARCHETYPE_INVALIDATION_OID, result);
+        deleteObjectIfPresent(RoleType.class, ARCHETYPE_INDUCED_ROLE_OID, result);
+    }
+
+    private void deleteInducementInvalidationObjectsIfPresent(OperationResult result) {
+        deleteObjectIfPresent(UserType.class, INDUCEMENT_USER_OID, result);
+        deleteObjectIfPresent(RoleType.class, INDUCEMENT_ROLE_OID, result);
+        deleteObjectIfPresent(RoleType.class, INDUCED_ROLE_OID, result);
+    }
+
+    private void deleteIndirectInvalidationObjectsIfPresent(OperationResult result) {
+        deleteObjectIfPresent(UserType.class, INDIRECT_USER_OID, result);
+        deleteObjectIfPresent(RoleType.class, INDIRECT_OUTER_ROLE_OID, result);
+        deleteObjectIfPresent(RoleType.class, INDIRECT_INTERMEDIATE_ROLE_OID, result);
+    }
+
+    private <O extends ObjectType> void deleteObjectIfPresent(Class<O> type, String oid, OperationResult result) {
+        OperationResult cleanupResult = new OperationResult(result.getOperation() + ".deleteObjectIfPresent");
+        try {
+            repositoryService.deleteObject(type, oid, cleanupResult);
         } catch (ObjectNotFoundException ignored) {
             // The fixture is already absent, which is the desired state.
         }
