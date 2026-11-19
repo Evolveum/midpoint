@@ -7,6 +7,11 @@
 package com.evolveum.midpoint.rest.impl;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.InvalidPathException;
+import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collection;
@@ -260,7 +265,7 @@ public class ClusterRestController extends AbstractRestController {
                         // Explicitly needed, because Spring would change content type to "*"
                         // even if application/octet-stream is in produces section
                         .contentType(MediaType.APPLICATION_OCTET_STREAM)
-                        .body(new FileSystemResource(resolution.file));
+                        .body(new NoFollowFileSystemResource(resolution.file));
             } else {
                 response = ResponseEntity.status(resolution.status).build();
             }
@@ -322,34 +327,75 @@ public class ClusterRestController extends AbstractRestController {
         HttpStatus status;
     }
 
-    private FileResolution resolveFile(String fileName) {
+    private FileResolution resolveFile(String fileName) throws IOException {
         FileResolution rv = new FileResolution();
-        if (forbiddenFileName(fileName)) {
-            logger.warn("File name '{}' is forbidden", fileName);
-            rv.status = HttpStatus.FORBIDDEN;
-            return rv;
-        }
 
-        String[] parts = fileName.split("/");
+        String[] parts = fileName != null ? fileName.split("/", -1) : new String[0];
         Path directory;
         if (parts.length == 1) {
             directory = reportDirectory("export");
+            fileName = parts[0];
         } else if (parts.length == 2) {
             directory = reportDirectory(parts[0]);
             fileName = parts[1];
         } else {
-            logger.warn("Report output file '{}' is a nested file", fileName);
-            rv.status = HttpStatus.FORBIDDEN;
-            return rv;
+            return forbiddenFile(fileName);
         }
-        rv.file = directory.resolve(fileName).toFile();
-        if (!rv.file.exists()) {
+
+        if (forbiddenFileName(fileName)) {
+            return forbiddenFile(fileName);
+        }
+
+        directory = directory.toAbsolutePath().normalize();
+        Path resolvedPath = directory.resolve(fileName).normalize();
+
+        if (!resolvedPath.startsWith(directory) || Files.isSymbolicLink(resolvedPath)) {
+            return forbiddenFile(fileName);
+        }
+
+        rv.file = resolvedPath.toFile();
+
+        if (!Files.exists(resolvedPath, LinkOption.NOFOLLOW_LINKS)) {
             logger.warn("Report output file '{}' does not exist", rv.file);
             rv.status = HttpStatus.NOT_FOUND;
-        } else if (rv.file.isDirectory()) {
-            logger.warn("Report output file '{}' is a directory", rv.file);
+        } else if (!Files.isRegularFile(resolvedPath, LinkOption.NOFOLLOW_LINKS)) {
+            logger.warn("Report output file '{}' is not a regular file", rv.file);
             rv.status = HttpStatus.FORBIDDEN;
+        } else {
+            // Verify containment after resolving symbolic links in the directory path.
+            Path realDirectory = directory.toRealPath();
+            Path realFile = resolvedPath.toRealPath();
+
+            if (!realFile.startsWith(realDirectory)) {
+                return forbiddenFile(fileName);
+            }
+
+            rv.file = realFile.toFile();
         }
+
+        return rv;
+    }
+
+    /**
+     * Checks whether a filename contains an unsafe path or is not a single file name.
+     */
+    private boolean forbiddenFileName(String fileName) {
+        if (fileName.isEmpty() || fileName.contains("\\") || ".".equals(fileName) || "..".equals(fileName)) {
+            return true;
+        }
+
+        try {
+            Path path = Paths.get(fileName);
+            return path.isAbsolute() || path.getRoot() != null || path.getNameCount() != 1;
+        } catch (InvalidPathException e) {
+            return true;
+        }
+    }
+
+    private FileResolution forbiddenFile(String fileName) {
+        logger.warn("File name '{}' is forbidden", fileName);
+        FileResolution rv = new FileResolution();
+        rv.status = HttpStatus.FORBIDDEN;
         return rv;
     }
 
@@ -373,10 +419,6 @@ public class ClusterRestController extends AbstractRestController {
         return Paths.get(midpointConfiguration.getMidpointHome(), directory);
     }
 
-    private boolean forbiddenFileName(String fileName) {
-        return fileName.contains("/../");
-    }
-
     private void checkNodeAuthentication() throws SecurityViolationException {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
@@ -395,5 +437,20 @@ public class ClusterRestController extends AbstractRestController {
         }
 
         // TODO consider allowing administrator access here as well
+    }
+
+    /**
+     * Prevents following symbolic links if the file is replaced after path validation.
+     */
+    private static class NoFollowFileSystemResource extends FileSystemResource {
+
+        private NoFollowFileSystemResource(File file) {
+            super(file);
+        }
+
+        @Override
+        public InputStream getInputStream() throws IOException {
+            return Files.newInputStream(getFile().toPath(), LinkOption.NOFOLLOW_LINKS);
+        }
     }
 }

@@ -255,8 +255,8 @@ After a communication outage, review cluster communication errors and refresh af
 
 The cluster report-file endpoints allow authenticated nodes to read and delete files using the file-system permissions of the midPoint process.
 
-File path validation does not always prevent access to files outside the intended directories.
-Symbolic links may also allow access outside these directories.
+MidPoint validates requested file paths to restrict access to the intended export, import, and trace directories.
+Direct access to files through symbolic links is not permitted.
 Administrators should restrict file-system permissions and use dedicated directories for reports, exports, imports, and other generated files.
 
 When retrieving a file through the cluster interface, midPoint streams the file directly to the receiving node without loading its entire contents into memory.
