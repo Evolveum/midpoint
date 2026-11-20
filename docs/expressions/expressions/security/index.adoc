@@ -199,6 +199,7 @@ Expressions profiles control ability to _execute_ an expression, regardless of h
 On the other hand, authorizations control the ability to _create and edit_ expressions, without regard to their eventual execution.
 Both mechanisms are necessary for setting up a secure midPoint deployment.
 
+[#semi-safe-configuration]
 == Semi-Safe Configuration
 
 Security is a trade-off, or rather a complex series of many intricate trade-offs.
@@ -212,11 +213,14 @@ For example, expression can be used in a condition in an xref:/midpoint/referenc
 This ability comes from the fact that _assignment_ and _inducement_ are represented by the same data structure, as well as a potential to implement some intricate use cases.
 However, _assignment_ are a common data structure in _user_ objects.
 Users may have ability to create their own assignments, e.g. in a form of _access request_ process, or by using RESTful API.
-In such a case, users may theoretically create an assignment which includes unsafe scripting expressions.
+In such a case, users may create an assignment which includes unsafe scripting expressions, for example an inline `focusMappings` script.
+Such a mapping is evaluated while midPoint computes the operation, _before_ the operation is authorized, so it executes even if the change is ultimately rejected.
+Over the REST API this is a real vector, whenever users have write access and `UserType` is not restricted by an expression profile (see below).
 
 NOTE: MidPoint user interface does not provide any ability for users to add expressions into assignments (or any other places), while using the self-service part of the user interface.
-Therefore, midPoint is safe in that respect.
-However, the administration part of midPoint user interface is not designed to have such constraints.
+Therefore, the self-service GUI is safe in that respect.
+This does _not_ extend to the REST API (or data import), where the user controls the request body directly; there it is the `UserType` restriction described below that provides the protection.
+Likewise, the administration part of midPoint user interface is not designed to have such constraints.
 Administrative part of midPoint user interface may have an ability to include expressions in some data structures, most notably as part of the _inducement_.
 Therefore, be very careful when delegating administrative access to midPoint objects and user interface.
 

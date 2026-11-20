@@ -31,6 +31,25 @@ xref:/midpoint/reference/interfaces/rest/endpoints/[REST Endpoints]
 .For a *more technical description* of our REST api please have a look here:
 xref:/midpoint/reference/interfaces/rest/concepts/[Concepts]
 
+[WARNING]
+.Be careful granting REST access to end users
+====
+Think twice before giving end users or other untrusted principals write access to the
+REST API.
+A REST client controls the request body, which midPoint interprets as object content —
+and any inline mappings in it (for example a `focusMappings` script inside an
+assignment) are evaluated server-side *before* the operation is authorized.
+So granting a self-service user REST `modifyObject` or `addObject` access can amount to
+giving them arbitrary code execution on the midPoint host, even for a grant that looks
+limited to self-service.
+The stock _End user_ role deliberately grants *no* REST access.
+
+If end users must reach the REST API, restrict expression evaluation for the object
+types they can submit — bind `UserType` to the `prohibitive` expression profile, as
+described in
+xref:/midpoint/reference/expressions/expressions/security/index.adoc#semi-safe-configuration[Semi-Safe Configuration].
+====
+
 == How To Use
 
 The *format of the REST request* depends on the type of web resource you try to invoke, the  operation
