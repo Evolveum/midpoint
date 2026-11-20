@@ -89,6 +89,7 @@ public class PrismPropertyWrapperColumnPanel<T> extends AbstractItemWrapperColum
 
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
+                onValueUpdated(target);
                 if (lastValidationWasError) {
                     lastValidationWasError = false;
                     target.add(getComponent());
@@ -101,6 +102,14 @@ public class PrismPropertyWrapperColumnPanel<T> extends AbstractItemWrapperColum
                 target.add(getComponent());
             }
         };
+    }
+
+    /**
+     * Called after the value changed on the client.
+     *
+     * @param target the request target
+     */
+    protected void onValueUpdated(AjaxRequestTarget target) {
     }
 
     protected IModel<String> getCustomHeaderModel() {

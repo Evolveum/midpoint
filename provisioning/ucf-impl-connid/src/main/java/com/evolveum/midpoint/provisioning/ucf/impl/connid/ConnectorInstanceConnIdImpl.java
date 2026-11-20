@@ -1004,7 +1004,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance, Connector
                 PropertyDelta<Object> delta = PrismContext.get().deltaFactory().property()
                         .create(ItemPath.create(ShadowType.F_ATTRIBUTES, definition.getItemName()), definition);
                 if (executedIcfDelta.getValuesToReplace() != null) {
-                    delta.setRealValuesToReplace(executedIcfDelta.getValuesToReplace().get(0));
+                    delta.setRealValuesToReplace(executedIcfDelta.getValuesToReplace().toArray());
                 } else {
                     if (executedIcfDelta.getValuesToAdd() != null) {
                         for (Object value : executedIcfDelta.getValuesToAdd()) {

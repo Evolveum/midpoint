@@ -6,51 +6,45 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.search;
 
-import java.io.Serializable;
+import java.util.Arrays;
 import java.util.List;
-import java.util.function.Consumer;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.ConnectorDevelopmentWizardUtil;
-
-import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-
-import org.apache.wicket.Component;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.behavior.Behavior;
+import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
+import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismReferenceWrapper;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
-import com.evolveum.midpoint.gui.impl.component.wizard.withnavigation.WizardModelWithParentSteps;
-import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.ConnectorDevelopmentDetailsModel;
-import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.ScriptConfirmationPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.ResourceUncategorizedPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.AbstractCapabilityTestStepPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.ResourceObjectsTablePanel;
+import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.TestObjectSelection;
+import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.TestObjectFlowState;
 import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.Referencable;
-import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.smart.api.conndev.ConnectorDevelopmentArtifacts;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.session.PageStorage;
-import com.evolveum.midpoint.web.session.ResourceContentStorage;
+import com.evolveum.midpoint.web.component.input.EnumCardChoicePanel;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnDevObjectClassInfoType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnDevTestingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorDevelopmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationTypeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
- * Wizard step showing the result of Search By ID (search one / read by ID) script execution.
+ * Wizard step for testing the GET (search by ID) operation.
  */
 @PanelType(name = "cdw-show-search-by-id-result")
 @PanelInstance(identifier = "cdw-show-search-by-id-result",
@@ -58,17 +52,141 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationTypeType;
         applicableForOperation = OperationTypeType.WIZARD,
         display = @PanelDisplay(label = "PageConnectorDevelopment.wizard.step.showSearchByIdResult", icon = "fa fa-wrench"),
         containerPath = "empty")
-public class SearchByIdObjectConnectorStepPanel extends ScriptConfirmationPanel {
+public class SearchByIdObjectConnectorStepPanel extends AbstractCapabilityTestStepPanel {
+
+    private static final String CLASS_DOT = SearchByIdObjectConnectorStepPanel.class.getName() + ".";
+    private static final String OP_RETRIEVE_OBJECT = CLASS_DOT + "retrieveObject";
 
     private static final String PANEL_TYPE = "cdw-show-search-by-id-result";
 
-    private static final String ID_PANEL = "panel";
+    private static final String ID_OBJECT_SOURCE = "objectSource";
+    private static final String ID_SEARCH_RESULTS = "searchResults";
+    private static final String ID_MANUAL_IDENTIFIER = "manualIdentifier";
+    private static final String ID_IDENTIFIER = "identifier";
 
-    private final PageStorage pageStorage = new ResourceContentStorage(null);
+    /**
+     * Selected way of choosing the object: from the search results or by a typed identifier.
+     */
+    private final IModel<SearchByIdTestObjectSource> objectSourceModel = Model.of(SearchByIdTestObjectSource.SEARCH_RESULTS);
 
-    public SearchByIdObjectConnectorStepPanel(WizardPanelHelper<? extends Containerable,
-            ConnectorDevelopmentDetailsModel> helper, IModel<PrismContainerValueWrapper<ConnDevObjectClassInfoType>> valueModel) {
-        super(helper, valueModel);
+    /**
+     * State of the object lookup and of its failure.
+     */
+    private final TestObjectSelection selection;
+
+    /**
+     * @param flowState shared with {@link SearchByIdResultConnectorStepPanel}, which shows the object retrieved here
+     */
+    public SearchByIdObjectConnectorStepPanel(WizardPanelHelper<? extends Containerable, ConnectorDevelopmentDetailsModel> helper,
+            IModel<PrismContainerValueWrapper<ConnDevObjectClassInfoType>> valueModel, TestObjectFlowState flowState) {
+        super(helper, valueModel, flowState);
+        this.selection = new TestObjectSelection(helper.getDetailsModel(), valueModel);
+    }
+
+    @Override
+    protected void onInitialize() {
+        super.onInitialize();
+
+        ResourceObjectsTablePanel searchResults = createSearchResultsPanel();
+        add(searchResults);
+        WebMarkupContainer manualIdentifier = createManualIdentifierPanel();
+        add(manualIdentifier);
+        add(createObjectSourcePanel(searchResults, manualIdentifier));
+    }
+
+    private EnumCardChoicePanel<SearchByIdTestObjectSource> createObjectSourcePanel(ResourceObjectsTablePanel searchResults,
+            WebMarkupContainer manualIdentifier) {
+        return new EnumCardChoicePanel<>(ID_OBJECT_SOURCE, objectSourceModel, createObjectSourceOptions(), true, false) {
+
+            @Override
+            protected void onSelectionChanged(AjaxRequestTarget target) {
+                target.add(searchResults, manualIdentifier, getSubmit());
+            }
+
+            @Override
+            protected String getSelectedCardCssClass() {
+                return "border-primary text-primary";
+            }
+        };
+    }
+
+    private List<EnumCardChoicePanel.CardOption<SearchByIdTestObjectSource>> createObjectSourceOptions() {
+        return Arrays.stream(SearchByIdTestObjectSource.values())
+                .map(source -> EnumCardChoicePanel.createLocalizedOption(source, this, ""))
+                .toList();
+    }
+
+    private ResourceObjectsTablePanel createSearchResultsPanel() {
+        ResourceObjectsTablePanel panel = new ResourceObjectsTablePanel(ID_SEARCH_RESULTS, selection.getSelectedShadowOidModel(),
+                () -> getTestingResourceModel().getObjectWrapper().getOid(), this::getObjectClassDefinition) {
+
+            @Override
+            protected void onSelectionChanged(AjaxRequestTarget target) {
+                target.add(getSubmit());
+            }
+        };
+        panel.setOutputMarkupPlaceholderTag(true);
+        panel.add(new VisibleBehaviour(() -> objectSourceModel.getObject() == SearchByIdTestObjectSource.SEARCH_RESULTS));
+        return panel;
+    }
+
+    private WebMarkupContainer createManualIdentifierPanel() {
+        WebMarkupContainer container = new WebMarkupContainer(ID_MANUAL_IDENTIFIER);
+        container.setOutputMarkupPlaceholderTag(true);
+        container.add(new VisibleBehaviour(() -> objectSourceModel.getObject() == SearchByIdTestObjectSource.MANUAL_IDENTIFIER));
+        container.add(createIdentifierField());
+        return container;
+    }
+
+    private TextField<String> createIdentifierField() {
+        TextField<String> identifier = new TextField<>(ID_IDENTIFIER, selection.getPrimaryIdentifierModel());
+        identifier.add(new OnChangeAjaxBehavior() {
+
+            @Override
+            protected void onUpdate(AjaxRequestTarget target) {
+                target.add(getSubmit());
+            }
+        });
+        return identifier;
+    }
+
+    private ResourceObjectDefinition getObjectClassDefinition() {
+        return getTestingResourceModel().findResourceObjectClassDefinition(new QName(getObjectClassName()));
+    }
+
+    private void retrieveObjectPerformed(AjaxRequestTarget target) {
+        getFlowState().getRetrievedObjectModel().setObject(null);
+        ShadowType retrievedObject = readFromExternalSystem(OP_RETRIEVE_OBJECT, SearchByIdScriptConnectorStepPanel.PANEL_TYPE,
+                "SearchByIdObjectConnectorStepPanel.retrieveFailed", target, this::retrieveObject);
+        if (isOperationFailed()) {
+            return;
+        }
+        if (retrievedObject == null) {
+            getPageBase().error(getString("SearchByIdObjectConnectorStepPanel.objectNotFound"));
+            target.add(getFeedback());
+            return;
+        }
+
+        getFlowState().getRetrievedObjectModel().setObject(retrievedObject);
+        nextWithoutConfirmationPerformed(target);
+    }
+
+    private ShadowType retrieveObject(Task task) throws CommonException {
+        return objectSourceModel.getObject() == SearchByIdTestObjectSource.MANUAL_IDENTIFIER
+                ? getDetailsModel().getConnectorDevelopmentOperation().findTestingResourceObject(
+                        getObjectClassName(), selection.getPrimaryIdentifierModel().getObject(), task, task.getResult())
+                : retrieveSelectedObject(task, task.getResult());
+    }
+
+    private ShadowType retrieveSelectedObject(Task task, OperationResult result) {
+        PrismObject<ShadowType> shadow = WebModelServiceUtils.loadObject(
+                ShadowType.class, selection.getSelectedShadowOidModel().getObject(), getPageBase(), task, result);
+        return shadow != null ? shadow.asObjectable() : null;
+    }
+
+    @Override
+    public boolean isCompleted() {
+        return getFlowState().getRetrievedObjectModel().getObject() != null || super.isCompleted();
     }
 
     @Override
@@ -77,125 +195,11 @@ public class SearchByIdObjectConnectorStepPanel extends ScriptConfirmationPanel 
     }
 
     @Override
-    protected void onInitialize() {
-        super.onInitialize();
-        initLayout();
-    }
-
-    private void initLayout() {
-        getTextLabel().add(AttributeAppender.replace("class", "mb-2 col-12 gen-step-title"));
-        getSubtextLabel().add(AttributeAppender.replace("class", "border-bottom pb-4 d-inline-block w-100"));
-        getButtonContainer().add(AttributeAppender.replace("class", "d-flex align-items-center flex-nowrap flex-row mt-4 gap-2 wizard-actions-strip col-12"));
-        getFeedback().add(AttributeAppender.replace("class", "col-12 feedbackContainer"));
-        getSubmit().add(AttributeAppender.replace("class", "btn btn-primary"));
-
-        ResourceDetailsModel resourceDetailsModel;
-
-        try {
-            PrismReferenceWrapper<Referencable> resource = getDetailsModel().getObjectWrapper().findReference(
-                    ItemPath.create(ConnectorDevelopmentType.F_TESTING, ConnDevTestingType.F_TESTING_RESOURCE));
-
-            ObjectDetailsModels objectDetailsModel = resource.getValue().getNewObjectModel(
-                    getContainerConfiguration(PANEL_TYPE), getPageBase(), new OperationResult("getResourceModel"));
-            resourceDetailsModel = (ResourceDetailsModel) objectDetailsModel;
-
-        } catch (SchemaException e) {
-            throw new RuntimeException(e);
+    protected boolean isSubmitEnable() {
+        if (objectSourceModel.getObject() == SearchByIdTestObjectSource.MANUAL_IDENTIFIER) {
+            return StringUtils.isNotBlank(selection.getPrimaryIdentifierModel().getObject());
         }
-
-        ResourceUncategorizedPanel table = new ResourceUncategorizedPanel(
-                ID_PANEL, resourceDetailsModel, getContainerConfiguration(PANEL_TYPE)) {
-            @Override
-            protected VisibleEnableBehaviour getTitleVisibleBehaviour() {
-                return VisibleEnableBehaviour.ALWAYS_INVISIBLE;
-            }
-
-            @Override
-            protected boolean isShadowDetailsEnabled() {
-                return true;
-            }
-
-            @Override
-            protected boolean showPopupShadowDetailsOnClick() {
-                return true;
-            }
-
-            @Override
-            protected Behavior getStatisticsButtonVisibleBehaviour() {
-                return VisibleBehaviour.ALWAYS_INVISIBLE;
-            }
-
-            @Override
-            protected QName getDefaultObjectClass() {
-                return new QName(getValueModel().getObject().getRealValue().getName());
-            }
-
-            @Override
-            protected PageStorage getPageStorage() {
-                return pageStorage;
-            }
-
-            @Override
-            protected boolean isEnabledInlineMenu() {
-                return false;
-            }
-
-            @Override
-            protected Consumer<Task> createProviderSearchTaskCustomizer() {
-                boolean logCaptureEnabled = WebModelServiceUtils.isEnableExperimentalFeature(getPageBase());
-                return (Consumer<Task> & Serializable) (task) ->
-                        ConnectorDevelopmentWizardUtil.configureConnectorDevelopmentTask(task, logCaptureEnabled);
-            }
-
-            @Override
-            protected boolean isTaskButtonVisible() {
-                return false;
-            }
-
-            @Override
-            protected boolean isObjectClassFieldVisible() {
-                return false;
-            }
-
-            @Override
-            protected boolean isHeaderVisible() {
-                return false;
-            }
-
-            @Override
-            protected void processResult(OperationResult result) {
-                if (getWizard() instanceof WizardModelWithParentSteps wizardModel) {
-                    ConnectorDevelopmentWizardUtil.collectConnectorResults(result, (connIdResult) -> {
-                        wizardModel.addOperationResult(getStepId(), "cdw-search-by-id-script", connIdResult,
-                                ConnectorDevelopmentWizardUtil.fixScriptAction(
-                                        SearchByIdObjectConnectorStepPanel.this, "cdw-search-by-id-script"));
-                    });
-                    ConnectorDevelopmentWizardUtil.reportConnectorLogs(SearchByIdObjectConnectorStepPanel.this, getStepId(), result, null);
-                }
-            }
-
-            @Override
-            public Component getFeedbackPanel() {
-                return getFeedback();
-            }
-        };
-        table.setOutputMarkupId(true);
-        add(table);
-    }
-
-    @Override
-    public String appendCssToWizard() {
-        return "col-12";
-    }
-
-    @Override
-    protected boolean isSubmitVisible() {
-        return true;
-    }
-
-    @Override
-    protected IModel<String> getNextLabelModel() {
-        return null;
+        return selection.getSelectedShadowOidModel().getObject() != null;
     }
 
     @Override
@@ -220,17 +224,12 @@ public class SearchByIdObjectConnectorStepPanel extends ScriptConfirmationPanel 
 
     @Override
     protected IModel<String> getSubmitLabelModel() {
-        return createStringResource("SearchObjectsConnectorStepPanel.submit");
+        return createStringResource("SearchByIdObjectConnectorStepPanel.retrieveObject");
     }
 
     @Override
     protected void onSubmitPerformed(AjaxRequestTarget target) {
         super.onSubmitPerformed(target);
-        onNextPerformed(target);
-    }
-
-    @Override
-    protected String getSubTextContainerCssClass() {
-        return "text-secondary col-12 pb-4";
+        retrieveObjectPerformed(target);
     }
 }
