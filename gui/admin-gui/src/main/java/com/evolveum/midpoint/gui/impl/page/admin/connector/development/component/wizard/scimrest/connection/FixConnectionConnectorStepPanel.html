@@ -22,8 +22,9 @@
             <div class="mb-3">
                 <label class="form-label fw-semibold">
                     <wicket:message key="FixConnectionConnectorStepPanel.baseUrl"/>
+                    <span class="text-danger fw-bold" wicket:message="title:prismPropertyPanel.required">*</span>
                 </label>
-                <input class="form-control" wicket:id="baseUrl" type="text"/>
+                <input class="form-control" wicket:id="baseUrl" type="text" aria-required="true"/>
             </div>
             <div>
                 <label class="form-label fw-semibold">

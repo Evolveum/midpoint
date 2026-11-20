@@ -478,6 +478,13 @@ public class FixConnectionConnectorStepPanel extends AbstractWizardStepPanel<Con
         String url = endpointModel.getObject();
         String baseUrl = baseUrlModel.getObject();
 
+        String urlError = ConnectorDevelopmentWizardUtil.validateBaseUrl(baseUrl, getPageBase());
+        if (urlError != null) {
+            getPageBase().error(urlError);
+            target.add(getFeedback());
+            return;
+        }
+
         try {
             if (StringUtils.isNotEmpty(baseUrl)) {
                 ConnectorDevelopmentWizardUtil.setTestingResourcePropertyValue(getDetailsModel(), PANEL_TYPE, urlFieldName(), baseUrl);

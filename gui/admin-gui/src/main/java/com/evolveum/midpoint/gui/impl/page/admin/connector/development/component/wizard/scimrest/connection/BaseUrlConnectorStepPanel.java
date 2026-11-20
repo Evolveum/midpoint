@@ -273,8 +273,9 @@ public class BaseUrlConnectorStepPanel extends AbstractFormWizardStepPanel<Conne
 
     @Override
     public boolean onNextPerformed(AjaxRequestTarget target) {
-        if (StringUtils.isBlank(getCurrentUrlValue())) {
-            getPageBase().error(createStringResource("BaseUrlConnectorStepPanel.urlRequired").getString());
+        String urlError = ConnectorDevelopmentWizardUtil.validateBaseUrl(getCurrentUrlValue(), getPageBase());
+        if (urlError != null) {
+            getPageBase().error(urlError);
             target.add(getFeedback());
             return false;
         }
