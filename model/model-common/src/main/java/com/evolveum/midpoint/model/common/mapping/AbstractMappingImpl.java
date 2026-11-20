@@ -200,6 +200,22 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
     private final Collection<V> originalTargetValues;
 
     /**
+     * Range definition used when the range was checked. Used only for tracing.
+     */
+    private ValueSetDefinition<V, D> rangeSetDef;
+
+    /**
+     * Whether the range was configured explicitly (and not derived by default). Used only for tracing.
+     */
+    private boolean rangeExplicit;
+
+    /**
+     * Original target values that were put into the minus set because they are in the range.
+     * Collected only if text trace is going to be created.
+     */
+    private List<V> rangeRemovedValues;
+
+    /**
      * Information on the kind of mapping. (Partially overlaps with {@link #mappingKind}.)
      * It is put into output triples as an origin metadata. Deprecated. Most probably will
      * be replaced by provenance metadata.
@@ -959,7 +975,7 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
             }
         }
 
-        ValueSetDefinition<V, D> rangeSetDef = new ValueSetDefinition<>(
+        rangeSetDef = new ValueSetDefinition<>(
                 effectiveRangeSetDefBean,
                 ValueSetDefinition.ExtraSetSpecification.fromBean(target),
                 getOutputDefinition(),
@@ -973,6 +989,7 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
                 task, result);
         rangeSetDef.init();
         rangeSetDef.setAdditionalVariables(variables);
+        rangeExplicit = explicitRangeSetDefBean != null;
         for (V originalValue : originalTargetValues) {
             // FIXME: Migrate legacy to new?
 
@@ -1140,6 +1157,12 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
                     "Original value is in the mapping range (while not in mapping result), adding it to minus set: {}",
                     originalValue);
         }
+        if (shouldCreateTextTrace()) {
+            if (rangeRemovedValues == null) {
+                rangeRemovedValues = new ArrayList<>();
+            }
+            rangeRemovedValues.add(originalValue);
+        }
         outputTriple.addToMinusSet(valueToDelete);
     }
 
@@ -1281,6 +1304,14 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
             sb.append("null");
         } else {
             sb.append(expression.shortDebugDump());
+        }
+
+        if (rangeSetDef != null) {
+            sb.append("\nRange: ").append(rangeSetDef.summary()).append(rangeExplicit ? " (explicit)" : " (default)");
+            sb.append("\nRange original target values: ").append(originalTargetValues);
+            if (rangeRemovedValues != null) {
+                sb.append("\nRange removed values: ").append(rangeRemovedValues);
+            }
         }
 
         sb.append("\nOrigin: ").append(mappingConfigItem.origin().fullDescription());
