@@ -6,7 +6,7 @@
 
 == Overview
 
-Some smart recommendations send data to the xref:../microservice/index.adoc[Smart Integration microservice], which passes them to an LLM provider.
+Some smart recommendations send data to the xref:../microservice/index.adoc[Smart Integration AI Service], which passes them to an LLM provider.
 *Data access permissions* decide which kinds of data midPoint may send for a particular recommendation run.
 
 The permissions are not stored in roles or in the system configuration.
@@ -14,15 +14,15 @@ They are given by the user each time a recommendation is started, and they apply
 In the GUI, the user selects them in a confirmation dialog, see <<GUI>>.
 
 Data access permissions do not replace authorizations.
-The user also needs the `#smartIntegration` authorization to run recommendations, see xref:authorization.adoc[Smart Integration authorization].
+The user also needs the appropriate authorizations to run recommendations, see xref:authorization.adoc[Smart Integration authorization].
 
 == Permissions
 
-The permissions are values of `DataAccessPermissionType`:
+The permissions are:
 
 [cols="20%,20%,60%",options="header"]
 |===
-| Permission | GUI label | Data that may be sent to the microservice
+| Permission | GUI label | Data that may be sent to the AI Service
 
 | `SCHEMA_ACCESS`
 | Schema
@@ -51,7 +51,7 @@ Without a permission, the recommendation either uses only local (system) process
 
 .2+| xref:../recommendations/object-types/object-types-recommendation.adoc[Object types]
 | `STATISTICS_ACCESS`
-| Object class statistics are computed and sent with the schema to the microservice.
+| Object class statistics are computed and sent with the schema to the AI Service.
 Without it, no object types are recommended.
 
 | `SCHEMA_ACCESS`
@@ -60,7 +60,7 @@ Without it, both steps are skipped.
 
 | xref:../recommendations/focus-type/focus-type-recommendation.adoc[Focus type]
 | `SCHEMA_ACCESS`
-| The object class schema is sent to the microservice.
+| The object class schema is sent to the AI Service.
 Without it, the synchronous call fails with an insufficient permissions error, and the background task ends without a result.
 
 | xref:../recommendations/correlation/correlation-recommendation.adoc[Correlation]
@@ -74,35 +74,35 @@ Without it, only well-known schema pairs are used.
 Without it, only well-known schema pairs are used.
 
 | `RAW_DATA_ACCESS`
-| Sample values are sent to the microservice for AI-generated and categorical mappings.
+| Sample values are sent to the AI Service for AI-generated and categorical mappings.
 Without it, only as-is, heuristic and well-known mappings are recommended.
 
 | xref:../recommendations/associations/associations-recommendation.adoc[Associations]
 | none
-| Nothing is sent to the microservice.
+| Nothing is sent to the AI Service.
 
 | xref:../recommendations/synchronization/synchronization-recommendation.adoc[Synchronization]
 | none
-| Nothing is sent to the microservice.
+| Nothing is sent to the AI Service.
 |===
 
-Without `SCHEMA_ACCESS`, the schema match is always computed again from well-known schemas and replaces the stored one, see xref:../schema-match.adoc#_reuse[Schema match].
+Without `SCHEMA_ACCESS`, the schema match is always computed again from well-known schemas and replaces the stored one, see xref:../schema-match.adoc#reuse[Schema match].
 
 === Local processing
 
-Data access permissions limit only the data sent to the microservice.
+Data access permissions limit only the data sent to the AI Service.
 MidPoint still reads resource objects and focus objects locally when a recommendation needs them, regardless of the permissions, for example:
 
 * to evaluate the quality of correlation candidates,
 * to validate mapping candidates on sample objects, see xref:../shadow-sampling.adoc[],
-* to compute object type statistics used by the schema match, see xref:../schema-match.adoc#_post_processing_heuristics[Post-processing heuristics].
+* to compute object type statistics used by the schema match, see xref:../schema-match.adoc#post-processing-heuristics[Post-processing heuristics].
 
 Such data stay in midPoint.
 
 == GUI
 
 When the user starts a recommendation in the resource wizard, midPoint shows a confirmation dialog *Allow AI to analyze your resource data?*.
-The dialog shows the AI provider and model reported by the microservice, and a checkbox for each permission the recommendation can use.
+The dialog shows the AI provider and model reported by the AI Service, and a checkbox for each permission the recommendation can use.
 All checkboxes are selected by default.
 The user can clear any of them and confirm with *Allow and continue*.
 
@@ -126,9 +126,9 @@ The user can clear any of them and confirm with *Allow and continue*.
 For object types, the GUI requires both permissions.
 If either of them is cleared, the recommendation is not started and an error is shown.
 
-The behavior when the microservice is not available depends on the recommendation:
+The behavior when the AI Service is not available depends on the recommendation:
 
-* **Object types and focus type** need the microservice.
+* **Object types and focus type** need the AI Service.
 The dialog shows an error and the recommendation cannot be started.
 * **Correlation and mappings** can run with system recommendations only.
 The dialog shows a warning, no permissions are offered, and the recommendation runs without any permission.

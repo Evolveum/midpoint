@@ -29,6 +29,28 @@
 @import "con-gen";
 @import "buttons";
 
+body.page-error,
+body.page-reset-password {
+  .app-main, .right-side, .app-footer, .app-header {
+    margin-left: 0px !important;
+    -moz-transition: none !important;
+    -webkit-transition: none !important;
+    -o-transition: color 0 ease-in !important;
+    transition: none !important;
+  }
+}
+
+// This css is used to hide sidebar menu
+body.page-post-authentication {
+  .app-main, .right-side, .app-footer {
+    margin-left: 0px;
+    -moz-transition: none;
+    -webkit-transition: none;
+    -o-transition: color 0 ease-in;
+    transition: none;
+  }
+}
+
 body.custom-hold-transition {
   .app-main,
   .right-side,

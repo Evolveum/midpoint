@@ -10,7 +10,7 @@
 
 The endpoint recommends object types for an object class.
 Each object type is identified by a kind and an intent and has a delineation (filters and a base context filter) that selects its objects.
-MidPoint calls it with the `SUGGEST_OBJECT_TYPES` method, see xref:../../recommendations/object-types/object-types-recommendation.adoc[].
+See xref:../../recommendations/object-types/object-types-recommendation.adoc[].
 
 == Request
 

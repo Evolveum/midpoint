@@ -1,4 +1,4 @@
-= Microservice endpoints
+= Endpoints
 :page-toc: top
 :page-since: "4.11.0"
 :page-upkeep-status: green
@@ -6,7 +6,7 @@
 
 == Overview
 
-The Smart Integration microservice provides one endpoint for each AI operation and one health check endpoint.
+The Smart Integration Microservice provides one endpoint for each AI operation and one health check endpoint.
 The operation endpoints are `POST` requests under the `/api/v1` base path.
 They accept and return JSON, and the names of endpoints and fields use camel case.
 
@@ -15,32 +15,26 @@ A running microservice serves the interactive API documentation on `/docs` (Swag
 
 == Endpoints
 
-[cols="40%,25%,35%",options="header"]
+[cols="50%,50%",options="header"]
 |===
-| Endpoint | midPoint method | Used by
+| Endpoint | Used by
 
 | xref:suggest-object-type.adoc[`POST /api/v1/objectType/suggestObjectType`]
-| `SUGGEST_OBJECT_TYPES`
 | xref:../../recommendations/object-types/object-types-recommendation.adoc[Object types recommendation]
 
 | xref:suggest-focus-type.adoc[`POST /api/v1/focusType/suggestFocusType`]
-| `SUGGEST_FOCUS_TYPE`
 | xref:../../recommendations/focus-type/focus-type-recommendation.adoc[Focus type recommendation]
 
 | xref:match-schema.adoc[`POST /api/v1/matching/matchSchema`]
-| `MATCH_SCHEMA`
 | xref:../../schema-match.adoc[Schema match]
 
 | xref:suggest-mapping.adoc[`POST /api/v1/mapping/suggestMapping`]
-| `SUGGEST_MAPPING`
 | xref:../../recommendations/mappings/mappings-recommendation.adoc[Mappings recommendation]
 
 | xref:suggest-categorical-mapping.adoc[`POST /api/v1/mapping/suggestCategoricalMapping`]
-| `SUGGEST_CATEGORICAL_MAPPING`
 | xref:../../recommendations/mappings/mappings-recommendation.adoc[Mappings recommendation]
 
 | xref:health.adoc[`GET /health`]
-| -
 | AI provider name and model shown in the GUI
 |===
 
@@ -62,9 +56,11 @@ Every successful response contains a `metadata` object with the configured AI pr
 
 [source,json]
 ----
-"metadata": {
-    "provider": "openrouter",
-    "model": "openai/gpt-oss-20b"
+{
+    "metadata": {
+        "provider": "openrouter",
+        "model": "openai/gpt-oss-20b"
+    }
 }
 ----
 

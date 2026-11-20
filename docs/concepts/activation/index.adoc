@@ -1,3 +1,7 @@
+---
+midpoint-feature: schema-activation
+doc-type: intro
+---
 = Activation
 :page-wiki-name: Activation
 :page-wiki-id: 9437199

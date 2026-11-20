@@ -13,9 +13,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.FeedbackMessagesHook
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserInterfaceElementVisibilityType;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
+import org.apache.wicket.markup.html.TransparentWebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.http.WebResponse;
@@ -142,6 +144,12 @@ public class PageError extends PageBase {
         super.configureResponse(response);
 
         response.setStatus(getCode());
+    }
+
+    @Override
+    protected void addDefaultBodyStyle(TransparentWebMarkupContainer body) {
+        super.addDefaultBodyStyle(body);
+        body.add(AttributeModifier.append("class", "page-error"));
     }
 
     @Override

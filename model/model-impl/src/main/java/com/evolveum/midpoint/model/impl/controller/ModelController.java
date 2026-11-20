@@ -1703,8 +1703,11 @@ public class ModelController implements ModelService, TaskService, CaseService, 
             OperationResult parentResult) throws FileNotFoundException {
         OperationResult result = parentResult.createSubresult(IMPORT_OBJECTS_FROM_FILE);
 
-        try (FileInputStream fis = new FileInputStream(input)) {
-            importObjectsFromStream(fis, PrismContext.LANG_XML, options, task, parentResult);
+        try {
+            String language = prismContext.detectLanguage(input);
+            try (FileInputStream fis = new FileInputStream(input)) {
+                importObjectsFromStream(fis, language, options, task, parentResult);
+            }
         } catch (FileNotFoundException e) {
             String msg = "Error reading from file " + input + ": " + e.getMessage();
             result.recordFatalError(msg, e);
@@ -1713,7 +1716,7 @@ public class ModelController implements ModelService, TaskService, CaseService, 
             result.recordFatalError(e);
             throw e;
         } catch (IOException e) {
-            LOGGER.error("Error closing file " + input + ": " + e.getMessage(), e);
+            LOGGER.error("Error reading or closing file " + input + ": " + e.getMessage(), e);
         } finally {
             result.close();
         }

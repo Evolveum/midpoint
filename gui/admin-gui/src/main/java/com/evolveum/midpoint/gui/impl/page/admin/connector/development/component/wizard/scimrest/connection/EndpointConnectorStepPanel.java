@@ -53,6 +53,7 @@ import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
+import com.evolveum.midpoint.web.component.behavior.JavaScriptEventBehavior;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -210,6 +211,7 @@ public class EndpointConnectorStepPanel extends AbstractWizardStepPanel<Connecto
 
         Radio<String> manualRadio = new Radio<>(ID_MANUAL_RADIO, Model.of(MANUAL_OPTION), radioGroup);
         manualRadio.setOutputMarkupId(true);
+        manualRadio.add(new JavaScriptEventBehavior("click", "event.stopPropagation();"));
         manualItem.add(manualRadio);
 
         WebMarkupContainer manualUrlWrapper = new WebMarkupContainer(ID_MANUAL_URL_WRAPPER);
@@ -230,7 +232,7 @@ public class EndpointConnectorStepPanel extends AbstractWizardStepPanel<Connecto
         validator.setUseModel(true);
         manualUrl.add(validator);
         manualUrl.setOutputMarkupId(true);
-        manualUrl.add(AttributeAppender.append("onclick", "event.stopPropagation()"));
+        manualUrl.add(new JavaScriptEventBehavior("click", "event.stopPropagation();"));
         manualUrl.add(new AjaxFormComponentUpdatingBehavior("change") {
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
@@ -267,6 +269,7 @@ public class EndpointConnectorStepPanel extends AbstractWizardStepPanel<Connecto
 
                 Radio<String> radio = new Radio<>(ID_RADIO, Model.of(endpoint.getUri()), radioGroup);
                 radio.setOutputMarkupId(true);
+                radio.add(new JavaScriptEventBehavior("click", "event.stopPropagation();"));
                 item.add(radio);
 
                 item.add(new Label(ID_NAME, StringUtils.defaultString(endpoint.getUri())));

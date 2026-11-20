@@ -29,13 +29,13 @@ There are three kinds of statistics:
 No recommendation uses them.
 |===
 
-All three kinds share the same data structure (`ObjectSetStatisticsType`), the same computation algorithm, and the same storage and reuse rules.
+All three kinds share the same data structure, the same computation algorithm, and the same storage and reuse rules.
 
 == Content
 
 === Statistics structure
 
-The statistics are stored as `ObjectSetStatisticsType`:
+The statistics are stored as:
 
 [cols="30%,70%",options="header"]
 |===
@@ -52,7 +52,7 @@ The statistics are stored as `ObjectSetStatisticsType`:
 Used for expiration, see <<Reuse and expiration>>.
 
 | `attribute`
-| Statistics of individual attributes (`ShadowAttributeStatisticsType`), see below.
+| Statistics of individual attributes, see below.
 |===
 
 Each `attribute` entry contains:
@@ -78,7 +78,7 @@ Each `attribute` entry contains:
 |===
 
 NOTE: The stored statistics contain *all* distinct values, without any top-N limit.
-Limits are applied only when the statistics are sent to the microservice (see xref:recommendations/object-types/object-types-recommendation.adoc#_object_class_statistics[Object class statistics trimming]).
+Limits are applied only when the statistics are sent to the AI Service (see xref:recommendations/object-types/object-types-recommendation.adoc#object-class-statistics[Object class statistics trimming]).
 
 === Value processing
 
@@ -120,17 +120,17 @@ For DN attributes, only `DNsuffix` patterns are computed, and token patterns are
 
 == Storage
 
-Statistics are stored as `SmartIntegrationArtifactType` objects with:
+Statistics are stored as smart integration artifacts with:
 
 * `scope` - the resource reference, and, depending on the kind, the object class, the object type (kind and intent) and the focus type,
-* `statistics` - the `ObjectSetStatisticsType` data,
+* `statistics` - the statistics data,
 * an archetype identifying the kind of statistics.
 
 Statistics objects are read, created and deleted through the model layer, so regular object-scoped authorizations apply.
-The `#smartIntegration` authorization is not required, see xref:security/authorization.adoc#_statistics_and_smart_integration_artifacts[Statistics and Smart Integration artifacts].
+The smart integration authorization is not required, see xref:security/authorization.adoc#statistics-and-smart-integration-artifacts[Statistics and Smart Integration artifacts].
 
 WARNING: Statistics contain real attribute values (all distinct values of each attribute) and are stored in the midPoint repository.
-Restrict access to `SmartIntegrationArtifactType` objects accordingly.
+Restrict access to smart integration artifacts accordingly.
 
 === Reuse and expiration
 

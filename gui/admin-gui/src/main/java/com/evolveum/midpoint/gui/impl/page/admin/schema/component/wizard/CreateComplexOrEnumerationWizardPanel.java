@@ -136,7 +136,7 @@ public class CreateComplexOrEnumerationWizardPanel extends AbstractWizardPanel<S
 
             @Override
             protected void onExitPerformed(AjaxRequestTarget target) {
-                getHelper().onExitPerformed(target);
+                CreateComplexOrEnumerationWizardPanel.this.onExitPerformed(target);
             }
         });
 
@@ -175,7 +175,7 @@ public class CreateComplexOrEnumerationWizardPanel extends AbstractWizardPanel<S
 
             @Override
             protected void onExitPerformed(AjaxRequestTarget target) {
-                getHelper().onExitPerformed(target);
+                CreateComplexOrEnumerationWizardPanel.this.onExitPerformed(target);
             }
 
             @Override

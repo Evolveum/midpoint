@@ -6,6 +6,7 @@
 :page-wiki-metadata-modify-user: semancik
 :page-wiki-metadata-modify-date: 2013-11-28T14:28:37.080+01:00
 :page-upkeep-status: green
+:search-alias: logs
 
 Logging is one of the best and most important troubleshooting tools.
 Logging provides information about all the important things that happen in the system.

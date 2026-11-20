@@ -48,6 +48,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
+import com.evolveum.midpoint.web.component.behavior.JavaScriptEventBehavior;
 import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsPolicyType;
@@ -182,10 +183,9 @@ public class PasswordPanel extends InputPanel {
         password1.add(AttributeAppender.append("aria-describedby", passwordStrengthMeter.getMarkupId()));
 
         if (isPasswordStrengthBarVisible()) {
-            password1.add(AttributeAppender.append(
-                    "onfocus",
-                    "window.MidPointTheme." + initPasswordValidation(passwordStrengthMeter.getMarkupId(), password1.getMarkupId())
-            ));
+            password1.add(new JavaScriptEventBehavior(
+                    "focus",
+                    "window.MidPointTheme." + initPasswordValidation(passwordStrengthMeter.getMarkupId(), password1.getMarkupId())));
         }
 
         Label repeatPasswordLabel = new Label(ID_REPEAT_PASSWORD_LABEL,

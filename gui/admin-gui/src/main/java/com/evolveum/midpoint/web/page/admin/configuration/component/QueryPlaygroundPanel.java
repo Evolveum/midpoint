@@ -412,9 +412,9 @@ public class QueryPlaygroundPanel extends BasePanel<RepoQueryDto> {
                             mapper.writeValueAsString(suggestions.isEmpty()
                                     ? List.of(new Suggestion("", createStringResource("QueryLanguage.contentAssist.codeCompletions.noSuggestion").getString(), 0)) // If list is empty, add noSuggestion item
                                     : suggestions.stream()
-                                    .map(suggestion -> !suggestion.alias().isEmpty()
+                                    .map(suggestion -> StringUtils.isNotEmpty(suggestion.alias())
                                             ? new Suggestion(suggestion.name(), createStringResource(suggestion.alias()).getString(), suggestion.priority()) // translate alias
-                                            : suggestion)
+                                            : new Suggestion(suggestion.name(), "", suggestion.priority()))
 //                                    .sorted(Comparator.comparingInt(Suggestion::priority).reversed()) // sorted suggestions by priority from max to min weigh
                                     .toList()
                             ) + ", " +

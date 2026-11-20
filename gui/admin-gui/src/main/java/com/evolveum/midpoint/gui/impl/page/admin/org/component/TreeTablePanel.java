@@ -16,8 +16,12 @@ import com.evolveum.midpoint.gui.impl.component.search.CollectionPanelType;
 
 import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.behavior.Behavior;
+import org.apache.wicket.markup.head.IHeaderResponse;
+import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
@@ -152,8 +156,19 @@ public class TreeTablePanel extends BasePanel<String> {
                         return CollectionPanelType.MEMBER_ORGANIZATION;
                     }
 
+                    @Override
+                    protected String getMemberTableContainerAdditionalCssClasses() {
+                        return "overflow-auto";
+                    }
         };
         memberPanel.setOutputMarkupId(true);
+        memberPanel.add(new Behavior() {
+            @Override
+            public void renderHead(Component component, IHeaderResponse response) {
+                response.render(OnDomReadyHeaderItem.forScript(
+                        "MidPointTheme.initFixedDropdowns('" + component.getMarkupId() + "');"));
+            }
+        });
         return memberPanel;
     }
 

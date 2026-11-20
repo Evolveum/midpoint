@@ -1,4 +1,4 @@
-= Microservice logging
+= Logging
 :page-toc: top
 :page-since: "4.11.0"
 :page-upkeep-status: green
@@ -6,7 +6,7 @@
 
 == Overview
 
-The Smart Integration microservice writes its logs to the standard output.
+The Smart Integration Microservice writes its logs to the standard output.
 When it runs in a container, the logs are collected by the container runtime, for example with `docker logs`.
 
 Each log message has this format:

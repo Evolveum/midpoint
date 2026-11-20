@@ -74,6 +74,7 @@ If it is set, the statistics are used as they are and no statistics are computed
 | Object types from the previous recommendation, sent to the microservice together with the regenerate mode.
 |===
 
+[#object-class-statistics]
 == Object class statistics
 
 The microservice does not get the resource objects themselves.

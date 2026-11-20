@@ -9,7 +9,7 @@
 `POST /api/v1/focusType/suggestFocusType`
 
 The endpoint recommends the focus type for a resource object type.
-MidPoint calls it with the `SUGGEST_FOCUS_TYPE` method, see xref:../../recommendations/focus-type/focus-type-recommendation.adoc[].
+See xref:../../recommendations/focus-type/focus-type-recommendation.adoc[].
 
 == Request
 
@@ -31,7 +31,7 @@ MidPoint calls it with the `SUGGEST_FOCUS_TYPE` method, see xref:../../recommend
 
 | `schema`
 | yes
-| Schema of the object class, see xref:index.adoc#_schema_attributes[Schema attributes].
+| Schema of the object class.
 |===
 
 == Response

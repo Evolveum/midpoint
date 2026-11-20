@@ -9,7 +9,7 @@
 `POST /api/v1/matching/matchSchema`
 
 The endpoint pairs the attributes of a resource object class with the properties of a midPoint focus type.
-MidPoint calls it with the `MATCH_SCHEMA` method, see xref:../../schema-match.adoc[].
+See xref:../../schema-match.adoc[].
 
 == Request
 

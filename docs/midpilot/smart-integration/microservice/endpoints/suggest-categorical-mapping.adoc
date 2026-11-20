@@ -10,7 +10,7 @@
 
 The endpoint recommends a MEL script that maps the values of a categorical resource attribute to the allowed values of a focus property, for example `A`, `D` to `enabled`, `disabled`.
 Unlike the xref:suggest-mapping.adoc[suggest mapping] endpoint, it does not need pairs of values: it uses the observed resource values and the allowed midPoint values.
-MidPoint calls it with the `SUGGEST_CATEGORICAL_MAPPING` method, see xref:../../recommendations/mappings/mappings-recommendation.adoc[].
+See xref:../../recommendations/mappings/mappings-recommendation.adoc[].
 
 == Request
 
@@ -20,7 +20,7 @@ MidPoint calls it with the `SUGGEST_CATEGORICAL_MAPPING` method, see xref:../../
 
 | `applicationAttribute`
 | yes
-| Resource attribute, see xref:index.adoc#_schema_attributes[Schema attributes].
+| Resource attribute.
 
 | `midPointAttribute`
 | yes

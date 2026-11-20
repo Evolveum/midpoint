@@ -7,7 +7,7 @@
 
 == Overview
 
-When midPoint calls the Smart Integration microservice, it describes resource object classes, focus types, and their statistics in a textual form.
+When midPoint calls the Smart Integration AI Service, it describes resource object classes, focus types, and their statistics in a textual form.
 Items are identified by _descriptive item paths_, and object classes and focus types are identified by _type names_.
 
 To make the request more readable for LLMs and to reduce noise in the payload, the common midPoint namespace (shown with the `c:` prefix) is *not shown* in these values.
