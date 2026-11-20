@@ -63,6 +63,8 @@ import com.evolveum.midpoint.gui.impl.component.wizard.collapse.HelpTab;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LogSegmentType;
 
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashMap;
@@ -814,6 +816,25 @@ public class ConnectorDevelopmentWizardUtil {
                     : null;
         } catch (SchemaException e) {
             throw new SystemException("Couldn't determine current value of " + itemWrapper.getItemName(), e);
+        }
+    }
+
+    /**
+     * Returns a localized error message if the base URL is empty or is not an absolute http or https URL
+     * with a host, or null if the URL is valid.
+     */
+    public static @Nullable String validateBaseUrl(@Nullable String url, @NotNull PageAdminLTE page) {
+        if (StringUtils.isBlank(url)) {
+            return page.createStringResource("BaseUrlConnectorStepPanel.urlRequired").getString();
+        }
+        String trimmed = url.trim();
+        try {
+            URI uri = new URI(trimmed);
+            boolean httpScheme = "http".equalsIgnoreCase(uri.getScheme()) || "https".equalsIgnoreCase(uri.getScheme());
+            return httpScheme && StringUtils.isNotEmpty(uri.getAuthority()) ? null :
+                    page.createStringResource("BaseUrlConnectorStepPanel.urlInvalid").getString();
+        } catch (URISyntaxException e) {
+            return page.createStringResource("BaseUrlConnectorStepPanel.urlInvalid.syntax", e.getMessage()).getString();
         }
     }
 
