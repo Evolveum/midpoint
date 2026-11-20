@@ -18,6 +18,7 @@ import java.util.jar.JarOutputStream;
 
 import com.evolveum.polygon.conndev.devtools.doc.ConndevDocFormat;
 
+import org.apache.commons.lang3.SystemUtils;
 import org.testng.Assert;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
@@ -97,8 +98,23 @@ public class ConndevDocumentationServiceTest {
         if (classLoader != null) {
             classLoader.close();
         }
+        if (SystemUtils.IS_OS_WINDOWS) {
+            closeCachedJar(jarAlpha);
+            closeCachedJar(jarBeta);
+        }
         Files.deleteIfExists(jarAlpha);
         Files.deleteIfExists(jarBeta);
+    }
+
+    /**
+     * On Windows, if we don't do this, we get "The process cannot access the file because it is being used by another process"
+     * exception when deleting the file.
+     */
+    private static void closeCachedJar(Path jar) throws IOException {
+        var url = java.net.URI.create("jar:" + jar.toUri() + "!/").toURL();
+        var connection = (java.net.JarURLConnection) url.openConnection();
+        connection.setUseCaches(true); // probably superfluous but let's be safe
+        connection.getJarFile().close();
     }
 
     @Test
