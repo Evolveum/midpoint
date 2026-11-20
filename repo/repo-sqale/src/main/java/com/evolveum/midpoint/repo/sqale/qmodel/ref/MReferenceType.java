@@ -35,4 +35,9 @@ public enum MReferenceType {
     ASSIGNMENT_EFFECTIVE_MARK,
     CASE_WI_ASSIGNEE,
     CASE_WI_CANDIDATE,
+
+    // policy rule index
+    ASSIGNMENT_POLICY_RULE,
+    POLICY_RULE,
+    TASK_POLICY,
 }
