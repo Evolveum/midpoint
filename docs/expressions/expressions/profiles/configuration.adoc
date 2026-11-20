@@ -314,6 +314,42 @@ An example:
 
 This is also the method how to specify default expression profile for a particular type of objects.
 
+[#restricting-user-submittable-objects]
+==== Restricting Expressions on User-Submittable Objects
+
+It is also the way to keep user-submitted content from becoming code execution.
+MidPoint evaluates mappings while computing an operation, _before_ that operation is
+authorized, so an inline `focusMappings` script that a self-service user sends in a
+delta — for example over the xref:/midpoint/reference/interfaces/rest/[REST API] — is
+evaluated even if the change is ultimately rejected.
+Binding a restrictive profile to `UserType` (and to any other type an untrusted user
+can modify) closes this.
+
+[WARNING]
+====
+`UserType` has no expression profile by default, and the stock `safe` profile still
+allows the `script` evaluator — so binding `UserType` to `safe` does *not* help.
+Bind it to a profile that denies `script`, as below.
+====
+
+.Listing 6. Restricting expressions on user objects
+[source,xml]
+----
+<systemConfiguration>
+    ...
+    <expressions>
+        <expressionProfile>
+            <identifier>restricted-user</identifier>
+            <decision>deny</decision> <!-- deny everything not listed; this blocks script -->
+        </expressionProfile>
+    </expressions>
+    <defaultObjectPolicyConfiguration>
+        <type>UserType</type>
+        <expressionProfile>restricted-user</expressionProfile>
+    </defaultObjectPolicyConfiguration>
+</systemConfiguration>
+----
+
 === Defaults
 
 === For Expressions
