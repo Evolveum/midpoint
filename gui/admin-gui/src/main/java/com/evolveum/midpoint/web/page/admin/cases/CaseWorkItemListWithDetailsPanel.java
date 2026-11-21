@@ -32,6 +32,7 @@ import com.evolveum.midpoint.web.component.data.column.AjaxLinkColumn;
 import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.page.admin.workflow.EvidenceUploadStateAware;
+import org.apache.wicket.markup.html.panel.Panel;
 import com.evolveum.midpoint.web.page.admin.workflow.WorkItemDetailsPanel;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
@@ -51,7 +52,8 @@ public abstract class CaseWorkItemListWithDetailsPanel extends MultivalueContain
     private static final String ID_CASE_WORK_ITEM_ACTIONS_PANEL = "caseWorkItemActionsPanel";
     private static final String ID_CANCEL_BUTTON = "cancelButton";
 
-    private final WorkItemDetailsPanel workItemDetails = null;
+    /** The work item panel of the expanded row; set when the row details are created. */
+    private WorkItemDetailsPanel workItemDetails;
     private boolean evidenceUploadInvalid;
 
     public CaseWorkItemListWithDetailsPanel(String id) {
@@ -170,6 +172,14 @@ public abstract class CaseWorkItemListWithDetailsPanel extends MultivalueContain
             ListItem<PrismContainerValueWrapper<CaseWorkItemType>> item) {
         return new MultivalueContainerDetailsPanel<>(MultivalueContainerListPanelWithDetailsPanel.ID_ITEM_DETAILS, item.getModel()) {
             @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            protected Panel getBasicContainerValuePanel(String idPanel) {
+                WorkItemDetailsPanel panel = new WorkItemDetailsPanel(idPanel, new ItemRealValueModel<>(item.getModel()));
+                panel.setOutputMarkupId(true);
+                CaseWorkItemListWithDetailsPanel.this.workItemDetails = panel;
+                return panel;
+            }
 
             @Override
             protected DisplayNamePanel<CaseWorkItemType> createDisplayNamePanel(String displayNamePanelId) {

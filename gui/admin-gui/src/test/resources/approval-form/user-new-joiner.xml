@@ -1,0 +1,10 @@
+<user xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      xmlns:ext="http://example.com/xml/ns/midpoint/schema">
+    <name>new-joiner</name>
+    <givenName>pippo</givenName>
+    <familyName>Joiner</familyName>
+    <fullName>New Joiner</fullName>
+    <extension>
+        <ext:UserExt-2>1-1TEBN</ext:UserExt-2>
+    </extension>
+</user>
