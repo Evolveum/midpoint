@@ -27,4 +27,11 @@
         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-rest-3#getLog</action>
         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-rest-3#getLogSize</action>
     </authorization>
+    <authorization>
+        <description>
+            The REST-level authorization for the audit search is present, but the model-level "auditRead"
+            one is not. Hence, the operation passes the REST layer and fails at the model layer.
+        </description>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-rest-3#searchAuditRecords</action>
+    </authorization>
 </role>

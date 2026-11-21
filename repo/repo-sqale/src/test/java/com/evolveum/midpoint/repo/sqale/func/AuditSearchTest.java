@@ -1477,6 +1477,58 @@ public class AuditSearchTest extends SqaleRepoBaseTest {
         assertThat(result.get(0).getEventIdentifier()).isEqualTo(record1EventIdentifier);
     }
 
+    @Test
+    public void test610SearchWithDeltasAndPayloadsExcludedFromRetrieval() throws SchemaException {
+        when("searching for a record with deltas and payloads, excluding both from retrieval");
+        SearchResultList<AuditEventRecordType> result = searchObjects(
+                prismContext.queryFor(AuditEventRecordType.class)
+                        .item(AuditEventRecordType.F_EVENT_IDENTIFIER).eq(record1EventIdentifier)
+                        .build(),
+                SelectorOptions.create(prismContext.toUniformPath(AuditEventRecordType.F_DELTA),
+                        GetOperationOptions.createDontRetrieve()),
+                SelectorOptions.create(prismContext.toUniformPath(AuditEventRecordType.F_PAYLOAD),
+                        GetOperationOptions.createDontRetrieve()));
+
+        then("the record is returned without deltas and payloads, other items are loaded");
+        assertThat(result).hasSize(1);
+        AuditEventRecordType record = result.get(0);
+        assertThat(record.getDelta()).isEmpty();
+        assertThat(record.getPayload()).isEmpty();
+        assertThat(record.getMessage()).isEqualTo("record1");
+        assertThat(record.getReference()).isNotEmpty();
+    }
+
+    @Test
+    public void test611SearchWithDeltasExcludedFromRetrieval() throws SchemaException {
+        when("searching for a record with deltas and payloads, excluding only deltas from retrieval");
+        SearchResultList<AuditEventRecordType> result = searchObjects(
+                prismContext.queryFor(AuditEventRecordType.class)
+                        .item(AuditEventRecordType.F_EVENT_IDENTIFIER).eq(record1EventIdentifier)
+                        .build(),
+                SelectorOptions.create(prismContext.toUniformPath(AuditEventRecordType.F_DELTA),
+                        GetOperationOptions.createDontRetrieve()));
+
+        then("the record is returned without deltas, but with payloads");
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0).getDelta()).isEmpty();
+        assertThat(result.get(0).getPayload()).hasSize(1);
+    }
+
+    @Test
+    public void test612SearchWithRootExclusionStillLoadsDeltasAndPayloads() throws SchemaException {
+        when("searching for a record with a retrieve option not targeting deltas or payloads explicitly");
+        SearchResultList<AuditEventRecordType> result = searchObjects(
+                prismContext.queryFor(AuditEventRecordType.class)
+                        .item(AuditEventRecordType.F_EVENT_IDENTIFIER).eq(record1EventIdentifier)
+                        .build(),
+                SelectorOptions.create(GetOperationOptions.createDontRetrieve()));
+
+        then("deltas and payloads are loaded as before (only explicit exclusion is considered)");
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0).getDelta()).hasSize(3);
+        assertThat(result.get(0).getPayload()).hasSize(1);
+    }
+
     // FIXME: Does not work, can not enter PrismPropertyDefinition (delta)
     @Test(enabled = false)
     public void test700SearchByQueryBuilder() throws SchemaException {
