@@ -354,7 +354,11 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
         addDiscoveryTimestamp(connectorType);
 
         var displayName = cinfo.getConnectorDisplayName();
-        displayName = displayName == null ? key.getConnectorName() : displayName;
+        if (displayName == null || displayName.equals(key.getConnectorName())) {
+            // ConnId returns the fully qualified class name if the connector has no display name message
+            String connectorName = key.getConnectorName();
+            displayName = connectorName.substring(connectorName.lastIndexOf('.') + 1);
+        }
         UcfUtil.addConnectorNames(connectorType, "ConnId", displayName, key.getBundleVersion(), hostType);
         String stringID = keyToNamespaceSuffix(key);
         connectorType.setFramework(SchemaConstants.ICF_FRAMEWORK_URI);
