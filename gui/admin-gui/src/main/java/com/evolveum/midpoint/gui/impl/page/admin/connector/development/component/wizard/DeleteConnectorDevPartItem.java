@@ -13,37 +13,13 @@ import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.delete.DeleteObjectClassConnectorStepPanel;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.smart.api.conndev.ConnectorDevelopmentArtifacts;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkDefinitionsType;
 
 import org.jetbrains.annotations.NotNull;
 
 public class DeleteConnectorDevPartItem extends OperationConnectorDevPartItem {
 
-//    private static final Trace LOGGER = TraceManager.getTrace(NextConnectorDevStatusItem.class);
-
     protected DeleteConnectorDevPartItem(WizardPanelHelper<? extends Containerable, ConnectorDevelopmentDetailsModel> helper) {
         super(helper);
-    }
-
-    //TODO remove after implementation of testing
-    @Override
-    public boolean isStarted() {
-        return ConnectorDevelopmentWizardUtil.existTask(
-                WorkDefinitionsType.F_GENERATE_CONNECTOR_ARTIFACT,
-                getParameter(),
-                getArtifactType(),
-                getObjectDetailsModel().getConnectorDevelopmentOperation().getObject().getOid(),
-                getObjectDetailsModel().getPageAssignmentHolder());
-    }
-
-    //TODO remove after implementation of testing
-    @Override
-    public boolean isComplete() {
-        if (getParameter() == null) {
-            return false;
-        }
-
-        return ConnectorDevelopmentWizardUtil.existScript(getObjectDetailsModel(), getArtifactType(), getParameter());
     }
 
     @Override
