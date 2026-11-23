@@ -6,9 +6,7 @@ doc-type: config
 
 == Unsafe General-Purpose Scripting Languages
 
-In order to prohibit unsafe (Groovy, Velocity, JavaScript, Python) expressions, it is possible to disable their execution right in the system configuration
-(so even midPoint administrator cannot enable their execution).
-
+In order to prohibit unsafe (Groovy, Velocity, JavaScript, Python) expressions, it is possible to disable their execution right in the system configuration file, i.e. `config.xml` (so even midPoint administrator cannot enable their execution).
 
 This is done by setting `safeScriptingLanguagesOnly` to `true` like this:
 
@@ -16,9 +14,9 @@ This is done by setting `safeScriptingLanguagesOnly` to `true` like this:
 ----
 <configuration>
     <midpoint>
-	    <expressions>
-	        <safeScriptingLanguagesOnly>true</safeScriptingLanguagesOnly>
-    	</expressions>
+        <expressions>
+            <safeScriptingLanguagesOnly>true</safeScriptingLanguagesOnly>
+        </expressions>
     </midpoint>
 </configuration>
 ----
@@ -47,10 +45,10 @@ These methods must reside in classes whose packages are explicitly allowed in th
 ----
 <configuration>
     <midpoint>
-	    <expressions>
+        <expressions>
             <javaMethodEvaluatorPackageName>com.example.scripting.extensions</javaMethodEvaluatorPackageName>
             <javaMethodEvaluatorPackageName>...</javaMethodEvaluatorPackageName>
-	    </expressions>
+        </expressions>
     </midpoint>
 </configuration>
 ----
