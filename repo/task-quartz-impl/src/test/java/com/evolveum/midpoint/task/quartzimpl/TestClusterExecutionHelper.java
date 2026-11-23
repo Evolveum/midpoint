@@ -9,6 +9,7 @@ package com.evolveum.midpoint.task.quartzimpl;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.net.InetSocketAddress;
 import java.security.MessageDigest;
@@ -16,14 +17,18 @@ import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Consumer;
 
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
 import jakarta.annotation.PostConstruct;
 import jakarta.ws.rs.core.Response;
+import org.apache.cxf.jaxrs.client.WebClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -54,6 +59,7 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class TestClusterExecutionHelper extends AbstractTaskManagerTest {
 
+    private static final String CLUSTER_CHALLENGE = "Cluster realm=\"midpoint\"";
     private static final String NODE_ONE_OID = "9fc47d55-ed79-409f-90d4-46811dd89101";
     private static final String NODE_TWO_OID = "9fc47d55-ed79-409f-90d4-46811dd89102";
     private static final Set<String> TEST_NODE_OIDS = Set.of(NODE_ONE_OID, NODE_TWO_OID);
@@ -212,11 +218,238 @@ public class TestClusterExecutionHelper extends AbstractTaskManagerTest {
         }
     }
 
+    @Test
+    public void test120SuccessfulRequestIsNotRetried() throws Exception {
+        AtomicInteger requests = new AtomicInteger();
+        HttpServer server = startServer("/ws/cluster/success", exchange -> {
+            requests.incrementAndGet();
+            exchange.sendResponseHeaders(200, -1);
+            exchange.close();
+        });
+
+        try {
+            AtomicInteger status = new AtomicInteger();
+            executeOnNode(createRemoteNode("successful-request-node", server), client -> {
+                client.path("/success");
+                try (Response response = clusterExecutionHelper.executeWithAuthenticationRetry(client, client::get)) {
+                    status.set(response.getStatus());
+                }
+            });
+
+            assertThat(status.get()).isEqualTo(Response.Status.OK.getStatusCode());
+            assertThat(requests.get()).isEqualTo(1);
+        } finally {
+            server.stop(0);
+        }
+    }
+
+    @Test
+    public void test130RotatedSecretRetriesOnceAndPreservesRequest() throws Exception {
+        AtomicInteger requests = new AtomicInteger();
+        List<String> methods = new CopyOnWriteArrayList<>();
+        List<String> requestUris = new CopyOnWriteArrayList<>();
+        List<String> requestBodies = new CopyOnWriteArrayList<>();
+        List<String> authorizations = new CopyOnWriteArrayList<>();
+        String originalSecret = getLocalNodeSecret();
+        String rotatedSecret = "rotated-" + UUID.randomUUID();
+        HttpServer server = startServer("/ws/cluster/rotation", exchange -> {
+            int requestNumber = requests.incrementAndGet();
+            methods.add(exchange.getRequestMethod());
+            requestUris.add(exchange.getRequestURI().toString());
+            requestBodies.add(new String(exchange.getRequestBody().readAllBytes(), UTF_8));
+            authorizations.add(exchange.getRequestHeaders().getFirst("Authorization"));
+            if (requestNumber == 1) {
+                exchange.getResponseHeaders().set("WWW-Authenticate", CLUSTER_CHALLENGE);
+                exchange.sendResponseHeaders(401, -1);
+            } else {
+                exchange.sendResponseHeaders(200, -1);
+            }
+            exchange.close();
+        });
+
+        try {
+            AtomicInteger status = new AtomicInteger();
+            executeOnNode(createRemoteNode("secret-rotation-node", server), client -> {
+                client.path("/rotation").query("marker", "preserved");
+                replaceLocalNodeSecret(rotatedSecret);
+                try (Response response = clusterExecutionHelper.executeWithAuthenticationRetry(
+                        client,
+                        () -> client.post("preserved-body"))) {
+                    status.set(response.getStatus());
+                }
+            });
+
+            assertThat(status.get()).isEqualTo(Response.Status.OK.getStatusCode());
+            assertThat(requests.get()).isEqualTo(2);
+            assertThat(methods).containsExactly("POST", "POST");
+            assertThat(requestUris).containsExactly(
+                    "/ws/cluster/rotation?marker=preserved",
+                    "/ws/cluster/rotation?marker=preserved");
+            assertThat(requestBodies).containsExactly("preserved-body", "preserved-body");
+            assertThat(authorizations).hasSize(2);
+            assertThat(sameCredential(authorizations.get(0), clusterAuthorization(originalSecret))).isTrue();
+            assertThat(sameCredential(authorizations.get(1), clusterAuthorization(rotatedSecret))).isTrue();
+        } finally {
+            server.stop(0);
+            replaceLocalNodeSecret(originalSecret);
+        }
+    }
+
+    @Test
+    public void test140UnchangedSecretDoesNotRetryUnauthorizedResponse() throws Exception {
+        AtomicInteger requests = new AtomicInteger();
+        HttpServer server = startUnauthorizedServer("/ws/cluster/unchanged", requests, CLUSTER_CHALLENGE);
+
+        try {
+            AtomicInteger status = new AtomicInteger();
+            executeOnNode(createRemoteNode("unchanged-secret-node", server), client -> {
+                client.path("/unchanged");
+                try (Response response = clusterExecutionHelper.executeWithAuthenticationRetry(client, client::get)) {
+                    status.set(response.getStatus());
+                }
+            });
+
+            assertThat(status.get()).isEqualTo(Response.Status.UNAUTHORIZED.getStatusCode());
+            assertThat(requests.get()).isEqualTo(1);
+        } finally {
+            server.stop(0);
+        }
+    }
+
+    @Test
+    public void test150SecondUnauthorizedResponseIsNotRetried() throws Exception {
+        AtomicInteger requests = new AtomicInteger();
+        String originalSecret = getLocalNodeSecret();
+        String rotatedSecret = "rotated-" + UUID.randomUUID();
+        HttpServer server = startUnauthorizedServer("/ws/cluster/retry-limit", requests, CLUSTER_CHALLENGE);
+
+        try {
+            AtomicInteger status = new AtomicInteger();
+            executeOnNode(createRemoteNode("retry-limit-node", server), client -> {
+                client.path("/retry-limit");
+                replaceLocalNodeSecret(rotatedSecret);
+                try (Response response = clusterExecutionHelper.executeWithAuthenticationRetry(client, client::get)) {
+                    status.set(response.getStatus());
+                }
+            });
+
+            assertThat(status.get()).isEqualTo(Response.Status.UNAUTHORIZED.getStatusCode());
+            assertThat(requests.get()).isEqualTo(2);
+        } finally {
+            server.stop(0);
+            replaceLocalNodeSecret(originalSecret);
+        }
+    }
+
+    @Test
+    public void test160NonClusterUnauthorizedResponseIsNotRetried() throws Exception {
+        AtomicInteger requests = new AtomicInteger();
+        String originalSecret = getLocalNodeSecret();
+        String rotatedSecret = "rotated-" + UUID.randomUUID();
+        HttpServer server = startUnauthorizedServer("/ws/cluster/non-cluster", requests, "Basic realm=\"midpoint\"");
+
+        try {
+            AtomicInteger status = new AtomicInteger();
+            executeOnNode(createRemoteNode("non-cluster-challenge-node", server), client -> {
+                client.path("/non-cluster");
+                replaceLocalNodeSecret(rotatedSecret);
+                try (Response response = clusterExecutionHelper.executeWithAuthenticationRetry(client, client::get)) {
+                    status.set(response.getStatus());
+                }
+            });
+
+            assertThat(status.get()).isEqualTo(Response.Status.UNAUTHORIZED.getStatusCode());
+            assertThat(requests.get()).isEqualTo(1);
+        } finally {
+            server.stop(0);
+            replaceLocalNodeSecret(originalSecret);
+        }
+    }
+
+    @Test
+    public void test170NonAuthenticationHttpFailuresAreNotRetried() throws Exception {
+        AtomicInteger forbiddenRequests = new AtomicInteger();
+        AtomicInteger serverErrorRequests = new AtomicInteger();
+        String originalSecret = getLocalNodeSecret();
+        HttpServer server = startServer("/ws/cluster/forbidden", exchange -> {
+            forbiddenRequests.incrementAndGet();
+            exchange.sendResponseHeaders(403, -1);
+            exchange.close();
+        });
+        server.createContext("/ws/cluster/server-error", exchange -> {
+            serverErrorRequests.incrementAndGet();
+            exchange.sendResponseHeaders(500, -1);
+            exchange.close();
+        });
+
+        try {
+            NodeType node = createRemoteNode("http-failure-node", server);
+            AtomicInteger forbiddenStatus = new AtomicInteger();
+            executeOnNode(node, client -> {
+                client.path("/forbidden");
+                replaceLocalNodeSecret("rotated-" + UUID.randomUUID());
+                try (Response response = clusterExecutionHelper.executeWithAuthenticationRetry(client, client::get)) {
+                    forbiddenStatus.set(response.getStatus());
+                }
+            });
+            AtomicInteger serverErrorStatus = new AtomicInteger();
+            executeOnNode(node, client -> {
+                client.path("/server-error");
+                replaceLocalNodeSecret("rotated-" + UUID.randomUUID());
+                try (Response response = clusterExecutionHelper.executeWithAuthenticationRetry(client, client::get)) {
+                    serverErrorStatus.set(response.getStatus());
+                }
+            });
+
+            assertThat(forbiddenStatus.get()).isEqualTo(Response.Status.FORBIDDEN.getStatusCode());
+            assertThat(serverErrorStatus.get()).isEqualTo(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode());
+            assertThat(forbiddenRequests.get()).isEqualTo(1);
+            assertThat(serverErrorRequests.get()).isEqualTo(1);
+        } finally {
+            server.stop(0);
+            replaceLocalNodeSecret(originalSecret);
+        }
+    }
+
+    @Test
+    public void test180ConnectionFailureIsNotRetried() throws Exception {
+        HttpServer server = startServer("/ws/cluster/unreachable", exchange -> {
+            throw new AssertionError("The stopped server must not receive a request");
+        });
+        NodeType node = createRemoteNode("connection-failure-node", server);
+        server.stop(0);
+        AtomicInteger attempts = new AtomicInteger();
+        String originalSecret = getLocalNodeSecret();
+
+        try {
+            assertThatThrownBy(() -> executeOnNode(node, client -> {
+                client.path("/unreachable");
+                replaceLocalNodeSecret("rotated-" + UUID.randomUUID());
+                clusterExecutionHelper.executeWithAuthenticationRetry(client, () -> {
+                    attempts.incrementAndGet();
+                    return client.get();
+                });
+            })).isInstanceOf(RuntimeException.class);
+            assertThat(attempts.get()).isEqualTo(1);
+        } finally {
+            replaceLocalNodeSecret(originalSecret);
+        }
+    }
+
     private HttpServer startPeer(AtomicInteger requests, AtomicReference<String> authorization) throws Exception {
         return startServer("/ws/cluster/broadcast", exchange -> {
             requests.incrementAndGet();
             authorization.set(exchange.getRequestHeaders().getFirst("Authorization"));
             exchange.sendResponseHeaders(200, -1);
+            exchange.close();
+        });
+    }
+
+    private static HttpServer startUnauthorizedServer(String path, AtomicInteger requests, String challenge) throws Exception {
+        return startServer(path, exchange -> {
+            requests.incrementAndGet();
+            exchange.getResponseHeaders().set("WWW-Authenticate", challenge);
+            exchange.sendResponseHeaders(401, -1);
             exchange.close();
         });
     }
@@ -249,6 +482,43 @@ public class TestClusterExecutionHelper extends AbstractTaskManagerTest {
         }
         node.getIpAddress().add("127.0.0.1");
         return node;
+    }
+
+    private void executeOnNode(NodeType node, Consumer<WebClient> code) throws Exception {
+        clusterExecutionHelper.execute(
+                node,
+                (client, ignoredNode, ignoredResult) -> code.accept(client),
+                new ClusterExecutionOptions().tryAllNodes(),
+                "cluster authentication retry test",
+                createOperationResult());
+    }
+
+    private String getLocalNodeSecret() throws Exception {
+        return protector.decryptString(taskManager.getLocalNode().getSecret());
+    }
+
+    private void replaceLocalNodeSecret(String secret) {
+        try {
+            repositoryService.modifyObject(
+                    NodeType.class,
+                    taskManager.getLocalNodeOid(),
+                    prismContext.deltaFor(NodeType.class)
+                            .item(NodeType.F_SECRET).replace(protector.encryptString(secret))
+                            .asItemDeltas(),
+                    createOperationResult());
+        } catch (Exception e) {
+            throw new AssertionError("Couldn't replace the local node secret for the test", e);
+        }
+    }
+
+    private static String clusterAuthorization(String secret) {
+        return RestAuthenticationMethod.CLUSTER.getMethod() + " "
+                + Base64.getEncoder().encodeToString(secret.getBytes(UTF_8));
+    }
+
+    private static boolean sameCredential(String actual, String expected) {
+        return actual != null && expected != null
+                && MessageDigest.isEqual(actual.getBytes(UTF_8), expected.getBytes(UTF_8));
     }
 
     private void assertHealthyRequest(AtomicInteger requests, AtomicReference<String> authorization) throws Exception {

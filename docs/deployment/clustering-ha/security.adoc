@@ -137,8 +137,8 @@ Copying only trusted TLS certificates is not sufficient. Nodes must also have th
 Protect these encryption keys and the shared repository because they are essential to cluster security.
 
 Secret rotation replaces the stored credential without an old-secret grace period.
-During rotation, a request using a previously cached secret may be rejected.
-The current implementation does not automatically retry such requests with the refreshed secret.
+If a cluster request fails authentication because the sending node used an outdated secret, midPoint checks the current secret in the shared repository.
+For selected cluster operations, the request is retried once if the secret has changed.
 
 == Cluster Endpoints and Authorization
 
@@ -253,7 +253,9 @@ Cluster broadcasts contact eligible nodes sequentially. A slow peer can therefor
 
 MidPoint does not configure cluster-specific HTTP connection or response timeouts. The effective values depend on the underlying HTTP transport and its configuration.
 
-Each eligible node is normally contacted once per broadcast. Failed cache invalidations are logged but are not automatically retried or replayed when a node becomes available again.
+Each eligible node is normally contacted once per broadcast.
+Authentication failures caused by secret rotation may trigger a single retry with the refreshed credential.
+Other failed cache invalidations are logged but are not automatically retried or replayed when a node becomes available again.
 Communication failures with one node do not prevent attempts to contact the remaining nodes.
 
 Role and security-relevant user changes trigger clusterwide cache invalidation.

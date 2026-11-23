@@ -71,7 +71,7 @@ public class RemoteNodeInvalidationEventDispatcher implements ClusterwideCacheIn
         // eventually. (We can revisit this design decision if needed.)
         clusterExecutionHelper.execute((client, node, result1) -> {
             client.path(getInvalidationRestPath(type, oid));
-            var response = client.post(null);
+            var response = clusterExecutionHelper.executeWithAuthenticationRetry(client, () -> client.post(null));
             var statusInfo = response.getStatusInfo();
             if (statusInfo.getFamily() != Response.Status.Family.SUCCESSFUL) {
                 LOGGER.warn("Cluster-wide cache clearance finished on {} with status {}, {}", node.getNodeIdentifier(),

@@ -6,6 +6,8 @@
 
 package com.evolveum.midpoint.task.api;
 
+import java.util.function.Supplier;
+
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -61,6 +63,12 @@ public interface ClusterExecutionHelper {
      * Executes operation on all cluster nodes except for the current one.
      */
     void execute(@NotNull ClientCode code, ClusterExecutionOptions options, String context, OperationResult parentResult);
+
+    /**
+     * Executes a replay-safe HTTP request, retrying it once if cluster authentication failed because the local node secret
+     * was rotated after the client was configured.
+     */
+    Response executeWithAuthenticationRetry(@NotNull WebClient client, @NotNull Supplier<Response> request);
 
     /**
      * Extracts the result from the REST response.

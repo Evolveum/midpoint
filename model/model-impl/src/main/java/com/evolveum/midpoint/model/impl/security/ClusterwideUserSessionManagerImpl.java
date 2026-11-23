@@ -50,7 +50,8 @@ public class ClusterwideUserSessionManagerImpl implements ClusterwideUserSession
         // that terminate session is executed on as wide scale as realistically possible.
         clusterExecutionHelper.execute((client, node, result1) -> {
             client.path(ClusterServiceConsts.EVENT_TERMINATE_SESSION);
-            var response = client.post(terminateSessionEvent.toEventType());
+            var event = terminateSessionEvent.toEventType();
+            var response = clusterExecutionHelper.executeWithAuthenticationRetry(client, () -> client.post(event));
             LOGGER.info("Remote-node user session termination finished on {} with status {}, {}", node.getNodeIdentifier(),
                     response.getStatusInfo().getStatusCode(), response.getStatusInfo().getReasonPhrase());
             response.close();

@@ -65,7 +65,7 @@ public class RestConnector {
     public void stopRemoteScheduler(NodeType node, OperationResult result) throws SchemaException {
         clusterExecutionHelper.execute(node, (client, actualNode, result1) -> {
             client.path(TaskConstants.STOP_LOCAL_SCHEDULER_REST_PATH);
-            Response response = client.post(null);
+            Response response = clusterExecutionHelper.executeWithAuthenticationRetry(client, () -> client.post(null));
             Response.StatusType statusInfo = response.getStatusInfo();
             LOGGER.debug("Stopping remote scheduler on {} finished with status {}: {}", node.getNodeIdentifier(),
                     statusInfo.getStatusCode(), statusInfo.getReasonPhrase());
@@ -81,7 +81,7 @@ public class RestConnector {
     public void startRemoteScheduler(NodeType node, OperationResult result) throws SchemaException {
         clusterExecutionHelper.execute(node, (client, actualNode, result1) -> {
             client.path(TaskConstants.START_LOCAL_SCHEDULER_REST_PATH);
-            Response response = client.post(null);
+            Response response = clusterExecutionHelper.executeWithAuthenticationRetry(client, () -> client.post(null));
             Response.StatusType statusInfo = response.getStatusInfo();
             LOGGER.debug("Starting remote scheduler on {} finished with status {}: {}", node.getNodeIdentifier(),
                     statusInfo.getStatusCode(), statusInfo.getReasonPhrase());
@@ -97,7 +97,7 @@ public class RestConnector {
     public void stopRemoteTaskRun(String oid, NodeType node, OperationResult result) throws SchemaException {
         clusterExecutionHelper.execute(node, (client, actualNode, result1) -> {
             client.path(TaskConstants.STOP_LOCAL_TASK_REST_PATH_PREFIX + oid + TaskConstants.STOP_LOCAL_TASK_REST_PATH_SUFFIX);
-            Response response = client.post(null);
+            Response response = clusterExecutionHelper.executeWithAuthenticationRetry(client, () -> client.post(null));
             Response.StatusType statusInfo = response.getStatusInfo();
             LOGGER.debug("Stopping task {} on {} finished with status {}: {}", oid, node.getNodeIdentifier(),
                     statusInfo.getStatusCode(), statusInfo.getReasonPhrase());

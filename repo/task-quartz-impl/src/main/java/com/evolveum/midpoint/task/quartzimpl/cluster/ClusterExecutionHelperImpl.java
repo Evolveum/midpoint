@@ -6,6 +6,11 @@
 
 package com.evolveum.midpoint.task.quartzimpl.cluster;
 
+import java.util.Arrays;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Supplier;
+
 import com.evolveum.midpoint.common.rest.MidpointJsonProvider;
 import com.evolveum.midpoint.common.rest.MidpointXmlProvider;
 import com.evolveum.midpoint.common.rest.MidpointYamlProvider;
@@ -36,13 +41,12 @@ import org.apache.cxf.jaxrs.client.WebClient;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
+import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
-import java.util.Arrays;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  *  Helps with the intra-cluster remote code execution.
@@ -54,7 +58,7 @@ public class ClusterExecutionHelperImpl implements ClusterExecutionHelper {
 
     @Autowired private PrismContext prismContext;
     @Autowired private TaskManager taskManager;
-    @Autowired private RepositoryService repositoryService;
+    @Autowired @Qualifier("repositoryService") private RepositoryService repositoryService;
     @Autowired private Protector protector;
 
     @Autowired private MidpointXmlProvider<?> xmlProvider;
@@ -64,6 +68,9 @@ public class ClusterExecutionHelperImpl implements ClusterExecutionHelper {
     private Map<String, WebClient> clients = new ConcurrentHashMap<>();
 
     private static final String DOT_CLASS = ClusterExecutionHelperImpl.class.getName() + ".";
+    private static final String OP_GET_FRESH_LOCAL_NODE = DOT_CLASS + "getFreshLocalNode";
+    // Match the exact challenge issued by midPoint's cluster authentication filter
+    private static final String CLUSTER_AUTHENTICATION_CHALLENGE = RestAuthenticationMethod.CLUSTER.getMethod() + " realm=\"midpoint\"";
 
 
     @Override
@@ -252,13 +259,18 @@ public class ClusterExecutionHelperImpl implements ClusterExecutionHelper {
         }
         return client;
     }
-     private WebClient resetClientForUse(WebClient client, ClusterExecutionOptions options, String context) throws SchemaException {
+
+    private WebClient resetClientForUse(WebClient client, ClusterExecutionOptions options, String context) throws SchemaException {
         client.reset();
         if (!ClusterExecutionOptions.isSkipDefaultAccept(options)) {
             client.accept(MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, "application/yaml");
         }
         client.type(MediaType.APPLICATION_XML);
-        NodeType localNode = taskManager.getLocalNode();
+        client.header(HttpHeaders.AUTHORIZATION, createAuthorizationHeader(taskManager.getLocalNode()));
+        return client;
+    }
+
+    private String createAuthorizationHeader(NodeType localNode) throws SchemaException {
         ProtectedStringType protectedSecret = localNode.getSecret();
         if (protectedSecret == null) {
             throw new SchemaException("No secret is set for local node " + localNode);
@@ -269,8 +281,48 @@ public class ClusterExecutionHelperImpl implements ClusterExecutionHelper {
         } catch (EncryptionException e) {
             throw new SystemException("Couldn't decrypt local node secret: " + e.getMessage(), e);
         }
-        client.header("Authorization", RestAuthenticationMethod.CLUSTER.getMethod() + " " + Base64Utility.encode(secret.getBytes()));
-        return client;
+        return RestAuthenticationMethod.CLUSTER.getMethod() + " " + Base64Utility.encode(secret.getBytes());
+    }
+
+    /**
+     * Retries a cluster HTTP request once if authentication fails because the local node secret was rotated.
+     * The request must be safe to repeat.
+     */
+    @Override
+    public Response executeWithAuthenticationRetry(@NotNull WebClient client, @NotNull Supplier<Response> request) {
+        String authorizationUsed = client.getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
+        Response response = request.get();
+        if (authorizationUsed == null || !isClusterAuthenticationFailure(response)) {
+            return response;
+        }
+        String freshAuthorization = getFreshLocalNodeAuthorization();
+        if (freshAuthorization == null || freshAuthorization.equals(authorizationUsed)) {
+            return response;
+        }
+
+        response.close();
+        client.replaceHeader(HttpHeaders.AUTHORIZATION, freshAuthorization);
+        return request.get();
+    }
+
+    private boolean isClusterAuthenticationFailure(Response response) {
+        return response.getStatus() == Response.Status.UNAUTHORIZED.getStatusCode()
+                && CLUSTER_AUTHENTICATION_CHALLENGE.equals(response.getHeaderString(HttpHeaders.WWW_AUTHENTICATE));
+    }
+
+    private String getFreshLocalNodeAuthorization() {
+        OperationResult result = new OperationResult(OP_GET_FRESH_LOCAL_NODE);
+        try {
+            return createAuthorizationHeader(
+                    repositoryService
+                            .getObject(NodeType.class, taskManager.getLocalNodeOid(), null, result)
+                            .asObjectable());
+        } catch (ObjectNotFoundException | SchemaException | RuntimeException e) {
+            LOGGER.warn("Couldn't refresh the local node secret after failed cluster authentication: {}", e.getMessage());
+            return null;
+        } finally {
+            result.computeStatusIfUnknown();
+        }
     }
 
     @Override

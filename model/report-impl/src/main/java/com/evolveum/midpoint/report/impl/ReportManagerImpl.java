@@ -264,7 +264,7 @@ public class ReportManagerImpl implements ReportManager {
                         (client, node, result1) -> {
                             client.path(ModelPublicConstants.CLUSTER_REPORT_FILE_PATH);
                             client.query(ModelPublicConstants.CLUSTER_REPORT_FILE_FILENAME_PARAMETER, fileName);
-                            var response = client.delete();
+                            var response = clusterExecutionHelper.executeWithAuthenticationRetry(client, client::delete);
                             var statusInfo = response.getStatusInfo();
                             LOGGER.debug("Deleting report output file ({}) from {} finished with status {}: {}",
                                     fileName, node, statusInfo.getStatusCode(), statusInfo.getReasonPhrase());
