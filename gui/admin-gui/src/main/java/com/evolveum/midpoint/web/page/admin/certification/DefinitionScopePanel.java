@@ -45,6 +45,7 @@ public class DefinitionScopePanel extends BasePanel<DefinitionScopeDto> {
     private static final String ID_INCLUDE_ORGS = "includeOrgs";
     private static final String ID_INCLUDE_USERS = "includeUsers";
     private static final String ID_INCLUDE_POLICIES = "includePolicies";
+    private static final String ID_INCLUDE_APPLICATIONS = "includeApplications";
     private static final String ID_INCLUDE_SERVICES = "includeServices";
     private static final String ID_INCLUDE_TARGET_TYPES_HELP = "scopeIncludeTargetTypesHelp";
     private static final String ID_INCLUDE_ENABLED_ITEMS_ONLY = "includeEnabledItemsOnly";
@@ -114,6 +115,8 @@ public class DefinitionScopePanel extends BasePanel<DefinitionScopeDto> {
                 createStringResource("PageCertDefinition.scopeIncludeUsers")));
         add(new CheckBoxPanel(ID_INCLUDE_POLICIES, new PropertyModel<>(getModel(), DefinitionScopeDto.F_INCLUDE_POLICIES),
                 createStringResource("PageCertDefinition.scopeIncludePolicies")));
+        add(new CheckBoxPanel(ID_INCLUDE_APPLICATIONS, new PropertyModel<>(getModel(), DefinitionScopeDto.F_INCLUDE_APPLICATIONS),
+                createStringResource("PageCertDefinition.scopeIncludeApplications")));
 
         add(WebComponentUtil.createHelp(ID_INCLUDE_TARGET_TYPES_HELP));
 
