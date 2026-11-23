@@ -240,9 +240,12 @@
         <maven-javadoc-plugin.version>3.11.2</maven-javadoc-plugin.version>
         <log4j2.version>2.26.1</log4j2.version>
         <rabbit-amqp-client.version>5.37.0</rabbit-amqp-client.version>
-        <!-- CVE-2026-110879; keep both aligned, they share jackson-annotations (2.21). Must match Prism. -->
+        <!-- keep both aligned, they share jackson-annotations (2.21). Must match Prism. -->
         <jackson-2-bom.version>2.21.8</jackson-2-bom.version>
         <jackson-bom.version>3.1.8</jackson-bom.version>
+        <json-smart.version>2.6.1</json-smart.version>
+        <artemis.version>2.57.0</artemis.version>
+        <asm.version>9.11</asm.version>
         <!-- END of Spring Boot dependencies overrides -->
 
         <!-- security fix for CVE-2025-48976 -->
@@ -263,9 +266,6 @@
         <classgraph.version>4.8.162</classgraph.version>
         <guava.version>33.8.0-jre</guava.version>
         <jcommander.version>1.82</jcommander.version>
-        <!-- name matches property from Boot parent -->
-        <artemis.version>2.57.0</artemis.version>
-        <asm.version>9.11</asm.version>
         <geronimo-ws-metadata_2.0_spec.version>1.1.3</geronimo-ws-metadata_2.0_spec.version>
         <checkstyle.version>3.1.2</checkstyle.version>
         <commons.csv.version>1.12.0</commons.csv.version>
