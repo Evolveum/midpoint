@@ -56,6 +56,8 @@ Users who have `en_EU` stored (midPoint 4.11.0) keep English (Europe). See bug:M
 * Fixed misleading messages after certification campaign actions and prevented an already closed campaign from being closed again. See bug:MID-12832[]
 * Fixed file-based secret providers failing to read secrets that end with a trailing newline. See bug:MID-10836[]
 * Hardened Content Security Policy by removing unsafe-inline and unsafe-eval JavaScript permissions and restricting inline CSS in <style> elements.
+* Fixed container deployments (`midpoint.sh init-native`) creating `config.xml` from the legacy `config-native.xml` template.
+The same default `config.xml` is now used for all forms of deployment. See <<_behavior_changes_since_4_11>>.
 
 == Changes With Respect to Version 4.10
 
@@ -608,8 +610,9 @@ including the https://docs.evolveum.com/midpoint/get-started/install/containers/
 
 * General-purpose scripting languages (Groovy, JavaScript, Python, full Velocity) are now disabled by default via new default `config.xml`.
 This should NOT influence the deployments that are upgrading from previous versions of midPoint, as the `config.xml` is typically preserved in these situations.
-However, if you use midPoint in container deployment, the `config.xml` MAY get rewritten by the 4.11.0 version - depending on specifics of your deployment.
-Please check if that is the case and if so, make sure that `expressions.safeScriptingLanguagesOnly` parameter is set to `false` until you migrate all your scripts to MEL and Safe Velocity, and thus you are ready to disable all general-purpose scripting languages.
+The same applies to container deployments: an existing `config.xml` is never overwritten by the container initialization (`midpoint.sh init-native`).
+However, if your deployment does not preserve `config.xml` (e.g., it is not stored on a persistent volume), a new default one is created.
+In such a case, make sure that `expressions.safeScriptingLanguagesOnly` parameter is set to `false` until you migrate all your scripts to MEL and Safe Velocity, and thus you are ready to disable all general-purpose scripting languages.
 See xrefv:/midpoint/reference/support-4.11/expressions/expressions/security/[] for more information.
 
 * xrefv:/midpoint/reference/support-4.11/expressions/expressions/profiles/[Expression profiles] are now enforced throughout the system.
@@ -938,6 +941,11 @@ The connector generator is disabled unless `connectors/developmentToolsEnabled` 
 These settings prevent executing arbitrary code on the underlying operating system (e.g., via Groovy scripts or the connector generator).
 The initial system configuration assigns the `safe`, `reporting` and `configuration` expression profiles to object types, and sets MEL as the default script language.
 Existing deployments keep their `config.xml` and system configuration, but it is recommended to adapt them in a similar way.
++
+NOTE: Container deployments that were first initialized with midPoint 4.11.0 got `config.xml` created from a legacy template (`config-native.xml`) that does not contain these settings, so unsafe scripting languages are not disabled there.
+The legacy template was removed and the container initialization now uses the same default `config.xml` as other deployments (available as `doc/config/config.xml` in the distribution).
+An existing `config.xml` is not updated automatically.
+To fix such a deployment, add `<expressions><safeScriptingLanguagesOnly>true</safeScriptingLanguagesOnly></expressions>` to the `midpoint` element of `config.xml`, or set the `MP_SET_midpoint_expressions_safeScriptingLanguagesOnly=true` environment variable.
 See xrefv:/midpoint/reference/support-4.11/expressions/expressions/configuration/[], xrefv:/midpoint/reference/support-4.11/expressions/expressions/profiles/[], xrefv:/midpoint/reference/support-4.11/expressions/expressions/security/[], and xrefv:/midpoint/reference/support-4.11/connector-generator/enable/[].
 
 
