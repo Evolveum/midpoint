@@ -81,9 +81,9 @@ if [ "${1}" = "init-native" ]; then
   if [ "${MP_INIT_CFG:-}" = "" ]; then
     echo "MP_INIT_CFG variable with target for config.xml was not set - skipping config.xml file processing..."
   else
-    if [ -e "${BASE_DIR}/doc/config/config-native.xml" ]; then
+    if [ -e "${BASE_DIR}/doc/config/config.xml" ]; then
       if [ ! -e ${MP_INIT_CFG}/config.xml ]; then
-        cp "${BASE_DIR}/doc/config/config-native.xml" ${MP_INIT_CFG}/config.xml
+        cp "${BASE_DIR}/doc/config/config.xml" ${MP_INIT_CFG}/config.xml
       else
         echo "File already exists... Skipping"
       fi
