@@ -31,6 +31,7 @@ Use HTTPS and network-level access controls for production deployments.
 
 | Deployment responsibilities
 | Protection of the shared repository and encryption keys, trusted node configuration, unique node identifiers, and restricted repository access.
+
 | Recommended but not enforced
 | HTTPS for cluster communication, network isolation, restricted access to cluster endpoints, and outbound network restrictions.
 |===
@@ -215,11 +216,20 @@ However, this does not protect against a malicious destination configured direct
 
 == Transport Security
 
-MidPoint supports both HTTP and HTTPS node URLs.
-HTTPS is not required by the cluster implementation.
-However, protected transport is required for a secure production deployment. Use HTTPS for all direct intra-cluster communication.
+MidPoint supports both HTTP and HTTPS for direct cluster communication.
+HTTPS is not enforced by the cluster implementation.
 
-When HTTPS is used, the underlying HTTP client normally verifies the server certificate and hostname, according to the configured TLS settings.
+[WARNING]
+====
+Unencrypted cluster communication can expose authentication credentials.
+
+Cluster requests use reusable node secrets transmitted in the HTTP `Authorization` header.
+Base64 encoding does not protect these credentials from interception.
+An attacker who captures a node secret may be able to impersonate that node and access privileged cluster operations.
+
+*Always use HTTPS for cluster communication in production deployments.*
+If HTTPS cannot be used, protect the communication channel using other appropriate security measures.
+====
 
 For production deployments:
 
