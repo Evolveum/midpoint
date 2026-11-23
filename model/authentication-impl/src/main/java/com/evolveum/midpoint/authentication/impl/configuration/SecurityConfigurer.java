@@ -11,11 +11,14 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletRequestWrapper;
 import jakarta.servlet.http.HttpServletResponse;
 
+import com.evolveum.midpoint.authentication.impl.ActuatorEndpointAccessEvaluator;
 import com.evolveum.midpoint.authentication.impl.MidpointAuthenticationTrustResolverImpl;
 import com.evolveum.midpoint.authentication.impl.MidpointProviderManager;
 import com.evolveum.midpoint.authentication.impl.MidpointSecurityContext;
+import com.evolveum.midpoint.authentication.impl.RestEndpointAccessEvaluator;
 import com.evolveum.midpoint.authentication.impl.authorization.evaluator.MidPointGuiAuthorizationEvaluator;
 import com.evolveum.midpoint.authentication.impl.entry.point.WicketLoginUrlAuthenticationEntryPoint;
+import com.evolveum.midpoint.authentication.impl.filter.RefuseDisabledEndpointsRequestFilter;
 import com.evolveum.midpoint.authentication.impl.filter.configurers.AuthFilterConfigurer;
 import com.evolveum.midpoint.authentication.impl.handler.AuditedAccessDeniedHandler;
 import com.evolveum.midpoint.authentication.impl.handler.AuditedLogoutHandler;
@@ -51,6 +54,7 @@ import org.springframework.security.web.context.HttpSessionSecurityContextReposi
 import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher;
 import org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter;
+import org.springframework.security.web.session.DisableEncodeUrlFilter;
 import org.springframework.security.web.session.HttpSessionEventPublisher;
 import org.springframework.security.web.util.matcher.OrRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
@@ -103,6 +107,12 @@ public class SecurityConfigurer {
 
     @Autowired
     private ApplicationContext applicationContext;
+
+    @Autowired
+    private RestEndpointAccessEvaluator restEndpointAccessEvaluator;
+
+    @Autowired
+    private ActuatorEndpointAccessEvaluator actuatorEndpointAccessEvaluator;
 
     private ObjectPostProcessor<Object> objectObjectPostProcessor;
     private ContentNegotiationStrategy contentNegotiationStrategy = new HeaderContentNegotiationStrategy();
@@ -172,6 +182,11 @@ public class SecurityConfigurer {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http.setSharedObject(AuthenticationTrustResolverImpl.class, new MidpointAuthenticationTrustResolverImpl());
+        // TODO confirm the following logic
+        // Disabled REST and actuator endpoints are rejected before anything else in the chain.
+        http.addFilterBefore(
+                new RefuseDisabledEndpointsRequestFilter(restEndpointAccessEvaluator, actuatorEndpointAccessEvaluator),
+                DisableEncodeUrlFilter.class);
         http.addFilter(new WebAsyncManagerIntegrationFilter())
                 .sessionManagement(configurer -> {})
                 .securityContext(configurer -> {

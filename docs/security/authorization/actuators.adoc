@@ -37,3 +37,6 @@ In the midPoint, we now support these endpoint actions:
 | 'BASE_MIDPOINT_URL'/actuator/metrics and 'BASE_MIDPOINT_URL'/actuator/metrics/++**++
 
 |===
+
+These authorizations apply only to the endpoints that are enabled.
+Since midPoint 4.12, only the _health_ endpoint is enabled by default, see xref:/midpoint/reference/deployment/spring-boot-actuator-endpoints/#enabling-actuator-endpoints[Enabling Actuator Endpoints].

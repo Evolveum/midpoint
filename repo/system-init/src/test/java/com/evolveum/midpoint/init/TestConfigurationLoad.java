@@ -11,11 +11,14 @@ import static org.testng.Assert.*;
 import java.io.File;
 import java.util.Iterator;
 
+import org.apache.commons.configuration2.BaseConfiguration;
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.lang3.StringUtils;
 import org.testng.annotations.Test;
 
+import com.evolveum.midpoint.common.configuration.api.ActuatorConfigurationSection;
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
+import com.evolveum.midpoint.common.configuration.api.RestConfigurationSection;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.tools.testng.AbstractUnitTest;
 
@@ -86,5 +89,64 @@ public class TestConfigurationLoad extends AbstractUnitTest {
 
         //cleanup
         System.clearProperty(MidpointConfiguration.MIDPOINT_HOME_PROPERTY);
+    }
+
+    @Test
+    public void test030RestAndActuatorDefaults() {
+        RestConfigurationSection rest = RestConfigurationSectionImpl.create(new BaseConfiguration());
+        assertFalse(rest.apiEnabled(), "REST API must be disabled by default");
+        assertNull(rest.clusterEnabled(), "intra-cluster default must be left to the clustered flag");
+
+        ActuatorConfigurationSection actuator = ActuatorConfigurationSectionImpl.create(new BaseConfiguration());
+        assertTrue(actuator.isEndpointEnabled("health"));
+        assertFalse(actuator.isEndpointEnabled("metrics"));
+        assertTrue(actuator.isAnyEndpointEnabled(), "the health actuator should be enabled by default");
+    }
+
+    @Test
+    public void test040ActuatorAllOption() {
+        BaseConfiguration allEnabled = new BaseConfiguration();
+        allEnabled.setProperty("all.enabled", "true");
+        allEnabled.setProperty("heapdump.enabled", "false");
+        ActuatorConfigurationSection section = ActuatorConfigurationSectionImpl.create(allEnabled);
+        assertTrue(section.isEndpointEnabled("metrics"));
+        assertTrue(section.isEndpointEnabled("health"));
+        assertFalse(section.isEndpointEnabled("heapdump"), "the endpoint's own option must win over the all option");
+
+        BaseConfiguration allDisabled = new BaseConfiguration();
+        allDisabled.setProperty("all.enabled", "false");
+        section = ActuatorConfigurationSectionImpl.create(allDisabled);
+        assertFalse(section.isEndpointEnabled("health"));
+        assertFalse(section.isAnyEndpointEnabled(), "discovery page must be disabled without enabled endpoints");
+
+        allDisabled.setProperty("info.enabled", "true");
+        assertTrue(ActuatorConfigurationSectionImpl.create(allDisabled).isAnyEndpointEnabled());
+    }
+
+    @Test
+    public void test050RestAndActuatorStartupOptions() {
+        System.setProperty(MidpointConfiguration.MIDPOINT_HOME_PROPERTY, "target/midPointHomeEndpoints/");
+        System.setProperty(MidpointConfiguration.REST_API_ENABLED_PROPERTY, "true");
+        System.setProperty(MidpointConfiguration.REST_CLUSTER_ENABLED_PROPERTY, "false");
+        System.setProperty("midpoint.actuator.metrics.enabled", "true");
+        System.setProperty("midpoint.actuator.health.enabled", "false");
+        try {
+            StartupConfiguration configuration = new StartupConfiguration();
+            configuration.init();
+
+            RestConfigurationSection rest = configuration.getRestConfigurationSection();
+            assertTrue(rest.apiEnabled());
+            assertEquals(rest.clusterEnabled(), Boolean.FALSE);
+
+            ActuatorConfigurationSection actuator = configuration.getActuatorConfigurationSection();
+            assertTrue(actuator.isEndpointEnabled("metrics"));
+            assertFalse(actuator.isEndpointEnabled("health"));
+        } finally {
+            System.clearProperty(MidpointConfiguration.REST_API_ENABLED_PROPERTY);
+            System.clearProperty(MidpointConfiguration.REST_CLUSTER_ENABLED_PROPERTY);
+            System.clearProperty("midpoint.actuator.metrics.enabled");
+            System.clearProperty("midpoint.actuator.health.enabled");
+            System.clearProperty(MidpointConfiguration.MIDPOINT_HOME_PROPERTY);
+        }
     }
 }

@@ -100,6 +100,14 @@ public class StartupConfiguration implements MidpointConfiguration, EnvironmentA
     private final Lazy<ConnectorsConfigurationSection> connectorsConfigurationSection = Lazy.from(
             () -> ConnectorsConfigurationSectionImpl.create(getConfiguration(CONNECTORS_CONFIGURATION)));
 
+    /** Cached, so the REST startup options are parsed only on the first access. */
+    private final Lazy<RestConfigurationSection> restConfigurationSection = Lazy.from(
+            () -> RestConfigurationSectionImpl.create(getConfiguration(REST_CONFIGURATION)));
+
+    /** Cached, so the actuator startup options are parsed only on the first access. */
+    private final Lazy<ActuatorConfigurationSection> actuatorConfigurationSection = Lazy.from(
+            () -> ActuatorConfigurationSectionImpl.create(getConfiguration(ACTUATOR_CONFIGURATION)));
+
     /**
      * Normalized name of midPoint home directory.
      * After successful initialization (see {@link #init()} it always ends with /.
@@ -467,6 +475,16 @@ public class StartupConfiguration implements MidpointConfiguration, EnvironmentA
 
     public @NotNull ConnectorsConfigurationSection getConnectorsSection() {
         return connectorsConfigurationSection.get();
+    }
+
+    @Override
+    public @NotNull RestConfigurationSection getRestConfigurationSection() {
+        return restConfigurationSection.get();
+    }
+
+    @Override
+    public @NotNull ActuatorConfigurationSection getActuatorConfigurationSection() {
+        return actuatorConfigurationSection.get();
     }
 
     @Override
