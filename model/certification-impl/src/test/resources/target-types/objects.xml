@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+<!--
+  ~ Copyright (c) 2010-2026 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+
+    <application oid="c1a0de00-0000-4000-8000-000000000042">
+        <name>target-types-app</name>
+    </application>
+
+    <policy oid="c1a0de00-0000-4000-8000-000000000041">
+        <name>target-types-policy</name>
+    </policy>
+
+    <role oid="c1a0de00-0000-4000-8000-000000000070">
+        <name>target-types-role</name>
+    </role>
+
+    <user oid="c1a0de00-0000-4000-8000-000000000071">
+        <name>target-types-user</name>
+        <assignment><targetRef oid="c1a0de00-0000-4000-8000-000000000042" type="ApplicationType"/></assignment>
+        <assignment><targetRef oid="c1a0de00-0000-4000-8000-000000000041" type="PolicyType"/></assignment>
+        <assignment><targetRef oid="c1a0de00-0000-4000-8000-000000000070" type="RoleType"/></assignment>
+    </user>
+</objects>
