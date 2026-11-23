@@ -18,7 +18,6 @@ import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.LambdaColumn;
-import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
@@ -40,7 +39,6 @@ import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxColumn;
 import com.evolveum.midpoint.web.component.data.column.IsolatedCheckBoxPanel;
-import com.evolveum.midpoint.web.component.util.SerializableSupplier;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnDevObjectClassInfoType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
@@ -82,8 +80,8 @@ public abstract class AbstractCleanupConnectorStepPanel extends AbstractCapabili
     protected void onInitialize() {
         super.onInitialize();
 
-        add(createAlert(ID_DELETE_AVAILABLE_ALERT, this::isDeleteAvailable));
-        add(createAlert(ID_DELETE_NOT_CONFIGURED_ALERT, () -> !isDeleteAvailable()));
+        add(createDeleteAvailableAlert());
+        add(createDeleteNotConfiguredAlert());
         table = createTable();
         add(table);
     }
@@ -123,9 +121,25 @@ public abstract class AbstractCleanupConnectorStepPanel extends AbstractCapabili
         cleanUpPerformed(target);
     }
 
-    private WebMarkupContainer createAlert(String id, SerializableSupplier<Boolean> visibility) {
-        WebMarkupContainer alert = new WebMarkupContainer(id);
-        alert.add(new VisibleBehaviour(visibility));
+    private WizardAlertPanel createDeleteAvailableAlert() {
+        WizardAlertPanel alert = new WizardAlertPanel(ID_DELETE_AVAILABLE_ALERT, WizardAlertPanel.AlertType.INFO,
+                createStringResource("AbstractCleanupConnectorStepPanel.deleteAvailable"),
+                createStringResource("AbstractCleanupConnectorStepPanel.deleteAvailableText"));
+        alert.add(new VisibleBehaviour(this::isDeleteAvailable));
+        return alert;
+    }
+
+    private WizardAlertPanel createDeleteNotConfiguredAlert() {
+        WizardAlertPanel alert = new WizardAlertPanel(ID_DELETE_NOT_CONFIGURED_ALERT, WizardAlertPanel.AlertType.WARNING,
+                createStringResource("AbstractCleanupConnectorStepPanel.deleteNotConfigured"),
+                createStringResource("AbstractCleanupConnectorStepPanel.deleteNotConfiguredText")) {
+
+            @Override
+            protected boolean isDismissible() {
+                return true;
+            }
+        };
+        alert.add(new VisibleBehaviour(() -> !isDeleteAvailable()));
         return alert;
     }
 

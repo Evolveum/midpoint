@@ -792,6 +792,7 @@ public class ConnectorDevelopmentServiceImpl implements ConnectorDevelopmentServ
             var testing = stateObject.getTesting();
             return testing == null ? List.of() : testing.getTestObject().stream()
                     .map(ObjectReferenceType::getOid)
+                    .filter(Objects::nonNull)
                     .toList();
         }
 

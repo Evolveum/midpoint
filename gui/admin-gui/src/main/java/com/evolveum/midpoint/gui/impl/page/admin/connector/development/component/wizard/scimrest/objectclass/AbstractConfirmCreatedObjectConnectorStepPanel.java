@@ -15,8 +15,8 @@ import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
-import com.evolveum.midpoint.gui.impl.component.wizard.collapse.log.CodeBlockPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.ConnectorDevelopmentDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.ConnectorDevelopmentWizardUtil;
 import com.evolveum.midpoint.prism.Containerable;
@@ -110,7 +110,7 @@ public abstract class AbstractConfirmCreatedObjectConnectorStepPanel extends Abs
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                target.appendJavaScript(CodeBlockPanel.buildCopyScript(
+                target.appendJavaScript(WebComponentUtil.createCopyToClipboardScript(
                         ConnectorDevelopmentWizardUtil.formatPrimaryIdentifiers(getTestedObject())));
             }
         };
