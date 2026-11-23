@@ -63,6 +63,10 @@ public class MAssignment extends MContainerWithFullObject implements MAssignment
     public Integer modifierRefRelationId;
     public Integer modifyChannelId;
     public Instant modifyTimestamp;
+    //policyRule
+    public Integer[] policyRuleConstraints;
+    public Integer[] policyRuleActions;
+
     // marks
 
 

@@ -20,6 +20,10 @@ import com.evolveum.midpoint.prism.path.InfraItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.schema.SchemaRegistryState;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainerWithFullObjectMapping;
+import com.evolveum.midpoint.repo.sqale.qmodel.policy.PolicyRuleIndexSupport;
+import com.evolveum.midpoint.repo.sqale.qmodel.policy.QAssignmentPolicyRuleReferenceMapping;
+import com.evolveum.midpoint.schema.policy.PolicyRuleIndexData;
+import com.evolveum.midpoint.schema.policy.PolicyRuleIndexExtractor;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 import com.evolveum.midpoint.util.exception.SystemException;
@@ -158,6 +162,7 @@ public class QAssignmentMapping<OR extends MObject>
         addRefMapping(F_EFFECTIVE_MARK_REF,
                 QAssignmentMarkReferenceMapping.initForEffectiveMark(repositoryContext));
 
+        QAssignmentPolicyRuleReferenceMapping.initForAssignmentPolicyRule(repositoryContext);
         addItemMapping(F_SUBTYPE, multiStringMapper(q -> q.subtypes));
 
         addExtensionMapping(F_EXTENSION, MExtItemHolderType.EXTENSION, q -> q.ext);
@@ -374,8 +379,21 @@ public class QAssignmentMapping<OR extends MObject>
             row.modifyTimestamp = MiscUtil.asInstant(metadata.getModifyTimestamp());
         }
 
+        PolicyRuleIndexData policyRuleIndex = null;
+        if (assignment.getPolicyRule() != null) {
+            policyRuleIndex = PolicyRuleIndexExtractor.extract(assignment.getPolicyRule());
+            row.policyRuleConstraints =
+                    PolicyRuleIndexSupport.uriIdsForStore(repositoryContext(), policyRuleIndex.constraints());
+            row.policyRuleActions =
+                    PolicyRuleIndexSupport.uriIdsForStore(repositoryContext(), policyRuleIndex.actions());
+        }
+
         // insert before treating sub-entities
         insert(row, jdbcSession);
+        if (policyRuleIndex != null) {
+            QAssignmentPolicyRuleReferenceMapping.<OR>get()
+                    .insertAll(policyRuleIndex.refs(), row, jdbcSession);
+        }
 
         if (metadata != null) {
             storeRefs(row, metadata.getCreateApproverRef(),

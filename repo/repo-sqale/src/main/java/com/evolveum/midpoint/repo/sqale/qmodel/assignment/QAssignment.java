@@ -69,6 +69,11 @@ public class QAssignment<OR extends MObject> extends QContainerWithFullObject<MA
     public static final ColumnMetadata SUBTYPES =
             ColumnMetadata.named("subtypes").ofType(Types.ARRAY);
     public static final ColumnMetadata EXT = ColumnMetadata.named("ext").ofType(JSONB_TYPE);
+    public static final ColumnMetadata POLICY_RULE_CONSTRAINTS =
+            ColumnMetadata.named("policyRuleConstraints").ofType(Types.ARRAY);
+    public static final ColumnMetadata POLICY_RULE_ACTIONS =
+            ColumnMetadata.named("policyRuleActions").ofType(Types.ARRAY);
+
     // construction columns
     public static final ColumnMetadata RESOURCE_REF_TARGET_OID =
             ColumnMetadata.named("resourceRefTargetOid").ofType(UuidPath.UUID_TYPE);
@@ -146,6 +151,11 @@ public class QAssignment<OR extends MObject> extends QContainerWithFullObject<MA
             createInteger("tenantRefRelationId", TENANT_REF_RELATION_ID);
     public final ArrayPath<Integer[], Integer> policySituations =
             createArray("policySituations", Integer[].class, POLICY_SITUATIONS);
+    public final ArrayPath<Integer[], Integer> policyRuleConstraints =
+            createArray("policyRuleConstraints",Integer[].class,POLICY_RULE_CONSTRAINTS);
+    public final ArrayPath<Integer[], Integer> policyRuleActions =
+            createArray("policyRuleActions",Integer[].class,POLICY_RULE_ACTIONS);
+
     public final ArrayPath<String[], String> subtypes =
             createArray("subtypes", String[].class, SUBTYPES);
     public final JsonbPath ext = addMetadata(add(new JsonbPath(forProperty("ext"))), EXT);
