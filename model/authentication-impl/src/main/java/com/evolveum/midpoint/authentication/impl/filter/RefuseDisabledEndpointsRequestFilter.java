@@ -29,7 +29,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
  * Other requests (GUI, ...) pass unchanged.
  * <p>
  * It is the first filter in the security filter chain, so a rejected request causes no authentication attempt,
- * no lockout counting and no audit record (TODO review/confirm).
+ * no lockout counting and no audit record.
  * <p>
  * {@code SecurityConfigurer} adds it to the chain.
  */

@@ -49,7 +49,7 @@ Moreover, midPoint 4.11.0 made a significant leap towards secure-by-default conf
 * Hardened Content Security Policy by removing unsafe-inline and unsafe-eval JavaScript permissions and restricting inline CSS in <style> elements.
 * The REST API and most of the Spring Boot Actuator endpoints are disabled by default and can be enabled by startup options.
 Requests to a disabled endpoint end with HTTP 404 (Not Found) before authentication.
-See <<_behavior_changes_since_4_10,Behavior Changes>>.
+See <<_behavior_changes_since_4_11,Behavior Changes>>.
 // TODO
 
 ==== User Interface
@@ -674,8 +674,8 @@ _Actions required:_
 Make sure you don't use any removed items.
 You can use `ninja` tool for this.
 
-[#_behavior_changes_since_4_10]
-=== Behavior Changes Since 4.10
+[#_behavior_changes_since_4_11]
+=== Behavior Changes Since 4.11
 
 * Request access wizard behaves differently in case when conflicting situation occurs and prune action will be used for resolving the conflict.
 +
