@@ -25,6 +25,7 @@
             <class name="com.evolveum.midpoint.authentication.TestRequisiteModuleAbort"/>
             <class name="com.evolveum.midpoint.authentication.TestWicketLoginUrlAuthenticationEntryPoint"/>
             <class name="com.evolveum.midpoint.authentication.impl.TestDisabledEndpoints"/>
+            <class name="com.evolveum.midpoint.authentication.impl.evaluator.TestAuthenticationTimingEqualizer"/>
         </classes>
     </test>
 </suite>

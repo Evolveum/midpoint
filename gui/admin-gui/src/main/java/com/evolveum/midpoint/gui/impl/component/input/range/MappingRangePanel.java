@@ -119,7 +119,8 @@ public class MappingRangePanel extends BasePanel<PrismContainerValueWrapper<Mapp
     }
 
     private MappingRangeOption getSelectedOption() {
-        return selectedOption != null ? selectedOption : MappingRangeOption.of(rangeModel.getObject());
+        MappingRangeOption stored = MappingRangeOption.of(rangeModel.getObject());
+        return stored != null ? stored : selectedOption;
     }
 
     private void storeOption(MappingRangeOption option) {
