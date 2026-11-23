@@ -8,8 +8,12 @@
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
     <div class="d-flex flex-column gap-3">
-        <div class="mb-0 h4 w-100">
-            <wicket:message key="ConnectorDevelopmentWizardSummaryPanel.title"/>
+        <div class="d-flex align-items-center gap-2">
+            <div class="mb-0 h4 flex-grow-1">
+                <wicket:message key="ConnectorDevelopmentWizardSummaryPanel.title"/>
+            </div>
+            <a class="btn btn-light border" wicket:id="exportConnector"></a>
+            <a class="btn btn-outline-primary" wicket:id="createResource"></a>
         </div>
         <div class="d-flex flex-row p-3 border rounded">
             <div class="pe-3 d-flex flex-column justify-content-center">
@@ -45,7 +49,6 @@
                 <div wicket:id="numberOfObjectsWidget"/>
             </div>
         </div>
-        <div wicket:id="connectorAction"/>
     </div>
 </wicket:panel>
 </html>

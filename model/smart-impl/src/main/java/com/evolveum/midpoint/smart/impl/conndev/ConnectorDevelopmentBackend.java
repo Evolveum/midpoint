@@ -290,6 +290,19 @@ public abstract class ConnectorDevelopmentBackend {
         reload();
     }
 
+    /**
+     * Sets the version of the developed connector.
+     *
+     * @param version new connector version
+     */
+    public void updateConnectorVersion(String version) throws CommonException {
+        var delta = PrismContext.get().deltaFor(ConnectorDevelopmentType.class)
+                .item(ConnectorDevelopmentType.F_CONNECTOR, ConnDevConnectorType.F_VERSION).replace(version)
+                .<ConnectorDevelopmentType>asObjectDelta(development.getOid());
+        beans.modelService.executeChanges(List.of(delta), null, task, result);
+        reload();
+    }
+
     public void saveArtifact(ConnDevArtifactType artifact) throws IOException, CommonException {
         var deltaBuilder = PrismContext.get().deltaFor(ConnectorDevelopmentType.class);
         final ItemPath itemPath;
