@@ -11,6 +11,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.VisibleForTesting;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.context.MessageSourceAware;
@@ -18,6 +19,7 @@ import org.springframework.context.support.MessageSourceAccessor;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.*;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
@@ -54,6 +56,7 @@ public abstract class CredentialsAuthenticationEvaluatorImpl<C extends AbstractC
 
     @Autowired private Protector protector;
     @Autowired private Clock clock;
+    @Autowired private AuthenticationTimingEqualizer timingEqualizer;
 
     protected MessageSourceAccessor messages;
 
@@ -61,6 +64,11 @@ public abstract class CredentialsAuthenticationEvaluatorImpl<C extends AbstractC
     @Override
     public void setMessageSource(@NotNull MessageSource messageSource) {
         this.messages = new MessageSourceAccessor(messageSource);
+    }
+
+    @VisibleForTesting
+    public void setTimingEqualizer(AuthenticationTimingEqualizer timingEqualizer) {
+        this.timingEqualizer = timingEqualizer;
     }
 
     protected abstract void checkEnteredCredentials(ConnectionEnvironment connEnv, T authCtx);
@@ -80,30 +88,46 @@ public abstract class CredentialsAuthenticationEvaluatorImpl<C extends AbstractC
 
         checkEnteredCredentials(connEnv, authnCtx);
 
-        MidPointPrincipal principal = getAndCheckPrincipal(connEnv, authnCtx, authnCtx.isSupportActivationByChannel());
+        // Failures that return before the password check (unknown, disabled or locked user, ...) are delayed
+        // by the duration of a full attempt, so the response time does not reveal whether the user exists.
+        long start = System.nanoTime();
+        boolean passwordChecked = false;
+        try {
+            MidPointPrincipal principal = getAndCheckPrincipal(connEnv, authnCtx, authnCtx.isSupportActivationByChannel());
 
-        FocusType focusType = principal.getFocus();
-        CredentialPolicyType credentialsPolicy = getCredentialsPolicy(principal, authnCtx);
+            FocusType focusType = principal.getFocus();
+            CredentialPolicyType credentialsPolicy = getCredentialsPolicy(principal, authnCtx);
 
-        if (checkCredentials(principal, authnCtx, connEnv)) {
-            if (!AuthenticationEvaluatorUtil.checkRequiredAssignmentTargets(focusType, authnCtx.getRequireAssignments())) {
-                recordModuleAuthenticationFailure(principal.getUsername(), principal, connEnv, credentialsPolicy, "does not contain required assignment");
-                throw new DisabledException("web.security.flexAuth.invalid.required.assignment");
+            boolean credentialsMatch = checkCredentials(principal, authnCtx, connEnv);
+            passwordChecked = true;
+            if (credentialsMatch) {
+                if (!AuthenticationEvaluatorUtil.checkRequiredAssignmentTargets(focusType, authnCtx.getRequireAssignments())) {
+                    recordModuleAuthenticationFailure(principal.getUsername(), principal, connEnv, credentialsPolicy, "does not contain required assignment");
+                    throw new DisabledException("web.security.flexAuth.invalid.required.assignment");
+                }
+            } else {
+                String reason = createInvalidCredentialsMessage(principal, connEnv);
+                recordModuleAuthenticationFailure(principal.getUsername(), principal, connEnv, credentialsPolicy, reason);
+
+                String key = createInvalidCredentialsKey(principal, connEnv);
+                if (StringUtils.isEmpty(key)) {
+                    key = AuthUtil.generateBadCredentialsMessageKey(SecurityContextHolder.getContext().getAuthentication());
+                }
+                throw new BadCredentialsException(key);
             }
-        } else {
-            String reason = createInvalidCredentialsMessage(principal, connEnv);
-            recordModuleAuthenticationFailure(principal.getUsername(), principal, connEnv, credentialsPolicy, reason);
 
-            String key = createInvalidCredentialsKey(principal, connEnv);
-            if (StringUtils.isEmpty(key)) {
-                key = AuthUtil.generateBadCredentialsMessageKey(SecurityContextHolder.getContext().getAuthentication());
+            checkAuthorizations(principal, connEnv, authnCtx);
+            recordModuleAuthenticationSuccess(principal, connEnv);
+            timingEqualizer.recordLogin(System.nanoTime() - start);
+            return new UsernamePasswordAuthenticationToken(principal, authnCtx.getEnteredCredential(), principal.getAuthorities());
+        } catch (AuthenticationException e) {
+            if (passwordChecked) {
+                timingEqualizer.recordLogin(System.nanoTime() - start);
+            } else {
+                timingEqualizer.delayFailure();
             }
-            throw new BadCredentialsException(key);
+            throw e;
         }
-
-        checkAuthorizations(principal, connEnv, authnCtx);
-        recordModuleAuthenticationSuccess(principal, connEnv);
-        return new UsernamePasswordAuthenticationToken(principal, authnCtx.getEnteredCredential(), principal.getAuthorities());
     }
 
     private void checkAuthorizations(MidPointPrincipal principal, @NotNull ConnectionEnvironment connEnv, T authnCtx) {

@@ -9,6 +9,9 @@ package com.evolveum.midpoint.authentication.evaluator;
 import static org.testng.AssertJUnit.*;
 
 import java.io.File;
+import static org.assertj.core.api.Assertions.assertThat;
+
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
@@ -23,6 +26,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
 
@@ -35,6 +39,7 @@ import com.evolveum.midpoint.authentication.api.evaluator.context.AbstractAuthen
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.authentication.impl.FocusAuthenticationResultRecorder;
 import com.evolveum.midpoint.authentication.impl.channel.GuiAuthenticationChannel;
+import com.evolveum.midpoint.authentication.impl.evaluator.AuthenticationTimingEqualizer;
 import com.evolveum.midpoint.authentication.impl.evaluator.CredentialsAuthenticationEvaluatorImpl;
 import com.evolveum.midpoint.authentication.impl.filter.SequenceCompletionFilter;
 import com.evolveum.midpoint.authentication.impl.module.authentication.ModuleAuthenticationImpl;
@@ -115,6 +120,7 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
     private MessageSourceAccessor messages;
 
     private SequenceCompletionFilter auditFilter;
+    private final RecordingTimingEqualizer timingEqualizer = new RecordingTimingEqualizer();
 
     public abstract T getAuthenticationEvaluator();
     public abstract AC getAuthenticationContext(String username, V value, List<ObjectReferenceType> requiredAssignments);
@@ -260,6 +266,7 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
         });
 
         auditFilter = new SequenceCompletionFilter(authenticationRecorder);
+        ((CredentialsAuthenticationEvaluatorImpl) getAuthenticationEvaluator()).setTimingEqualizer(timingEqualizer);
     }
 
     @Test
@@ -285,6 +292,7 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
         then();
         XMLGregorianCalendar endTs = clock.currentTimeXMLGregorianCalendar();
         assertGoodPasswordAuthentication(authentication, USER_JACK_USERNAME);
+        assertTimingRealPathRecorded();
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("user after", userAfter);
@@ -314,6 +322,7 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
             then();
             displayExpectedException(e);
             assertBadPasswordException(e);
+            assertTimingRealPathRecorded();
         }
         XMLGregorianCalendar endTs = clock.currentTimeXMLGregorianCalendar();
 
@@ -454,6 +463,7 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
             then();
             displayExpectedException(e);
             assertNoUserException(e);
+            assertTimingPadded();
         }
     }
 
@@ -597,6 +607,7 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
             // This is important.
             // The exception should give no indication whether the password is good or bad.
             assertLockedException(e);
+            assertTimingPadded();
         }
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -1293,6 +1304,7 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
             // This is important.
             // The exception should give no indication whether the password is good or bad.
             assertDisabledException(e);
+            assertTimingPadded();
         }
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -1352,4 +1364,42 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
         return mPAuthentication;
     }
 
+    @BeforeMethod
+    public void resetTimingEqualizer() {
+        timingEqualizer.reset();
+    }
+
+    /** Failure that returned before the password check must be padded, and must not feed the statistics. */
+    private void assertTimingPadded() {
+        assertThat(timingEqualizer.padded.get()).as("padded failures").isEqualTo(1);
+        assertThat(timingEqualizer.recorded.get()).as("recorded real-path samples").isZero();
+    }
+
+    /** Attempt that reached the password check feeds the statistics and is never padded. */
+    private void assertTimingRealPathRecorded() {
+        assertThat(timingEqualizer.recorded.get()).as("recorded real-path samples").isEqualTo(1);
+        assertThat(timingEqualizer.padded.get()).as("padded failures").isZero();
+    }
+
+    /** Counts calls instead of sleeping. */
+    private static class RecordingTimingEqualizer extends AuthenticationTimingEqualizer {
+
+        private final AtomicInteger padded = new AtomicInteger();
+        private final AtomicInteger recorded = new AtomicInteger();
+
+        @Override
+        public void delayFailure() {
+            padded.incrementAndGet();
+        }
+
+        @Override
+        public void recordLogin(long durationNanos) {
+            recorded.incrementAndGet();
+        }
+
+        void reset() {
+            padded.set(0);
+            recorded.set(0);
+        }
+    }
 }
