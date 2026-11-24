@@ -1,0 +1,173 @@
+<!--
+  ~ Copyright (C) 2010-2026 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<!--
+  Holder for assignments that are requested in TestSecurityAdvanced.test258AssignRequestableSelfWithSmuggledExpressions.
+  This user is never imported. The test picks an assignment by its container ID, drops the ID, and requests the assignment
+  for jack. Do not add any "marker" items to the assignments: every item is a part of the request being authorized.
+
+  All the scripts call TestSecurityAdvanced.smuggledScriptExecuted(), so the test can tell whether they were executed.
+
+  Target role: role-business-1.xml (requestable). Org: Ministry of Rum.
+-->
+<user xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+    <name>assignment-requests-holder</name>
+
+    <!-- Script in inline focus mapping. Item not permitted: request must be denied. -->
+    <assignment id="1">
+        <targetRef oid="00000000-0000-0000-0000-00000000aab1" type="RoleType"/>
+        <focusMappings>
+            <mapping>
+                <strength>strong</strength>
+                <expression>
+                    <script>
+                        <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
+                        <code>
+                            com.evolveum.midpoint.model.intest.security.TestSecurityAdvanced.smuggledScriptExecuted()
+                            'Should not be here'
+                        </code>
+                    </script>
+                </expression>
+                <target>
+                    <path>description</path>
+                </target>
+            </mapping>
+        </focusMappings>
+    </assignment>
+
+    <!-- Script in assignment condition. Item not permitted: request must be denied. -->
+    <assignment id="2">
+        <targetRef oid="00000000-0000-0000-0000-00000000aab1" type="RoleType"/>
+        <condition>
+            <expression>
+                <script>
+                    <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
+                    <code>
+                        com.evolveum.midpoint.model.intest.security.TestSecurityAdvanced.smuggledScriptExecuted()
+                        true
+                    </code>
+                </script>
+            </expression>
+        </condition>
+    </assignment>
+
+    <!-- Permitted items only, no script: request must be allowed. -->
+    <assignment id="3">
+        <description>I need this</description>
+        <targetRef oid="00000000-0000-0000-0000-00000000aab1" type="RoleType"/>
+        <activation>
+            <validTo>2099-12-31T00:00:00Z</validTo>
+        </activation>
+    </assignment>
+
+    <!-- Script in tenantRef filter, OID present: request is allowed, the filter must not be evaluated. -->
+    <assignment id="4">
+        <targetRef oid="00000000-0000-0000-0000-00000000aab1" type="RoleType"/>
+        <tenantRef oid="00000000-8888-6666-0000-100000000004" type="OrgType">
+            <filter>
+                <q:equal>
+                    <q:path>name</q:path>
+                    <expression>
+                        <script>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
+                            <code>
+                                com.evolveum.midpoint.model.intest.security.TestSecurityAdvanced.smuggledScriptExecuted()
+                                'x'
+                            </code>
+                        </script>
+                    </expression>
+                </q:equal>
+            </filter>
+        </tenantRef>
+    </assignment>
+
+    <!-- Script in orgRef filter, OID present: request is allowed, the filter must not be evaluated. -->
+    <assignment id="5">
+        <targetRef oid="00000000-0000-0000-0000-00000000aab1" type="RoleType"/>
+        <orgRef oid="00000000-8888-6666-0000-100000000004" type="OrgType">
+            <filter>
+                <q:equal>
+                    <q:path>name</q:path>
+                    <expression>
+                        <script>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
+                            <code>
+                                com.evolveum.midpoint.model.intest.security.TestSecurityAdvanced.smuggledScriptExecuted()
+                                'x'
+                            </code>
+                        </script>
+                    </expression>
+                </q:equal>
+            </filter>
+        </orgRef>
+    </assignment>
+
+    <!-- Script in run-time targetRef filter, OID present: request is allowed, OID wins, the filter must not be evaluated. -->
+    <assignment id="6">
+        <description>filter in targetRef</description>
+        <targetRef oid="00000000-0000-0000-0000-00000000aab1" type="RoleType">
+            <resolutionTime>run</resolutionTime>
+            <filter>
+                <q:equal>
+                    <q:path>name</q:path>
+                    <expression>
+                        <script>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
+                            <code>
+                                com.evolveum.midpoint.model.intest.security.TestSecurityAdvanced.smuggledScriptExecuted()
+                                'x'
+                            </code>
+                        </script>
+                    </expression>
+                </q:equal>
+            </filter>
+        </targetRef>
+    </assignment>
+
+    <!-- Script in run-time targetRef filter, no OID: not coverable by #assign, request must be denied. -->
+    <assignment id="7">
+        <targetRef type="RoleType">
+            <resolutionTime>run</resolutionTime>
+            <filter>
+                <q:equal>
+                    <q:path>name</q:path>
+                    <expression>
+                        <script>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
+                            <code>
+                                com.evolveum.midpoint.model.intest.security.TestSecurityAdvanced.smuggledScriptExecuted()
+                                'x'
+                            </code>
+                        </script>
+                    </expression>
+                </q:equal>
+            </filter>
+        </targetRef>
+    </assignment>
+
+    <!-- As 4, but requested with the "reevaluate search filters" option. The filter must not be evaluated. -->
+    <assignment id="8">
+        <description>reevaluation</description>
+        <targetRef oid="00000000-0000-0000-0000-00000000aab1" type="RoleType"/>
+        <tenantRef oid="00000000-8888-6666-0000-100000000004" type="OrgType">
+            <filter>
+                <q:equal>
+                    <q:path>name</q:path>
+                    <expression>
+                        <script>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
+                            <code>
+                                com.evolveum.midpoint.model.intest.security.TestSecurityAdvanced.smuggledScriptExecuted()
+                                'x'
+                            </code>
+                        </script>
+                    </expression>
+                </q:equal>
+            </filter>
+        </tenantRef>
+    </assignment>
+</user>

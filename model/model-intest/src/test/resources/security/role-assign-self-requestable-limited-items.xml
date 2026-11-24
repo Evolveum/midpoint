@@ -1,0 +1,42 @@
+<!--
+  ~ Copyright (C) 2010-2026 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+<role oid="5f1a6c0e-8d3b-4e27-9c41-2b7d0a9e6f15"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+        xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3">
+    <name>Assign self requestable (limited items)</name>
+    <description>
+        Request requestable roles for myself, but only with harmless assignment items.
+        Items that carry expressions (focusMappings, condition, construction, policyRule, ...) are not allowed.
+    </description>
+    <authorization>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+    </authorization>
+    <authorization>
+        <name>assign-requestable-roles</name>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#assign</action>
+        <phase>request</phase>
+        <object>
+            <special>self</special>
+        </object>
+        <item>assignment/targetRef</item>
+        <item>assignment/description</item>
+        <item>assignment/activation</item>
+        <item>assignment/tenantRef</item>
+        <item>assignment/orgRef</item>
+        <target>
+            <type>RoleType</type>
+            <filter>
+                <q:text>requestable = true</q:text>
+            </filter>
+        </target>
+        <relation>org:default</relation>
+    </authorization>
+    <authorization>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#modify</action>
+        <phase>execution</phase>
+    </authorization>
+</role>
