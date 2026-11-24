@@ -57,6 +57,9 @@ See <<_behavior_changes_since_4_11,Behavior Changes>>.
 * English (Europe) is now the default locale.
 It uses the standard locale code `en_150` instead of the non-existent `en_EU`, for which neither the JDK nor browsers have locale data.
 Users who have `en_EU` stored (midPoint 4.11.0) keep English (Europe). See bug:MID-12889[]
+* Connector generator wizard can now test the generated get, create, update and delete operations on the testing resource. See bug:MID-11802[], bug:MID-12501[], bug:MID-11441[] and bug:MID-11442[]
+* Connector generator wizard can export the developed connector as a JAR or a project ZIP, either downloaded or saved to the midPoint connector directory, optionally with a new connector version. See bug:MID-11259[]
+* Improved selection of a new relationship in the connector generator wizard. See bug:MID-11791[]
 // TODO
 
 === Other Areas
@@ -90,6 +93,10 @@ The legacy `mail` and `file` transport configuration is shown only if it is pres
 * Fixed failures of large multipart form submissions in GUI by raising the embedded Tomcat multipart limits (`max-part-count` to 250, `max-part-header-size` to 1024). See bug:MID-12616[]
 * Fixed container deployments (`midpoint.sh init-native`) creating `config.xml` from the legacy `config-native.xml` template.
 The same default `config.xml` is now used for all forms of deployment. See <<_behavior_changes_since_4_11>>.
+* Fixed adding a documentation URL in the connector generator wizard de-selecting documentation suggested by AI. See bug:MID-12799[]
+* Fixed Range step of the mapping wizard showing a stale value after the range is adjusted automatically. See bug:MID-12578[]
+* Fixed selecting an autocompletion suggestion with keyboard in advanced search overwriting the whole query. See bug:MID-13485[]
+* Fixed Connection tile of the connector generator wizard always showing Basic auth as the authentication method. See bug:MID-13501[]
 // TODO
 
 
