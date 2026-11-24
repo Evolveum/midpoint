@@ -217,6 +217,8 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
     public void init() {
         super.init();
 
+        RestrictedResourceReferenceMapper.install(this);
+
         getStoreSettings().setMaxSizePerSession(Bytes.megabytes(100));
 
         getRequestCycleSettings().setTimeout(requestCycleTimeout);
