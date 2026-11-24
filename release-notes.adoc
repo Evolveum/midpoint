@@ -65,6 +65,21 @@ The same default `config.xml` is now used for all forms of deployment. See <<_be
 * Fixed Range step of the mapping wizard showing a stale value after the range is adjusted automatically. See bug:MID-12578[]
 * Fixed selecting an autocompletion suggestion with keyboard in advanced search overwriting the whole query. See bug:MID-13485[]
 * Fixed Connection tile of the connector generator wizard always showing Basic auth as the authentication method. See bug:MID-13501[]
+* Fixed script language check in the editor of suggested mappings: the disabled script evaluator warning is no longer shown and only languages allowed by the resource expression profile are offered. See bug:MID-13214[]
+* Fixed help, tooltip and validator customization being ignored in the first step of the resource wizard. See bug:MID-12359[]
+* Fixed correlation authentication module showing a general error when a correlation attribute value is missing or invalid.
+The user now gets a message about the invalid input.
+* Fixed error 500 after changing the language on the resource details page. See bug:MID-13215[]
+* Fixed `summaryPanel/displayName` customization being ignored. See bug:MID-13037[]
+* Fixed untranslated validation error messages in the schema extension wizard. See bug:MID-13216[]
+* Fixed the members table in Organization tree overflowing its panel. See bug:MID-13311[]
+* Fixed NullPointerException when exiting the new schema form. See bug:MID-13349[]
+* Fixed validation error messages in wizard steps remaining visible after the value was corrected. See bug:MID-13355[]
+* Fixed adding a documentation URL in the connector generator wizard. See bug:MID-13286[]
+* Fixed Retry connection in the connector generator wizard accepting an empty or invalid base URL. See bug:MID-12890[]
+* Fixed the roles list in the request access role catalog showing services after "All services" was opened. See bug:MID-13480[]
+* Fixed the role catalog step of the request access wizard listing roles that cannot be requested when the step was opened directly by URL.
+The wizard now starts at the person of interest step if no person is selected. See bug:MID-13482[]
 
 == Changes With Respect to Version 4.10
 
