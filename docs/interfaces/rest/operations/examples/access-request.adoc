@@ -84,6 +84,11 @@ xref:/midpoint/reference/interfaces/rest/concepts/using-rest-examples.adoc[How t
         <object>
             <special>self</special>
         </object>
+        <item>assignment/targetRef</item>
+        <item>assignment/description</item>
+        <item>assignment/activation</item>
+        <item>assignment/tenantRef</item>
+        <item>assignment/orgRef</item>
         <target>
             <type>RoleType</type>
             <filter>

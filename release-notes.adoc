@@ -50,6 +50,8 @@ Moreover, midPoint 4.11.0 made a significant leap towards secure-by-default conf
 * The REST API and most of the Spring Boot Actuator endpoints are disabled by default and can be enabled by startup options.
 Requests to a disabled endpoint end with HTTP 404 (Not Found) before authentication.
 See <<_behavior_changes_since_4_11,Behavior Changes>>.
+* The `End user` role now allows only selected assignment items (`targetRef`, `description`, `activation`, `tenantRef`, `orgRef`) when requesting a role.
+See <<_behavior_changes_since_4_11,Behavior Changes>>.
 // TODO
 
 ==== User Interface
@@ -504,6 +506,7 @@ Modified:
 * 017-mark-privileged-access.xml (former 250-mark-privileged-access.xml) - Added archetype.
 * 018-archetype-classification.xml (former 062-archetype-classification.xml) - Changed display icon.
 * 029-archetype-application.xml - Poly-string translation keys added.
+* 040-role-enduser.xml - The `assign-requestable-roles` authorization was limited to assignment items `targetRef`, `description`, `activation`, `tenantRef` and `orgRef`.
 * 041-role-approver.xml, 042-role-reviewer.xml - Removed obsolete authorization item references (`employeeType`, `roleType`, `orgType`, `serviceType`) and added `personalNumber` alongside deprecated `employeeNumber`.
 * 050-user-administrator.xml - Added displayName.
 * 100-report-reconciliation.xml, 110-report-user-list.xml, 130-report-certification-definitions.xml, 140-report-certification-campaigns.xml, 150-report-certification-cases.xml, 160-report-certification-work-items.xml, 170-report-simulation-objects.xml, 171-report-simulation-objects-with-metrics.xml, 172-report-simulation-items-changed.xml, 173-report-simulation-values-changed.xml, 180-report-simulation-results.xml, 200-report-indirect-assignments.xml - Expressions migrated from Groovy (and `javaMethodReference`) to MEL.
@@ -728,6 +731,17 @@ The legacy template was removed and the container initialization now uses the sa
 An existing `config.xml` is not updated automatically.
 To fix such a deployment, add `<expressions><safeScriptingLanguagesOnly>true</safeScriptingLanguagesOnly></expressions>` to the `midpoint` element of `config.xml`, or set the `MP_SET_midpoint_expressions_safeScriptingLanguagesOnly=true` environment variable.
 See xrefv:/midpoint/reference/master/expressions/expressions/configuration/[], xrefv:/midpoint/reference/master/expressions/expressions/profiles/[], xrefv:/midpoint/reference/master/expressions/expressions/security/[], and xrefv:/midpoint/reference/master/connector-generator/enable/[].
+
+* The `End user` role limits the assignment items that can be requested.
++
+The `assign-requestable-roles` authorization of the `End user` role now lists the permitted assignment items: `targetRef`, `description`, `activation`, `tenantRef` and `orgRef`.
+A request for a role whose assignment contains any other item is denied.
+If your deployment lets users fill in other assignment items when requesting access (e.g. assignment extension items), add these items to the authorization.
++
+Existing deployments keep their `End user` role, as midPoint does not overwrite existing initial objects.
+It is strongly recommended to apply this change to the `End user` role, and to review all custom roles that contain `#assign` (or `#delegate`) authorization for the request phase without `item` specification.
+Also make sure that the default expression profile for authorized objects (`expressions/defaults/authorizedObjects` in the system configuration) is set to a restrictive profile.
+See xrefv:/midpoint/reference/master/security/authorization/configuration/#limiting-assignment-items[Limiting Assignment Items].
 
 * The REST API is disabled by default.
 +
