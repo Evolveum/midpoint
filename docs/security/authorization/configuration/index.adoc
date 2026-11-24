@@ -653,6 +653,52 @@ All that execution phase can see is just a modification of the `assignment` cont
 Therefore for the assign/unassign authorizations to work correctly, you have to allow _assign_ in the request phase and _modification_ of `assignment` container in the execution phase.
 The default end user role is a good example for this.
 
+[#limiting-assignment-items]
+==== Limiting Assignment Items
+
+An assign authorization limits the _target_ of the assignment, but by default it does not limit the _content_ of the assignment.
+An assignment is a rich data structure.
+Besides the target, it may contain items such as `focusMappings`, `condition`, `construction` or `policyRule`.
+Some of these items contain expressions that midPoint evaluates when the assignment is processed.
+A user that is allowed to assign a role could therefore create an assignment that does much more than just assigning that role.
+
+This is the reason why assign authorizations for ordinary users should always enumerate the permitted assignment items using the `item` element.
+The paths are relative to the object that holds the assignment, therefore they start with `assignment`:
+
+[source,xml]
+----
+<authorization>
+    <name>assign-requestable-roles</name>
+    <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#assign</action>
+    <phase>request</phase>
+    <object>
+        <special>self</special>
+    </object>
+    <item>assignment/targetRef</item>
+    <item>assignment/description</item>
+    <item>assignment/activation</item>
+    <item>assignment/tenantRef</item>
+    <item>assignment/orgRef</item>
+    <target>
+        <type>RoleType</type>
+        <filter>
+            <q:text>requestable = true</q:text>
+        </filter>
+    </target>
+    <relation>org:default</relation>
+</authorization>
+----
+
+With this authorization, a request to assign a requestable role is allowed only if the assignment contains nothing but the listed items.
+A request that adds e.g. `focusMappings` or `condition` to the assignment is denied.
+This is how the default end user role is defined since midPoint 4.12.
+
+If your deployment lets users provide other assignment items when requesting access (e.g. assignment extension items), add these items to the list.
+Do not add items that can contain expressions.
+
+NOTE: An assignment without target OID (e.g. an assignment with a `targetRef` filter only, or an assignment with a `construction`) cannot be allowed by an assign authorization, as there is no target to check.
+Such an assignment has to be allowed by add or modify authorization for the `assignment` item.
+
 === Inducement Authorizations
 
 Assignment and unassignment authorization can be applied to inducements using the very same principles.

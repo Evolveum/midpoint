@@ -212,7 +212,8 @@ The primary goal of these authorizations is to limit the _targets_ of assignment
 And that is processed only in the request phase.
 All that execution phase can see is just a modification of the `assignment` container.
 Therefore for the assign/unassign authorizations to work correctly, you have to allow _assign_ in the request phase and _modification_ of `assignment` container in the execution phase.
-The default end user role is a good example for this:
+The default end user role is a good example for this.
+The `item` elements limit what the requested assignment may contain, see xref:/midpoint/reference/security/authorization/configuration/#limiting-assignment-items[Limiting Assignment Items].
 
 [source,xml]
 ----
@@ -229,6 +230,11 @@ The default end user role is a good example for this:
         <object>
             <special>self</special>
         </object>
+        <item>assignment/targetRef</item>
+        <item>assignment/description</item>
+        <item>assignment/activation</item>
+        <item>assignment/tenantRef</item>
+        <item>assignment/orgRef</item>
         <target>
             <type>RoleType</type>
             <filter>

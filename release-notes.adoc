@@ -43,6 +43,8 @@ See xref:/midpoint/guides/account-activation-sequence/[Account Activation Authen
 * Fixed the role catalog step of the request access wizard listing roles that cannot be requested when the step was opened directly by URL.
 The wizard now starts at the person of interest step if no person is selected. See bug:MID-13482[]
 * Fixed the roles list in the request access role catalog showing services after "All services" was opened. See bug:MID-13480[]
+* The `End user` role now allows only selected assignment items (`targetRef`, `description`, `activation`, `tenantRef`, `orgRef`) when requesting a role.
+See <<_behavior_changes_since_4_7,Behavior Changes>>.
 
 == Changes with Respect To Version 4.8.13
 
@@ -1009,6 +1011,9 @@ For more information see xrefv:/midpoint/reference/support-4.8/upgrade/upgrade-w
 * References to removed `category`, `handlerUri`, and `reportOutputOid` properties of tasks were deleted: from task archetypes and from GUI configurations.
 See https://github.com/Evolveum/midpoint/commit/1fe4b60057d040f7424523cf24194bfcb7920f90[1fe4b6], https://github.com/Evolveum/midpoint/commit/b5a331b377a4fff0dbabd82e64da60f0b8c96c2b[b5a331], and https://github.com/Evolveum/midpoint/commit/6887e980c48e45a5ae22642932ed22e0c8b5f665[6887e9].
 
+* 040-role-enduser.xml: extended assignment panels configuration.
+The `assign-requestable-roles` authorization was limited to assignment items `targetRef`, `description`, `activation`, `tenantRef` and `orgRef`.
+
 * `230-lookup-lifecycle-state.xml`: The `suspended` lifecycle state was added.
 
 * Container IDs and configuration items identifiers were added to multiple objects, see https://github.com/Evolveum/midpoint/commit/6887e980c48e45a5ae22642932ed22e0c8b5f665[6887e9] and https://github.com/Evolveum/midpoint/commit/092db5c5ab1b21f578acab520a2ea35d0ed94904[092db5] (the last commit also adds missing `handlerUri` mapping to `520-archetype-task-certification.xml`).
@@ -1381,6 +1386,17 @@ In midPoint 4.8, xrefv:/midpoint/reference/support-4.8/schema/archetypes/person/
 We have always recommended the iterative approach to identity projects with midPoint.
 With the xref:/midpoint/methodology/first-steps/[First Steps Methodology] this is now much more than just a recommendation.
 The new midPoint features as xrefv:/midpoint/reference/support-4.8/admin-gui/simulations/[simulations], xrefv:/midpoint/reference/support-4.8/concepts/mark/[object marks]  and xrefv:/midpoint/reference/support-4.8/admin-gui/resource-wizard/[resource wizard] encourage you to work in iterations and update your configurations based on results of simulations.
+
+* The `End user` role limits the assignment items that can be requested.
++
+The `assign-requestable-roles` authorization of the `End user` role now lists the permitted assignment items: `targetRef`, `description`, `activation`, `tenantRef` and `orgRef`.
+A request for a role whose assignment contains any other item is denied.
+If your deployment lets users fill in other assignment items when requesting access (e.g. assignment extension items), add these items to the authorization.
++
+Existing deployments keep their `End user` role, as midPoint does not overwrite existing initial objects.
+It is strongly recommended to apply this change to the `End user` role, and to review all custom roles that contain `#assign` (or `#delegate`) authorization for the request phase without `item` specification.
+Also make sure that the default expression profile for authorized objects (`expressions/defaults/authorizedObjects` in the system configuration) is set to a restrictive profile.
+See xrefv:/midpoint/reference/support-4.8/security/authorization/configuration/#limiting-assignment-items[Limiting Assignment Items].
 
 ++++
 {% include release-issues.html %}
