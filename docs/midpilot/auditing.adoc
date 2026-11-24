@@ -1,0 +1,108 @@
+= Auditing
+:page-toc: top
+:page-since: "4.11.0"
+:page-upkeep-status: green
+:page-moved-from: /midpoint/reference/smart-integration/security/auditing-logging
+
+== Overview
+
+Smart Integration and the xref:connector-generator/index.adoc[Code Generator] send data to external AI services that use a large language model (LLM).
+Because this data may be sensitive, midPoint records every such call in the audit trail.
+
+The audit records let you see what data was sent to the AI service, whether the call succeeded or failed, how long it took, and which LLM provider and model handled it.
+
+Both features use the same kind of audit event and the same configuration, described below.
+The general behavior of the audit trail is described in xref:/midpoint/reference/security/audit/[Auditing].
+
+== Audit events
+
+For every call to an AI service, midPoint writes two audit events of the type *External Service call*, distinguished by their *Event Stage*:
+
+* *Request* - written before the data is sent to the AI service.
+It contains the data that was sent (the request payload).
+* *Execution* - written after the call completes.
+It contains the outcome of the call (success or failure), a short message, and the duration of the call.
+For Smart Integration it also records the LLM provider and model reported by the AI service.
+
+The request event is written before the data leaves midPoint.
+If it cannot be written, the call is not made and no data is sent to the AI service.
+A failure when writing the execution event does not affect the call itself.
+
+NOTE: For the Code Generator, only the calls that submit work to the service are recorded.
+Routine status checks and documentation lookups are not recorded.
+
+[cols="30%,70%",options="header"]
+|===
+| Recorded | Description
+
+| Request payload
+| The data sent to the AI service.
+For Smart Integration this is the schema, statistics or sample data of the recommendation, see xref:smart-integration/security/data-access-permissions.adoc[Data access permissions].
+For the Code Generator this is the connector definition and the generation request.
+
+| Outcome
+| Whether the call succeeded or failed.
+
+| Message
+| A short description of the result, for example that the call succeeded or the reason it failed.
+
+| Duration
+| How long the call took.
+
+| LLM provider and model
+| (Smart Integration only) The provider and model reported by the AI service for the response.
+
+| Target
+| The object the call relates to: the resource for Smart Integration, the connector being generated for the Code Generator.
+|===
+
+WARNING: The request payload contains the same data that is sent to the LLM provider, which may include real attribute values.
+Treat the audit records accordingly.
+
+== Configuration
+
+Auditing of AI service calls is configured in the system configuration, under `<audit><externalServices><smartIntegration>`.
+Both features use the same settings.
+
+[cols="30%,70%",options="header"]
+|===
+| Setting | Description
+
+| `recordEvents`
+| Whether to record audit events for AI service calls.
+The default is `true`.
+If set to `false`, no audit events are recorded at all.
+
+| `recordData`
+| Whether to record the request payload in the audit events.
+The default is `true`.
+If set to `true`, recording of the audit events is also enabled, regardless of `recordEvents`.
+|===
+
+[example]
+====
+----
+<systemConfiguration>
+    <audit>
+        <externalServices>
+            <smartIntegration>
+                <recordEvents>true</recordEvents>
+                <recordData>false</recordData>
+            </smartIntegration>
+        </externalServices>
+    </audit>
+</systemConfiguration>
+----
+====
+
+In the example, audit events are recorded for AI service calls, but the request payload is not stored.
+Use this if you want to keep an audit trail of the calls without storing the data that was sent.
+
+== Viewing and searching
+
+External Service call events are shown in the Audit Log Viewer like any other audit event.
+Open an event to see its details.
+When `recordData` is enabled, the request payload is shown in the event details as a read-only JSON document.
+
+You can also search the audit log by the content of the request payload.
+A search matches the events whose request payload contains all the searched words.

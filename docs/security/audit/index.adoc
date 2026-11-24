@@ -158,6 +158,10 @@ This type should only be present in `REQUEST` stage, the `EXECUTION` stage of th
 | Created shadow after discovering object on resource. +
 See xref:#_auditing_of_resource_object_changes[Auditing of Resource Object Changes] chapter.
 
+| `EXTERNAL_SERVICE_CALL`
+| Call to an external service, such as an AI service. +
+See xref:#_auditing_external_service_calls[Auditing external service calls] chapter.
+
 |===
 
 Other event types may be added in the future (including custom event types).
@@ -751,6 +755,7 @@ If you need, you can disable auditing of resource object changes in SystemConfig
 </systemConfiguration>
 ----
 
+[#_auditing_external_service_calls]
 == Auditing external service calls
 
 MidPoint records external service calls (such as AI calls) in the audit log.

@@ -46,7 +46,6 @@ Setting relevant to Smart Integration are configured globally in the midPoint sy
 * xref:security/index.adoc[Smart Integration security] - Overview of security topics.
 ** xref:security/data-access-permissions.adoc[Data access permissions] - Schema, statistics and raw data permissions that limit the data sent to the AI service, their effect on each recommendation, and how they are granted in the GUI.
 ** xref:security/authorization.adoc[Smart Integration authorization] - Dedicated smart integration authorization for recommendation operations, REST API and GUI; statistics protected by object-scoped authorizations.
-** xref:security/auditing-logging.adoc[Auditing and logging]
 
 == Smart Integration microservice
 
@@ -54,5 +53,4 @@ Setting relevant to Smart Integration are configured globally in the midPoint sy
 ** xref:microservice/endpoints/index.adoc[Microservice endpoints] - Endpoints of the microservice with their requests, responses, processing and errors.
 ** xref:microservice/logging.adoc[Microservice logging] - Log format and levels, request logs and correlation and Langfuse tracing.
 ** xref:microservice/configuration.adoc[Microservice configuration] - Environment variables of the microservice: LLM provider and model, timeouts, logging and tracing.
-** xref:microservice/deployment.adoc[Microservice deployment]
 * xref:service-item-paths.adoc[Item paths and type names in service requests] - Format of item paths and type names sent to the Smart Integration microservice (common `c:` namespace prefix is omitted).
