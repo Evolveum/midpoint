@@ -44,6 +44,11 @@ See xref:/midpoint/guides/account-activation-sequence/[Account Activation Authen
 * Requests for unknown paths outside the REST API (for example under /actuator or /static) now return HTTP 404 instead of 500 with a stack trace. See bug:MID-12566[].
 * Failed password reset attempts are now recorded in the audit log, improving security monitoring and troubleshooting.
 * Improved Spring Security initialization by replacing ignored URL patterns with a dedicated security filter chain, preserving existing authentication behavior.
+* Fixed read-only fields presentation, including links and authorization of read-only references. See bug:MID-11853[]
+* Fixed the width of property labels in forms. See bug:MID-11628[]
+* Fixed report import loading the entire CSV file into memory, which caused OutOfMemoryError. See bug:MID-11009[]
+* Fixed arguments not being filled in backend-translated messages that contain single quotes. See bug:MID-10226[]
+* Fixed password strength indicator showing inaccurate score that jumped up and down while typing. See bug:MID-12480[]
 
 == Changes With Respect To Version 4.10.4
 
