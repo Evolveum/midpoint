@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2026 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<objectCollection oid="8a05977f-67f7-42d0-ac41-5c4a3a5fdeac"
+                  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+                  xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+    <name>Unowned Access Keys</name>
+    <type>ServiceType</type>
+    <filter>
+        <q:text>archetypeRef matches ( oid = "2e26d391-fe10-4dae-bb16-2374fd379b52" ) and effectiveMarkRef matches ( oid = "5508aca4-2aef-47a6-ad50-892389823c91" )</q:text>
+    </filter>
+    <defaultView>
+        <display>
+            <label>
+                <orig>Unowned access key</orig>
+                <translation>
+                    <key>unownedAccessKey.label</key>
+                </translation>
+            </label>
+            <pluralLabel>
+                <orig>Unowned access keys</orig>
+                <translation>
+                    <key>unownedAccessKey.pluralLabel</key>
+                </translation>
+            </pluralLabel>
+            <icon>
+                <cssClass>fa fa-key</cssClass>
+                <color>red</color>
+            </icon>
+        </display>
+    </defaultView>
+</objectCollection>

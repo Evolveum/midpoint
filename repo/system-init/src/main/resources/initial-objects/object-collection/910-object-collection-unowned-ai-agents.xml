@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2026 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<objectCollection oid="44c9d0c0-8d68-4331-8733-b0faab6d107d"
+                  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+                  xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+    <name>Unowned AI Agents</name>
+    <type>ServiceType</type>
+    <filter>
+        <q:text>archetypeRef matches ( oid = "63c5f76f-7c68-41fa-a7bf-95f72328ad20" ) and effectiveMarkRef matches ( oid = "5508aca4-2aef-47a6-ad50-892389823c91" )</q:text>
+    </filter>
+    <defaultView>
+        <display>
+            <label>
+                <orig>Unowned AI agent</orig>
+                <translation>
+                    <key>unownedAiAgent.label</key>
+                </translation>
+            </label>
+            <pluralLabel>
+                <orig>Unowned AI agents</orig>
+                <translation>
+                    <key>unownedAiAgent.pluralLabel</key>
+                </translation>
+            </pluralLabel>
+            <icon>
+                <cssClass>fa fa-robot</cssClass>
+                <color>red</color>
+            </icon>
+        </display>
+    </defaultView>
+</objectCollection>

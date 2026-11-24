@@ -1,0 +1,277 @@
+<!--
+  ~ Copyright (c) 2026 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<dashboard xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+           xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+           xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3"
+           oid="92a9341b-8be4-4cb4-a31f-22ba12864142">
+    <name>ai-governance-dashboard</name>
+    <description>Overview of AI agents, tool servers and access.</description>
+    <display>
+        <label>
+            <orig>AI governance</orig>
+            <translation>
+                <key>aiGovernanceDashboard.label</key>
+            </translation>
+        </label>
+        <icon>
+            <cssClass>fa fa-shield-halved</cssClass>
+            <color>#5b21b6</color>
+        </icon>
+    </display>
+    <widget id="1">
+        <identifier>ai-agents</identifier>
+        <description>Services imported as AI agents.</description>
+        <display>
+            <label>
+                <orig>AI agents</orig>
+                <translation>
+                    <key>aiGovernanceDashboard.aiAgents</key>
+                </translation>
+            </label>
+            <color>#1d4ed8</color>
+            <icon>
+                <cssClass>fa fa-robot</cssClass>
+            </icon>
+        </display>
+        <data>
+            <sourceType>objectCollection</sourceType>
+            <collection>
+                <collectionRef oid="63c5f76f-7c68-41fa-a7bf-95f72328ad20" relation="org:default" type="c:ArchetypeType"/>
+            </collection>
+        </data>
+        <presentation>
+            <dataField id="2">
+                <fieldType>value</fieldType>
+                <expression>
+                    <proportional>
+                        <style>value-only</style>
+                    </proportional>
+                </expression>
+            </dataField>
+        </presentation>
+    </widget>
+    <widget id="3">
+        <identifier>local-ai-agents</identifier>
+        <description>AI agents running on local workstations.</description>
+        <display>
+            <label>
+                <orig>Local AI agents</orig>
+                <translation>
+                    <key>aiGovernanceDashboard.localAiAgents</key>
+                </translation>
+            </label>
+            <color>#115e59</color>
+            <icon>
+                <cssClass>fa fa-laptop-code</cssClass>
+            </icon>
+        </display>
+        <data>
+            <sourceType>objectCollection</sourceType>
+            <collection>
+                <collectionRef oid="9f0fb69f-79e0-4671-8015-bff7cf3b8e3c" relation="org:default" type="c:ArchetypeType"/>
+            </collection>
+        </data>
+        <presentation>
+            <dataField id="4">
+                <fieldType>value</fieldType>
+                <expression>
+                    <proportional>
+                        <style>value-only</style>
+                    </proportional>
+                </expression>
+            </dataField>
+        </presentation>
+    </widget>
+    <widget id="5">
+        <identifier>tool-servers</identifier>
+        <description>External tool server (MCP, OpenAI) connections</description>
+        <display>
+            <label>
+                <orig>Tool servers</orig>
+                <translation>
+                    <key>aiGovernanceDashboard.toolServers</key>
+                </translation>
+            </label>
+            <color>#065f46</color>
+            <icon>
+                <cssClass>fa fa-server</cssClass>
+            </icon>
+        </display>
+        <data>
+            <sourceType>objectCollection</sourceType>
+            <collection>
+                <collectionRef oid="2d7145ce-fe92-403a-a4f7-ded41f6ba6b6" relation="org:default" type="c:ArchetypeType"/>
+            </collection>
+        </data>
+        <presentation>
+            <dataField id="6">
+                <fieldType>value</fieldType>
+                <expression>
+                    <proportional>
+                        <style>value-only</style>
+                    </proportional>
+                </expression>
+            </dataField>
+        </presentation>
+    </widget>
+    <widget id="7">
+        <identifier>base-models</identifier>
+        <description>Models available from configured providers.</description>
+        <display>
+            <label>
+                <orig>Base models</orig>
+                <translation>
+                    <key>aiGovernanceDashboard.baseModels</key>
+                </translation>
+            </label>
+            <color>#075985</color>
+            <icon>
+                <cssClass>fa fa-microchip</cssClass>
+            </icon>
+        </display>
+        <data>
+            <sourceType>objectCollection</sourceType>
+            <collection>
+                <collectionRef oid="c249b6cf-4fea-4095-bd3b-b6b8b1bf4bb0" relation="org:default" type="c:ArchetypeType"/>
+            </collection>
+        </data>
+        <presentation>
+            <dataField id="8">
+                <fieldType>value</fieldType>
+                <expression>
+                    <proportional>
+                        <style>value-only</style>
+                    </proportional>
+                </expression>
+            </dataField>
+        </presentation>
+    </widget>
+    <widget id="9">
+        <identifier>model-provider</identifier>
+        <description>Model providers.</description>
+        <display>
+            <label>
+                <orig>Model providers</orig>
+                <translation>
+                    <key>aiGovernanceDashboard.modelProviders</key>
+                </translation>
+            </label>
+            <icon>
+                <cssClass>fa fa-server</cssClass>
+            </icon>
+        </display>
+        <data>
+            <sourceType>objectCollection</sourceType>
+            <collection>
+                <collectionRef oid="596d5321-1f18-42a2-b308-f552c7989cdc" relation="org:default" type="c:ArchetypeType"/>
+            </collection>
+        </data>
+        <presentation>
+            <dataField id="10">
+                <fieldType>value</fieldType>
+                <expression>
+                    <proportional>
+                        <style>value-only</style>
+                    </proportional>
+                </expression>
+            </dataField>
+        </presentation>
+    </widget>
+    <widget id="11">
+        <identifier>access-key</identifier>
+        <description>Access keys.</description>
+        <display>
+            <label>
+                <orig>Access keys</orig>
+                <translation>
+                    <key>aiGovernanceDashboard.accessKeys</key>
+                </translation>
+            </label>
+            <icon>
+                <cssClass>fa fa-key</cssClass>
+            </icon>
+        </display>
+        <data>
+            <sourceType>objectCollection</sourceType>
+            <collection>
+                <collectionRef oid="2e26d391-fe10-4dae-bb16-2374fd379b52" relation="org:default" type="c:ArchetypeType"/>
+            </collection>
+        </data>
+        <presentation>
+            <dataField id="12">
+                <fieldType>value</fieldType>
+                <expression>
+                    <proportional>
+                        <style>value-only</style>
+                    </proportional>
+                </expression>
+            </dataField>
+        </presentation>
+    </widget>
+    <widget id="13">
+        <identifier>unowned-access-keys</identifier>
+        <description>Access keys without owner.</description>
+        <display>
+            <label>
+                <orig>Access keys without owner</orig>
+                <translation>
+                    <key>aiGovernanceDashboard.unownedAccessKeys</key>
+                </translation>
+            </label>
+            <icon>
+                <cssClass>fa fa-key</cssClass>
+            </icon>
+        </display>
+        <data>
+            <sourceType>objectCollection</sourceType>
+            <collection>
+                <collectionRef oid="8a05977f-67f7-42d0-ac41-5c4a3a5fdeac" relation="org:default" type="c:ObjectCollectionType"/>
+            </collection>
+        </data>
+        <presentation>
+            <dataField id="14">
+                <fieldType>value</fieldType>
+                <expression>
+                    <proportional>
+                        <style>value-only</style>
+                    </proportional>
+                </expression>
+            </dataField>
+        </presentation>
+    </widget>
+    <widget id="15">
+        <identifier>unowned-ai-agents</identifier>
+        <description>AI agents without owner.</description>
+        <display>
+            <label>
+                <orig>AI agents without owner</orig>
+                <translation>
+                    <key>aiGovernanceDashboard.unownedAiAgents</key>
+                </translation>
+            </label>
+            <icon>
+                <cssClass>fa fa-robot</cssClass>
+            </icon>
+        </display>
+        <data>
+            <sourceType>objectCollection</sourceType>
+            <collection>
+                <collectionRef oid="44c9d0c0-8d68-4331-8733-b0faab6d107d" relation="org:default" type="c:ObjectCollectionType"/>
+            </collection>
+        </data>
+        <presentation>
+            <dataField id="16">
+                <fieldType>value</fieldType>
+                <expression>
+                    <proportional>
+                        <style>value-only</style>
+                    </proportional>
+                </expression>
+            </dataField>
+        </presentation>
+    </widget>
+</dashboard>
