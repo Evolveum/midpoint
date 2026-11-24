@@ -4,4 +4,111 @@
 :page-upkeep-status: green
 :page-moved-from: /midpoint/reference/smart-integration/recommendations/correlation/correlators-simulation
 
-// TODO (Andrej): Describe correlators simulation.
+== Overview
+
+The *correlators simulation* lets you check how a correlation rule (correlator) links resource objects to existing focus objects.
+You simulate also a not yet saved correlators, to verify them before you save them.
+
+You select one or more correlators of a resource object type and run the simulation.
+MidPoint evaluates the selected correlators on real data and shows, for each resource object, which focus object it would be correlated to.
+
+This is useful to verify that a correlator - for example, one proposed by the xref:correlation-recommendation.adoc[smart correlation recommendation] - actually matches the right focus objects on your data.
+
+The simulation is a preview.
+It does not change the resource configuration and does not apply the correlation to the objects.
+It only shows what the result would be.
+
+== Starting a simulation
+
+The simulation is started from the correlation rules of a resource object type, in the resource wizard.
+
+. Open the resource object type and the *Correlation* section.
+. Select one or more correlators in the correlation rules table.
+. Choose *Simulate* in the correlator menu.
+
+A dialog is shown where you choose which objects to simulate:
+
+* **Sample size.**
+The number of resource objects to evaluate.
+You can enter a number, choose one of the presets, or leave it empty to simulate all objects.
+* **Object filter.**
+Optionally, you can narrow down the objects with a search, so the simulation runs only on a subset of them.
+
+The dialog also lists the resource objects that will be simulated.
+
+When you confirm, the simulation runs as a background task.
+When it finishes, the result is shown in the simulation result view.
+
+== What is simulated
+
+The simulation uses the correlators you selected.
+For each correlator, it reads the resource attribute that provides the value of the compared focus property and matches it against the focus objects of the focus type.
+
+If a correlator does not have an inbound mapping yet (for example, a recommended correlator that has not been accepted), the mapping that provides the attribute value is included in the simulation as well, so the correlator can be evaluated.
+
+For each resource object, the correlator is evaluated against all focus objects of the focus type.
+
+== Result
+
+The result contains a summary and a list of the processed objects.
+
+=== Summary
+
+The summary shows these metrics:
+
+[cols="30%,70%",options="header"]
+|===
+| Metric | Meaning
+
+| Processed objects
+| The number of resource objects the simulation evaluated.
+
+| Correlated
+| Objects for which exactly one focus object was found.
+
+| Uncertain
+| Objects for which more than one candidate focus object was found.
+
+| Not correlated
+| Objects for which no focus object was found.
+|===
+
+Clicking a metric filters the table to the objects with that status.
+
+=== Processed objects
+
+The table lists the processed resource objects.
+For each object it shows the object name, the correlation status, and the candidate focus object(s).
+
+You can open an object to see the candidate focus objects in detail, including the confidence of the match and the correlator rule that produced it.
+
+=== Correlation status
+
+Each processed object gets one of these statuses:
+
+[cols="25%,75%",options="header"]
+|===
+| Status | Meaning
+
+| Correlated
+| Exactly one focus object matches the correlator.
+The object would be correlated to that focus object.
+
+| Uncertain
+| More than one focus object matches the correlator.
+MidPoint cannot decide which one is the owner.
+
+| Not correlated
+| No focus object matches the correlator.
+|===
+
+== Limitations
+
+* **Sampled objects.**
+By default the simulation evaluates a sample of resource objects, not necessarily all of them.
+You can run it on all objects by leaving the sample size empty.
+* **All focus objects are read.**
+For each resource object, the correlator is evaluated against all focus objects of the focus type, which may take a long time in large deployments.
+* **Existing data required.**
+The simulation is evaluated against existing focus objects.
+Without them, no object can be correlated.

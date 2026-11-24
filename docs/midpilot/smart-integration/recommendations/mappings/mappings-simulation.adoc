@@ -4,4 +4,112 @@
 :page-upkeep-status: green
 :page-moved-from: /midpoint/reference/smart-integration/recommendations/mappings/mappings-simulation
 
-// TODO (Andrej): Describe mappings simulation.
+== Overview
+
+The *mappings simulation* lets you check how an inbound or outbound attribute mapping transforms data on real objects.
+You can also simulate a mapping that has not been saved yet, for example a mapping proposed by the xref:mappings-recommendation.adoc[smart mappings recommendation].
+This way you can verify it does what it should before you accept it.
+
+You select one or more mappings of a resource object type and run the simulation.
+MidPoint evaluates the selected mappings on real data and shows, for each processed object, what changes the mapping would produce.
+
+The simulation is a preview.
+It does not change the resource configuration and does not apply the mappings to the objects.
+It only shows what the result would be.
+
+The primary focus of this simulation is on mapping script expressions.
+You can technically simulate any kind of mapping, but doing a simulation of, e.g., "as is" mapping would be most likely meaningless.
+
+[WARNING]
+====
+The mappings simulation is not completely finished.
+Even though it technically works, the presentation of the results can be very confusing.
+====
+
+== Starting a simulation
+
+The simulation is started from the mappings of a resource object type, in the resource wizard.
+
+. Open the resource object type and the *Mappings* section.
+. Select a mapping in the mappings table.
+. Choose *Simulate* in the mapping menu.
+
+A dialog is shown where you choose which objects to simulate:
+
+* **Sample size.**
+The number of objects to evaluate.
+You can enter a number, choose one of the presets, or leave it empty to simulate all objects.
+* **Object filter.**
+Optionally, you can narrow down the objects with a search, so the simulation runs only on a subset of them.
+
+When you confirm, the simulation runs as a background task.
+When it finishes, the result is shown in the simulation result view.
+
+== What is simulated
+
+The simulation evaluates the selected mapping on real objects.
+The behavior differs depending on the mapping direction.
+
+=== Inbound mappings
+
+For an inbound mapping, the simulation processes resource objects (shadows).
+For each resource object, MidPoint first determines the correlated focus object (the owner).
+If no owner is found, the mapping is evaluated against an empty focus object.
+The mapping is then evaluated to produce the changes that would be applied to the focus object.
+
+=== Outbound mappings
+
+For an outbound mapping, the simulation processes focus objects.
+For each focus object, MidPoint first determines the correlated resource object (the shadow).
+If no shadow is found, the mapping is evaluated against an empty shadow object.
+The mapping is then evaluated to produce the changes that would be applied to the shadow.
+
+== Result
+
+The result contains a summary and a list of the processed objects.
+
+=== Mapping header
+
+The header shows the simulated mapping: its name, the source and target paths, and the mapping strength.
+
+=== Summary
+
+The summary shows these metrics:
+
+[cols="30%,70%",options="header"]
+|===
+| Metric | Meaning
+
+| Added
+| Objects for which the mapping produced a new value.
+
+| Removed
+| Objects for which the mapping removed a value.
+
+| Modified
+| Objects for which the mapping changed an existing value.
+
+| Not changed
+| Objects for which the mapping did not produce any change.
+
+| Failed
+| Objects for which the mapping evaluation failed.
+|===
+
+Clicking a metric filters the table to the objects with that status.
+
+=== Processed objects
+
+The table lists the processed objects.
+For each object it shows the object name and the mapping status.
+
+You can open an object to see the details of the changes the mapping would produce.
+
+== Limitations
+
+* **Sampled objects.**
+By default, the simulation evaluates a sample of objects, not necessarily all of them.
+You can run it on all objects by leaving the sample size empty.
+* **Correlation is required.**
+The simulation relies on the correlation between resource objects and focus objects.
+Objects without a correlation target are evaluated against an empty object, which may not reflect real-world behavior.
