@@ -522,6 +522,11 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
                             }
 
                             @Override
+                            protected String getStorageKey() {
+                                return WebComponentUtil.getObjectListPageStorageKey(tableId.name());
+                            }
+
+                            @Override
                             protected Component createHeader(String headerId) {
                                 return createHeaderFragment(headerId);
                             }

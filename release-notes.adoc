@@ -57,6 +57,9 @@ See <<_behavior_changes_since_4_11,Behavior Changes>>.
 * English (Europe) is now the default locale.
 It uses the standard locale code `en_150` instead of the non-existent `en_EU`, for which neither the JDK nor browsers have locale data.
 Users who have `en_EU` stored (midPoint 4.11.0) keep English (Europe). See bug:MID-12889[]
+* Connector generator wizard can now test the generated get, create, update and delete operations on the testing resource. See bug:MID-11802[], bug:MID-12501[], bug:MID-11441[] and bug:MID-11442[]
+* Connector generator wizard can export the developed connector as a JAR or a project ZIP, either downloaded or saved to the midPoint connector directory, optionally with a new connector version. See bug:MID-11259[]
+* Improved selection of a new relationship in the connector generator wizard. See bug:MID-11791[]
 // TODO
 
 === Other Areas
@@ -90,6 +93,27 @@ The legacy `mail` and `file` transport configuration is shown only if it is pres
 * Fixed failures of large multipart form submissions in GUI by raising the embedded Tomcat multipart limits (`max-part-count` to 250, `max-part-header-size` to 1024). See bug:MID-12616[]
 * Fixed container deployments (`midpoint.sh init-native`) creating `config.xml` from the legacy `config-native.xml` template.
 The same default `config.xml` is now used for all forms of deployment. See <<_behavior_changes_since_4_11>>.
+* Fixed adding a documentation URL in the connector generator wizard de-selecting documentation suggested by AI. See bug:MID-12799[]
+* Fixed Range step of the mapping wizard showing a stale value after the range is adjusted automatically. See bug:MID-12578[]
+* Fixed selecting an autocompletion suggestion with keyboard in advanced search overwriting the whole query. See bug:MID-13485[]
+* Fixed Connection tile of the connector generator wizard always showing Basic auth as the authentication method. See bug:MID-13501[]
+* Fixed the roles list in the request access role catalog showing services after "All services" was opened. See bug:MID-13480[]
+* Fixed the role catalog step of the request access wizard listing roles that cannot be requested when the step was opened directly by URL.
+The wizard now starts at the person of interest step if no person is selected. See bug:MID-13482[]
+* Fixed script language check in the editor of suggested mappings. See bug:MID-13214[]
+* Fixed help, tooltip and validator customization being ignored in the first step of the resource wizard. See bug:MID-12359[]
+* Fixed correlation authentication module showing a general error when a correlation attribute value is missing or invalid.
+The user now gets a message about the invalid input.
+* Fixed the Delta column of audit reports showing `POV:dummy` with the object reference, the reference now shows only the OID. See bug:MID-12825[]
+* Fixed error 500 after changing the language on the resource details page. See bug:MID-13215[]
+* Fixed `summaryPanel/displayName` customization being ignored. See bug:MID-13037[]
+* Fixed untranslated validation error messages in the schema extension wizard. See bug:MID-13216[]
+* Fixed the members table in Organization tree overflowing its panel. See bug:MID-13311[]
+* Fixed NullPointerException when exiting the new schema form. See bug:MID-13349[]
+* Fixed validation error messages in wizard steps remaining visible after the value was corrected. See bug:MID-13355[]
+* Fixed adding a documentation URL in the connector generator wizard. See bug:MID-13286[]
+* Fixed outbound mapping source not being saved when it was added in the mapping table. See bug:MID-11823[]
+* Fixed Retry connection in the connector generator wizard accepting an empty or invalid base URL. See bug:MID-12890[]
 // TODO
 
 
