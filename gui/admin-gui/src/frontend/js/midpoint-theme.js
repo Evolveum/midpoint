@@ -1812,7 +1812,7 @@ export default class MidPointTheme {
                 autocomplete.hide()
             }
 
-            autocomplete.on('click', '.suggestion', function () {
+            autocomplete.off('click.axiomSearch').on('click.axiomSearch', '.suggestion', function () {
                 commands[commands.length - 1] = $(this).find('.name').text()
                 queryDslInput.val(commands.join(" ") + query.substring(cursorPosition))
                 queryDslInput[0].focus()
@@ -1823,7 +1823,7 @@ export default class MidPointTheme {
 
             let currentIndex = -1; // No selection initially
 
-            queryDslInput.on('input keydown click', function (e) {
+            queryDslInput.off('.axiomSearch').on('input.axiomSearch keydown.axiomSearch click.axiomSearch', function (e) {
                 // navigation in suggestions list
                 if (e.key === "ArrowDown" || e.key == "Arrow Down" || e.keyCode == 40) {
                     e.preventDefault();
