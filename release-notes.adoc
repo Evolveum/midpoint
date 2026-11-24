@@ -49,6 +49,8 @@ See xref:/midpoint/guides/account-activation-sequence/[Account Activation Authen
 * Fixed report import loading the entire CSV file into memory, which caused OutOfMemoryError. See bug:MID-11009[]
 * Fixed arguments not being filled in backend-translated messages that contain single quotes. See bug:MID-10226[]
 * Fixed password strength indicator showing inaccurate score that jumped up and down while typing. See bug:MID-12480[]
+* The `End user` role now allows only selected assignment items (`targetRef`, `description`, `activation`, `tenantRef`, `orgRef`) when requesting a role.
+See <<_behavior_changes_since_4_9,Behavior Changes>>.
 
 == Changes With Respect To Version 4.10.4
 
@@ -650,6 +652,7 @@ For more information see xrefv:/midpoint/reference/support-4.10/upgrade/upgrade-
 * 028-archetype-application-role.xml: fixed the plural label.
 * 029-archetype-application.xml: fixed the displaying of the application classifications and governance panels.
 * 040-role-enduser.xml: extended assignment panels configuration.
+The `assign-requestable-roles` authorization was limited to assignment items `targetRef`, `description`, `activation`, `tenantRef` and `orgRef`.
 * 041-role-approver.xml: added manualProvisioningContext item to read authorization of the CaseType object in order to correctly display case details page; fixed authorizations.
 * 042-role-reviewer.xml: extended certification campaign read authorization.
 * 062-archetype-classification.xml: extended with documentation attribute.
@@ -774,6 +777,17 @@ This profile is not considered to provide strict security, therefore the name wa
 Corresponding description was added to the profile.
 
 ** See xref:/midpoint/reference/expressions/expressions/security/[Expression Security] page for a description of recommended use of expression profiles.
+
+* The `End user` role limits the assignment items that can be requested.
++
+The `assign-requestable-roles` authorization of the `End user` role now lists the permitted assignment items: `targetRef`, `description`, `activation`, `tenantRef` and `orgRef`.
+A request for a role whose assignment contains any other item is denied.
+If your deployment lets users fill in other assignment items when requesting access (e.g. assignment extension items), add these items to the authorization.
++
+Existing deployments keep their `End user` role, as midPoint does not overwrite existing initial objects.
+It is strongly recommended to apply this change to the `End user` role, and to review all custom roles that contain `#assign` (or `#delegate`) authorization for the request phase without `item` specification.
+Also make sure that the default expression profile for authorized objects (`expressions/defaults/authorizedObjects` in the system configuration) is set to a restrictive profile.
+See xrefv:/midpoint/reference/support-4.11/security/authorization/configuration/#limiting-assignment-items[Limiting Assignment Items].
 
 ++++
 {% include release-issues.html %}
