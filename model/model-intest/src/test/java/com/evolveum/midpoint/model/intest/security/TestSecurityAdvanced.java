@@ -13,7 +13,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
-import javax.management.relation.Role;
+import java.util.concurrent.atomic.AtomicBoolean;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.evolveum.midpoint.model.api.ActivityCustomization;
@@ -29,6 +29,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -72,6 +73,26 @@ public class TestSecurityAdvanced extends AbstractInitializedSecurityTest {
     private static final File RESOURCE_DUMMY_VAULT_FILE = new File(TEST_DIR, "resource-dummy-vault.xml");
     private static final String RESOURCE_DUMMY_VAULT_OID = "84a420cc-2904-11e8-862b-0fc0d7ab7174";
     private static final String RESOURCE_DUMMY_VAULT_NAME = "vault";
+
+    private static final File ROLE_ASSIGN_SELF_REQUESTABLE_LIMITED_ITEMS_FILE =
+            new File(TEST_DIR, "role-assign-self-requestable-limited-items.xml");
+    private static final String ROLE_ASSIGN_SELF_REQUESTABLE_LIMITED_ITEMS_OID = "5f1a6c0e-8d3b-4e27-9c41-2b7d0a9e6f15";
+
+    /** Assignments requested in {@link #test258AssignRequestableSelfWithSmuggledExpressions()}, picked by container ID. */
+    private static final File ASSIGNMENT_REQUESTS_SMUGGLED_SCRIPTS_FILE =
+            new File(TEST_DIR, "assignment-requests-smuggled-scripts.xml");
+
+    private static final long REQUEST_SCRIPT_IN_FOCUS_MAPPING = 1;
+    private static final long REQUEST_SCRIPT_IN_CONDITION = 2;
+    private static final long REQUEST_PERMITTED_ITEMS_ONLY = 3;
+    private static final long REQUEST_SCRIPT_IN_TENANT_REF_FILTER = 4;
+    private static final long REQUEST_SCRIPT_IN_ORG_REF_FILTER = 5;
+    private static final long REQUEST_SCRIPT_IN_TARGET_REF_FILTER_WITH_OID = 6;
+    private static final long REQUEST_SCRIPT_IN_TARGET_REF_FILTER_NO_OID = 7;
+    private static final long REQUEST_SCRIPT_IN_TENANT_REF_FILTER_REEVALUATION = 8;
+
+    /** Set by scripts smuggled into requested assignments, see {@link #smuggledScriptExecuted()}. */
+    private static final AtomicBoolean SMUGGLED_SCRIPT_EXECUTED = new AtomicBoolean();
 
     private static final File ROLE_VAULT_DWELLER_FILE = new File(TEST_DIR, "role-vault-dweller.xml");
     private static final String ROLE_VAULT_DWELLER_OID = "8d8471f4-2906-11e8-9078-4f2b205aa01d";
@@ -1941,6 +1962,116 @@ public class TestSecurityAdvanced extends AbstractInitializedSecurityTest {
                 (task, result) -> deleteFocusAssignmentEmptyDelta(user2, ROLE_UNASSIGN_SELF_REQUESTABLE.oid, task, result));
 
         assertGlobalStateUntouched();
+    }
+
+    /**
+     * A user who can only request requestable roles for himself smuggles expressions into the requested assignment
+     * (inline focus mapping, assignment condition). Such expressions would be evaluated by the projector, so the
+     * request must be rejected already by the authorization: #assign is limited to harmless assignment items.
+     *
+     * Requests that use only the permitted items must still pass.
+     */
+    @Test
+    public void test258AssignRequestableSelfWithSmuggledExpressions() throws Exception {
+        given("jack can request requestable roles for himself, with limited assignment items");
+        cleanupAutzTest(USER_JACK_OID);
+        addObject(ROLE_ASSIGN_SELF_REQUESTABLE_LIMITED_ITEMS_FILE);
+        try {
+            assignRole(USER_JACK_OID, ROLE_ASSIGN_SELF_REQUESTABLE_LIMITED_ITEMS_OID);
+            SMUGGLED_SCRIPT_EXECUTED.set(false);
+            PrismObject<UserType> requests = prismContext.parseObject(ASSIGNMENT_REQUESTS_SMUGGLED_SCRIPTS_FILE);
+
+            login(USER_JACK_USERNAME);
+
+            when("role is requested with a script in a non-permitted item (focus mapping, condition)");
+            assertDeny("assign business role with focus mapping",
+                    (task, result) -> requestAssignment(requests, REQUEST_SCRIPT_IN_FOCUS_MAPPING, null, task, result));
+            assertDeny("assign business role with condition",
+                    (task, result) -> requestAssignment(requests, REQUEST_SCRIPT_IN_CONDITION, null, task, result));
+
+            then("no script was executed, nothing was assigned");
+            assertSmuggledScriptNotExecuted();
+            PrismObject<UserType> user = getUser(USER_JACK_OID);
+            assertAssignments(user, 1);
+            assertNotAssignedRole(user, ROLE_BUSINESS_1.oid);
+
+            when("role is requested with permitted items only");
+            assertAllow("assign business role with description and validity",
+                    (task, result) -> requestAssignment(requests, REQUEST_PERMITTED_ITEMS_ONLY, null, task, result));
+
+            then("role is assigned");
+            user = getUser(USER_JACK_OID);
+            assertAssignments(user, 2);
+            assertAssignedRole(user, ROLE_BUSINESS_1.oid);
+            assertSmuggledScriptNotExecuted();
+
+            when("role is requested with a script in the filter of tenantRef, orgRef, or targetRef (OID is present)");
+            assertAllow("assign business role with script in tenantRef filter",
+                    (task, result) -> requestAssignment(requests, REQUEST_SCRIPT_IN_TENANT_REF_FILTER, null, task, result));
+            assertAllow("assign business role with script in orgRef filter",
+                    (task, result) -> requestAssignment(requests, REQUEST_SCRIPT_IN_ORG_REF_FILTER, null, task, result));
+            assertAllow("assign business role with script in targetRef filter",
+                    (task, result) -> requestAssignment(
+                            requests, REQUEST_SCRIPT_IN_TARGET_REF_FILTER_WITH_OID, null, task, result));
+
+            then("requests pass (OID is used, filter is ignored), no script was executed");
+            assertSmuggledScriptNotExecuted();
+
+            when("role is requested by run-time targetRef filter with a script, without OID");
+            assertDeny("assign role by targetRef filter with script",
+                    (task, result) -> requestAssignment(
+                            requests, REQUEST_SCRIPT_IN_TARGET_REF_FILTER_NO_OID, null, task, result));
+
+            then("request is denied, no script was executed");
+            assertSmuggledScriptNotExecuted();
+
+            when("search filters reevaluation is requested for tenantRef filter with a script");
+            Task reevaluationTask = createPlainTask("reevaluation");
+            try {
+                requestAssignment(
+                        requests, REQUEST_SCRIPT_IN_TENANT_REF_FILTER_REEVALUATION,
+                        ModelExecuteOptions.create().reevaluateSearchFilters(true),
+                        reevaluationTask, reevaluationTask.getResult());
+            } catch (CommonException | SystemException e) {
+                displayExpectedException(e); // the outcome is not important here, only the script execution is
+            }
+
+            then("no script was executed");
+            assertSmuggledScriptNotExecuted();
+        } finally {
+            cleanupAutzTest(USER_JACK_OID);
+            deleteObject(RoleType.class, ROLE_ASSIGN_SELF_REQUESTABLE_LIMITED_ITEMS_OID);
+        }
+
+        assertGlobalStateUntouched();
+    }
+
+    /** Requests (for jack) the assignment with given container ID from the holder object. The ID itself is not sent. */
+    private void requestAssignment(
+            PrismObject<UserType> holder, long id, ModelExecuteOptions options, Task task, OperationResult result)
+            throws CommonException {
+        AssignmentType assignment = holder.asObjectable().getAssignment().stream()
+                .filter(a -> a.getId() == id)
+                .findFirst()
+                .orElseThrow(() -> new AssertionError("No assignment with ID " + id + " in " + holder))
+                .clone();
+        assignment.setId(null);
+        executeChanges(
+                deltaFor(UserType.class)
+                        .item(UserType.F_ASSIGNMENT)
+                        .add(assignment)
+                        .asObjectDelta(USER_JACK_OID),
+                options, task, result);
+    }
+
+    private void assertSmuggledScriptNotExecuted() {
+        assertThat(SMUGGLED_SCRIPT_EXECUTED.get()).as("smuggled script executed").isFalse();
+    }
+
+    /** Called from the scripts in {@link #ASSIGNMENT_REQUESTS_SMUGGLED_SCRIPTS_FILE}. */
+    @SuppressWarnings("unused")
+    public static void smuggledScriptExecuted() {
+        SMUGGLED_SCRIPT_EXECUTED.set(true);
     }
 
     @Test

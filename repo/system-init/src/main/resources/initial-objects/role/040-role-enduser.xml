@@ -130,6 +130,11 @@
         <object id="22">
             <special>self</special>
         </object>
+        <item>assignment/targetRef</item>
+        <item>assignment/description</item>
+        <item>assignment/activation</item>
+        <item>assignment/tenantRef</item>
+        <item>assignment/orgRef</item>
         <target id="23">
             <type>RoleType</type>
             <filter>
