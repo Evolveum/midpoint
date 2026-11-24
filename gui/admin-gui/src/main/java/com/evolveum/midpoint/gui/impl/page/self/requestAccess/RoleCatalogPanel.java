@@ -39,7 +39,6 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.request.resource.IResource;
@@ -157,9 +156,9 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
     protected void onBeforeRender() {
         if (getModelObject().getPersonOfInterest().isEmpty()) {
             PageParameters params = new PageParameters();
-            params.set(WizardModelBasic.PARAM_STEP, PersonOfInterestPanel.STEP_ID);
+            params.set(WizardModel.PARAM_STEP, PersonOfInterestPanel.STEP_ID);
 
-            throw new RestartResponseException(new PageRequestAccess(params, (WizardModelBasic) getWizard()));
+            throw new RestartResponseException(new PageRequestAccess(params, getWizard()));
         }
 
         if (getModelObject().getRelation() == null) {
