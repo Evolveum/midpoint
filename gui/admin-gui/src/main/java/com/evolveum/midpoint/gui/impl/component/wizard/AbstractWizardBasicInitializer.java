@@ -27,6 +27,7 @@ import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.message.FeedbackAlerts;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 
 public abstract class AbstractWizardBasicInitializer extends BasePanel<String> {
 
@@ -193,7 +194,7 @@ public abstract class AbstractWizardBasicInitializer extends BasePanel<String> {
             }
         };
         saveButton.showTitleAsLabel(true);
-        saveButton.add(new VisibleBehaviour(this::isSubmitButtonVisible));
+        saveButton.add(new VisibleEnableBehaviour(this::isSubmitButtonVisible, this::isSubmitButtonEnabled));
         saveButton.add(AttributeAppender.append("class", getSubmitButtonCssClass()));
         buttonsRepeater.add(saveButton);
     }
@@ -244,6 +245,10 @@ public abstract class AbstractWizardBasicInitializer extends BasePanel<String> {
 
     protected String getCssForWidthOfFeedbackPanel() {
         return "col-12";
+    }
+
+    protected boolean isSubmitButtonEnabled() {
+        return true;
     }
 
     protected boolean isSubmitButtonVisible() {

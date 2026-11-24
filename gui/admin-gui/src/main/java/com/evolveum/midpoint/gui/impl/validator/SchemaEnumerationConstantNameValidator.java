@@ -6,6 +6,7 @@
 
 package com.evolveum.midpoint.gui.impl.validator;
 
+import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 
 import org.apache.commons.lang3.StringUtils;
@@ -62,10 +63,10 @@ public class SchemaEnumerationConstantNameValidator implements IValidator<String
             normalizedName = normalizedName.replaceAll("\\s", "_");
 
             ValidationError error = new ValidationError();
-            error.addKey("SchemaEnumerationConstantNameValidator.invalidConstantName");
-            error.setVariable("0", value);
-            error.setVariable("1", normalizedName);
-            error.setMessage("Constant name '" + value + "' is not valid. Try '" + normalizedName + "'.");
+            error.setMessage(LocalizationUtil.translate(
+                    "SchemaEnumerationConstantNameValidator.invalidConstantName",
+                    new Object[] { value, normalizedName },
+                    "Constant name '" + value + "' is not valid. Try '" + normalizedName + "'."));
             validatable.error(error);
         }
     }

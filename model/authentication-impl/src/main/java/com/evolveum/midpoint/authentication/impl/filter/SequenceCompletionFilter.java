@@ -25,7 +25,9 @@ import com.evolveum.midpoint.authentication.api.AuthModule;
 import com.evolveum.midpoint.authentication.api.AuthenticationSequenceListener;
 import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
 import com.evolveum.midpoint.authentication.api.config.ModuleAuthentication;
+import com.evolveum.midpoint.authentication.api.util.AuthenticationModuleNameConstants;
 import com.evolveum.midpoint.authentication.impl.FocusAuthenticationResultRecorder;
+import com.evolveum.midpoint.authentication.impl.handler.MidpointAuthenticationFailureHandler;
 import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipalManager;
 import com.evolveum.midpoint.security.api.ConnectionEnvironment;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
@@ -54,6 +56,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 public class SequenceCompletionFilter extends GenericFilterBean {
 
     private static final Trace LOGGER = TraceManager.getTrace(SequenceCompletionFilter.class);
+    private static final String RESET_PASSWORD_FAILURE_REASON = "password reset authentication failed";
 
     @Autowired private FocusAuthenticationResultRecorder authenticationRecorder;
 
@@ -97,7 +100,8 @@ public class SequenceCompletionFilter extends GenericFilterBean {
         }
 
         MidpointAuthentication mpAuthentication = (MidpointAuthentication) authentication;
-        if (mpAuthentication.isAlreadyAudited()) {
+        boolean resetPasswordFailure = Boolean.TRUE.equals(request.getAttribute(MidpointAuthenticationFailureHandler.RESET_PASSWORD_FAILURE_ATTRIBUTE));
+        if (mpAuthentication.isAlreadyAudited() && !resetPasswordFailure) {
             LOGGER.trace("Skipping auditing of authentication record, already audited.");
             if (!recordOnEndOfChain) {
                 filterChain.doFilter(request, response);
@@ -105,7 +109,10 @@ public class SequenceCompletionFilter extends GenericFilterBean {
             return;
         }
 
-        writeRecord((HttpServletRequest) request, mpAuthentication);
+        writeRecord((HttpServletRequest) request, mpAuthentication, resetPasswordFailure);
+        if (resetPasswordFailure) {
+            request.removeAttribute(MidpointAuthenticationFailureHandler.RESET_PASSWORD_FAILURE_ATTRIBUTE);
+        }
 
         if (!recordOnEndOfChain) {
             filterChain.doFilter(request, response);
@@ -115,20 +122,46 @@ public class SequenceCompletionFilter extends GenericFilterBean {
 
     @VisibleForTesting
     public void writeRecord(HttpServletRequest request, MidpointAuthentication mpAuthentication) {
+        writeRecord(request, mpAuthentication, false);
+    }
+
+    private void writeRecord(HttpServletRequest request, MidpointAuthentication mpAuthentication, boolean resetPasswordFailure) {
         MidPointPrincipal mpPrincipal = mpAuthentication.getPrincipal() instanceof MidPointPrincipal ? (MidPointPrincipal) mpAuthentication.getPrincipal() : null;
         boolean isAuthenticated = mpAuthentication.isAuthenticated();
+        String username = getUsernameForAudit(mpAuthentication, mpPrincipal, resetPasswordFailure);
         if (isAuthenticated) {
             authenticationRecorder.recordSequenceAuthenticationSuccess(mpPrincipal, createConnectionEnvironment(request, mpAuthentication));
             notifyListeners(mpAuthentication, true);
             mpAuthentication.setAlreadyAudited(true);
             LOGGER.trace("Authentication sequence {} evaluated as successful.", mpAuthentication.getSequenceIdentifier());
-        } else if (mpAuthentication.isFinished() && StringUtils.isNotEmpty(mpAuthentication.getUsername())) {
-            authenticationRecorder.recordSequenceAuthenticationFailure(mpAuthentication.getUsername(), mpPrincipal, null,
-                    mpAuthentication.getFailedReason(), createConnectionEnvironment(request, mpAuthentication));
+            return;
+        }
+
+        String failureReason = resetPasswordFailure
+                ? StringUtils.defaultIfBlank(mpAuthentication.getFailedReason(), RESET_PASSWORD_FAILURE_REASON)
+                : mpAuthentication.getFailedReason();
+        if (!mpAuthentication.isAlreadyAudited() && mpAuthentication.isFinished() && StringUtils.isNotEmpty(username)) {
+            authenticationRecorder.recordSequenceAuthenticationFailure(username, mpPrincipal, null,
+                    failureReason, createConnectionEnvironment(request, mpAuthentication));
             notifyListeners(mpAuthentication, false);
             mpAuthentication.setAlreadyAudited(true);
             LOGGER.trace("Authentication sequence {} evaluated as failed.", mpAuthentication.getSequenceIdentifier());
+        } else if (resetPasswordFailure) {
+            authenticationRecorder.auditAuthenticationFailure(username, mpPrincipal, failureReason, createConnectionEnvironment(request, mpAuthentication));
+            LOGGER.trace("Failed password reset authentication attempt audited for sequence {}.", mpAuthentication.getSequenceIdentifier());
         }
+    }
+
+    private String getUsernameForAudit(MidpointAuthentication authentication, MidPointPrincipal principal, boolean resetPasswordFailure) {
+        if (!resetPasswordFailure || principal != null) {
+            return authentication.getUsername();
+        }
+
+        ModuleAuthentication failedModule = authentication.getFirstFailedAuthenticationModule();
+        if (failedModule != null && AuthenticationModuleNameConstants.FOCUS_IDENTIFICATION.equals(failedModule.getModuleTypeName())) {
+            return null;
+        }
+        return authentication.getUsername();
     }
 
     private void notifyListeners(MidpointAuthentication mpAuthentication, boolean succeeded) {

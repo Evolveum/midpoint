@@ -145,6 +145,7 @@ import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.certification.handlers.CertGuiHandlerRegistry;
 import com.evolveum.midpoint.web.page.error.PageError404;
 import com.evolveum.midpoint.web.session.BrowserTabSessionStorage;
+import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.web.session.SessionStorage;
 import com.evolveum.midpoint.web.util.validation.MidpointFormValidatorRegistry;
 import com.evolveum.midpoint.wf.api.ApprovalsManager;
@@ -1291,12 +1292,7 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
 
     public void changeLocal(AjaxRequestTarget target) {
         getBrowserTabSessionStorage().getPageStorageMap().values()
-                .forEach(pageStorage -> {
-                    if (pageStorage.getSearch() == null) {
-                        return;
-                    }
-                    pageStorage.getSearch().detachSearchItemWrappersModels();
-                });
+                .forEach(PageStorage::detachSearchItemWrappersModels);
     }
 
     public IModel<String> getSystemNameModel() {

@@ -342,7 +342,7 @@ public class MappingSuggestionGroupColumnTilePanel<
         };
 
         button.setOutputMarkupId(true);
-        button.add(AttributeAppender.append("class", "ms-auto btn btn-outline-primary"));
+        button.add(AttributeAppender.append("class", "ms-auto btn btn-outline-primary btn-sm"));
         button.showTitleAsLabel(true);
 
         fragment.add(button);
@@ -502,7 +502,8 @@ public class MappingSuggestionGroupColumnTilePanel<
     }
 
     protected @NotNull String getPanelCss() {
-        String baseCss = "card shadow-sm col-12 m-0 border border-ai-gradient border-start-2 p-0";
+
+        String baseCss = " border border-ai-gradient border-start-2 card shadow-sm w-100  m-0 p-0 justify-content-center";
         boolean selected = isObjectSelected(getModelObject().getValue());
         return selected ? baseCss + " selected-base" : baseCss;
     }
@@ -512,7 +513,7 @@ public class MappingSuggestionGroupColumnTilePanel<
     }
 
     protected String getTileCssClasses() {
-        return "d-flex col-12 h-100 justify-content-center mb-2 p-0 bg-white rounded";
+        return "w-100 mb-2 p-0 bg-white rounded d-flex";
     }
 
     protected String getTileContainerCssClass() {

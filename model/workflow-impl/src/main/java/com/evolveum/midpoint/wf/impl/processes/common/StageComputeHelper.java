@@ -12,10 +12,7 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.ApprovalLevel
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AutomatedCompletionReasonType.AUTO_COMPLETION_CONDITION;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AutomatedCompletionReasonType.NO_ASSIGNEES_FOUND;
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
@@ -30,8 +27,13 @@ import com.evolveum.midpoint.cases.api.temporary.ComputationMode;
 import com.evolveum.midpoint.cases.api.temporary.VariablesProvider;
 import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
 import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ContainerDelta;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -51,6 +53,7 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.wf.impl.processors.primary.policy.PolicyRuleBasedAspect;
 import com.evolveum.midpoint.wf.impl.util.ComputationResult;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -104,8 +107,7 @@ public class StageComputeHelper {
                     if (variablesMap == null) {
                         variablesMap = enhancedVariablesProvider.get();
                     }
-                    rv.approverRefs.addAll(evaluationHelper.evaluateRefExpressions(stageDef.getApproverExpression(), variablesMap,
-                            "resolving approver expression", opTask, opResult));
+                    rv.approverRefs.addAll(evaluateApproverExpressions(stageDef.getApproverExpression(), theCase, variablesMap, opTask, opResult));
                 } catch (CommonException | RuntimeException e) {
                     throw new SystemException("Couldn't evaluate approvers expressions", e);
                 }
@@ -128,6 +130,164 @@ public class StageComputeHelper {
             }
         }
         return rv;
+    }
+
+    /**
+     * Evaluates approver expressions, providing a separate assignment copy when available.
+     *
+     * Assignment resolution is attempted at most once. Expressions explicitly declaring
+     * the assignment variable retain their original variable resolution behavior.
+     */
+    private List<ObjectReferenceType> evaluateApproverExpressions(List<ExpressionType> expressions, CaseType theCase,
+            VariablesMap variables, Task task, OperationResult result) throws CommonException {
+        List<ObjectReferenceType> approvers = new ArrayList<>();
+        AssignmentType assignment = null;
+        boolean assignmentResolutionAttempted = false;
+
+        for (ExpressionType expression : expressions) {
+            // Preserve explicitly declared assignment variables.
+            boolean declaresAssignment = declaresAssignmentVariable(expression);
+
+            if (!declaresAssignment && !assignmentResolutionAttempted) {
+                assignment = resolveAssignmentIfApplicable(theCase, variables);
+                assignmentResolutionAttempted = true;
+            }
+
+            VariablesMap expressionVariables = variables;
+            if (assignment != null && !declaresAssignment) {
+                expressionVariables = addAssignmentVariableIfPossible(theCase, variables, assignment);
+            }
+
+            approvers.addAll(evaluationHelper.evaluateRefExpression(expression, expressionVariables, "resolving approver expression", task, result));
+        }
+
+        return approvers;
+    }
+
+    private VariablesMap addAssignmentVariableIfPossible(CaseType aCase, VariablesMap variables, AssignmentType assignment) {
+        try {
+            VariablesMap expressionVariables = variables.shallowClone();
+            expressionVariables.put(ExpressionConstants.VAR_ASSIGNMENT, assignment.clone(), AssignmentType.class);
+            return expressionVariables;
+        } catch (RuntimeException e) {
+            LOGGER.debug("Assignment variable is unavailable for case {} because preparing its expression value failed ({})",
+                    aCase.getOid(), e.getClass().getSimpleName());
+            return variables;
+        }
+    }
+
+    /**
+     * Resolves the assignment from the existing approval data without persisting additional information.
+     *
+     * Returns null if the case is not an assignment approval or the assignment cannot be
+     * determined unambiguously. Resolution failures must not affect existing approval behavior.
+     */
+    private @Nullable AssignmentType resolveAssignmentIfApplicable(CaseType aCase, VariablesMap variables) {
+        if (variables.containsKey(ExpressionConstants.VAR_ASSIGNMENT)
+                || aCase.getTargetRef() == null
+                || aCase.getApprovalContext() == null
+                || !PolicyRuleBasedAspect.class.getName().equals(aCase.getApprovalContext().getChangeAspect())) {
+            return null;
+        }
+
+        Object deltaValue = variables.getValue(ExpressionConstants.VAR_OBJECT_DELTA);
+        if (!(deltaValue instanceof ObjectDelta<?> objectDelta) || !objectDelta.isModify()) {
+            LOGGER.debug("Assignment variable is unavailable for case {} because it has no factored focus modification delta", aCase.getOid());
+            return null;
+        }
+
+        try {
+            ItemDelta<?, ?> exactAssignmentDelta = null;
+            int exactAssignmentDeltaCount = 0;
+            for (ItemDelta<?, ?> modification : objectDelta.getModifications()) {
+                if (modification.getPath().equivalent(AssignmentHolderType.F_ASSIGNMENT)) {
+                    exactAssignmentDelta = modification;
+                    exactAssignmentDeltaCount++;
+                }
+            }
+            // Assignment additions and deletions are factored into separate deltas, one per approval case.
+            if (exactAssignmentDelta != null) {
+                if (exactAssignmentDeltaCount != 1 || objectDelta.getModifications().size() != 1
+                        || !(exactAssignmentDelta instanceof ContainerDelta<?> containerDelta)) {
+                    LOGGER.debug("Assignment variable is unavailable for case {} because its complete assignment delta is ambiguous", aCase.getOid());
+                    return null;
+                }
+                return extractAddedOrDeletedAssignment(aCase, containerDelta);
+            }
+            return reconstructModifiedAssignment(aCase, objectDelta, variables);
+        } catch (SchemaException | RuntimeException e) {
+            LOGGER.debug("Assignment variable is unavailable for case {} because transient reconstruction failed ({})",
+                    aCase.getOid(), e.getClass().getSimpleName());
+            return null;
+        }
+    }
+
+    private @Nullable AssignmentType extractAddedOrDeletedAssignment(CaseType aCase, ContainerDelta<?> assignmentDelta) {
+        Collection<? extends PrismContainerValue<?>> values = null;
+        if (!assignmentDelta.isReplace() && assignmentDelta.isAdd() != assignmentDelta.isDelete()) {
+            values = assignmentDelta.isAdd() ? assignmentDelta.getValuesToAdd() : assignmentDelta.getValuesToDelete();
+        }
+        if (values == null || values.size() != 1) {
+            LOGGER.debug("Assignment variable is unavailable for case {} because its assignment value delta is ambiguous", aCase.getOid());
+            return null;
+        }
+        return (AssignmentType) values.iterator().next().asContainerable();
+    }
+
+    /**
+     * Reconstructs the modified assignment by applying the factored approval delta
+     * to the current focus object without modifying the original.
+     *
+     * Returns null if the delta does not identify a single assignment or the
+     * assignment cannot be reconstructed.
+     */
+    private @Nullable AssignmentType reconstructModifiedAssignment(CaseType aCase, ObjectDelta<?> objectDelta, VariablesMap variables) throws SchemaException {
+        Long assignmentId = null;
+        for (ItemDelta<?, ?> modification : objectDelta.getModifications()) {
+            ItemPath path = modification.getPath();
+            Long modificationAssignmentId = path.startsWithName(AssignmentHolderType.F_ASSIGNMENT)
+                    ? path.rest().firstToIdOrNull() : null;
+            if (modificationAssignmentId == null || assignmentId != null && !assignmentId.equals(modificationAssignmentId)) {
+                LOGGER.debug("Assignment variable is unavailable for case {} because its modification delta is ambiguous", aCase.getOid());
+                return null;
+            }
+            assignmentId = modificationAssignmentId;
+        }
+
+        Object objectValue = variables.getValue(ExpressionConstants.VAR_OBJECT);
+        if (assignmentId == null || !(objectValue instanceof PrismObject<?> object)) {
+            LOGGER.debug("Assignment variable is unavailable for case {} because the current object or assignment ID is missing", aCase.getOid());
+            return null;
+        }
+        if (objectDelta.getOid() != null && !objectDelta.getOid().equals(object.getOid())) {
+            LOGGER.debug("Assignment variable is unavailable for case {} because the delta and current object do not match", aCase.getOid());
+            return null;
+        }
+
+        // Apply the approved changes to the current object to obtain the complete assignment.
+        PrismObject<?> changedObject = computeChangedObject(objectDelta, object);
+        if (changedObject == null || !(changedObject.asObjectable() instanceof ObjectType changedObjectBean)) {
+            LOGGER.debug("Assignment variable is unavailable for case {} because the changed focus object is missing or unsupported", aCase.getOid());
+            return null;
+        }
+        AssignmentType assignment = ObjectTypeUtil.getAssignment(changedObjectBean, assignmentId);
+        if (assignment == null) {
+            LOGGER.debug("Assignment variable is unavailable for case {} because assignment ID {} is absent from the current object", aCase.getOid(), assignmentId);
+            return null;
+        }
+        return assignment;
+    }
+
+    @SuppressWarnings({ "rawtypes", "unchecked" })
+    private PrismObject<?> computeChangedObject(ObjectDelta<?> objectDelta, PrismObject<?> object) throws SchemaException {
+        return ((ObjectDelta) objectDelta).computeChangedObject((PrismObject) object);
+    }
+
+    private boolean declaresAssignmentVariable(ExpressionType expression) {
+        return expression.getVariable().stream()
+                .map(ExpressionVariableDefinitionType::getName)
+                .filter(Objects::nonNull)
+                .anyMatch(name -> ExpressionConstants.VAR_ASSIGNMENT.equals(name.getLocalPart()));
     }
 
     private boolean shouldExpandGroup(ComputationMode computationMode, OperationResult result) throws SchemaException {

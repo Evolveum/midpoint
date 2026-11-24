@@ -15,20 +15,33 @@ import com.evolveum.midpoint.gui.impl.component.wizard.withnavigation.WizardPare
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.ConnectorDevelopmentDetailsModel;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.ConnectorDevelopmentController;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.ConnectorDevelopmentWizardUtil;
 
-import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.NextStepsActionsPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.ResourceCreationPopup;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismReferenceWrapper;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.gui.impl.duplication.DuplicationProcessHelper;
+import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.Referencable;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnDevTestingType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import org.jetbrains.annotations.Nullable;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.connection.BaseUrlConnectorStepPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.connection.EndpointConnectorStepPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.sql.connection.SqlConnectionParametersConnectorStepPanel;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
+import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnDevAuthInfoType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnDevConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnDevObjectClassInfoType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorDevelopmentType;
@@ -38,6 +51,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationTypeType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.list.ListItem;
@@ -50,6 +64,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
  * @author lskublik
@@ -73,7 +88,8 @@ public class ConnectorDevelopmentWizardSummaryPanel extends WizardStepPanel impl
     private static final String ID_NUMBER_OF_OBJECTS_WIDGETS = "numberOfObjectsWidgets";
     private static final String ID_NUMBER_OF_OBJECTS_WIDGET = "numberOfObjectsWidget";
 
-    private static final String ID_CONNECTOR_ACTION = "connectorAction";
+    private static final String ID_EXPORT_CONNECTOR = "exportConnector";
+    private static final String ID_CREATE_RESOURCE = "createResource";
 
     private final ConnectorDevelopmentDetailsModel detailsModel;
 
@@ -88,6 +104,10 @@ public class ConnectorDevelopmentWizardSummaryPanel extends WizardStepPanel impl
     }
 
     private void initLayout() {
+        setOutputMarkupId(true);
+        add(createExportConnectorButton());
+        add(createCreateResourceButton());
+
         IModel<List<ProgressBar>> progressBarModel = getProgressBarModel();
         ProgressBarPanel progressBar = new ProgressBarPanel(ID_READ_ONLY_PROGRESS_BAR, progressBarModel);
         progressBar.setOutputMarkupId(true);
@@ -120,11 +140,6 @@ public class ConnectorDevelopmentWizardSummaryPanel extends WizardStepPanel impl
         };
         numberOfObjectsWidgets.setOutputMarkupId(true);
         add(numberOfObjectsWidgets);
-
-        NextStepsActionsPanel connectorActionPanel = new NextStepsActionsPanel(
-                ID_CONNECTOR_ACTION, detailsModel, (ConnectorDevelopmentController) getWizard());
-        connectorActionPanel.setOutputMarkupId(true);
-        add(connectorActionPanel);
     }
 
     private IModel<List<NumberOfObjectsWidgetDto>> createNumberOfObjectsWidgetsModel() {
@@ -142,6 +157,17 @@ public class ConnectorDevelopmentWizardSummaryPanel extends WizardStepPanel impl
                     ConnectorDevelopmentController controller = (ConnectorDevelopmentController) getWizard();
                     controller.showObjectClassesPanel(target);
                 }
+
+                @Override
+                public void addPerformed(AjaxRequestTarget target) {
+                    ConnectorDevelopmentController controller = (ConnectorDevelopmentController) getWizard();
+                    controller.initNewObjectClass(target);
+                }
+
+                @Override
+                public boolean isAddEnabled() {
+                    return ConnectorDevelopmentWizardUtil.isBasicSettingsComplete(detailsModel.getObjectWrapper());
+                }
             });
 
             list.add(new NumberOfObjectsWidgetDto(
@@ -154,6 +180,17 @@ public class ConnectorDevelopmentWizardSummaryPanel extends WizardStepPanel impl
                 public void openListOfObjects(AjaxRequestTarget target) {
                     ConnectorDevelopmentController controller = (ConnectorDevelopmentController) getWizard();
                     controller.showRelationshipsPanel(target);
+                }
+
+                @Override
+                public void addPerformed(AjaxRequestTarget target) {
+                    ConnectorDevelopmentController controller = (ConnectorDevelopmentController) getWizard();
+                    controller.initNewRelationship(target);
+                }
+
+                @Override
+                public boolean isAddEnabled() {
+                    return ConnectorDevelopmentWizardUtil.isBasicSettingsComplete(detailsModel.getObjectWrapper());
                 }
             });
 
@@ -293,7 +330,7 @@ public class ConnectorDevelopmentWizardSummaryPanel extends WizardStepPanel impl
                                 detailsModel, null, EndpointConnectorStepPanel.PROPERTY_ITEM_NAME)));
                 values.put(
                         createStringResource("ConnectorDevelopmentWizardSummaryPanel.authMethod"),
-                        defineValueModel("Basic auth")); //TODO fix it
+                        defineValueModel(getAuthMethodNames()));
                 return new StringValuesWidgetDetailsDto(values);
             }
         };
@@ -320,6 +357,13 @@ public class ConnectorDevelopmentWizardSummaryPanel extends WizardStepPanel impl
                 return new StringValuesWidgetDetailsDto(values);
             }
         };
+    }
+
+    private String getAuthMethodNames() {
+        return detailsModel.getObjectType().getConnector().getAuth().stream()
+                .map(ConnDevAuthInfoType::getName)
+                .filter(StringUtils::isNotEmpty)
+                .collect(Collectors.joining(", "));
     }
 
     private static String shortenJdbcUrl(String jdbcUrl) {
@@ -392,6 +436,75 @@ public class ConnectorDevelopmentWizardSummaryPanel extends WizardStepPanel impl
                         ProgressBar.State.PRIMARY,
                         com.evolveum.midpoint.schema.util.LocalizationUtil.toLocalizableMessage(
                                 com.evolveum.midpoint.schema.util.LocalizationUtil.createForKey(messageKey))));
+    }
+
+    private Component createExportConnectorButton() {
+        AjaxIconButton exportConnector = new AjaxIconButton(ID_EXPORT_CONNECTOR,
+                Model.of("fa fa-file-export"),
+                createStringResource("ConnectorDevelopmentWizardSummaryPanel.exportConnector")) {
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                getPageBase().showMainPopup(createExportConnectorPopup(), target);
+            }
+        };
+        exportConnector.showTitleAsLabel(true);
+        exportConnector.add(new EnableBehaviour(
+                () -> ConnectorDevelopmentWizardUtil.isBasicSettingsComplete(detailsModel.getObjectWrapper())));
+        return exportConnector;
+    }
+
+    private Component createCreateResourceButton() {
+        AjaxIconButton createResource = new AjaxIconButton(ID_CREATE_RESOURCE,
+                Model.of("fa fa-circle-plus"),
+                createStringResource("ConnectorDevelopmentWizardSummaryPanel.createResource")) {
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                getPageBase().showMainPopup(createResourceCreationPopup(), target);
+            }
+        };
+        createResource.showTitleAsLabel(true);
+        createResource.add(new EnableBehaviour(
+                () -> ConnectorDevelopmentWizardUtil.isBasicSettingsComplete(detailsModel.getObjectWrapper())));
+        return createResource;
+    }
+
+    private ResourceCreationPopup createResourceCreationPopup() {
+        return new ResourceCreationPopup(getPageBase().getMainPopupBodyId()) {
+
+            @Override
+            protected void createNewResource(boolean useConfiguration) {
+                try {
+                    PrismReferenceWrapper<Referencable> resourceRef = detailsModel.getObjectWrapper().findReference(
+                            ItemPath.create(ConnectorDevelopmentType.F_TESTING, ConnDevTestingType.F_TESTING_RESOURCE));
+                    @Nullable PrismObject<ResourceType> resource = WebModelServiceUtils.loadObject(resourceRef.getValue().getRealValue(), getPageBase());
+                    if (resource != null) {
+                        PrismObject<ResourceType> newResource = DuplicationProcessHelper.duplicateObjectDefault(resource);
+                        newResource.findOrCreateProperty(ResourceType.F_NAME).setRealValue(null);
+                        newResource.findOrCreateContainer(ResourceType.F_SCHEMA).clear();
+                        newResource.findOrCreateProperty(ResourceType.F_LIFECYCLE_STATE).setRealValue(SchemaConstants.LIFECYCLE_PROPOSED);
+                        if (!useConfiguration) {
+                            newResource.findOrCreateContainer(ItemPath.create("connectorConfiguration")).clear();
+                        }
+                        DetailsPageUtil.dispatchToObjectDetailsPage(newResource, true, true, getPageBase());
+                    }
+                } catch (SchemaException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        };
+    }
+
+    private ExportConnectorPopup createExportConnectorPopup() {
+        ConnectorExportOptions options = new ConnectorExportOptions(detailsModel.getObjectType().getConnector().getVersion());
+        return new ExportConnectorPopup(getPageBase().getMainPopupBodyId(), Model.of(options), detailsModel) {
+
+            @Override
+            protected void onConnectorVersionUpdated(AjaxRequestTarget target) {
+                target.add(ConnectorDevelopmentWizardSummaryPanel.this);
+            }
+        };
     }
 
     @Override

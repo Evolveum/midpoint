@@ -8,22 +8,18 @@ package com.evolveum.midpoint.gui.impl.page.admin.connector.development.componen
 
 import java.io.Serial;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicReference;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Strings;
 import org.apache.wicket.AttributeModifier;
-import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormChoiceComponentUpdatingBehavior;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.form.Radio;
 import org.apache.wicket.markup.html.form.RadioGroup;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
+import org.apache.wicket.model.LambdaModel;
 import org.apache.wicket.model.StringResourceModel;
 import org.jetbrains.annotations.NotNull;
 
@@ -40,8 +36,10 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
+import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.dialog.HelpInfoPanel;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.gui.impl.component.wizard.collapse.HelpTab;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.ConnectorWizardHelpTopics;
@@ -62,18 +60,20 @@ public class RelationshipSelectConnectorStepPanel extends AbstractWizardStepPane
 
     public static final String RELATIONSHIP_NAME = "cdw-select-relationship";
 
+    private static final int MAX_RECOMMENDED = 5;
+
     private static final String ID_RADIO_GROUP = "radioGroup";
     private static final String ID_PANEL = "panel";
-    private static final String ID_RADIO = "radio";
-    private static final String ID_NAME = "name";
-    private static final String ID_DESCRIPTION = "description";
-    private static final String ID_SUBJECT = "subject";
-    private static final String ID_SUBJECT_ATTRIBUTE = "subjectAttribute";
-    private static final String ID_OBJECT = "object";
-    private static final String ID_OBJECT_ATTRIBUTE = "objectAttribute";
+    private static final String ID_ROW = "row";
+    private static final String ID_BROWSE_MORE_BUTTON = "browseMoreButton";
+    private static final String ID_COUNTER = "counter";
 
     private final IModel<PrismContainerValueWrapper<ConnDevRelationInfoType>> valueModel;
-    private LoadableModel<List<PrismContainerValueWrapper<ConnDevRelationInfoType>>> valuesModel;
+
+    /**
+     * State of selecting one of the detected relationships, shared with the popup with the other relationships.
+     */
+    private final LoadableModel<RelationshipSelectionState> stateModel = LoadableModel.create(this::createState, false);
 
     public RelationshipSelectConnectorStepPanel(WizardPanelHelper<? extends Containerable, ConnectorDevelopmentDetailsModel> helper,
             IModel<PrismContainerValueWrapper<ConnDevRelationInfoType>> valueModel) {
@@ -84,35 +84,78 @@ public class RelationshipSelectConnectorStepPanel extends AbstractWizardStepPane
     @Override
     protected void onInitialize() {
         super.onInitialize();
-        createValuesModel();
         initLayout();
     }
 
-    private void createValuesModel() {
-        valuesModel = new LoadableModel<>() {
-            @Override
-            protected List<PrismContainerValueWrapper<ConnDevRelationInfoType>> load() {
-                try {
-                    PrismContainerWrapper<ConnDevRelationInfoType> container =
-                            getDetailsModel().getObjectWrapper().findContainer(
-                                    ItemPath.create(ConnectorDevelopmentType.F_APPLICATION,
-                                            ConnDevApplicationInfoType.F_DETECTED_SCHEMA,
-                                            ConnDevSchemaType.F_RELATION));
 
-                    PrismContainerWrapper<ConnDevObjectClassInfoType> objectClassesContainer = getDetailsModel().getObjectWrapper().findContainer(
-                            ItemPath.create(ConnectorDevelopmentType.F_CONNECTOR,
-                                    ConnDevConnectorType.F_OBJECT_CLASS));
+    private RelationshipSelectionState createState() {
+        List<ConnDevObjectClassInfoType> objectClasses = getConfiguredObjectClasses();
+        List<ConnDevRelationInfoType> connectorRelations = getConnectorRelations();
+        List<RelationshipDto> relationships = getDetectedRelations().stream()
+                .filter(relation -> hasConfiguredObjectClass(relation, objectClasses))
+                .filter(relation -> !isInConnector(relation, connectorRelations))
+                .map(relation -> RelationshipDto.create(relation, objectClasses))
+                .sorted(new RelationshipConfigurationComparator())
+                .toList();
+        return new RelationshipSelectionState(
+                relationships.stream().limit(MAX_RECOMMENDED).toList(),
+                relationships.stream().skip(MAX_RECOMMENDED).toList());
+    }
 
-                    return container.getValues().stream().filter(value ->
-                        objectClassesContainer.getValues().stream().anyMatch(objectClass ->
-                            Strings.CS.equals(value.getRealValue().getObject(), objectClass.getRealValue().getName())
-                                    || Strings.CS.equals(value.getRealValue().getSubject(), objectClass.getRealValue().getName()))
-                    ).toList();
-                } catch (SchemaException e) {
-                    throw new RuntimeException(e);
-                }
-            }
-        };
+    private List<ConnDevRelationInfoType> getDetectedRelations() {
+        try {
+            PrismContainerWrapper<ConnDevRelationInfoType> relationsContainer = getDetailsModel().getObjectWrapper().findContainer(
+                    ItemPath.create(ConnectorDevelopmentType.F_APPLICATION,
+                            ConnDevApplicationInfoType.F_DETECTED_SCHEMA,
+                            ConnDevSchemaType.F_RELATION));
+            return relationsContainer.getValues().stream()
+                    .map(PrismContainerValueWrapper::getRealValue)
+                    .toList();
+        } catch (SchemaException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private List<ConnDevObjectClassInfoType> getConfiguredObjectClasses() {
+        try {
+            PrismContainerWrapper<ConnDevObjectClassInfoType> objectClassesContainer = getDetailsModel().getObjectWrapper().findContainer(
+                    ItemPath.create(ConnectorDevelopmentType.F_CONNECTOR,
+                            ConnDevConnectorType.F_OBJECT_CLASS));
+            return objectClassesContainer.getValues().stream()
+                    .map(PrismContainerValueWrapper::getRealValue)
+                    .toList();
+        } catch (SchemaException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private List<ConnDevRelationInfoType> getConnectorRelations() {
+        return getConnectorRelationsContainer().getValues().stream()
+                .map(PrismContainerValueWrapper::getRealValue)
+                .toList();
+    }
+
+    private PrismContainerWrapper<ConnDevRelationInfoType> getConnectorRelationsContainer() {
+        try {
+            return getDetailsModel().getObjectWrapper().findContainer(
+                    ItemPath.create(ConnectorDevelopmentType.F_CONNECTOR, ConnDevConnectorType.F_RELATION));
+        } catch (SchemaException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private boolean hasConfiguredObjectClass(ConnDevRelationInfoType relation, List<ConnDevObjectClassInfoType> objectClasses) {
+        return objectClasses.stream().anyMatch(objectClass ->
+                Strings.CS.equals(relation.getSubject(), objectClass.getName())
+                        || Strings.CS.equals(relation.getObject(), objectClass.getName()));
+    }
+
+    private boolean isInConnector(ConnDevRelationInfoType relation, List<ConnDevRelationInfoType> connectorRelations) {
+        return connectorRelations.stream().anyMatch(connectorRelation ->
+                Strings.CS.equals(relation.getSubject(), connectorRelation.getSubject())
+                        && Strings.CS.equals(relation.getSubjectAttribute(), connectorRelation.getSubjectAttribute())
+                        && Strings.CS.equals(relation.getObject(), connectorRelation.getObject())
+                        && Strings.CS.equals(relation.getObjectAttribute(), connectorRelation.getObjectAttribute()));
     }
 
     private void initLayout() {
@@ -120,69 +163,17 @@ public class RelationshipSelectConnectorStepPanel extends AbstractWizardStepPane
         getSubtextLabel().add(AttributeAppender.replace("class", "border-bottom pb-4 d-inline-block w-100"));
         getButtonContainer().add(AttributeAppender.replace("class", "d-flex align-items-center flex-nowrap flex-row mt-4 gap-2 wizard-actions-strip col-12"));
         getFeedback().add(AttributeAppender.replace("class", "col-12 feedbackContainer"));
+        getSubmit().add(AttributeAppender.replace("class", "btn btn-primary"));
 
-        IModel<String> radioGroupModel = new IModel<>() {
-            @Override
-            public String getObject() {
-                return valuesModel.getObject().stream()
-                        .filter(PrismContainerValueWrapper::isSelected)
-                        .findFirst()
-                        .map(containerValueWrapper -> containerValueWrapper.getRealValue().getName())
-                        .orElse(null);
-            }
-
-            @Override
-            public void setObject(String object) {
-                valuesModel.getObject().forEach(value -> value.setSelected(false));
-                valuesModel.getObject().stream()
-                        .filter(value -> StringUtils.equals(value.getRealValue().getName(), object))
-                        .findFirst()
-                        .ifPresent(value -> value.setSelected(true));
-            }
-        };
-        RadioGroup<String> radioGroup = new RadioGroup<>(ID_RADIO_GROUP, radioGroupModel);
+        RadioGroup<RelationshipDto> radioGroup = new RadioGroup<>(ID_RADIO_GROUP,
+                LambdaModel.of(stateModel, RelationshipSelectionState::getSelectedRelationship, RelationshipSelectionState::setSelectedRelationship));
         radioGroup.setOutputMarkupId(true);
         add(radioGroup);
 
-        ListView<PrismContainerValueWrapper<ConnDevRelationInfoType>> panel = new ListView<>(ID_PANEL, valuesModel) {
+        ListView<RelationshipDto> panel = new ListView<>(ID_PANEL, () -> stateModel.getObject().getRecommendedRelationships()) {
             @Override
-            protected void populateItem(ListItem<PrismContainerValueWrapper<ConnDevRelationInfoType>> listItem) {
-                Radio<String> radio = new Radio<>(ID_RADIO, Model.of(listItem.getModelObject().getRealValue().getName()), radioGroup);
-                radio.setOutputMarkupId(true);
-                listItem.add(radio);
-
-                Label name = new Label(ID_NAME, () -> listItem.getModelObject().getRealValue().getName());
-                name.setOutputMarkupId(true);
-                listItem.add(name);
-
-                Label description = new Label(ID_DESCRIPTION, () -> listItem.getModelObject().getRealValue().getShortDescription());
-                description.setOutputMarkupId(true);
-                listItem.add(description);
-
-                Label subject = new Label(ID_SUBJECT, () -> listItem.getModelObject().getRealValue().getSubject());
-                subject.setOutputMarkupId(true);
-                listItem.add(subject);
-
-                Label subjectAttribute = new Label(ID_SUBJECT_ATTRIBUTE, () -> listItem.getModelObject().getRealValue().getSubjectAttribute());
-                subjectAttribute.setOutputMarkupId(true);
-                listItem.add(subjectAttribute);
-
-                Label object = new Label(ID_OBJECT, () -> listItem.getModelObject().getRealValue().getObject());
-                object.setOutputMarkupId(true);
-                listItem.add(object);
-
-                Label objectAttribute = new Label(ID_OBJECT_ATTRIBUTE, () -> listItem.getModelObject().getRealValue().getObjectAttribute());
-                objectAttribute.setOutputMarkupId(true);
-                listItem.add(objectAttribute);
-
-                listItem.add(AttributeAppender.append("style", "cursor: pointer;"));
-                listItem.add(new AjaxEventBehavior("click") {
-                    @Override
-                    protected void onEvent(AjaxRequestTarget target) {
-                        radioGroupModel.setObject(listItem.getModelObject().getRealValue().getName());
-                        target.add(radioGroup);
-                    }
-                });
+            protected void populateItem(ListItem<RelationshipDto> listItem) {
+                listItem.add(createRelationshipRowPanel(listItem.getModel()));
             }
         };
         panel.setOutputMarkupId(true);
@@ -191,9 +182,51 @@ public class RelationshipSelectConnectorStepPanel extends AbstractWizardStepPane
         radioGroup.add(new AjaxFormChoiceComponentUpdatingBehavior() {
             @Override
             protected void onUpdate(AjaxRequestTarget object) {
-                object.add(get(ID_RADIO_GROUP));
             }
         });
+
+        add(createBrowseMoreButton());
+        add(createCounter());
+    }
+
+    private RelationshipRowPanel createRelationshipRowPanel(IModel<RelationshipDto> model) {
+        return new RelationshipRowPanel(ID_ROW, model);
+    }
+
+    private AjaxButton createBrowseMoreButton() {
+        AjaxButton browseMore = new AjaxButton(ID_BROWSE_MORE_BUTTON,
+                () -> createStringResource("RelationshipSelectConnectorStepPanel.browseMore", stateModel.getObject().getOtherRelationships().size()).getString()) {
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                showBrowseRelationshipsPopup(target);
+            }
+        };
+        browseMore.add(new VisibleBehaviour(() -> !stateModel.getObject().getOtherRelationships().isEmpty()));
+        return browseMore;
+    }
+
+    private Label createCounter() {
+        Label counter = new Label(ID_COUNTER, () -> {
+            int count = stateModel.getObject().getRecommendedRelationships().size();
+            return createStringResource("CountToolbar.label", 1, count, count).getString();
+        });
+        counter.add(new VisibleBehaviour(() -> !stateModel.getObject().getRecommendedRelationships().isEmpty()));
+        return counter;
+    }
+
+    private void showBrowseRelationshipsPopup(AjaxRequestTarget target) {
+        BrowseRelationshipsPopup popup = new BrowseRelationshipsPopup(getPageBase().getMainPopupBodyId(), stateModel) {
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            protected void continuePerformed(AjaxRequestTarget target) {
+                getPageBase().hideMainPopup(target);
+                onNextPerformed(target);
+            }
+        };
+        getPageBase().showMainPopup(popup, target);
     }
 
     protected String getPanelType() {
@@ -222,12 +255,28 @@ public class RelationshipSelectConnectorStepPanel extends AbstractWizardStepPane
 
     @Override
     public String appendCssToWizard() {
-        return "col-12 col-xl-10 col-xxl-8";
+        return "col-12";
     }
 
     @Override
     protected boolean isSubmitVisible() {
-        return false;
+        return true;
+    }
+
+    @Override
+    protected IModel<String> getSubmitLabelModel() {
+        return createStringResource("RelationshipSelectConnectorStepPanel.generateScripts");
+    }
+
+    @Override
+    protected String getSubmitIcon() {
+        return "fa fa-gears";
+    }
+
+    @Override
+    protected void onSubmitPerformed(AjaxRequestTarget target) {
+        super.onSubmitPerformed(target);
+        onNextPerformed(target);
     }
 
     @Override
@@ -236,68 +285,52 @@ public class RelationshipSelectConnectorStepPanel extends AbstractWizardStepPane
     }
 
     @Override
-    public boolean onNextPerformed(AjaxRequestTarget object) {
-        AtomicReference<String> relationshipName = new AtomicReference<>();
-
-        if (valuesModel.getObject().stream().noneMatch(PrismContainerValueWrapper::isSelected)) {
-            showNoSelectedRelationshipPopup(object);
+    public boolean onNextPerformed(AjaxRequestTarget target) {
+        RelationshipDto selected = stateModel.getObject().getSelectedRelationship();
+        if (selected == null) {
+            showNoSelectedRelationshipPopup(target);
             return false;
         }
 
+        PrismContainerValueWrapper<ConnDevRelationInfoType> addedRelationship = addRelationshipToConnector(selected);
+        String relationshipName = addedRelationship.getRealValue().getName();
+        if (relationshipName != null) {
+            getHelper().putVariable(RELATIONSHIP_NAME, relationshipName);
+            valueModel.detach();
+        }
+        OperationResult result = getHelper().onSaveObjectPerformed(target);
+        getDetailsModel().getConnectorDevelopmentOperation();
+        if (result != null && !result.isError()) {
+            stateModel.reset();
+            super.onNextPerformed(target);
+        } else {
+            removeRelationshipFromConnector(addedRelationship);
+            getHelper().removeVariable(RELATIONSHIP_NAME);
+            target.add(getFeedback());
+        }
+        return false;
+    }
+
+    private PrismContainerValueWrapper<ConnDevRelationInfoType> addRelationshipToConnector(RelationshipDto relationship) {
+        PrismContainerWrapper<ConnDevRelationInfoType> relationsContainer = getConnectorRelationsContainer();
         try {
-            PrismContainerWrapper<ConnDevRelationInfoType> parentWrapper =
-                    getDetailsModel().getObjectWrapper().findContainer(
-                            ItemPath.create(ConnectorDevelopmentType.F_CONNECTOR, ConnDevConnectorType.F_RELATION));
-
-            valuesModel.getObject().stream()
-                    .filter(PrismContainerValueWrapper::isSelected)
-                    .map(detectedValue -> {
-                        try {
-                            //noinspection unchecked
-                            return (PrismContainerValueWrapper<ConnDevRelationInfoType>) getPageBase().createValueWrapper(
-                                    parentWrapper, detectedValue.getRealValue().asPrismContainerValue().clone(), ValueStatus.ADDED, getDetailsModel().createWrapperContext());
-                        } catch (SchemaException e) {
-                            throw new RuntimeException(e);
-                        }
-                    })
-                    .findFirst()
-                    .ifPresent(valueWrapper -> {
-                        relationshipName.set(valueWrapper.getRealValue().getName());
-                        try {
-                            //noinspection unchecked
-                            parentWrapper.getItem().add(valueWrapper.getRealValue().asPrismContainerValue());
-                        } catch (SchemaException e) {
-                            throw new RuntimeException(e);
-                        }
-                        parentWrapper.getValues().add(valueWrapper);
-                    });
-
+            //noinspection unchecked
+            PrismContainerValueWrapper<ConnDevRelationInfoType> valueWrapper =
+                    (PrismContainerValueWrapper<ConnDevRelationInfoType>) getPageBase().createValueWrapper(
+                            relationsContainer, relationship.getRelation().asPrismContainerValue().clone(), ValueStatus.ADDED, getDetailsModel().createWrapperContext());
+            //noinspection unchecked
+            relationsContainer.getItem().add(valueWrapper.getRealValue().asPrismContainerValue());
+            relationsContainer.getValues().add(valueWrapper);
+            return valueWrapper;
         } catch (SchemaException e) {
             throw new RuntimeException(e);
         }
+    }
 
-        if (relationshipName.get() != null) {
-            getHelper().putVariable(RELATIONSHIP_NAME, relationshipName.get());
-            valueModel.detach();
-        }
-        OperationResult result = getHelper().onSaveObjectPerformed(object);
-        getDetailsModel().getConnectorDevelopmentOperation();
-        if (result != null && !result.isError()) {
-//            ObjectClassConnectorStepPanel step = new ObjectClassConnectorStepPanel(getHelper());
-//            WizardModel wizardModel = getWizard();
-//            wizardModel.addStepBefore(step, ObjectClassConnectorStepPanel.class);
-//            if (wizardModel instanceof WizardModelWithParentSteps wizardModelWithParentSteps) {
-//                wizardModelWithParentSteps.setActiveChildStepById(ObjectClassConnectorStepPanel.PANEL_TYPE);
-//            } else {
-//                wizardModel.setActiveStepById(ObjectClassConnectorStepPanel.PANEL_TYPE);
-//            }
-//            wizardModel.fireActiveStepChanged();
-//            object.add(getWizard().getPanel());
-            super.onNextPerformed(object);
-        } else {
-            object.add(getFeedback());
-        }
-        return false;
+    private void removeRelationshipFromConnector(PrismContainerValueWrapper<ConnDevRelationInfoType> valueWrapper) {
+        PrismContainerWrapper<ConnDevRelationInfoType> relationsContainer = getConnectorRelationsContainer();
+        relationsContainer.getItem().remove(valueWrapper.getRealValue().asPrismContainerValue());
+        relationsContainer.getValues().remove(valueWrapper);
     }
 
     private void showNoSelectedRelationshipPopup(AjaxRequestTarget target) {

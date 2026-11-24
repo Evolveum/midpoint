@@ -24,4 +24,15 @@ public interface PageStorage extends Serializable, DebugDumpable {
     void setPaging(ObjectPaging paging);
 
     ObjectPaging getPaging();
+
+    /**
+     * Detaches the models of the stored search item wrappers, e.g. so that their labels are reloaded after
+     * the GUI locale has changed.
+     */
+    default void detachSearchItemWrappersModels() {
+        Search search = getSearch();
+        if (search != null) {
+            search.detachSearchItemWrappersModels();
+        }
+    }
 }

@@ -94,7 +94,7 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:since>4.0</a:since>
-                        <a:displayName>AdminGuiConfigurationType.objectCollectionViews</a:displayName>
+                        <a:displayName>AdminGuiConfigurationType.shadowCollectionViews</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -1076,7 +1076,7 @@
                         which are specified within GuiObjectListViewsType. Can be overridden in specific object collection view.
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <a:displayName>GuiObjectListViewsType.objectCollectionView</a:displayName>
+                        <a:displayName>GuiObjectListViewsType.defaultSettings</a:displayName>
                         <a:since>4.0</a:since>
                     </xsd:appinfo>
                 </xsd:annotation>
@@ -1254,7 +1254,7 @@
                         Can be overridden within a specific list view configuration for a specific panel.
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <a:displayName>GuiObjectListViewsType.objectCollectionView</a:displayName>
+                        <a:displayName>GuiObjectDetailsSetType.defaultSettings</a:displayName>
                         <a:since>4.0</a:since>
                     </xsd:appinfo>
                 </xsd:annotation>

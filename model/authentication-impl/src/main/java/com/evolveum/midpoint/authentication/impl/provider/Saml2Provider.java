@@ -16,6 +16,7 @@ import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.authentication.impl.module.authentication.Saml2ModuleAuthenticationImpl;
 
 import com.evolveum.midpoint.authentication.impl.module.configuration.SamlAdditionalConfiguration;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 
 import org.apache.commons.lang3.StringUtils;
 import org.opensaml.saml.saml2.core.*;
@@ -98,7 +99,10 @@ public class Saml2Provider extends RemoteModuleProvider {
             try {
                 samlAuthentication = (Saml2Authentication) openSamlProvider.authenticate(samlAuthenticationToken);
             } catch (AuthenticationException e) {
-                getAuditProvider().auditLoginFailure(null, null, createConnectEnvironment(getChannel()), e.getMessage());
+                // Password reset failures are audited by SequenceCompletionFilter.
+                if (!SchemaConstants.CHANNEL_RESET_PASSWORD_URI.equals(getChannel())) {
+                    getAuditProvider().auditLoginFailure(null, null, createConnectEnvironment(getChannel()), e.getMessage());
+                }
                 LOGGER.debug("Unexpected exception in saml module", e);
                 throw e;
             }

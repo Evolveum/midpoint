@@ -1549,6 +1549,22 @@ export default class MidPointTheme {
         input.val(value);
     }
 
+    // Use fixed dropdown positioning inside the container so menus are not clipped by a scrolling table.
+    initFixedDropdowns(containerId) {
+        const container = document.getElementById(containerId);
+        if (!container) {
+            return;
+        }
+        const setFixed = function (e) {
+            const toggle = e.target.closest("[data-bs-toggle='dropdown']");
+            if (toggle && !toggle.hasAttribute("data-bs-popper-config")) {
+                toggle.setAttribute("data-bs-popper-config", '{"strategy":"fixed"}');
+            }
+        };
+        container.addEventListener("pointerdown", setFixed);
+        container.addEventListener("focusin", setFixed);
+    }
+
     initResponsiveTable() {
         $('.table-responsive').on('show.bs.dropdown', function (e) {
             const $dropdownMenu = $(e.target).find('.dropdown-menu'),
@@ -1796,7 +1812,7 @@ export default class MidPointTheme {
                 autocomplete.hide()
             }
 
-            autocomplete.on('click', '.suggestion', function () {
+            autocomplete.off('click.axiomSearch').on('click.axiomSearch', '.suggestion', function () {
                 commands[commands.length - 1] = $(this).find('.name').text()
                 queryDslInput.val(commands.join(" ") + query.substring(cursorPosition))
                 queryDslInput[0].focus()
@@ -1807,7 +1823,7 @@ export default class MidPointTheme {
 
             let currentIndex = -1; // No selection initially
 
-            queryDslInput.on('input keydown click', function (e) {
+            queryDslInput.off('.axiomSearch').on('input.axiomSearch keydown.axiomSearch click.axiomSearch', function (e) {
                 // navigation in suggestions list
                 if (e.key === "ArrowDown" || e.key == "Arrow Down" || e.keyCode == 40) {
                     e.preventDefault();
@@ -1888,6 +1904,15 @@ export default class MidPointTheme {
         if (event.ctrlKey && event.key === ' ') {
             event.preventDefault();
             element.dispatchEvent(new Event('keyup', {bubbles: true}));
+        }
+    }
+
+    triggerSearchOnEnterIfAutocompleteClosed(event, submitButtonAbout) {
+        if (event.keyCode === 13) {
+            var autocompletePopup = document.getElementsByClassName("wicket-aa-container");
+            if (autocompletePopup != null && autocompletePopup[0].style.display === "none") {
+                $('[about="' + submitButtonAbout + '"]').click();
+            }
         }
     }
 

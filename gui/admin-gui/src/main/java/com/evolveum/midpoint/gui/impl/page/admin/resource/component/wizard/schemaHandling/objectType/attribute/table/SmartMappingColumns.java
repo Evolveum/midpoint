@@ -94,7 +94,7 @@ final class SmartMappingColumns<P extends Containerable> implements Serializable
 
             @Override
             public @NotNull String getCssClass() {
-                return "col-2 header-border-end";
+                return "col-2 header-border-end px-2";
             }
 
             @Override
@@ -126,7 +126,7 @@ final class SmartMappingColumns<P extends Containerable> implements Serializable
 
             @Override
             public @NotNull String getCssClass() {
-                return "col-2 header-border-end";
+                return "col-2 header-border-end px-2";
             }
         };
     }
@@ -140,7 +140,7 @@ final class SmartMappingColumns<P extends Containerable> implements Serializable
 
             @Override
             public @NotNull String getCssClass() {
-                return "col-2 header-border-end";
+                return "col-2 header-border-end px-2";
             }
 
             @SuppressWarnings("rawtypes")
@@ -203,6 +203,16 @@ final class SmartMappingColumns<P extends Containerable> implements Serializable
                 AbstractItemWrapperColumn.ColumnType.VALUE,
                 table.getPageBase()) {
 
+            /** Makes the owning mapping available to source change listeners. */
+            @Override
+            public void populateItem(
+                    Item<ICellPopulator<PrismContainerValueWrapper<MappingType>>> cellItem,
+                    String componentId,
+                    IModel<PrismContainerValueWrapper<MappingType>> rowModel) {
+                super.populateItem(cellItem, componentId, rowModel);
+                cellItem.setDefaultModel(rowModel);
+            }
+
             @SuppressWarnings({ "unchecked", "rawtypes" })
             @Override
             protected <IW extends ItemWrapper> Component createColumnPanel(
@@ -234,7 +244,7 @@ final class SmartMappingColumns<P extends Containerable> implements Serializable
 
             @Override
             public String getCssClass() {
-                return "col-2 header-border-end";
+                return "col-2 header-border-end px-2";
             }
         };
     }
@@ -262,7 +272,7 @@ final class SmartMappingColumns<P extends Containerable> implements Serializable
 
             @Override
             public String getCssClass() {
-                return "col-2 header-border-end";
+                return "col-2 header-border-end px-2";
             }
         };
     }

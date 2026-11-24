@@ -9,35 +9,34 @@ MidPoint is a very flexible system.
 Being an identity governance platform, all the flexibility is needed to allow practical and efficient deployments.
 However, with great power comes great responsibility.
 
-One of the most powerful parts of midPoint are xref:/midpoint/reference/expressions/[mappings and expressions]. Expressions allow to customize midPoint behavior, and they are essential for the success of midPoint deployments.
-However, the expressions used to be very powerful, maybe even a bit too powerful for some use cases.
-Previously, the expressions could use general-purpose scripting languages such as Groovy or JavaScript.
-Therefore, such expressions had almost unlimited capabilities.
-Which means that the expressions could damage the system or compromise security of the system.
+One of the most powerful parts of midPoint are xref:/midpoint/reference/expressions/[mappings and expressions].
+Expressions allow to customize midPoint behavior, and they are essential for the success of midPoint deployments.
+However, expressions used to be very powerful, maybe even a bit too powerful for some use cases.
 
-In 4.11.0, we bring forth two major improvements in this area:
+In some deployments - in particular those running versions of midPoint earlier than 4.11.0, or deployments upgraded from these versions - expressions can use general-purpose scripting languages such as Groovy or JavaScript.
+These scripting languages have almost unlimited capabilities, which means that expressions using them can damage the system or compromise its security.
+It can happen by accident when they are put into hands of a careless user, or they can be abused by a malevolent attacker to gain unauthorized access to data, disable the system or do almost any kind of damage.
 
-. By default, general-purpose scripting languages are disabled by default.
-As an alternative, lightweight and secure MidPoint Expression Language (MEL) is offered.
-(The operating system administrator can still enable those general-purpose languages, if they are really needed.)
+Since 4.11.0 there are two main mechanisms to improve the expressions security:
+
+. General-purpose scripting languages are _disabled by default_ for new midPoint installations.
++
+Instead, two safe alternatives are present:
++
+* lightweight and secure MidPoint Expression Language (MEL),
+* safe-to-use variant of the Apache Velocity language ("Safe Velocity" for short).
 
 . _Expression profiles_, the major mechanism that limits the power of expressions, are now universally available and strongly enforced.
 
-Still, as a general guideline, *utmost care* should be applied wherever expressions are used.
-Expressions, especially xref:/midpoint/reference/expressions/expressions/script/[scripting expressions], create inherent security risks.
-
-However, there is a limit to such a recommendation.
-Expressions are the fuel that drives midPoint flexibility on too many levels.
-It is difficult to image really complex configuration where all the roles are designed by system administrator.
-And it is also difficult to imagine a life with just a static roles.
-That would easily lead to role explosion.
-Therefore, midPoint contains several mechanisms that make use of expressions reasonably secure.
+Still, as a general guideline, *utmost care* should be applied wherever expressions are used on systems with general-purpose scripting languages enabled.
+On these systems expressions, especially xref:/midpoint/reference/expressions/expressions/script/[scripting expressions], create inherent security risks.
+But great care is to be taken even on systems where these general-purpose languages are disabled, as even seemingly safe expressions can become security risks in wrong hands.
 
 == Expression Profiles
 
 xref:/midpoint/reference/expressions/expressions/profiles/[Expression profiles] are definitions, what an expression can and cannot do.
 For example, an expression profile may dictate, that particular expression can only use `asIs` and `path` evaluators.
-In case that `script` evaluator is used, only MEL can be used as a scripting language and only use of particular safe features should be allowed.
+In case that `script` evaluator is used, only MEL can be used as a scripting language and only use of particular safe extension libraries should be allowed.
 
 Expression profiles are defined in xref:/midpoint/reference/concepts/system-configuration-object/[system configuration].
 Use of expression profiles is integrated with xref:/midpoint/reference/schema/archetypes/[archetypes].
@@ -49,13 +48,13 @@ In practice, coordinated use of expression profiles and authorizations is necess
 
 See xref:/midpoint/reference/expressions/expressions/profiles/[Expression Profiles] page for more details.
 
-== Safe Expression Evaluators
+== Expression Evaluators Safety
 
 The features and characteristics of individual expression evaluators vary.
-Some expression evaluators (such as xref:/midpoint/reference/expressions/expressions/script/[`script`]) are very powerful, yet they can cause a lot of harm.
-Other evaluators (such as `asIs`) are simple, yet they are very safe to use.
+Some expression evaluators (such as xref:/midpoint/reference/expressions/expressions/script/[`script`]) are very powerful, and they can cause a lot of harm.
+Other evaluators (such as `asIs`) are simple and very safe to use.
 
-The following table summarizes division of individual expression evaluators into the default expression profiles.
+Based on individual evaluator safety and expected use, we created a default configuration of expression profiles and their relations to individual object types.
 
 Those profiles are:
 
@@ -78,7 +77,7 @@ Individual evaluators are categorized into those default expression profiles in 
 | Yes
 | Yes
 
-| No value (`null`)
+| "no value" (`null`)
 | -
 | Yes
 | Yes
@@ -132,7 +131,7 @@ Individual evaluators are categorized into those default expression profiles in 
 | only basic modules
 | more modules
 | all modules
-| Yes
+| all modules
 
 | `script` for Safe Velocity
 | -
@@ -146,7 +145,7 @@ Individual evaluators are categorized into those default expression profiles in 
 | -
 | -
 | -
-| Yes
+| Yes (if enabled on the system)
 
 | `assignmentTargetSearch`
 | -
@@ -232,11 +231,12 @@ It is advised to use it only from function libraries or other trusted sources.
 
 === What is "Safe"?
 
-The `safe` profile is generally safe to use.
-It does not have potential to execute arbitrary code or operations that could impact security of the system.
+The `safe`, `reporting`, and `configuration` profiles are generally safe to use.
+They do not have potential to execute arbitrary code or operations that could impact security of the system.
 However, even _safe_ expression operators still have potential for mis-configuration, which can impact the system indirectly.
 For example, an evaluator may provide incorrect value, which may affect correctness of configuration or policies.
 Also, an evaluator may affect performance of the system by using inefficient search filter.
+Or, they can exfiltrate information using various techniques.
 Therefore, even _safe_ expression evaluators should still be used with care.
 
 === Using these Expression Profiles in Objects
@@ -363,9 +363,9 @@ Again, this setting is fully configurable; both at the level of object types and
 | prohibitive
 |===
 
-=== Migration
-
-TODO
+// === Migration
+//
+// TODO
 
 == Authorizations
 
@@ -378,20 +378,20 @@ Expressions profiles control ability to _execute_ an expression, regardless of h
 On the other hand, authorizations control the ability to _create and edit_ expressions, without regard to their eventual execution.
 Both mechanisms are necessary for setting up a secure midPoint deployment.
 
-== Semi-Safe Configuration
-
-Security is a trade-off, or rather a complex series of many intricate trade-offs.
-Scripting expressions are not completely safe, yet they are needed to make midPoint flexible.
-Therefore, use of scripting expressions need to be limited to a necessary minimum.
-This approach is achieved by combining xref:/midpoint/reference/expressions/expressions/profiles/[expression profiles] and xref:/midpoint/reference/security/authorization/[authorizations].
-
-Theoretically, expressions can be used at many places in midPoint.
-Some of these places may not be immediately obvious.
-For example, expression can be used in a condition in an xref:/midpoint/reference/roles-policies/roles/assignment/[assignment].
-This ability comes from the fact that _assignment_ and _inducement_ are represented by the same data structure, as well as a potential to implement some intricate use cases.
-However, _assignment_ are a common data structure in _user_ objects.
-Users may have ability to create their own assignments, e.g. in a form of _access request_ process, or by using RESTful API.
-In such a case, users may theoretically create an assignment which includes unsafe scripting expressions.
+// == Semi-Safe Configuration
+//
+// Security is a trade-off, or rather a complex series of many intricate trade-offs.
+// Scripting expressions are not completely safe, yet they are needed to make midPoint flexible.
+// Therefore, use of scripting expressions need to be limited to a necessary minimum.
+// This approach is achieved by combining xref:/midpoint/reference/expressions/expressions/profiles/[expression profiles] and xref:/midpoint/reference/security/authorization/[authorizations].
+//
+// Theoretically, expressions can be used at many places in midPoint.
+// Some of these places may not be immediately obvious.
+// For example, expression can be used in a condition in an xref:/midpoint/reference/roles-policies/roles/assignment/[assignment].
+// This ability comes from the fact that _assignment_ and _inducement_ are represented by the same data structure, as well as a potential to implement some intricate use cases.
+// However, _assignment_ are a common data structure in _user_ objects.
+// Users may have ability to create their own assignments, e.g. in a form of _access request_ process, or by using RESTful API.
+// In such a case, users may theoretically create an assignment which includes unsafe scripting expressions.
 
 //That's why the default expression profile for `UserType` is `prohibitive`, not allowing any expressions to be evaluated.
 
@@ -514,12 +514,12 @@ In such a case, users may theoretically create an assignment which includes unsa
 // It is likely that this configuration of expression profiles will be applied by default in midPoint 4.11.0.
 // ====
 
-== Limitations
-
-* Sandboxing of scripting expressions is inherently limited by many factors, especially by the complexity of the scripting language itself.
-Therefore, practical applicability of scripting permission profiles is very limited.
-We recommend to avoid general-purpose languages completely, or - if they are really needed - limit their use to objects that are firmly in hands of the midPoint administrator: the system configuration object and the function libraries.
-Never rely on sandboxing or permission profiles as a primary security mechanism.
+// == Limitations
+//
+// * Sandboxing of scripting expressions is inherently limited by many factors, especially by the complexity of the scripting language itself.
+// Therefore, practical applicability of scripting permission profiles is very limited.
+// We recommend to avoid general-purpose languages completely, or - if they are really needed - limit their use to objects that are firmly in hands of the midPoint administrator: the system configuration object and the function libraries.
+// Never rely on sandboxing or permission profiles as a primary security mechanism.
 
 == See Also
 

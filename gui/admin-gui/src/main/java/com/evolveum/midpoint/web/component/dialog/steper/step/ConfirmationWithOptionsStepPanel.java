@@ -77,6 +77,6 @@ public class ConfirmationWithOptionsStepPanel<T extends Describable> extends Bas
 
     @Override
     public IModel<String> getNextLabel() {
-        return createStringResource("SmartSuggestConfirmationPanel.allowAndContinue");
+        return getModelObject().getConfirmationButtonLabel();
     }
 }

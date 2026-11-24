@@ -6,6 +6,7 @@
 
 package com.evolveum.midpoint.repo.common.expression;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.lang3.Validate;
@@ -242,6 +243,26 @@ public class ValueSetDefinition<IV extends PrismValue, D extends ItemDefinition<
     @Experimental
     public boolean isYieldSpecific() {
         return predefinedRange == ValueSetDefinitionPredefinedType.MATCHING_PROVENANCE;
+    }
+
+    public String summary() {
+        List<String> parts = new ArrayList<>();
+        if (predefinedRange != null) {
+            parts.add(predefinedRange.value());
+        }
+        if (condition != null) {
+            parts.add("condition");
+        }
+        if (yieldCondition != null) {
+            parts.add("yieldCondition");
+        }
+        if (extraSetSpecification.assignmentSubtype() != null) {
+            parts.add("assignmentSubtype=" + extraSetSpecification.assignmentSubtype());
+        }
+        if (!setDefinitionBean.getAdditionalMappingSpecification().isEmpty()) {
+            parts.add("additionalMappingSpecification x" + setDefinitionBean.getAdditionalMappingSpecification().size());
+        }
+        return parts.isEmpty() ? "all" : String.join(", ", parts);
     }
 
     public boolean hasMappingSpecification(@NotNull ValueMetadataType md) {

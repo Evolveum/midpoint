@@ -6,7 +6,6 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.cluster;
 
-import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.markup.html.form.FormComponent;
@@ -16,6 +15,7 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.validation.validator.RangeValidator;
 
 import com.evolveum.midpoint.web.component.data.column.ImagePanel;
+import com.evolveum.midpoint.web.component.behavior.JavaScriptEventBehavior;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
 
@@ -43,7 +43,7 @@ public class NumberFormatSelectorPanel extends InputPanel {
         field.setMinimum(getRangeValidator().getMinimum());
         field.setMaximum(getRangeValidator().getMaximum());
         field.setStep(0.05);
-        field.add(AttributeModifier.append("onkeydown", "return false;"));
+        field.add(new JavaScriptEventBehavior("keydown", "event.preventDefault();"));
 
         field.add(getRangeValidator());
         add(field);

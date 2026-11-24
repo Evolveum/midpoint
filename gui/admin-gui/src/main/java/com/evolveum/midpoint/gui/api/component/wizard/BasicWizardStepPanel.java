@@ -52,6 +52,7 @@ public class BasicWizardStepPanel<T> extends WizardStepPanel<T> {
     private static final String ID_CUSTOM_BUTTONS = "customButtons";
 
     private static final String ID_SUBMIT = "submit";
+    private static final String ID_SUBMIT_ICON = "submitIcon";
     private static final String ID_SUBMIT_LABEL = "submitLabel";
     private static final String ID_NEXT = "next";
     private static final String ID_NEXT_LABEL = "nextLabel";
@@ -176,6 +177,8 @@ public class BasicWizardStepPanel<T> extends WizardStepPanel<T> {
         WebComponentUtil.addDisabledClassBehavior(submit);
         customButtonsContainer.add(submit);
 
+        submit.add(createSubmitIcon());
+
         Label submitLabel = new Label(ID_SUBMIT_LABEL, getSubmitLabelModel());
         submit.add(submitLabel);
 
@@ -216,6 +219,12 @@ public class BasicWizardStepPanel<T> extends WizardStepPanel<T> {
         return anchor;
     }
 
+    private WebMarkupContainer createSubmitIcon() {
+        WebMarkupContainer submitIcon = new WebMarkupContainer(ID_SUBMIT_ICON);
+        submitIcon.add(AttributeAppender.append("class", this::getSubmitIcon));
+        return submitIcon;
+    }
+
     private LoadableDetachableModel<String> createNextModel() {
         return new LoadableDetachableModel<>() {
             @Override
@@ -251,6 +260,15 @@ public class BasicWizardStepPanel<T> extends WizardStepPanel<T> {
 
     protected boolean isSubmitEnable() {
         return true;
+    }
+
+    /**
+     * Icon CSS class of the submit button.
+     *
+     * @return icon CSS class
+     */
+    protected String getSubmitIcon() {
+        return "fas fa-check";
     }
 
     protected IModel<String> getSubmitLabelModel() {

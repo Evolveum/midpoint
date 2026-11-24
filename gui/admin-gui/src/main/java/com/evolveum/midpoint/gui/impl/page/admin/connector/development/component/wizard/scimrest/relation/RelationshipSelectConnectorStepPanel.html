@@ -11,36 +11,27 @@
     <div wicket:id="feedbackContainer" class="col-12 feedbackContainer">
         <div wicket:id="feedback" class="messagePanel"/>
     </div>
-    <div class="col-12 gap-2 p-0" wicket:id="radioGroup">
-        <div class="d-flex flex-column w-100 p-3 card shadow-sm mb-3" wicket:id="panel">
-            <div class="d-flex flex-row w-100 border-bottom pb-2 gap-2">
-                <input wicket:id="radio" type="radio" onclick="event.stopPropagation()"/>
-                <div class="fw-bold" wicket:id="name"/>
-                <div class="text-secondary ms-auto" wicket:id="description"/>
+    <div class="col-12 d-flex justify-content-end pb-3">
+        <a class="btn btn-light border" wicket:id="browseMoreButton"></a>
+    </div>
+    <wicket:enclosure child="counter">
+        <div class="col-12 d-flex flex-row px-3 pb-2 small text-secondary text-uppercase">
+            <div class="col-6 ps-4">
+                <wicket:message key="RelationshipSelectConnectorStepPanel.name"/>
             </div>
-            <div class="w-100 d-flex flex-row pt-3">
-                <div class="d-lex flex-column pe-2">
-                    <div class="text-secondary">
-                        <wicket:message key="RelationshipTilePanel.subject"/>
-                    </div>
-                    <div class="fw-bold" wicket:id="subject"/>
-                    <div class="m-auto border rounded px-2">
-                        <div wicket:id="subjectAttribute"/>
-                    </div>
-                </div>
-                <div class="w-100 border-bottom my-auto" style="height:1px;"></div>
-                <div class="d-lex flex-column ps-2 text-end">
-                    <div class="text-secondary">
-                        <wicket:message key="RelationshipTilePanel.object"/>
-                    </div>
-                    <div class="fw-bold" wicket:id="object"/>
-                    <div class="m-auto border rounded px-2">
-                        <div wicket:id="objectAttribute"/>
-                    </div>
-                </div>
-
+            <div class="col-3">
+                <wicket:message key="RelationshipSelectConnectorStepPanel.subject"/>
+            </div>
+            <div class="col-3">
+                <wicket:message key="RelationshipSelectConnectorStepPanel.object"/>
             </div>
         </div>
-    </div>
+        <div class="col-12 p-0" wicket:id="radioGroup">
+            <div class="px-3 card shadow-none mb-2 gen-select-card" wicket:id="panel">
+                <div wicket:id="row"></div>
+            </div>
+        </div>
+        <div class="col-12 pt-2" wicket:id="counter"></div>
+    </wicket:enclosure>
 </wicket:extend>
 </html>

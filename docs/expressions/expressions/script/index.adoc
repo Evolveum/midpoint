@@ -15,28 +15,32 @@
 Script expressions can use a variety of scripting languages.
 Currently supported languages are:
 
-* xref:mel/[MidPoint Expression Language (MEL)] (built-in, recommended)
+* xref:mel/[MidPoint Expression Language (MEL)] (built-in, default, recommended)
 
-* xref:groovy.adoc[Groovy] (built-in, default)
+* xref:groovy.adoc[Groovy] (built-in, dangerous to use, not recommended, disabled by default for new installations)
 
-* xref:javascript.adoc[JavaScript (ECMAScript)] (optional, depending on JDK)
+* xref:javascript.adoc[JavaScript (ECMAScript)] (optional, depending on JDK, dangerous to use, not recommended)
 
-* xref:python.adoc[Python] (optional)
+* xref:python.adoc[Python] (optional, dangerous to use, not recommended)
 
-* xref:/midpoint/reference/misc/notifications/velocity/[Velocity] (built-in) for expressions returning strings/texts
+* xref:/midpoint/reference/misc/notifications/velocity/[Apache Velocity] (built-in) for expressions returning strings/texts
+** legacy variant (full Velocity power) is dangerous to use, not recommended, disabled by default for new installations
+** safe variant ("Safe Velocity") is safe to use and recommended for expressions returning strings/texts, e.g. in message templates
 
 [TIP]
 ====
-While you can use any of the languages above, MEL and Groovy are the best choices.
+While you can use any of the languages above, MEL is the best choice.
 
 xref:mel[MEL] should be a default choice for simple expressions and light customization.
 It is simple and safe.
 
 xref:groovy.adoc[Groovy] is good choice for scripts that need to do powerful computation or heavy customization.
-Groovy is the also the "traditional" choice.
-Virtually all examples in our documentation use Groovy, most of the community is used to it,
-and it is used by virtually all the deployments.
-However, be aware that Groovy is too powerful, which brings security risks.
+Groovy is also the "traditional" choice.
+For new installations, it needs to be explicitly enabled, which we *don't recommend*.
+The reason is that it is too powerful, which brings significant security risks.
+However, virtually all examples in our documentation use Groovy, most of the community is used to it, and it is used by virtually all the deployments.
+We are gradually migrating all assets to MEL, but it will take some time.
+
 ====
 
 Groovy, MEL and Velocity are packaged with the midPoint explicitly, while the JavaScript/ECMAScript support
@@ -234,8 +238,7 @@ xref:/midpoint/reference/expressions/expressions/security/[Expression Security] 
 
 == Default Scripting Language
 
-_Groovy_ is the default scripting language, mostly due to the historic and compatibility reasons.
-However, _MEL_ expressions should be used as a default choice whenever possible.
+_MEL_ is the default scripting language for new installations.
 
 System-global default scripting language can be changed in xref:/midpoint/reference/concepts/system-configuration-object/[system configuration]:
 

@@ -22,6 +22,7 @@ import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.component.input.ListMultipleChoicePanel;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.model.PrismPropertyWrapperModel;
 
 import org.apache.cxf.common.util.StringUtils;
@@ -110,6 +111,8 @@ public class CompareContainerPanel<C extends Containerable> extends BasePanel<Co
                 return true;
             }
         };
+
+        buttonPanel.add(new VisibleBehaviour(() -> !buildMoreActionsMenuItems().isEmpty()));
         buttonPanel.setOutputMarkupId(true);
         add(buttonPanel);
     }
@@ -150,7 +153,7 @@ public class CompareContainerPanel<C extends Containerable> extends BasePanel<Co
     private @NotNull Map<String, String> createDefaultOptions() {
         Map<String, String> map = new HashMap<>();
         map.put("buttonContainer", "<div class=\"dropdown\">");
-        map.put("buttonClass", "btn btn-light border");
+        map.put("buttonClass", "btn btn-light border pe-5");
         map.put("buttonTextAlignment", "left");
         map.put("nonSelectedText", getString("CompareContainerPanel.nonSelectedText"));
         map.put("allSelectedText", getString("CompareContainerPanel.allSelectedText"));

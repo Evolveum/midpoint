@@ -36,7 +36,7 @@ import static org.testng.AssertJUnit.assertEquals;
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 @ActiveProfiles("test")
 @SpringBootTest(classes = TestMidPointSpringApplication.class, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@TestPropertySource(properties = "server.port=18088")
+@TestPropertySource(properties = {"server.port=18088", "midpoint.rest.api.enabled=true" })
 public abstract class AbstractRestServiceInitializer extends AbstractGuiIntegrationTest {
 
     protected static final File BASE_REPO_DIR = new File("src/test/resources/repo/");

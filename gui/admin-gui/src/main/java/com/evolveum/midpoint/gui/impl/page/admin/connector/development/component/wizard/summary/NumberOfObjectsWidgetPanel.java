@@ -12,13 +12,17 @@ import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.web.component.AjaxIconButton;
+import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 
 public class NumberOfObjectsWidgetPanel extends BasePanel<NumberOfObjectsWidgetDto>{
 
     private static final String ID_HEADER_ICON = "headerIcon";
     private static final String ID_HEADER_LABEL = "headerLabel";
+    private static final String ID_ADD_BUTTON = "addButton";
 
     private static final String ID_NUMBER = "number";
 
@@ -44,6 +48,18 @@ public class NumberOfObjectsWidgetPanel extends BasePanel<NumberOfObjectsWidgetD
         Label headerLabel = new Label(ID_HEADER_LABEL, getModelObject().getTitle());
         headerLabel.setOutputMarkupId(true);
         add(headerLabel);
+
+        AjaxIconButton addButton = new AjaxIconButton(ID_ADD_BUTTON, Model.of("fa fa-plus"),
+                createStringResource("NumberOfObjectsWidgetPanel.add")) {
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                NumberOfObjectsWidgetPanel.this.getModelObject().addPerformed(target);
+            }
+        };
+        addButton.showTitleAsLabel(true);
+        addButton.setOutputMarkupId(true);
+        addButton.add(new EnableBehaviour(() -> getModelObject().isAddEnabled()));
+        add(addButton);
 
         Label statusLabel = new Label(ID_NUMBER, getModelObject().getNumber());
         statusLabel.setOutputMarkupId(true);

@@ -35,6 +35,7 @@ import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.schema.util.ValueDisplayUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.MiscUtil;
@@ -1065,7 +1066,7 @@ public class Visualizer {
     }
 
     private NameImpl createVisualizationName(PrismObject<? extends ObjectType> object) {
-        NameImpl name = new NameImpl(object.getName() != null ? getOrig(object.getName()) : object.getOid());
+        NameImpl name = new NameImpl(getObjectNameOrOid(object));
         name.setId(object.getOid());
         ObjectType objectType = object.asObjectable();
         name.setDescription(objectType.getDescription());
@@ -1075,6 +1076,23 @@ public class Visualizer {
             name.setDisplayName(getOrig(((AbstractRoleType) objectType).getDisplayName()));
         }
         return name;
+    }
+
+    private String getObjectNameOrOid(PrismObject<? extends ObjectType> object) {
+        if (object.getName() != null) {
+            return getOrig(object.getName());
+        }
+        if (object.asObjectable() instanceof ShadowType shadow) {
+            try {
+                PolyString shadowName = ShadowUtil.determineShadowName(shadow);
+                if (shadowName != null) {
+                    return shadowName.getOrig();
+                }
+            } catch (SchemaException e) {
+                LOGGER.debug("Couldn't determine name of shadow {}, using OID instead", object.getOid(), e);
+            }
+        }
+        return object.getOid();
     }
 
     private NameImpl createVisualizationName(String oid, ObjectReferenceType objectRef) {

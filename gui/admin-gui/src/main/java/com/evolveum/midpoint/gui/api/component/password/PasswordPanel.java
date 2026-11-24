@@ -48,11 +48,12 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
+import com.evolveum.midpoint.web.component.behavior.JavaScriptEventBehavior;
 import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ValuePolicyType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
@@ -182,10 +183,9 @@ public class PasswordPanel extends InputPanel {
         password1.add(AttributeAppender.append("aria-describedby", passwordStrengthMeter.getMarkupId()));
 
         if (isPasswordStrengthBarVisible()) {
-            password1.add(AttributeAppender.append(
-                    "onfocus",
-                    "window.MidPointTheme." + initPasswordValidation(passwordStrengthMeter.getMarkupId(), password1.getMarkupId())
-            ));
+            password1.add(new JavaScriptEventBehavior(
+                    "focus",
+                    "window.MidPointTheme." + initPasswordValidation(passwordStrengthMeter.getMarkupId(), password1.getMarkupId())));
         }
 
         Label repeatPasswordLabel = new Label(ID_REPEAT_PASSWORD_LABEL,
@@ -355,8 +355,7 @@ public class PasswordPanel extends InputPanel {
 
     protected <F extends FocusType> ValuePolicyType getValuePolicy() {
         ValuePolicyType valuePolicy = null;
-        if (prismObject == null || !prismObject.canRepresent(ResourceType.class)) {
-            //we skip getting value policy for ResourceType because it is some protected string from connector configuration
+        if (prismObject == null || prismObject.canRepresent(FocusType.class) || prismObject.canRepresent(ShadowType.class)) {
             Task task = createTask(OPERATION_LOAD_CREDENTIALS_POLICY);
             CredentialsPolicyType credentials = null;
             try {

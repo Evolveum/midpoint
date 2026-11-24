@@ -1,6 +1,7 @@
 package com.evolveum.midpoint.smart.api.conndev;
 
 import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.schema.processor.BareResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
@@ -11,6 +12,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import static com.evolveum.midpoint.smart.api.conndev.ConnectorDevelopmentArtifacts.KnownArtifactType.*;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Collection;
 import java.util.List;
 import java.util.function.Consumer;
 
@@ -48,15 +50,31 @@ public interface ConnectorDevelopmentOperation {
      */
     String submitCopyConnector(Task task, OperationResult result);
 
-    String submitExportConnector(Task task, OperationResult result);
+    /**
+     * Packages the connector into a deployable connector jar.
+     *
+     * @param version version of the exported bundle, or null to keep the current connector version
+     * @param saveToConnectorDirectory whether the jar is saved to the connector directory, where it is loaded as a new connector
+     * @param updateConnectorVersion whether the connector version is set to the exported version after a successful export
+     * @param task task
+     * @param result operation result
+     * @return token of the submitted task
+     */
+    String submitExportConnector(String version, boolean saveToConnectorDirectory, boolean updateConnectorVersion,
+            Task task, OperationResult result);
 
     /**
      * Same as {@link #submitExportConnector}, but the packaged bundle excludes {@code lib/}
-     * (third-party dependency jars). Currently used by the wizard's "Upload connector" action,
+     * (third-party dependency jars). Currently used by the wizard's "Project ZIP" export,
      * which just downloads this slimmer bundle - a future version of that action is expected to
      * upload it to another microservice instead.
+     *
+     * @param version version of the exported bundle, or null to keep the current connector version
+     * @param task task
+     * @param result operation result
+     * @return token of the submitted task
      */
-    String submitUploadConnector(Task task, OperationResult result);
+    String submitUploadConnector(String version, Task task, OperationResult result);
 
     // Midpoint local (+ download framework)
 
@@ -316,4 +334,73 @@ public interface ConnectorDevelopmentOperation {
     void authenticationSelectionUpdated(Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException, PolicyViolationException, ObjectAlreadyExistsException, SubscriptionComplianceException;
 
     String submitRefreshSchema(Task task, OperationResult result);
+
+    /**
+     * Creates an object in the external system using the developed connector and records it as a test object of the connector development.
+     *
+     * @param shadow object to create
+     * @param task task of the operation
+     * @param result operation result
+     * @return OID of the created shadow
+     */
+    String addTestObject(ShadowType shadow, Task task, OperationResult result) throws CommonException;
+
+    /**
+     * Modifies a recorded test object in the external system using the developed connector.
+     *
+     * @param oid OID of the shadow to modify
+     * @param modifications modifications to apply
+     * @param task task of the operation
+     * @param result operation result
+     */
+    void modifyTestObject(String oid, Collection<? extends ItemDelta<?, ?>> modifications, Task task, OperationResult result)
+            throws CommonException;
+
+    /**
+     * Returns the recorded test objects of the object class that still exist in the external system.
+     *
+     * @param objectClass local name of the object class
+     * @param task task of the operation
+     * @param result operation result
+     * @return the existing test objects
+     */
+    List<ShadowType> getTestObjects(String objectClass, Task task, OperationResult result);
+
+    /**
+     * Finds an object of the object class in the external system by its primary identifier, using the developed connector.
+     *
+     * @param objectClass local name of the object class
+     * @param primaryIdentifier value of the primary identifier
+     * @param task task of the operation
+     * @param result operation result
+     * @return the found object, or null if there is none
+     */
+    ShadowType findTestingResourceObject(String objectClass, String primaryIdentifier, Task task, OperationResult result)
+            throws CommonException;
+
+    /**
+     * Deletes recorded test objects from the external system and removes their records.
+     *
+     * @param oids OIDs of the test objects
+     * @param task task of the operation
+     * @param result operation result
+     */
+    void deleteTestObjects(Collection<String> oids, Task task, OperationResult result) throws CommonException;
+
+    /**
+     * Removes the records of test objects without deleting the objects from the external system.
+     *
+     * @param oids OIDs of the test objects
+     * @param task task of the operation
+     * @param result operation result
+     */
+    void forgetTestObjects(Collection<String> oids, Task task, OperationResult result) throws CommonException;
+
+    /**
+     * Removes the records of test objects that no longer exist in the external system.
+     *
+     * @param task task of the operation
+     * @param result operation result
+     */
+    void forgetMissingTestObjects(Task task, OperationResult result) throws CommonException;
 }

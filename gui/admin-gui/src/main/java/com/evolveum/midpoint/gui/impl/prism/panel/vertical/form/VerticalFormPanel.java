@@ -101,6 +101,7 @@ public abstract class VerticalFormPanel<C extends Containerable> extends BasePan
                 }
                 builder.mandatoryHandler(settings.getMandatoryHandler());
                 builder.editabilityHandler(settings.getEditabilityHandler());
+                builder.panelConfiguration(settings.getConfig());
                 return new VerticalFormPrismContainerPanel<C>(id, model, builder.build()) {
                     @Override
                     protected IModel<String> getTitleModel() {

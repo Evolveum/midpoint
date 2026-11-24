@@ -120,15 +120,12 @@ public abstract class AbstractSummaryPanel<C extends Containerable> extends Base
         box.add(new AttributeModifier("class", BOX_CSS_CLASS + " " + getBoxAdditionalCssClass()));
         box.add(AttributeModifier.append("style", archetypePolicyAdditionalCssClassModel));
 
-        if (getDisplayNameModel() != null) {
-            box.add(new Label(ID_DISPLAY_NAME, getDisplayNameModel()));
-        } else if (getDisplayNamePropertyName() != null) {
-            box.add(new Label(ID_DISPLAY_NAME, createLabelModel(getDisplayNamePropertyName(), SummaryPanelSpecificationType.F_DISPLAY_NAME)));
-        } else {
-            Label displayName = new Label(ID_DISPLAY_NAME, " ");
+        IModel<String> displayNameModel = createDisplayNameModel();
+        Label displayName = new Label(ID_DISPLAY_NAME, displayNameModel != null ? displayNameModel : Model.of(" "));
+        if (displayNameModel == null) {
             displayName.add(VisibleBehaviour.ALWAYS_INVISIBLE);
-            box.add(displayName);
         }
+        box.add(displayName);
 
 
         ObjectTypes type = ObjectTypes.getObjectTypeIfKnown(getModelObject().getClass());
@@ -399,6 +396,36 @@ public abstract class AbstractSummaryPanel<C extends Containerable> extends Base
             return null;
         }
         return subContainer.getRealValue();
+    }
+
+    /**
+     * Display name priority:
+     * 1. expression configured in summaryPanel/displayName,
+     * 2. display name model provided by the panel subclass (e.g. computed user display name),
+     * 3. value of the display name property of the object (name by default, displayName for roles, orgs, ...).
+     * Returns null if none of them is available.
+     */
+    private IModel<String> createDisplayNameModel() {
+        if (hasLabelExpression(SummaryPanelSpecificationType.F_DISPLAY_NAME)) {
+            return createLabelModel(getDisplayNamePropertyName(), SummaryPanelSpecificationType.F_DISPLAY_NAME);
+        }
+
+        IModel<String> panelDisplayNameModel = getDisplayNameModel();
+        if (panelDisplayNameModel != null) {
+            return panelDisplayNameModel;
+        }
+
+        QName displayNamePropertyName = getDisplayNamePropertyName();
+        if (displayNamePropertyName != null) {
+            return createFlexibleLabelModel(displayNamePropertyName, null);
+        }
+
+        return null;
+    }
+
+    private boolean hasLabelExpression(QName configurationPropertyName) {
+        GuiFlexibleLabelType labelConfiguration = getLabelConfiguration(configurationPropertyName);
+        return labelConfiguration != null && labelConfiguration.getExpression() != null;
     }
 
     protected String getTagBoxCssClass() {

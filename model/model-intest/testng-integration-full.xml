@@ -84,6 +84,7 @@
             <class name="com.evolveum.midpoint.model.intest.rbac.TestRbacLightInitialProjection"/>
             <class name="com.evolveum.midpoint.model.intest.rbac.TestRbacNoInbounds"/>
             <class name="com.evolveum.midpoint.model.intest.rbac.TestAssignmentValidity"/>
+            <class name="com.evolveum.midpoint.model.intest.TestAssignmentRelationForcing"/>
             <class name="com.evolveum.midpoint.model.intest.rbac.TestMetaMeta"/>
             <class name="com.evolveum.midpoint.model.intest.rbac.TestAutoassign"/>
             <class name="com.evolveum.midpoint.model.intest.rbac.TestGlobalPolicyActivation"/>
@@ -165,6 +166,7 @@
             <class name="com.evolveum.midpoint.model.intest.tasks.TestCustomPolicyReconciliationMultiNode"/>
             <class name="com.evolveum.midpoint.model.intest.tasks.TestFocusPolicyTreeCounters"/>
             <class name="com.evolveum.midpoint.model.intest.tasks.TestActivityPolicyNonIterativeScripting"/>
+            <class name="com.evolveum.midpoint.model.intest.tasks.TestCorrelatorSimulationTask"/>
         </classes>
     </test>
     <test name="Async updates" preserve-order="true" parallel="none" verbose="10">
@@ -250,6 +252,7 @@
         <classes>
             <class name="com.evolveum.midpoint.model.intest.smart.TestSmartIntegrationService"/>
             <class name="com.evolveum.midpoint.model.intest.smart.TestSmartIntegrationServiceStory"/>
+            <class name="com.evolveum.midpoint.model.intest.smart.TestSmartAssociation"/>
         </classes>
     </test>
 </suite>

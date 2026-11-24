@@ -52,6 +52,11 @@ public class CorrelationAuthenticationSuccessHandler extends MidPointAuthenticat
 //        super.onAuthenticationSuccess(request, response, authentication);
 //        request.
         moduleAuthentication.setState(AuthenticationModuleState.LOGIN_PROCESSING);
+        // The next correlator isn't processed yet, so the module must not keep the token of the previous correlator.
+        // The anonymous authentication filter sets an anonymous token again (as for the first correlator),
+        // so a failure of the next correlator is handled the same way (redirect to the correlation page
+        // with the error message).
+        correlationModuleAuthentication.setAuthentication(null);
 
         getRedirectStrategy().sendRedirect(request, response, "/correlation");
 

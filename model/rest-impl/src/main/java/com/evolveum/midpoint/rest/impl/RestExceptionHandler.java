@@ -35,7 +35,15 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
-@ControllerAdvice
+/**
+ * Error handling for the REST controllers only.
+ *
+ * Scoped on purpose: an unscoped advice is applied by Spring to every handler, including the static
+ * resource handler, which since Spring 6.1 throws NoResourceFoundException for unknown paths.
+ *
+ * Issue: 12566
+ */
+@ControllerAdvice(assignableTypes = AbstractRestController.class)
 public class RestExceptionHandler {
 
     private static final Trace LOGGER = TraceManager.getTrace(RestExceptionHandler.class);

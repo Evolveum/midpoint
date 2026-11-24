@@ -45,6 +45,7 @@ Parameters:
                     <strength>$mappingStrength</strength>
                     <expression>
                         <script>
+                            <language>$scriptingLanguage</language>
                             <code>
                                 // assuming user -> business -> technical role assignment path
                                 assignmentPath[0].target.name + '-' + assignmentPath[1].target.name

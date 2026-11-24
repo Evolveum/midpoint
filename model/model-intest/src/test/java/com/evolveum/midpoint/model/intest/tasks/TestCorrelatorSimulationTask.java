@@ -12,6 +12,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.io.File;
 import java.math.BigDecimal;
 import java.util.Arrays;
+import java.util.List;
 
 import com.evolveum.midpoint.util.exception.*;
 
@@ -22,6 +23,7 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.model.intest.AbstractEmptyModelIntegrationTest;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.model.test.CommonInitialObjects;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -67,6 +69,28 @@ public class TestCorrelatorSimulationTask extends AbstractEmptyModelIntegrationT
     @BeforeMethod
     void initObjects() throws Exception {
         this.correlationTask.initWithOverwrite(this, getTestTask(), getTestOperationResult());
+        resetShadowCorrelationStates();
+    }
+
+    /**
+     * Correlation simulation persists the resulting correlation state into shadows. As the tests in this class share
+     * the same shadows, the state left by a previous test run would make the "correlation state changed" metric
+     * dependent on test ordering. Hence we reset it before each test.
+     */
+    private void resetShadowCorrelationStates() throws Exception {
+        final OperationResult result = getTestOperationResult();
+        final List<PrismObject<ShadowType>> shadows = repositoryService.searchObjects(ShadowType.class,
+                prismContext.queryFor(ShadowType.class)
+                        .item(ShadowType.F_RESOURCE_REF).ref(DUMMY_RESOURCE_OID)
+                        .build(),
+                null, result);
+        for (PrismObject<ShadowType> shadow : shadows) {
+            executeChanges(deltaFor(ShadowType.class)
+                    .item(ShadowType.F_CORRELATION)
+                    .replace()
+                    .asObjectDelta(shadow.getOid()),
+                    null, getTestTask(), result);
+        }
     }
 
     @DataProvider

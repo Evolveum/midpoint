@@ -105,7 +105,7 @@ public class WaitingAuthScriptsConnectorStepPanel extends WaitingScriptConnector
                         getDetailsModel(), ConnectorDevelopmentArtifacts.KnownArtifactType.AUTHENTICATION_CUSTOMIZATION, null)
                 : null;
         boolean active = deployed != null && !Boolean.TRUE.equals(deployed.getRealValue().isDisabled());
-        if (active) {
+        if (active && !isReloaded()) {
             return true;
         }
 

@@ -58,6 +58,7 @@ import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.Icon
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.TabSeparatedTabbedPanel;
+import com.evolveum.midpoint.web.component.behavior.JavaScriptEventBehavior;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
@@ -322,9 +323,9 @@ public class SmartStatisticsPanel extends BasePanel<ObjectSetStatisticsType> imp
 
         TextField<String> search = new TextField<>(ID_SEARCH_INPUT, searchModel);
         search.setOutputMarkupId(true);
-        search.add(AttributeModifier.append(
-                "onkeydown",
-                "if (event.key === 'Enter') { event.preventDefault(); return false; }"));
+        search.add(new JavaScriptEventBehavior(
+                "keydown",
+                "if (event.key === 'Enter') { event.preventDefault(); }"));
         search.add(new AjaxFormComponentUpdatingBehavior("input") {
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
@@ -740,7 +741,7 @@ public class SmartStatisticsPanel extends BasePanel<ObjectSetStatisticsType> imp
             @Override
             protected @NotNull Component getValueComponent(String id) {
                 Label label = new Label(id, valueCount);
-                label.add(AttributeModifier.append(CLASS_CSS, "d-flex ps-4 m-0 lh-1"));
+                label.add(AttributeModifier.append(CLASS_CSS, "d-flex justify-content-center w-100 m-0 lh-1"));
                 label.add(AttributeModifier.append(STYLE_CSS, "font-size:20px"));
 
                 return label;

@@ -134,7 +134,7 @@ public class SchemaWizardPanel extends AbstractWizardPanel<SchemaType, Assignmen
 
                 @Override
                 protected void onExitPerformed(AjaxRequestTarget target) {
-                    getHelper().onExitPerformed(target);
+                    SchemaWizardPanel.this.onExitPerformed(target);
                 }
             });
         }
@@ -153,7 +153,7 @@ public class SchemaWizardPanel extends AbstractWizardPanel<SchemaType, Assignmen
 
             @Override
             protected void onExitPerformed(AjaxRequestTarget target) {
-                getHelper().onExitPerformed(target);
+                SchemaWizardPanel.this.onExitPerformed(target);
             }
 
             @Override

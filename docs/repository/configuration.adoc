@@ -220,9 +220,9 @@ This also makes the inspection of the values in the columns easier.
 
 == Example config.xml
 
-One example is the configuration file `config-native.xml` which is included in the distribution under `doc/config`.
-You can also see it online https://github.com/Evolveum/midpoint/blob/master/config/config-native.xml[here].
-If you use this example, don't forget to rename it to `config.xml` after dropping it to `midpoint.home`.
+The default configuration file `config.xml` is included in the distribution under `doc/config`.
+It is the same file that midPoint creates in `midpoint.home` on the first start, and that is used by the container images.
+You can also see it online https://github.com/Evolveum/midpoint/blob/master/repo/system-init/src/main/resources/config.xml[here].
 
 Another example is https://github.com/virgo47/midpoint-vagrantboxes/blob/master/vagrant-midpoint-db-pg-new-repo/config.xml[here].
 
@@ -257,6 +257,9 @@ Another example is https://github.com/virgo47/midpoint-vagrantboxes/blob/master/
             <keyStorePassword>changeit</keyStorePassword>
             <encryptionKeyAlias>default</encryptionKeyAlias>
         </keystore>
+        <expressions>
+            <safeScriptingLanguagesOnly>true</safeScriptingLanguagesOnly>
+        </expressions>
     </midpoint>
 </configuration>
 ----
@@ -273,10 +276,9 @@ With this `config.xml` you can start midPoint as usual.
 
 [TIP]
 ====
-The setup for the new repo is also available in the `config.xml` automatically generated
-when the midPoint starts for the first time - it's just commented out.
-Stop the midPoint, adjust the config file and start the midPoint again.
-However, using the provided `config-native.xml` from `doc/config` is probably easier, just rename it properly.
+The setup for the native repository is also present in the `config.xml` automatically generated
+when the midPoint starts for the first time.
+Stop the midPoint, adjust the connection parameters in the config file and start the midPoint again.
 
 Of course, you still need the installed and prepared PostgreSQL database!
 ====

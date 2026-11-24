@@ -32,11 +32,11 @@ public class PasswordAuthenticationEvaluatorImpl extends CredentialsAuthenticati
     @Override
     protected void checkEnteredCredentials(ConnectionEnvironment connEnv, PasswordAuthenticationContext authCtx) {
         if (StringUtils.isBlank(authCtx.getUsername())) {
-            auditAuthenticationFailure(authCtx.getUsername(), connEnv, "empty login provided");
+            recordEmptyCredentialFailure(authCtx.getUsername(), connEnv, "empty login provided");
             throw new UsernameNotFoundException(AuthUtil.generateBadCredentialsMessageKey(SecurityContextHolder.getContext().getAuthentication()));
         }
         if (StringUtils.isBlank(authCtx.getPassword())) {
-            auditAuthenticationFailure(authCtx.getUsername(), connEnv, "empty password provided");
+            recordEmptyCredentialFailure(authCtx.getUsername(), connEnv, "empty password provided");
             throw new BadCredentialsException(AuthUtil.generateBadCredentialsMessageKey(SecurityContextHolder.getContext().getAuthentication()));
         }
     }

@@ -10,6 +10,18 @@
   font-weight: 600;
  }
 
+.gen-table-scroll {
+  max-height: 60vh;
+  overflow-y: auto;
+
+  thead th {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    background-color: $white;
+  }
+}
+
 .gen-menu-card {
   padding: 0.5rem 0.875rem 0.765rem 0.875rem;
   font-weight: 500;
@@ -47,6 +59,17 @@
       border:1px solid $border-color !important;
     }
   }
+}
+
+.gen-select-card:has(input[type="radio"]:checked) {
+  --bs-card-border-color: #{$primary};
+  --bs-card-bg: var(--bs-primary-bg-subtle);
+  color: $primary;
+}
+
+.gen-select-table tr:has(input[type="radio"]:checked) {
+  --bs-table-bg-state: var(--bs-primary-bg-subtle);
+  --bs-table-color-state: #{$primary};
 }
 
 .gen-menu-icon {

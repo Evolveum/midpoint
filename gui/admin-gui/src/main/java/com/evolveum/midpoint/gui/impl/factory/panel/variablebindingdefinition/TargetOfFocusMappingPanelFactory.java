@@ -12,12 +12,16 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismValueWrapper;
 import com.evolveum.midpoint.gui.impl.component.input.FocusDefinitionsMappingProvider;
+import com.evolveum.midpoint.gui.impl.factory.panel.PrismPropertyPanelContext;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.web.component.prism.InputPanel;
+import com.evolveum.midpoint.web.component.input.validator.NotNullValidator;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.model.IModel;
 import org.springframework.stereotype.Component;
 
@@ -39,6 +43,22 @@ public class TargetOfFocusMappingPanelFactory extends SourceOrTargetOfMappingPan
         }
 
         return wrapper.getItemName().equivalent(MappingType.F_TARGET);
+    }
+
+    /**
+     * Focus mapping has no implicit target, so the target is always required.
+     * Without it the mapping evaluation fails (NPE on missing output definition).
+     */
+    @Override
+    public void configure(
+            PrismPropertyPanelContext<VariableBindingDefinitionType> panelCtx, org.apache.wicket.Component component) {
+        super.configure(panelCtx, component);
+        if (component instanceof InputPanel inputPanel) {
+            IModel<PrismPropertyWrapper<VariableBindingDefinitionType>> wrapperModel = panelCtx.getItemWrapperModel();
+            FormComponent<String> input = inputPanel.getBaseFormComponent();
+            input.setLabel(() -> wrapperModel.getObject().getDisplayName());
+            input.add(new NotNullValidator<>("Required"));
+        }
     }
 
     @Override

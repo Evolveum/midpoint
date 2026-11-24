@@ -777,6 +777,7 @@ public class WebPrismUtil {
         int numberOfSameRef = 0;
 
         if (containerValue.getDefinition() != null
+                && containerValue.getDefinition().getTypeClass() != null
                 && AbstractMappingType.class.isAssignableFrom(containerValue.getDefinition().getTypeClass())) {
             try {
                 PrismPropertyWrapper<String> nameProperty = containerValue.findProperty(AbstractMappingType.F_NAME);

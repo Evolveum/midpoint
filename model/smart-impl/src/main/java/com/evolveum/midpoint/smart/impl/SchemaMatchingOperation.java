@@ -32,6 +32,7 @@ import java.util.Map;
 import java.util.Optional;
 
 import jakarta.ws.rs.ProcessingException;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * This is an operation used from {@link MappingsSuggestionOperation} as well as from {@link CorrelationSuggestionOperation}.
@@ -44,7 +45,7 @@ class SchemaMatchingOperation {
 
     private static final Trace LOGGER = TraceManager.getTrace(SchemaMatchingOperation.class);
 
-    private final ServiceClient serviceClient;
+    @Nullable private final ServiceClient serviceClient;
     private final WellKnownSchemaService wellKnownSchemaService;
     private final boolean useAiService;
     private final Task task;
@@ -53,7 +54,7 @@ class SchemaMatchingOperation {
     private PrismComplexTypeDefinitionSerializer midPointSideSerializer;
     private WellKnownSchemaType detectedSchemaType;
 
-    SchemaMatchingOperation(ServiceClient serviceClient, WellKnownSchemaService wellKnownSchemaService, boolean useAiService,
+    SchemaMatchingOperation(@Nullable ServiceClient serviceClient, WellKnownSchemaService wellKnownSchemaService, boolean useAiService,
             Task task, OperationResult result) {
         this.serviceClient = serviceClient;
         this.wellKnownSchemaService = wellKnownSchemaService;

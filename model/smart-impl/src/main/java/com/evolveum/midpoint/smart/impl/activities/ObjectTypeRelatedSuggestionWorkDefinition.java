@@ -37,6 +37,7 @@ public class ObjectTypeRelatedSuggestionWorkDefinition extends AbstractWorkDefin
     private final ResourceObjectTypeIdentification typeIdentification;
     @Nullable private final String schemaMatchObjectOid;
     private final boolean forceRecomputeSchemaMatch;
+    private final boolean aiServiceRequested;
 
     protected ObjectTypeRelatedSuggestionWorkDefinition(@NotNull WorkDefinitionInfo info) throws ConfigurationException {
         super(info);
@@ -48,6 +49,7 @@ public class ObjectTypeRelatedSuggestionWorkDefinition extends AbstractWorkDefin
                         configNonNull(typedDefinition.getObjectType(), "No object type specified"));
         schemaMatchObjectOid = Referencable.getOid(typedDefinition.getSchemaMatchRef());
         forceRecomputeSchemaMatch = Boolean.TRUE.equals(typedDefinition.isForceRecomputeSchemaMatch());
+        aiServiceRequested = !Boolean.FALSE.equals(typedDefinition.isUseAiService());
     }
 
     public String getResourceOid() {
@@ -64,6 +66,13 @@ public class ObjectTypeRelatedSuggestionWorkDefinition extends AbstractWorkDefin
 
     public boolean isForceRecomputeSchemaMatch() {
         return forceRecomputeSchemaMatch;
+    }
+
+    /**
+     * Whether the AI service may be used by this activity.
+     */
+    public boolean isAiServiceRequested() {
+        return aiServiceRequested;
     }
 
     @Override

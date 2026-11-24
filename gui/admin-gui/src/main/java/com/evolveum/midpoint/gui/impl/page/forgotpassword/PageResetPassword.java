@@ -10,8 +10,10 @@ import java.io.Serial;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordHintConfigurabilityType;
 
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.markup.html.TransparentWebMarkupContainer;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 
@@ -59,6 +61,12 @@ public class PageResetPassword extends AbstractPageLogin {
 
     public PageResetPassword() {
         super();
+    }
+
+    @Override
+    protected void addDefaultBodyStyle(TransparentWebMarkupContainer body) {
+        super.addDefaultBodyStyle(body);
+        body.add(AttributeModifier.append("class", "page-reset-password"));
     }
 
     @Override

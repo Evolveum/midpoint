@@ -8,11 +8,11 @@ package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.sche
 
 import static com.evolveum.midpoint.gui.api.util.LocalizationUtil.translate;
 
+import com.evolveum.midpoint.web.component.dialog.ConfirmationResult;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils;
 
 import java.io.Serial;
 import java.time.Duration;
-import java.util.Collections;
 import java.util.List;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
@@ -202,7 +202,7 @@ public abstract class SmartAlertGeneratingPanel extends BasePanel<SmartGeneratin
         buttonsView.add(showSuggestionsButton);
 
         AjaxIconButton stopSuggestionButton = new AjaxIconButton(buttonsView.newChildId(),
-                Model.of("fa fa-stop text-purple"),
+                Model.of("fa fa-stop"),
                 createStringResource("SmartGeneratingPanel.button.stop")) {
             @Override
             public void onClick(@NotNull AjaxRequestTarget target) {
@@ -212,6 +212,7 @@ public abstract class SmartAlertGeneratingPanel extends BasePanel<SmartGeneratin
                 onRefresh(target);
             }
         };
+        stopSuggestionButton.add(AttributeModifier.append("class", "btn-outline-purple"));
         stopSuggestionButton.showTitleAsLabel(true);
         stopSuggestionButton.setOutputMarkupId(true);
         stopSuggestionButton.add(new VisibleBehaviour(() -> {
@@ -318,8 +319,8 @@ public abstract class SmartAlertGeneratingPanel extends BasePanel<SmartGeneratin
     }
 
     private void generatePerformed(AjaxRequestTarget target,
-            IModel<List<ConfirmationOption<DataAccessPermission>>> confirmedOptions) {
-        performSuggestOperation(target, confirmedOptions);
+            IModel<ConfirmationResult<DataAccessPermission>> confirmationResult) {
+        performSuggestOperation(target, confirmationResult);
         refresh(target);
     }
 
@@ -330,8 +331,8 @@ public abstract class SmartAlertGeneratingPanel extends BasePanel<SmartGeneratin
     }
 
     private void regeneratePerformed(AjaxRequestTarget target,
-            IModel<List<ConfirmationOption<DataAccessPermission>>> confirmedOptions) {
-        performRegenerateOperation(target, confirmedOptions);
+            IModel<ConfirmationResult<DataAccessPermission>> confirmationResult) {
+        performRegenerateOperation(target, confirmationResult);
         refresh(target);
     }
 
@@ -362,9 +363,9 @@ public abstract class SmartAlertGeneratingPanel extends BasePanel<SmartGeneratin
             @Override
             public void onClick(AjaxRequestTarget target) {
                 if (SmartAlertGeneratingPanel.this.getModelObject().isSuggestionButtonVisible()) {
-                    generatePerformed(target, Collections::emptyList);
+                    generatePerformed(target, ConfirmationResult::empty);
                 } else {
-                    regeneratePerformed(target, Collections::emptyList);
+                    regeneratePerformed(target, ConfirmationResult::empty);
                 }
             }
         };
@@ -406,18 +407,18 @@ public abstract class SmartAlertGeneratingPanel extends BasePanel<SmartGeneratin
 
     /** Regenerates suggestions (removes existing task and starts again). */
     protected void performRegenerateOperation(AjaxRequestTarget target,
-            IModel<List<ConfirmationOption<DataAccessPermission>>> confirmedOptions) {
+            IModel<ConfirmationResult<DataAccessPermission>> confirmationResult) {
         getModelObject().removeExistingSuggestionTask(getPageBase());
-        performRegenerateSuggestOperation(target, confirmedOptions);
+        performRegenerateSuggestOperation(target, confirmationResult);
     }
 
     /** Must be implemented to trigger suggestion generation. */
     protected abstract void performSuggestOperation(AjaxRequestTarget target,
-            IModel<List<ConfirmationOption<DataAccessPermission>>> confirmedOptions);
+            IModel<ConfirmationResult<DataAccessPermission>> confirmationResult);
 
     /** Must be implemented to trigger suggestion regeneration (re-run after removing existing task). */
     protected abstract void performRegenerateSuggestOperation(AjaxRequestTarget target,
-            IModel<List<ConfirmationOption<DataAccessPermission>>> confirmedOptions);
+            IModel<ConfirmationResult<DataAccessPermission>> confirmationResult);
 
     /** Must be implemented to refresh UI components related to suggestions. */
     protected abstract void onRefresh(AjaxRequestTarget target);

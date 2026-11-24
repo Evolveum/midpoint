@@ -10,6 +10,7 @@ import java.io.Serializable;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.web.component.dialog.ConfirmationResult;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils;
@@ -108,10 +109,10 @@ public class ResourceObjectFocusTypePanelFactory extends AbstractInputGuiCompone
 
                     @Override
                     protected void onSuggestAction(@NotNull AjaxRequestTarget target,
-                            List<ConfirmationOption<DataAccessPermission>> confirmedOptions) {
+                            ConfirmationResult<DataAccessPermission> confirmationResult) {
                         DropDownChoice<QName> baseFormComponent = getBaseFormComponent();
                         executeSuggestFocusTypeOperation(
-                                confirmedOptions,
+                                confirmationResult,
                                 getPageBase(),
                                 baseFormComponent,
                                 panelCtx,
@@ -126,7 +127,7 @@ public class ResourceObjectFocusTypePanelFactory extends AbstractInputGuiCompone
 
     //NOTE: If we decide to submit suggestion in the task, we should implement more complex panel with logicDto provider.
     private void executeSuggestFocusTypeOperation(
-            List<ConfirmationOption<DataAccessPermission>> confirmedOptions, @NotNull PageBase pageBase,
+            ConfirmationResult<DataAccessPermission> confirmationResult, @NotNull PageBase pageBase,
             @NotNull DropDownChoice<QName> baseFormComponent,
             @NotNull PrismPropertyPanelContext<QName> panelCtx,
             @NotNull AjaxRequestTarget target) {
@@ -148,8 +149,7 @@ public class ResourceObjectFocusTypePanelFactory extends AbstractInputGuiCompone
         Task task = pageBase.createSimpleTask("Suggest focus type");
         OperationResult result = task.getResult();
 
-        final List<DataAccessPermissionType> permissions = confirmedOptions.stream()
-                .map(ConfirmationOption::option)
+        final List<DataAccessPermissionType> permissions = confirmationResult.selectedOptions().stream()
                 .map(DataAccessPermission::toSchemaType)
                 .toList();
         try {

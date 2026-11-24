@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.common.secrets;
 
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 
 import org.jetbrains.annotations.NotNull;
 

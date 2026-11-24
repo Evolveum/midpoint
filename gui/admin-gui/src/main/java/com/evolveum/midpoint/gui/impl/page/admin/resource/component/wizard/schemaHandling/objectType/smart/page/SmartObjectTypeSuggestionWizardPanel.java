@@ -15,6 +15,7 @@ import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizar
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.web.component.dialog.ConfirmationResult;
 import com.evolveum.midpoint.web.component.dialog.SuggestionOption;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
@@ -112,9 +113,9 @@ public class SmartObjectTypeSuggestionWizardPanel extends AbstractWizardPanel<Re
                         SuggestionOption.aiOnly(ConfirmationOption.delineationPermissionsOptions()),
                         () -> new ButtonWithConfirmationOptionsDialog.ButtonHandlers<>(target -> {
                         },
-                                (target, confirmedOptions) -> {
+                                (target, confirmationResult) -> {
                                     final QName objectClassName = selectedModel.getObject().getRealValue().getName();
-                                    processSuggestionActivity(target, objectClassName, false, null, confirmedOptions);
+                                    processSuggestionActivity(target, objectClassName, false, null, confirmationResult);
                                 }),
                         getPageBase());
 
@@ -163,7 +164,7 @@ public class SmartObjectTypeSuggestionWizardPanel extends AbstractWizardPanel<Re
     private void processSuggestionActivity(AjaxRequestTarget target, QName objectClassName,
             boolean isRegenerate,
             @Nullable RegenerateMode regenerateMode,
-            IModel<List<ConfirmationOption<DataAccessPermission>>> confirmedOptions) {
+            IModel<ConfirmationResult<DataAccessPermission>> confirmationResult) {
         String resourceOid = getAssignmentHolderModel().getObjectType().getOid();
         Task task = getPageBase().createSimpleTask(OP_DETERMINE_STATUS);
         OperationResult result = task.getResult();
@@ -195,10 +196,11 @@ public class SmartObjectTypeSuggestionWizardPanel extends AbstractWizardPanel<Re
             return;
         }
 
-        List<DataAccessPermissionType> permissions = confirmedOptions.getObject().stream()
-                .map(ConfirmationOption::option)
+        ConfirmationResult<DataAccessPermission> confirmed = confirmationResult.getObject();
+        List<DataAccessPermissionType> permissions = confirmed.selectedOptions().stream()
                 .map(DataAccessPermission::toSchemaType)
                 .toList();
+
         if (!permissions.contains(DataAccessPermissionType.SCHEMA_ACCESS) ||
                 !permissions.contains(DataAccessPermissionType.STATISTICS_ACCESS)) {
             result.recordFatalError("Unable to suggest object types without permissions to access schema and "
@@ -302,10 +304,10 @@ public class SmartObjectTypeSuggestionWizardPanel extends AbstractWizardPanel<Re
             //TODO support dialog
             @Override
             public void refreshSuggestionPerform(AjaxRequestTarget target,
-                    IModel<List<ConfirmationOption<DataAccessPermission>>> confirmedOptions,
+                    IModel<ConfirmationResult<DataAccessPermission>> confirmationResult,
                     RegenerateMode regenerateMode) {
                 removeLastBreadcrumb();
-                processSuggestionActivity(target, objectClassName, true, regenerateMode, confirmedOptions);
+                processSuggestionActivity(target, objectClassName, true, regenerateMode, confirmationResult);
             }
 
             @Override

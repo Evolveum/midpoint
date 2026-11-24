@@ -12,6 +12,7 @@ import com.duosecurity.model.Token;
 
 import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
 import com.evolveum.midpoint.authentication.impl.module.authentication.token.DuoRequestToken;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -62,7 +63,10 @@ public class DuoProvider extends RemoteModuleProvider {
                 throw new AuthenticationServiceException("Duo authentication is deny");
             }
         } catch (Exception e) {
-            getAuditProvider().auditLoginFailure(null, null, createConnectEnvironment(getChannel()), e.getMessage());
+            // Password reset failures are audited by SequenceCompletionFilter.
+            if (!SchemaConstants.CHANNEL_RESET_PASSWORD_URI.equals(getChannel())) {
+                getAuditProvider().auditLoginFailure(null, null, createConnectEnvironment(getChannel()), e.getMessage());
+            }
             LOGGER.debug("Unexpected exception in duo module", e);
             throw new AuthenticationServiceException("web.security.provider.unavailable", e);
         }

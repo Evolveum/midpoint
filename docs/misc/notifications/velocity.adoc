@@ -11,6 +11,16 @@ You can use Apache Velocity when writing notifications
 and xref:/midpoint/reference/misc/notifications/message-templates/[message templates].
 This article contains examples of using Apache Velocity for writing notifications, as well as how to access schema extension attributes in the Velocity code.
 
+[NOTE]
+====
+Since 4.11.0, there are two flavors of the Velocity language:
+
+. Safe, slightly restricted variant (strongly recommended)
+. Traditional, fully-powered but dangerous variant (not recommended, disabled by default for new installations)
+
+This page applies to both; differences are highlighted when appropriate.
+====
+
 == How to use Velocity
 
 Technically, you can use Velocity templates in any place where an expression is expected, e.g., in mappings.
@@ -231,6 +241,56 @@ Its first argument accepts any midPoint object, so the same calls work for `OrgT
 The difference lies in which notifier you use and how you obtain the focal object from the event.
 For notifications about focal objects other than users, use `simpleFocalObjectNotifier` instead of `simpleUserNotifier`.
 Based on the pattern established for `simpleUserNotifier`, retrieving the focal object via `$event.requesteeObject` is the expected approach, though you should xref:/midpoint/reference/misc/notifications/configuration/#expression-variables[verify the available variables].
+
+== Safe vs Traditional Variant
+
+=== Language URIs
+
+[%autowidth]
+|===
+| Variant | URI
+
+| Safe
+| `http://midpoint.evolveum.com/xml/ns/public/expression/language#safe-velocity`
+
+| Traditional
+| `http://midpoint.evolveum.com/xml/ns/public/expression/language#velocity`
+|===
+
+=== Differences
+
+==== Accessible Objects
+
+In the safe variant only selected objects are accessible from Velocity templates:
+
+* `Boolean`
+* `String`
+* `Enum`
+* `XMLGregorianCalendar`
+* `QName`
+* `Collection`
+* `Map`
+* numeric types (`Byte`, `Character`, `Short`, `Integer`, `Long`, `Float`, `Double`, `BigInteger`, `BigDecimal`)
+* `Date`, `LocalDateTime`, `LocalDate`, `LocalTime`
+* all types annotated with `@Safe`, in particular: generated beans for midPoint objects, prism data objects, selected expression functions libraries (basic, midpoint), `Event`, `TextFormatter`, and several others
+
+==== Accessible Methods
+
+In the safe variant only selected methods are accessible from Velocity templates:
+
+* `Boolean`: `booleanValue`, `toString`, `equals`, `hashCode`, `compareTo`
+* `String`: `length`, `isEmpty`, `charAt`, `substring`, `indexOf`, `lastIndexOf`, `startsWith`, `endsWith`, `contains`, `toLowerCase`, `toUpperCase`, `trim`, `replace`, `replaceAll`, `replaceFirst`, `split`, `equals`, `equalsIgnoreCase`, `compareTo`
+* `Enum`: `name`, `ordinal`, `toString`
+* `XMLGregorianCalendar`: `getYear`, `getMonth`, `getDay`, `getHour`, `getMinute`, `getSecond`, `getMillisecond`, `getFractionalSecond`, `getTimezone`, `toXMLFormat`, `toString`
+* `QName`: `getNamespaceURI`, `getLocalPart`, `getPrefix`
+* `Collection`: `isEmpty`, `size`
+* `Map`: `isEmpty`, `size`
+* numeric types: `byteValue`, `charValue`, `shortValue`, `intValue`, `longValue`, `floatValue`, `doubleValue`, `toString`, `equals`, `hashCode`, `compareTo`, `bitCount`, `highestOneBit`, `lowestOneBit`, `signum`, `sum`, `min`, `max`, `compareUnsigned`, `divideUnsigned`, `remainderUnsigned`, `toUnsignedString`, `toBinaryString`, `toOctalString`, `toHexString`, `toUnsignedLong`, `isNaN`, `isInfinite`, `isFinite`
+* methods annotated with `@Safe` annotation; in particular:
+** all getters for midPoint (prism) data objects
+** selected library methods
+
+Please see `SafeIntrospectorImpl` class for details.
 
 == See also
 

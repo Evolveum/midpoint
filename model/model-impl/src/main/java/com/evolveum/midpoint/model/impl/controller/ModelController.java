@@ -559,9 +559,16 @@ public class ModelController implements ModelService, TaskService, CaseService, 
         LOGGER.debug("Recomputing {}", object);
 
         if (object.asObjectable() instanceof ShadowType shadow) {
+            // The shadow may come from a supertype search (e.g. ObjectType in the trigger scanner); the repository
+            // returns such shadows without attributes. Treating it as fresh (with full caching) would then lead to
+            // wrong outbound evaluation, so we reload it as a ShadowType.
+            // Remove this reload when the repository is fixed (see #13500).
+            var reloadedShadow = cacheRepositoryService.getObject(ShadowType.class, shadow.getOid(), null, result);
             // We probably should not do this here, but deeper in the clockwork. TODO move it there!
             // This is a quick way how to fix MID-11115 without risking breaking more things.
-            provisioning.determineShadowState(shadow.asPrismObject(), task, result);
+            provisioning.determineShadowState(reloadedShadow, task, result);
+            //noinspection unchecked
+            object = (PrismObject<O>) reloadedShadow;
         }
 
         LensContext<O> lensContext = contextFactory.createRecomputeContext(object, options, task, result);
@@ -1696,8 +1703,11 @@ public class ModelController implements ModelService, TaskService, CaseService, 
             OperationResult parentResult) throws FileNotFoundException {
         OperationResult result = parentResult.createSubresult(IMPORT_OBJECTS_FROM_FILE);
 
-        try (FileInputStream fis = new FileInputStream(input)) {
-            importObjectsFromStream(fis, PrismContext.LANG_XML, options, task, parentResult);
+        try {
+            String language = prismContext.detectLanguage(input);
+            try (FileInputStream fis = new FileInputStream(input)) {
+                importObjectsFromStream(fis, language, options, task, parentResult);
+            }
         } catch (FileNotFoundException e) {
             String msg = "Error reading from file " + input + ": " + e.getMessage();
             result.recordFatalError(msg, e);
@@ -1706,7 +1716,7 @@ public class ModelController implements ModelService, TaskService, CaseService, 
             result.recordFatalError(e);
             throw e;
         } catch (IOException e) {
-            LOGGER.error("Error closing file " + input + ": " + e.getMessage(), e);
+            LOGGER.error("Error reading or closing file " + input + ": " + e.getMessage(), e);
         } finally {
             result.close();
         }

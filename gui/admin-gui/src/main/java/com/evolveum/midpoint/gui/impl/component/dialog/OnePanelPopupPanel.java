@@ -14,6 +14,7 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 
 import com.evolveum.midpoint.web.component.dialog.Popupable;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
 import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.model.IModel;
@@ -23,6 +24,7 @@ public abstract class OnePanelPopupPanel extends SimplePopupable {
 
     private static final String ID_PANEL = "panel";
     private static final String ID_BUTTON_DONE = "doneButton";
+    private static final String ID_BUTTON_CANCEL = "cancelButton";
     private static final String ID_BUTTONS = "buttons";
 
     private Fragment footer;
@@ -43,6 +45,10 @@ public abstract class OnePanelPopupPanel extends SimplePopupable {
     private void initFooter() {
         Fragment footer = new Fragment(Popupable.ID_FOOTER, ID_BUTTONS, this);
         footer.setOutputMarkupId(true);
+
+        Component cancel = createCancelButton(ID_BUTTON_CANCEL);
+        cancel.setOutputMarkupId(true);
+        footer.add(cancel);
 
         Component done = createDoneButton(ID_BUTTON_DONE);
         done.setOutputMarkupId(true);
@@ -66,6 +72,35 @@ public abstract class OnePanelPopupPanel extends SimplePopupable {
                 processHide(target);
             }
         };
+    }
+
+    /**
+     * Creates the button that closes the popup without applying anything. Visible only
+     * when {@link #isCancelButtonVisible()} is overridden to return true.
+     *
+     * @param id component id of the button
+     * @return button cancelling the popup
+     */
+    protected Component createCancelButton(String id) {
+        AjaxButton cancel = new AjaxButton(id) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                processCancel(target);
+            }
+        };
+        cancel.add(new VisibleBehaviour(this::isCancelButtonVisible));
+        return cancel;
+    }
+
+    protected boolean isCancelButtonVisible() {
+        return false;
+    }
+
+    protected void processCancel(AjaxRequestTarget target) {
+        getPageBase().hideMainPopup(target);
     }
 
     private void initLayout(){

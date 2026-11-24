@@ -86,6 +86,14 @@ public class ResourceDetailsPageStorage implements PageStorage {
     }
 
     /**
+     * Detaches the search item wrappers models of all content storages, this storage itself holds no search.
+     */
+    @Override
+    public void detachSearchItemWrappersModels() {
+        this.contentStorages.values().forEach(PageStorage::detachSearchItemWrappersModels);
+    }
+
+    /**
      * Throws UnsupportedOperationException.
      */
     @Override

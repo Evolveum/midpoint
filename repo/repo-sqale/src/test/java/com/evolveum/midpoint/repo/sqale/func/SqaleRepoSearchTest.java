@@ -22,6 +22,7 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType.F_
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -3517,6 +3518,67 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
         assertThat(result).hasSize((int) count(QFocus.CLASS));
         // without additional objects the test would be meaningless
         assertThat(result).hasSizeLessThan((int) count(QAssignmentHolder.CLASS));
+    }
+
+    /**
+     * Shadows obtained by get/search for {@link ObjectType} are currently returned without attributes;
+     * when this is fixed in the repository (see #13500), invert the {@link ObjectType} assertions.
+     */
+    @Test
+    public void test923GetShadowAsObjectTypeReturnsNoAttributes() throws SchemaException, ObjectNotFoundException {
+        OperationResult operationResult = createOperationResult();
+
+        when("shadow with attributes is obtained by getObject for ShadowType and for ObjectType");
+        PrismObject<ShadowType> asShadow =
+                repositoryService.getObject(ShadowType.class, shadow1Oid, null, operationResult);
+        PrismObject<ObjectType> asObject =
+                repositoryService.getObject(ObjectType.class, shadow1Oid, null, operationResult);
+
+        then("attributes are present only when the shadow is obtained as ShadowType");
+        assertThatOperationResult(operationResult).isSuccess();
+        assertShadowAttributesPresent(asShadow);
+        assertThat(asObject.asObjectable()).isInstanceOf(ShadowType.class);
+        assertShadowAttributesMissing(asObject);
+    }
+
+    @Test
+    public void test924SearchShadowAsObjectTypeReturnsNoAttributes() throws SchemaException {
+        OperationResult operationResult = createOperationResult();
+
+        when("shadow with attributes is searched for as ShadowType, as ObjectType and iteratively as ObjectType");
+        SearchResultList<PrismObject<ShadowType>> asShadow = repositoryService.searchObjects(ShadowType.class,
+                prismContext.queryFor(ShadowType.class).id(shadow1Oid).build(), null, operationResult);
+        ObjectQuery objectQuery = prismContext.queryFor(ObjectType.class).id(shadow1Oid).build();
+        SearchResultList<PrismObject<ObjectType>> asObject =
+                repositoryService.searchObjects(ObjectType.class, objectQuery, null, operationResult);
+        List<PrismObject<ObjectType>> asObjectIterative = new ArrayList<>();
+        repositoryService.searchObjectsIterative(ObjectType.class, objectQuery,
+                (object, lResult) -> asObjectIterative.add(object), null, true, operationResult);
+
+        then("attributes are present only when the shadow is searched for as ShadowType");
+        assertThatOperationResult(operationResult).isSuccess();
+        assertThat(asShadow).hasSize(1);
+        assertShadowAttributesPresent(asShadow.get(0));
+        assertThat(asObject).hasSize(1);
+        assertShadowAttributesMissing(asObject.get(0));
+        assertThat(asObjectIterative).hasSize(1);
+        assertShadowAttributesMissing(asObjectIterative.get(0));
+    }
+
+    private void assertShadowAttributesPresent(PrismObject<?> shadow) {
+        PrismContainer<?> attributes = shadow.findContainer(ShadowType.F_ATTRIBUTES);
+        assertThat(attributes).as("attributes container").isNotNull();
+        PrismProperty<String> attribute =
+                attributes.getValue().findProperty(new ItemName("https://example.com/p", "string-mv"));
+        assertThat(attribute).as("attribute string-mv").isNotNull();
+        assertThat(attribute.getRealValues()).containsExactlyInAnyOrder("string-value1", "string-value2");
+    }
+
+    private void assertShadowAttributesMissing(PrismObject<?> shadow) {
+        PrismContainer<?> attributes = shadow.findContainer(ShadowType.F_ATTRIBUTES);
+        assertThat(attributes == null || attributes.isEmpty() || attributes.getValue().isEmpty())
+                .as("attributes should be missing, but were: " + attributes)
+                .isTrue();
     }
 
     @Test

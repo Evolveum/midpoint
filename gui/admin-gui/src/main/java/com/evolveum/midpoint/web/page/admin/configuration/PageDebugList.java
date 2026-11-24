@@ -49,6 +49,7 @@ import com.evolveum.midpoint.gui.impl.component.search.SearchContext;
 import com.evolveum.midpoint.gui.impl.component.search.wrapper.FilterableSearchItemWrapper;
 import com.evolveum.midpoint.gui.impl.page.admin.task.PageTask;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.QueryFactory;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
@@ -74,7 +75,7 @@ import com.evolveum.midpoint.web.page.admin.configuration.component.PageDebugDow
 import com.evolveum.midpoint.web.page.admin.configuration.dto.DebugConfDialogDto;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.DebugObjectItem;
 import com.evolveum.midpoint.web.page.admin.server.PageTasks;
-import com.evolveum.midpoint.web.session.GenericPageStorage;
+import com.evolveum.midpoint.web.session.RepositoryObjectsStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.ObjectTypeGuiDescriptor;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
@@ -123,7 +124,7 @@ public class PageDebugList extends PageAdminConfiguration {
 
             @Override
             protected Search load() {
-                GenericPageStorage storage = getBrowserTabSessionStorage().getConfiguration();
+                RepositoryObjectsStorage storage = getRepositoryObjectsStorage();
                 Search search = storage.getSearch();
 
                 if (search == null || search.isForceReload()) {
@@ -204,11 +205,14 @@ public class PageDebugList extends PageAdminConfiguration {
                 return headerFragment;
             }
 
+            @Override
+            protected void onPagingChanged(ObjectPaging paging) {
+                getRepositoryObjectsStorage().setPaging(paging);
+            }
         };
         table.setOutputMarkupId(true);
 
-        GenericPageStorage storage = getBrowserTabSessionStorage().getConfiguration();
-        table.setCurrentPageAndSort(storage.getPaging());
+        table.setCurrentPageAndSort(getRepositoryObjectsStorage().getPaging());
 
         mainForm.addOrReplace(table);
     }
@@ -555,12 +559,19 @@ public class PageDebugList extends PageAdminConfiguration {
             table.refreshSearch();
         }
 
+        table.setCurrentPageAndSort(null);
+
         // save object type category to session storage, used by back button
-        GenericPageStorage storage = getBrowserTabSessionStorage().getConfiguration();
+        RepositoryObjectsStorage storage = getRepositoryObjectsStorage();
         storage.setSearch(searchModel.getObject());
+        storage.setPaging(null);
 
         target.add(table);
         target.add(getFeedbackPanel());
+    }
+
+    private RepositoryObjectsStorage getRepositoryObjectsStorage() {
+        return getBrowserTabSessionStorage().getRepositoryObjectsStorage();
     }
 
     private void objectEditPerformed(@NotNull DebugObjectItem debugObjectItem) {

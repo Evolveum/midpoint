@@ -58,7 +58,7 @@ public class AttributeMappingWizardPanel<C extends Containerable> extends Abstra
 
             @Override
             protected void buildSimulationResultPanel(AjaxRequestTarget target, IModel<SimulationResultType> simulationResultTypeIModel) {
-                showChoiceFragment(target, buildSimulationWizard(simulationResultTypeIModel));
+                showChoiceFragment(target, buildSimulationWizard(simulationResultTypeIModel, getSelectedMappingType()));
             }
 
             @Override
@@ -78,11 +78,12 @@ public class AttributeMappingWizardPanel<C extends Containerable> extends Abstra
         };
     }
 
-    private @NotNull SimulationWizardPanel<?> buildSimulationWizard(IModel<SimulationResultType> simulationResultTypeIModel) {
+    private @NotNull SimulationWizardPanel<?> buildSimulationWizard(
+            IModel<SimulationResultType> simulationResultTypeIModel, MappingDirection direction) {
         return new SimulationWizardPanel<>(getIdOfChoicePanel(), getHelper(), simulationResultTypeIModel) {
             @Override
             public void onBackPerformed(AjaxRequestTarget target) {
-                showChoiceFragment(target, createTablePanel(MappingDirection.INBOUND));
+                showChoiceFragment(target, createTablePanel(direction));
             }
 
             @Override

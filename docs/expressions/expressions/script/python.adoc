@@ -6,7 +6,11 @@ doc-type: intro
 :page-nav-title: Python
 :page-toc: top
 
-Python is a supported expression language in midPoint.
+NOTE: Python is a general purpose scripting language.
+This means it's inherently dangerous and disabled by default for new installations, starting from midPoint 4.11.0.
+Please consider using xref:../mel[MidPoint Expression Language] instead.
+
+Python is an expression language in midPoint.
 Its language URL is:
 
  http://midpoint.evolveum.com/xml/ns/public/expression/language#python

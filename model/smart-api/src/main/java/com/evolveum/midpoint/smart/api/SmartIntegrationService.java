@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.smart.api;
 
+import java.util.Set;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.PrismObject;
@@ -16,6 +17,7 @@ import com.evolveum.midpoint.repo.common.activity.ActivityInterruptedException;
 import com.evolveum.midpoint.repo.common.activity.run.state.CurrentActivityState;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
+import com.evolveum.midpoint.schema.processor.AssociationPair;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.smart.api.info.AiInfo;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
@@ -33,7 +35,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
-import java.util.Optional;
 
 /**
  * Provides methods for suggesting parts of the integration solution, like inbound/outbound mappings.
@@ -42,9 +43,10 @@ public interface SmartIntegrationService {
 
     /**
      * Returns AI provider and model info fetched from the microservice health endpoint.
-     * Returns empty Optional if the information is unavailable.
+     * Returns AI info with error status if the service
+     * is not available. Throws an exception if the caller is not authorized.
      */
-    Optional<AiInfo> getAiInfo(Task task, OperationResult result) throws CommonException;
+    @NotNull AiInfo getAiInfo(Task task, OperationResult result) throws CommonException;
 
     /**
      * Creates a new resource with the given connector and the given connector configuration.
@@ -245,6 +247,7 @@ public interface SmartIntegrationService {
             ResourceObjectTypeIdentification typeIdentification,
             List<DataAccessPermissionType> permissions,
             boolean forceRecomputeSchemaMatch,
+            Boolean useAiService,
             Task task,
             OperationResult result)
             throws CommonException;
@@ -315,6 +318,7 @@ public interface SmartIntegrationService {
             List<ItemPathType> targetPathsToIgnore,
             List<DataAccessPermissionType> permissions,
             boolean forceRecomputeSchemaMatch,
+            Boolean useAiService,
             Task task,
             OperationResult result)
             throws CommonException;
@@ -348,6 +352,15 @@ public interface SmartIntegrationService {
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
             ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException;
 
+    /** Uses only the supplied pair snapshot for exclusions; null means no exclusions. */
+    AssociationsSuggestionType suggestAssociations(
+            String resourceOid,
+            @Nullable Set<AssociationPair> configuredAssociations,
+            Task task,
+            OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
+            ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException;
+
     /**
      * Submits "suggest associations" request. Returns a token used to query the status.
      */
@@ -356,6 +369,13 @@ public interface SmartIntegrationService {
             Task task,
             OperationResult result)
             throws CommonException;
+
+    /** Submits a request with a snapshot of current association pairs, without saving GUI edits. */
+    String submitSuggestAssociationsOperation(
+            String resourceOid,
+            @Nullable Set<AssociationPair> configuredAssociations,
+            Task task,
+            OperationResult result) throws CommonException;
 
     /**
      * Lists statuses of all relevant "suggest associations" requests (for the given resource OID).

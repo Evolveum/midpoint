@@ -1,4 +1,4 @@
-MidPoint 4.11.0 "Čapek"
+MidPoint 4.12.0 Development Branch
 -------------------------------
 
 General information:

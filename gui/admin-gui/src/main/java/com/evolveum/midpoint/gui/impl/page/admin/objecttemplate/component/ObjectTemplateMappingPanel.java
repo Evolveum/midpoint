@@ -21,12 +21,15 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateType;
 
 import org.apache.wicket.behavior.AttributeAppender;
 
+import java.io.Serial;
+
 @PanelType(name = "objectTemplateMappings")
 @PanelInstance(identifier = "objectTemplateMappings",
         applicableForType = ObjectTemplateType.class,
         display = @PanelDisplay(label = "pageObjectTemplate.mapping.title", order = 40))
 public class ObjectTemplateMappingPanel extends AbstractObjectMainPanel<ObjectTemplateType, ObjectDetailsModels<ObjectTemplateType>> {
-    private static final long serialVersionUID = 1L;
+
+    @Serial private static final long serialVersionUID = 1L;
 
     private static final Trace LOGGER = TraceManager.getTrace(ObjectTemplateMappingPanel.class);
     private static final String ID_PANEL = "panel";

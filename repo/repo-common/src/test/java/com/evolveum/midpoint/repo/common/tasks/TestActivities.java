@@ -33,6 +33,7 @@ import com.evolveum.midpoint.schema.statistics.ActionsExecutedInformationUtil;
 import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.schema.util.task.ActivityPerformanceInformation;
 import com.evolveum.midpoint.schema.util.task.ActivityProgressInformation;
+import com.evolveum.midpoint.schema.util.task.BucketingUtil;
 import com.evolveum.midpoint.schema.util.task.TaskOperationStatsUtil;
 import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionUtil;
 import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionBean;
@@ -2675,6 +2676,94 @@ public class TestActivities extends AbstractRepoCommonTest {
             assertProgress(root.getOid(), "after resume")
                     .display()
                     .assertBuckets(4, 4);
+        } finally {
+            taskManager.suspendTaskTree(root.getOid(), TaskManager.WAIT_INDEFINITELY, result);
+            taskManager.deleteTaskTree(root.getOid(), result);
+        }
+    }
+
+    /**
+     * MID-12627: A worker interrupted by coordinator suspension must remain open
+     * and continue processing when only the coordinator is resumed.
+     */
+    @Test
+    public void test325WorkerInterruptedAfterCoordinatorSuspendIsRestarted() throws Exception {
+        given();
+
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        recorder.reset();
+
+        Task root = taskAdd(TASK_320_WORKER_ROOT_SUSPEND, result);
+
+        try {
+            waitFor("Waiting for the worker to process the first item", () -> !recorder.getExecutions().isEmpty(), 10000, 100);
+
+            List<? extends Task> workers = root.listSubtasks(result);
+            assertThat(workers).as("workers").hasSize(1);
+            Task worker = workers.get(0);
+            long previousWorkerFinish = worker.getLastRunFinishTimestamp() != null ? worker.getLastRunFinishTimestamp() : 0;
+
+            when("Only the root coordinator task is suspended");
+
+            assertThat(taskManager.suspendTasks(Set.of(root.getOid()), 10000, result))
+                    .as("root coordinator was suspended")
+                    .isTrue();
+            waitForTaskRunFinish(worker.getOid(), result, 10000, 100, previousWorkerFinish);
+
+            int processedAfterWorkerStopped = recorder.getExecutions().size();
+
+            then("The worker is interrupted with unfinished coordinator work");
+
+            displayDumpable("recorder", recorder);
+
+            assertThat(processedAfterWorkerStopped)
+                    .as("items processed before coordinator suspension completed")
+                    .isLessThan(20);
+
+            Task rootAfterSuspend = taskManager.getTaskWithResult(root.getOid(), result);
+            ActivityStateType coordinatorState = rootAfterSuspend.getActivityStateOrClone(ActivityPath.empty());
+            assertThat(BucketingUtil.isWorkComplete(coordinatorState))
+                    .as("coordinator work complete")
+                    .isFalse();
+
+            Task workerAfterSuspend = taskManager.getTaskWithResult(worker.getOid(), result);
+            assertThat(workerAfterSuspend.isClosed())
+                    .as("worker closed while coordinator still has unfinished work")
+                    .isFalse();
+            assertThat(workerAfterSuspend.getSchedulingState())
+                    .as("worker scheduling state after coordinator suspension")
+                    .isEqualTo(TaskSchedulingStateType.READY);
+            ActivityStateType workerState = workerAfterSuspend.getActivityStateOrClone(ActivityPath.empty());
+            assertThat(workerState).as("worker activity state").isNotNull();
+            assertThat(workerState.getRealizationState())
+                    .as("worker activity realization state")
+                    .isEqualTo(ActivityRealizationStateType.IN_PROGRESS_LOCAL);
+            assertThat(workerState.getResultStatus())
+                    .as("worker activity result status")
+                    .isEqualTo(OperationResultStatusType.IN_PROGRESS);
+
+            when("Only the root coordinator task is resumed");
+
+            taskManager.resumeTasks(Set.of(root.getOid()), result);
+            waitFor("Waiting for the worker to continue processing after coordinator resume",
+                    () -> recorder.getExecutions().size() > processedAfterWorkerStopped, 10000, 100);
+            waitForTaskTreeCloseCheckingSuspensionWithError(root.getOid(), result, 30000);
+
+            then("All buckets are eventually processed");
+
+            displayDumpable("recorder", recorder);
+
+            assertThat(recorder.getExecutions())
+                    .as("all items processed after coordinator resume")
+                    .hasSize(20);
+            assertProgress(root.getOid(), "after resume")
+                    .display()
+                    .assertBuckets(4, 4);
+            assertTask(root.getOid(), "after resume")
+                    .assertClosed()
+                    .assertSuccess();
         } finally {
             taskManager.suspendTaskTree(root.getOid(), TaskManager.WAIT_INDEFINITELY, result);
             taskManager.deleteTaskTree(root.getOid(), result);

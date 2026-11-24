@@ -625,9 +625,7 @@ public class ReportUtils {
                         sb.append("=");
                         sb.append(objectToAdd.getName().toString());
                     }
-                    sb.append(" {");
-                    sb.append(prettyPrintForReport(objectToAdd));
-                    sb.append("}");
+                    sb.append(printOidForReport(delta.getOid(), objectToAdd.getOid()));
                 }
                 break;
 
@@ -779,9 +777,7 @@ public class ReportUtils {
                         sb.append("=");
                         sb.append(objectToAdd.getName().toString());
                     }
-                    sb.append(" {");
-                    sb.append(prettyPrintForReport(objectToAdd));
-                    sb.append("}");
+                    sb.append(printOidForReport(delta.getOid(), objectToAdd.getOid()));
                 }
                 break;
 
@@ -791,6 +787,12 @@ public class ReportUtils {
         }
 
         return sb.toString();
+    }
+
+    /** Returns " {oid}" for the added object (the delta OID is preferred), or an empty string if no OID is known. */
+    private static String printOidForReport(String deltaOid, String objectOid) {
+        String oid = StringUtils.firstNonBlank(deltaOid, objectOid);
+        return oid != null ? " {" + oid + "}" : "";
     }
 
     public static String join(Collection<String> strings) {

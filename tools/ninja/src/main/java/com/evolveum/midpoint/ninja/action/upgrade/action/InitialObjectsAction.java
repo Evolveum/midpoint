@@ -45,8 +45,6 @@ import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ActionExpressionType;
-import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ObjectFactory;
 import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
@@ -122,10 +120,16 @@ public class InitialObjectsAction extends Action<InitialObjectsOptions, ActionRe
             }
 
             log.info("");
-            if (!refs.isEmpty()) {
-                PrismObject<TaskType> task = createRecomputeTask(refs);
+            List<ObjectReferenceType> recomputable = refs.stream()
+                    .filter(InitialObjectsAction::isRecomputable)
+                    .toList();
+            if (!recomputable.isEmpty()) {
+                PrismObject<TaskType> task = createRecomputeTask(recomputable);
                 context.getRepository().addObject(task, null, result);
-                log.info("Recompute task {} created, it will be started after midpoint starts and will recompute {} objects.", task, refs.size());
+                log.info("Recompute task {} created, it will be started after midpoint starts and will recompute {} objects.",
+                        task, recomputable.size());
+            } else if (!refs.isEmpty()) {
+                log.info("Recompute task not created, none of the {} changed objects need recomputation.", refs.size());
             } else {
                 log.info("Recompute task not created, no objects were changed in repository.");
             }
@@ -400,10 +404,22 @@ public class InitialObjectsAction extends Action<InitialObjectsOptions, ActionRe
         return added;
     }
 
+    /**
+     * Recomputation (clockwork) works on assignment holders only; other objects are left out of the task.
+     */
+    private static boolean isRecomputable(ObjectReferenceType ref) {
+        ObjectTypes type = ObjectTypes.getObjectTypeFromTypeQNameIfKnown(ref.getType());
+        return type != null && AssignmentHolderType.class.isAssignableFrom(type.getClassDefinition());
+    }
+
+    /**
+     * The task uses the recomputation activity (not a bulk action), so it does not depend on
+     * expression profiles configured in the system configuration. Issue 13126.
+     */
     private PrismObject<TaskType> createRecomputeTask(List<ObjectReferenceType> refs) throws SchemaException {
         TaskType task = new TaskType();
         task.setOid(UUID.randomUUID().toString());
-        task.setName(new PolyStringType("Initial objects recompute after upgrade to 4.8"));
+        task.setName(new PolyStringType("Initial objects recompute after upgrade"));
         task.setExecutionState(TaskExecutionStateType.RUNNABLE);
         task.setTaskIdentifier(new BasicLightweightIdentifierGenerator().generate().toString());
 
@@ -412,7 +428,7 @@ public class InitialObjectsAction extends Action<InitialObjectsOptions, ActionRe
                 .type(UserType.COMPLEX_TYPE));
 
         ObjectReferenceType archetypeRef = new ObjectReferenceType()
-                .oid(SystemObjectsType.ARCHETYPE_ITERATIVE_BULK_ACTION_TASK.value())
+                .oid(SystemObjectsType.ARCHETYPE_RECOMPUTATION_TASK.value())
                 .type(ArchetypeType.COMPLEX_TYPE);
 
         AssignmentType assignment = new AssignmentType()
@@ -423,29 +439,23 @@ public class InitialObjectsAction extends Action<InitialObjectsOptions, ActionRe
 
         task.schedule(new ScheduleType().recurrence(TaskRecurrenceType.SINGLE));
 
-        ObjectFilter filter = context.getPrismContext().queryFor(ObjectType.class)
+        ObjectFilter filter = context.getPrismContext().queryFor(AssignmentHolderType.class)
                 .id(refs.stream().map(ObjectReferenceType::getOid).toArray(String[]::new))
                 .buildFilter();
         SearchFilterType searchFilter = context.getPrismContext().getQueryConverter().createSearchFilterType(filter);
 
         //@formatter:off
-        IterativeScriptingWorkDefinitionType iterativeScripting = new IterativeScriptingWorkDefinitionType();
-        iterativeScripting
+        RecomputationWorkDefinitionType recomputation = new RecomputationWorkDefinitionType();
+        recomputation
                 .beginObjects()
-                    .type(ObjectType.COMPLEX_TYPE)
+                    .type(AssignmentHolderType.COMPLEX_TYPE)
                     .query(new QueryType().filter(searchFilter))
-                .<IterativeScriptingWorkDefinitionType>end()
-                .beginScriptExecutionRequest()
-                    .scriptingExpression(
-                            new ObjectFactory()
-                                    .createAction(
-                                            new ActionExpressionType()
-                                                .type("recompute")));
+                .end();
 
         task
                 .beginActivity()
                     .beginWork()
-                        .iterativeScripting(iterativeScripting)
+                        .recomputation(recomputation)
                 .<ActivityDefinitionType>end();
         //@formatter:on
 

@@ -28,9 +28,13 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
+import com.evolveum.midpoint.prism.path.ItemPath;
+
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationServiceException;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
@@ -38,6 +42,7 @@ import org.springframework.security.core.GrantedAuthority;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 public class CorrelationProvider extends MidpointAbstractAuthenticationProvider {
@@ -63,6 +68,8 @@ public class CorrelationProvider extends MidpointAbstractAuthenticationProvider 
             LOGGER.error("Unsupported authentication {}", authentication);
             throw new AuthenticationServiceException("web.security.provider.unavailable");
         }
+
+        checkEnteredAttributes(correlationVerificationToken, focusType);
 
         try {
             ModuleAuthentication moduleAuthentication = AuthUtil.getProcessingModule();
@@ -109,6 +116,25 @@ public class CorrelationProvider extends MidpointAbstractAuthenticationProvider 
             throw new AuthenticationServiceException("web.security.provider.unavailable");
         }
 
+    }
+
+    /**
+     * Checks the values entered by the user before the correlation, e.g. a missing value
+     * or a value which can't be converted to the attribute type (such as a date in an unsupported format).
+     * In such a case, the user gets a message about the invalid input, not a general error.
+     */
+    private void checkEnteredAttributes(CorrelationVerificationToken token, Class<? extends FocusType> focusType) {
+        Map<ItemPath, String> attributes = token.getDetails();
+        if (attributes == null || attributes.isEmpty() || attributes.values().stream().anyMatch(StringUtils::isBlank)) {
+            LOGGER.debug("Some correlation attribute value wasn't provided: {}", attributes);
+            throw new BadCredentialsException("web.security.provider.correlation.missing.value");
+        }
+        try {
+            token.getPreFocus(focusType);
+        } catch (IllegalArgumentException e) {
+            LOGGER.debug("Some correlation attribute value is invalid: {}", e.getMessage(), e);
+            throw new BadCredentialsException("web.security.provider.correlation.invalid.value");
+        }
     }
 
     private boolean isLastCorrelatorProcessing(CorrelationModuleAuthenticationImpl correlationModuleAuthentication,

@@ -9,18 +9,18 @@
     <wicket:container wicket:id="contentContainer"></wicket:container>
 
     <wicket:fragment wicket:id="columnTileFragment">
-        <div class="col-12 d-flex flex-row flex-wrap align-items-center py-1 px-3">
-            <div wicket:id="tile-column-header" class="tile-column-header">
+        <div class="col-12 d-flex flex-row flex-wrap align-items-center py-2 px-3">
+            <div wicket:id="tile-column-header" class="col-auto px-2">
                 <wicket:container wicket:id="toolbar"></wicket:container>
             </div>
 
             <div class="px-0 tile-column-icon" wicket:id="separator"></div>
             <div class="col-6 d-flex p-0" wicket:id="headerTitle"></div>
             <div class="px-0 tile-column-icon" wicket:id="separatorSecond"></div>
-            <div class="col-2" wicket:id="targetRef"></div>
-            <div class="ms-auto" wicket:id="showSuggestionLink"></div>
-            <div class="ms-auto" wicket:id="acceptSelectedButton"></div>
-            <div wicket:id="actions"></div>
+            <div class="col-2 px-2 mx-2" wicket:id="targetRef"></div>
+            <div class="ms-auto px-3" wicket:id="showSuggestionLink"></div>
+            <div class="ms-auto px-2" wicket:id="acceptSelectedButton"></div>
+            <div class="px-2" wicket:id="actions"></div>
         </div>
 
         <div wicket:id="rowsContainer" class="col-12 d-flex flex-column p-3 border-top bg-light rounded">

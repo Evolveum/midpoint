@@ -19,6 +19,8 @@ import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.expression.MidPointTrustDescriptor;
+import com.evolveum.midpoint.schema.expression.TrustDescriptorSetter;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.task.ActivityProgressInformation;
@@ -350,6 +352,7 @@ public class SmartIntegrationStatusInfoUtils {
     public static @NotNull SuggestionProviderResult<MappingType, MappingsSuggestionType> loadMappingSuggestionWrappers(
             @NotNull PageBase pageBase,
             @NotNull String resourceOid,
+            @Nullable ResourceType resource,
             @NotNull ResourceObjectTypeDefinitionType rotDef,
             @NotNull MappingDirection mappingDirection,
             boolean includeNonCompletedSuggestions,
@@ -366,6 +369,12 @@ public class SmartIntegrationStatusInfoUtils {
 
             if (isNotProcessable(statusInfo) || shouldSkipNonCompleted(statusInfo, includeNonCompletedSuggestions)) {
                 return emptyResult(byWrapper);
+            }
+
+            if (resource != null && statusInfo.getResult() != null) {
+                TrustDescriptorSetter.setDescriptors(
+                        statusInfo.getResult().asPrismContainerValue(),
+                        MidPointTrustDescriptor.forAuthorizedObject(resource));
             }
 
             addMappingWrappers(pageBase, mappingDirection, task, result, statusInfo, wrappers, byWrapper);

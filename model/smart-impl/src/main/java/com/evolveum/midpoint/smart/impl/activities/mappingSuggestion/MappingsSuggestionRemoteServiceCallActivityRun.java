@@ -52,7 +52,8 @@ public class MappingsSuggestionRemoteServiceCallActivityRun extends LocalActivit
                 resourceOid, typeDef.getKind(), typeDef.getIntent());
 
         var isInbound = workDefinition.isInbound();
-        boolean useAi = workDefinition.getPermissions().contains(DataAccessPermissionType.RAW_DATA_ACCESS);
+        boolean useAi = workDefinition.getPermissions().contains(DataAccessPermissionType.RAW_DATA_ACCESS)
+                && workDefinition.isAiServiceRequested();
 
         var statisticsRef = parentState.getWorkStateItemRealValueClone(
                 MappingsSuggestionWorkStateType.F_STATISTICS_REF, ObjectReferenceType.class);

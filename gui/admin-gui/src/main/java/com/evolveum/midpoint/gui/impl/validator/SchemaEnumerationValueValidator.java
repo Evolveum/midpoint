@@ -6,6 +6,7 @@
 
 package com.evolveum.midpoint.gui.impl.validator;
 
+import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 
 import org.apache.commons.lang3.StringUtils;
@@ -52,10 +53,10 @@ public class SchemaEnumerationValueValidator implements IValidator<String> {
             normalizedName = StringUtils.deleteWhitespace(normalizedName);
 
             ValidationError error = new ValidationError();
-            error.addKey("SchemaEnumerationValueValidator.invalidValue");
-            error.setVariable("0", value);
-            error.setVariable("1", normalizedName);
-            error.setMessage("Value '" + value + "' is not valid. Try '" + normalizedName + "'.");
+            error.setMessage(LocalizationUtil.translate(
+                    "SchemaEnumerationValueValidator.invalidValue",
+                    new Object[] { value, normalizedName },
+                    "Value '" + value + "' is not valid. Try '" + normalizedName + "'."));
             validatable.error(error);
         }
     }

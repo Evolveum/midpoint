@@ -253,6 +253,7 @@ public abstract class ConnectorDevelopmentBackend {
      * no such processed documentation.
      */
     public void removeDocumentationFile(String fileName) throws CommonException {
+        reload();
         var toRemove = developmentObject().getProcessedDocumentation().stream()
                 .filter(documentation -> StringUtils.equals(fileName, documentation.getUri()))
                 // Clones: the live container values carry a parent, which the delta builder refuses to reset.
@@ -284,6 +285,19 @@ public abstract class ConnectorDevelopmentBackend {
         var delta = PrismContext.get().deltaFor(ConnectorDevelopmentType.class)
                 .item(ConnectorDevelopmentType.F_CONNECTOR, ConnDevConnectorType.F_DIRECTORY).add(targetDir)
                 .item(ConnectorDevelopmentType.F_CONNECTOR, ConnDevConnectorType.F_CONNECTOR_REF).add(connectorRef)
+                .<ConnectorDevelopmentType>asObjectDelta(development.getOid());
+        beans.modelService.executeChanges(List.of(delta), null, task, result);
+        reload();
+    }
+
+    /**
+     * Sets the version of the developed connector.
+     *
+     * @param version new connector version
+     */
+    public void updateConnectorVersion(String version) throws CommonException {
+        var delta = PrismContext.get().deltaFor(ConnectorDevelopmentType.class)
+                .item(ConnectorDevelopmentType.F_CONNECTOR, ConnDevConnectorType.F_VERSION).replace(version)
                 .<ConnectorDevelopmentType>asObjectDelta(development.getOid());
         beans.modelService.executeChanges(List.of(delta), null, task, result);
         reload();
@@ -422,6 +436,7 @@ public abstract class ConnectorDevelopmentBackend {
 
         editableConnector().saveFile(CONNECTOR_MANIFEST, manifest);
         editableConnector().deleteFileIfExists(CONNECTOR_MANIFEST_JSON_LEGACY);
+        invalidateConnector();
     }
 
     /**
@@ -466,6 +481,13 @@ public abstract class ConnectorDevelopmentBackend {
         return errors.isEmpty() ? ConnDevArtifactValidationResult.success() : ConnDevArtifactValidationResult.errors(errors);
     }
 
+    private static String validationArtifactKind(ConnDevArtifactType artifact) {
+        if (ConnDevScriptIntentType.AUTH.equals(artifact.getIntent())) {
+            return "authentication";
+        }
+        return ConnDevOperationType.SCHEMA.equals(artifact.getOperation()) ? "schema" : "operation";
+    }
+
     private ConnDevArtifactValidationResult validateArtifact(ConnDevArtifactType artifact, Map<String, String> overrides) {
         var filename = artifact.getFilename();
         if (!ConnDevScriptFormat.hasRecognizedExtension(filename)) {
@@ -483,8 +505,7 @@ public abstract class ConnectorDevelopmentBackend {
                 .code(artifact.getContent())
                 .host(ProvisioningScriptHostType.RESOURCE);
         script.getArgument().add(scriptArgument("operation", "build"));
-        script.getArgument().add(scriptArgument("artifactKind",
-                ConnDevOperationType.SCHEMA.equals(artifact.getOperation()) ? "schema" : "operation"));
+        script.getArgument().add(scriptArgument("artifactKind", validationArtifactKind(artifact)));
         script.getArgument().add(scriptArgument("filename", "/" + artifact.getFilename()));
         if (!overrides.isEmpty()) {
             var overridesNode = JSON_FACTORY.objectNode();

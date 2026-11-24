@@ -14,7 +14,15 @@ import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEnvironmentThreadLocalHolder;
 
+import com.evolveum.midpoint.prism.PrismConstants;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
+import com.evolveum.midpoint.schema.processor.ResourceObjectIdentifier;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+import org.jetbrains.annotations.Nullable;
 import com.evolveum.midpoint.schema.TaskExecutionMode;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.schema.processor.SynchronizationReactionDefinition.ObjectSynchronizationReactionDefinition;
@@ -238,8 +246,58 @@ public class SynchronizationActionExecutor<F extends ProjectionHolderType> {
                 recordMissingShadowInSynchronizationContext(shadowOid, e);
             }
         }
+        if (hasUnlinkedLiveShadowOfTheSameResourceObject(owner, result)) {
+            return false;
+        }
         LOGGER.trace("No non-dead compatible shadow found, the DELETE reaction will be executed");
         return true;
+    }
+
+    /**
+     * A resource object that reappeared after its shadow died may have a new live shadow that is not linked yet.
+     * Typically in preview mode. The shadow is created, the link is only simulated. The deletion is not real then.
+     * The live shadow must be unowned or owned by the same focus; otherwise the account belongs to somebody else.
+     */
+    private boolean hasUnlinkedLiveShadowOfTheSameResourceObject(F owner, OperationResult result) {
+        ShadowType shadow = syncCtx.getShadowedResourceObject();
+        try {
+            ResourceObjectIdentifier.Primary<?> identifier = ShadowUtil.getPrimaryIdentifier(shadow);
+            if (identifier == null) {
+                LOGGER.trace("No primary identifier in {}, not looking for its live shadow", shadow);
+                return false;
+            }
+            ObjectQuery query = PrismContext.get().queryFor(ShadowType.class)
+                    .filter(identifier.normalizationAwareEqFilter())
+                    .and().item(ShadowType.F_RESOURCE_REF).ref(syncCtx.getResourceOid())
+                    .and().item(ShadowType.F_OBJECT_CLASS).eq(shadow.getObjectClass())
+                    .build();
+            var candidates = ModelBeans.get().cacheRepositoryService.searchObjects(ShadowType.class, query, null, result);
+            for (PrismObject<ShadowType> candidate : candidates) {
+                if (candidate.getOid().equals(shadow.getOid()) || ShadowUtil.isDead(candidate.asObjectable())) {
+                    continue;
+                }
+                String candidateOwnerOid = findOwnerOid(candidate.getOid(), result);
+                if (candidateOwnerOid == null || candidateOwnerOid.equals(owner.getOid())) {
+                    LOGGER.debug("Found live shadow {} for dead {} (owner: {}), the DELETE reaction will not be executed for {}",
+                            candidate, shadow, candidateOwnerOid != null ? "the same" : "none", owner);
+                    return true;
+                }
+            }
+            return false;
+        } catch (SchemaException e) {
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't look for a live shadow of {}, assuming none", e, shadow);
+            return false;
+        }
+    }
+
+    private @Nullable String findOwnerOid(String shadowOid, OperationResult result) throws SchemaException {
+        var owners = ModelBeans.get().cacheRepositoryService.searchObjects(
+                ProjectionHolderType.class,
+                PrismContext.get().queryFor(ProjectionHolderType.class)
+                        .item(ProjectionHolderType.F_LINK_REF).ref(shadowOid, null, PrismConstants.Q_ANY)
+                        .build(),
+                GetOperationOptions.createReadOnlyCollection(), result);
+        return owners.isEmpty() ? null : owners.get(0).getOid();
     }
 
     private void recordMissingShadowInSynchronizationContext(String shadowOid, ObjectNotFoundException e) {

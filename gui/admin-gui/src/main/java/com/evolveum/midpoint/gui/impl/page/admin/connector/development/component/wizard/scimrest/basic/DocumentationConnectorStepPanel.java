@@ -11,6 +11,7 @@ import java.io.InputStream;
 import java.io.Serial;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
@@ -191,7 +192,8 @@ public class DocumentationConnectorStepPanel extends AbstractWizardStepPanel<Con
                     values.addAll(parentWrapper.getValues().stream()
                             .filter(value -> value.getStatus() != ValueStatus.DELETED)
                             .filter(value -> value.getStatus() != ValueStatus.ADDED
-                                    || StringUtils.isNotEmpty(value.getRealValue().getName()))
+                                    || StringUtils.isNotEmpty(value.getRealValue().getName())
+                                    || StringUtils.isNotEmpty(value.getRealValue().getUri()))
                             .peek(value -> value.setSelected(true))
                             .toList());
 
@@ -302,6 +304,7 @@ public class DocumentationConnectorStepPanel extends AbstractWizardStepPanel<Con
                         } catch (CommonException e) {
                             throw new RuntimeException(e);
                         }
+                        getTilesModel().detach();
                         adjustPagingIfEmpty();
                         refresh(target);
                     }
@@ -454,35 +457,42 @@ public class DocumentationConnectorStepPanel extends AbstractWizardStepPanel<Con
     }
 
     private void onAddUrlPerformed(AjaxRequestTarget target) {
+        IModel<PrismContainerValueWrapper<ConnDevDocumentationSourceType>> newValueModel = new LoadableModel<>(false) {
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            protected PrismContainerValueWrapper<ConnDevDocumentationSourceType> load() {
+                PrismContainerValueWrapper<ConnDevDocumentationSourceType> newItemWrapper;
+                try {
+                    newItemWrapper = addNewDocumentationSourceValue();
+                } catch (SchemaException e) {
+                    LOGGER.error("Couldn't create new value for limitation container", e);
+                    return null;
+                }
+                newItemWrapper.setExpanded(true);
+                newItemWrapper.setShowEmpty(true);
+                return newItemWrapper;
+            }
+        };
+
         OnePanelPopupPanel popup = new OnePanelPopupPanel(
                 getPageBase().getMainPopupBodyId(),
                 createStringResource("DocumentationConnectorStepPanel.addNewDocumentation")) {
+
+            @Serial private static final long serialVersionUID = 1L;
+
             @Override
             protected WebMarkupContainer createPanel(String id) {
                 ItemPanelSettings settings = new ItemPanelSettingsBuilder()
                         .headerVisibility(false)
-                        .mandatoryHandler(wrapper -> QNameUtil.match(wrapper.getItemName(), ConnDevDocumentationSourceType.F_URI))
+                        .mandatoryHandler(wrapper -> QNameUtil.match(wrapper.getItemName(), ConnDevDocumentationSourceType.F_URI)
+                                || QNameUtil.match(wrapper.getItemName(), ConnDevDocumentationSourceType.F_NAME))
                         .build();
                 settings.setConfig(getContainerConfiguration(PANEL_TYPE));
 
-                IModel<PrismContainerValueWrapper<ConnDevDocumentationSourceType>> model = new LoadableModel<>(false) {
+                return new VerticalFormPrismContainerValuePanel<>(id, newValueModel, settings) {
+                    @Serial private static final long serialVersionUID = 1L;
 
-                    @Override
-                    protected PrismContainerValueWrapper<ConnDevDocumentationSourceType> load() {
-                        PrismContainerValueWrapper<ConnDevDocumentationSourceType> newItemWrapper;
-                        try {
-                            newItemWrapper = addNewDocumentationSourceValue();
-                        } catch (SchemaException e) {
-                            LOGGER.error("Couldn't create new value for limitation container", e);
-                            return null;
-                        }
-                        newItemWrapper.setExpanded(true);
-                        newItemWrapper.setShowEmpty(true);
-                        return newItemWrapper;
-                    }
-                };
-
-                return new VerticalFormPrismContainerValuePanel<>(id, model, settings) {
                     @Override
                     protected void onInitialize() {
                         super.onInitialize();
@@ -509,14 +519,33 @@ public class DocumentationConnectorStepPanel extends AbstractWizardStepPanel<Con
                     @Override
                     protected void onError(AjaxRequestTarget target) {
                         WebComponentUtil.refreshFeedbacks((MarkupContainer) getPanel(), target);
+                        target.addListener(new AjaxRequestTarget.IListener() {
+                            @Override
+                            public void onAfterRespond(Map<String, Component> map, AjaxRequestTarget responseTarget) {
+                                clearPopupFeedback(getPanel());
+                            }
+                        });
                     }
                 };
             }
 
             @Override
+            protected boolean isCancelButtonVisible() {
+                return true;
+            }
+
+            @Override
+            protected void processCancel(AjaxRequestTarget target) {
+                clearPopupFeedback(getPanel());
+                removeUnconfirmedDocumentationSources();
+                super.processCancel(target);
+            }
+
+            @Override
             protected void processHide(AjaxRequestTarget target) {
-                var newValue = (PrismContainerValueWrapper<ConnDevDocumentationSourceType>) getPanel().getDefaultModelObject();
-                if (newValue != null && StringUtils.isNotEmpty(newValue.getRealValue().getName())) {
+                clearPopupFeedback(getPanel());
+                var newValue = newValueModel.getObject();
+                if (newValue != null && StringUtils.isNotEmpty(newValue.getRealValue().getUri())) {
                     newValue.setSelected(true);
                     valuesModel.getObject().add(0, newValue);
                 }
@@ -526,6 +555,30 @@ public class DocumentationConnectorStepPanel extends AbstractWizardStepPanel<Con
         };
         popup.setOutputMarkupId(true);
         getPageBase().showMainPopup(popup, target);
+    }
+
+    private void clearPopupFeedback(Component popupComponent) {
+        MarkupContainer popupPanel = (MarkupContainer) popupComponent;
+        popupPanel.getFeedbackMessages().clear();
+        popupPanel.visitChildren(Component.class, (component, visit) -> component.getFeedbackMessages().clear());
+    }
+
+    private void removeUnconfirmedDocumentationSources() {
+        try {
+            PrismContainerWrapper<ConnDevDocumentationSourceType> container =
+                    getDetailsModel().getObjectWrapper().findContainer(ConnectorDevelopmentType.F_DOCUMENTATION_SOURCE);
+            List<PrismContainerValueWrapper<ConnDevDocumentationSourceType>> confirmed = valuesModel.getObject();
+            List<PrismContainerValueWrapper<ConnDevDocumentationSourceType>> unconfirmed = container.getValues().stream()
+                    .filter(value -> value.getStatus() == ValueStatus.ADDED)
+                    .filter(value -> !confirmed.contains(value))
+                    .toList();
+            unconfirmed.forEach(value -> {
+                container.getValues().remove(value);
+                container.getItem().remove(value.getNewValue());
+            });
+        } catch (SchemaException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private void onUploadFilePerformed(AjaxRequestTarget target) {
@@ -630,6 +683,7 @@ public class DocumentationConnectorStepPanel extends AbstractWizardStepPanel<Con
 
     @Override
     public boolean onNextPerformed(AjaxRequestTarget target) {
+        removeUnconfirmedDocumentationSources();
         try {
             valuesModel.getObject().stream()
                     .filter(value -> value.getStatus() != ValueStatus.ADDED)

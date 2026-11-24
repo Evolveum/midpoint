@@ -29,7 +29,7 @@ public class SessionStorage implements Serializable, DebugDumpable {
     @Serial private static final long serialVersionUID = 1L;
 
     public static final String KEY_SIMULATION = "simulation";
-    public static final String KEY_CONFIGURATION = "configuration";
+    public static final String KEY_REPOSITORY_OBJECTS = "repositoryObjects";
     public static final String KEY_ROLE_MEMBERS = "roleMembers";
     public static final String KEY_ROLE_CATALOG = "roleCatalog";
     public static final String KEY_AUDIT_LOG = "auditLog";

@@ -45,6 +45,7 @@ import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
+import com.evolveum.midpoint.web.component.behavior.JavaScriptEventBehavior;
 import com.evolveum.midpoint.web.component.dialog.HelpInfoPanel;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
@@ -251,6 +252,7 @@ public class ObjectClassSelectConnectorStepPanel extends AbstractWizardStepPanel
 
                 Radio<String> radio = new Radio<>(ID_RADIO, Model.of(listItem.getModelObject().getRealValue().getName()), radioGroup);
                 radio.setOutputMarkupId(true);
+                radio.add(new JavaScriptEventBehavior("click", "event.stopPropagation();"));
                 listItem.add(radio);
 
                 Label name = new Label(ID_NAME, () -> listItem.getModelObject().getRealValue().getName());

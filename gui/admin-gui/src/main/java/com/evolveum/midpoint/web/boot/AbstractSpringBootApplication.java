@@ -45,6 +45,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.web.context.request.RequestContextListener;
 import org.springframework.web.filter.DelegatingFilterProxy;
 
+import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.init.StartupConfiguration;
 import com.evolveum.midpoint.web.util.MidPointProfilingServletFilter;
 import com.evolveum.midpoint.web.security.BrowserWindowIdentifierFilter;
@@ -140,5 +141,11 @@ public abstract class AbstractSpringBootApplication extends SpringBootServletIni
     @Bean
     public ErrorPageRegistrar errorPageRegistrar() {
         return new MidPointErrorPageRegistrar();
+    }
+
+    /** Exposes only the actuator endpoints enabled by midPoint startup options (bug:12960). */
+    @Bean
+    public MidpointActuatorEndpointFilter midpointActuatorEndpointFilter(MidpointConfiguration midpointConfiguration) {
+        return new MidpointActuatorEndpointFilter(midpointConfiguration.getActuatorConfigurationSection());
     }
 }

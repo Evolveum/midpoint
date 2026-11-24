@@ -18,9 +18,6 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismValueWrapper;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.util.exception.CommonException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.input.LocalFileInputPanel;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
@@ -30,8 +27,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
  */
 @Component
 public class LocalFileInputPanelFactory<T extends Serializable> extends AbstractInputGuiComponentFactory<T> {
-
-    private static final Trace LOGGER = TraceManager.getTrace(LocalFileInputPanelFactory.class);
 
     private static final ItemName FILE_PATH_ITEM = ItemName.WithoutPrefix.from(
             SchemaConstants.ICF_FRAMEWORK_URI
@@ -45,24 +40,17 @@ public class LocalFileInputPanelFactory<T extends Serializable> extends Abstract
 
     @Override
     public <IW extends ItemWrapper<?, ?>, VW extends PrismValueWrapper<?>> boolean match(IW wrapper, VW valueWrapper) {
+        if (!FILE_PATH_ITEM.matches(wrapper.getItemName())) {
+            return false;
+        }
+
         PrismObjectWrapper<?> objectWrapper = wrapper.findObjectWrapper();
         if (objectWrapper == null) {
             return false;
         }
 
-        PrismObject<?> object;
-        try {
-            object = objectWrapper.getObjectApplyDelta();
-        } catch (CommonException e) {
-            LOGGER.trace("Couldn't get object from object wrapper and apply delta", e);
-            return false;
-        }
-
-        if (!ResourceType.class.equals(object.getCompileTimeClass())) {
-            return false;
-        }
-
-        return FILE_PATH_ITEM.matches(wrapper.getItemName());
+        PrismObject<?> object = objectWrapper.getObject();
+        return object != null && ResourceType.class.equals(object.getCompileTimeClass());
     }
 
     @Override

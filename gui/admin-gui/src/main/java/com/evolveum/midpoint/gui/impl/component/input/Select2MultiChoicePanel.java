@@ -68,6 +68,7 @@ public class Select2MultiChoicePanel<T> extends InputPanel {
         if (isInColumn()) {
             multiselect.add(AttributeAppender.append("class", "form-select-sm"));
             multiselect.add(AttributeAppender.append("style", "width: 101%;"));
+            add(AttributeAppender.append("class", "select2-in-column"));
         }
 
         add(multiselect);

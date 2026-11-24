@@ -18,11 +18,14 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 
+import com.evolveum.midpoint.web.component.dialog.ConfirmationResult;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.result.MessagePanel;
 import com.evolveum.midpoint.gui.api.component.result.OpResult;
+import com.evolveum.midpoint.gui.api.component.result.Toast;
 import com.evolveum.midpoint.gui.api.component.tabs.IconPanelTab;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
@@ -431,8 +434,8 @@ public abstract class AttributeMappingsTableWizardPanel<P extends Containerable>
                 () -> new ButtonWithConfirmationOptionsDialog.ButtonHandlers<>(
                         target -> {
                         },
-                        (target, confirmedOptions) -> {
-                            performSuggestOperation(target, confirmedOptions, false);
+                        (target, confirmationResult) -> {
+                            performSuggestOperation(target, confirmationResult, false);
                             refreshAfterSuggestionOperationSubmitted(target);
                         }),
                 getPageBase());
@@ -504,13 +507,28 @@ public abstract class AttributeMappingsTableWizardPanel<P extends Containerable>
         MappingType mapping = suggestedMapping.getRealValue();
         ExpressionType expression = mapping != null ? mapping.getExpression() : null;
 
-        boolean iterationConfirmationRequired =
+        boolean iterationChangeRequired =
                 ExpressionUtil.usesIterationVariables(expression)
                         && suggestedIteration != null
                         && !Objects.equals(currentIteration, suggestedIteration);
 
-        if (iterationConfirmationRequired) {
-            showIterationConfirmation(table, suggestedMapping, suggestedIteration, target);
+        if (iterationChangeRequired) {
+            if (currentIteration != null) {
+                showIterationConfirmation(table, suggestedMapping, suggestedIteration, target);
+                return;
+            }
+
+            if (applySuggestedIteration(suggestedIteration, target)) {
+                new Toast()
+                        .info()
+                        .title(PageBase.createStringResourceStatic("SmartMappingTable.iteration.added.title").getString())
+                        .icon("fa fa-check-circle")
+                        .autohide(true)
+                        .delay(5_000)
+                        .body(PageBase.createStringResourceStatic("SmartMappingTable.iteration.added.body").getString())
+                        .show(target);
+                acceptMappingSuggestion(table, suggestedMapping, target);
+            }
             return;
         }
 
@@ -666,20 +684,22 @@ public abstract class AttributeMappingsTableWizardPanel<P extends Containerable>
                 : null;
 
         if (iteration != null) {
-            //noinspection unchecked
             WebPrismUtil.cleanupEmptyContainerValue(iteration.asPrismContainerValue());
+            if (iteration.asPrismContainerValue().isEmpty()) {
+                return null;
+            }
         }
 
         return iteration;
     }
 
-    private void applySuggestedIteration(
+    private boolean applySuggestedIteration(
             IterationSpecificationType suggestedIteration,
             AjaxRequestTarget target) {
 
         PrismContainerWrapper<IterationSpecificationType> iterationContainer = loadIterationWrapper();
         if (iterationContainer == null) {
-            return;
+            return false;
         }
 
         try {
@@ -701,6 +721,7 @@ public abstract class AttributeMappingsTableWizardPanel<P extends Containerable>
             iterationContainer.getItem().setValue(newValue);
             iterationContainer.getValues().clear();
             iterationContainer.getValues().add(newWrapper);
+            return true;
 
         } catch (SchemaException e) {
             throw new SystemException("Couldn't apply suggested iteration", e);
@@ -825,11 +846,12 @@ public abstract class AttributeMappingsTableWizardPanel<P extends Containerable>
 
     private void performSuggestOperation(
             AjaxRequestTarget target,
-            IModel<List<ConfirmationOption<DataAccessPermission>>> confirmedOptions,
+            IModel<ConfirmationResult<DataAccessPermission>> confirmationResult,
             boolean forceRecomputeSchemaMatch) {
 
-        List<DataAccessPermissionType> permissions = confirmedOptions.getObject().stream()
-                .map(ConfirmationOption::option)
+        ConfirmationResult<DataAccessPermission> confirmed = confirmationResult.getObject();
+
+        List<DataAccessPermissionType> permissions = confirmed.selectedOptions().stream()
                 .map(DataAccessPermission::toSchemaType)
                 .toList();
 
@@ -857,6 +879,7 @@ public abstract class AttributeMappingsTableWizardPanel<P extends Containerable>
                             getTargetPathsToIgnore(),
                             permissions,
                             forceRecomputeSchemaMatch,
+                            confirmed.aiServiceRequested(),
                             task, result);
                 });
     }
@@ -896,18 +919,18 @@ public abstract class AttributeMappingsTableWizardPanel<P extends Containerable>
             @Override
             protected void performSuggestOperation(
                     AjaxRequestTarget target,
-                    IModel<List<ConfirmationOption<DataAccessPermission>>> confirmedOptions) {
+                    IModel<ConfirmationResult<DataAccessPermission>> confirmationResult) {
 
-                AttributeMappingsTableWizardPanel.this.performSuggestOperation(target, confirmedOptions, false);
+                AttributeMappingsTableWizardPanel.this.performSuggestOperation(target, confirmationResult, false);
                 refreshAfterSuggestionOperationSubmitted(target);
             }
 
             @Override
             protected void performRegenerateSuggestOperation(
                     AjaxRequestTarget target,
-                    IModel<List<ConfirmationOption<DataAccessPermission>>> confirmedOptions) {
+                    IModel<ConfirmationResult<DataAccessPermission>> confirmationResult) {
 
-                AttributeMappingsTableWizardPanel.this.performSuggestOperation(target, confirmedOptions, true);
+                AttributeMappingsTableWizardPanel.this.performSuggestOperation(target, confirmationResult, true);
                 refreshAfterSuggestionOperationSubmitted(target);
             }
 

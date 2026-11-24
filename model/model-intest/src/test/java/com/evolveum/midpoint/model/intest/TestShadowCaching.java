@@ -26,6 +26,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
+import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
 import com.evolveum.midpoint.schema.statistics.ProvisioningStatistics;
 import com.evolveum.midpoint.schema.util.AbstractShadow;
 import com.evolveum.midpoint.schema.util.RawRepoShadow;
@@ -569,7 +570,14 @@ public class TestShadowCaching extends AbstractEmptyModelIntegrationTest {
         assertSuccess(modelService.testResource(RESOURCE_DUMMY_HR.oid, task, result));
         RESOURCE_DUMMY_HR.reload(result);
 
-        then("the resource cache invalidation timestamp is newer than the cached shadow");
+        then("the stored resource schema no longer contains ri:title");
+        assertThat(ResourceSchemaFactory.getCompleteSchemaRequired(RESOURCE_DUMMY_HR.getObjectable())
+                .findObjectClassDefinitionRequired(DummyHrScenario.Person.OBJECT_CLASS_NAME.xsd())
+                .findAttributeDefinition(title.q()))
+                .as("ri:title definition in the refreshed resource schema")
+                .isNull();
+
+        and("the resource cache invalidation timestamp is newer than the cached shadow");
         var invalidationTimestamp = RESOURCE_DUMMY_HR.getObjectable().getCacheInvalidationTimestamp();
         assertThat(invalidationTimestamp).as("resource cache invalidation timestamp").isNotNull();
         assertThat(retrievalTimestamp.compare(invalidationTimestamp))
@@ -596,11 +604,11 @@ public class TestShadowCaching extends AbstractEmptyModelIntegrationTest {
         assertThat(noFetchShadow.findProperty(DummyHrScenarioExtended.Person.AttributeNames.LAST_NAME.path()))
                 .as("known cached lastName attribute")
                 .isNotNull();
-        // Lax conversion is deliberately tolerant here: the important regression is that this stale item
+        // Lax conversion skips the stale item: the important regression is that it
         // no longer aborts projection loading with "Unknown attribute".
         assertThat(noFetchShadow.findProperty(title.path()))
                 .as("obsolete cached title attribute in laxly converted shadow")
-                .isNotNull();
+                .isNull();
 
         rememberShadowOperations();
 

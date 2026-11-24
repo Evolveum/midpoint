@@ -21,6 +21,7 @@ import org.apache.wicket.model.Model;
 import java.io.Serial;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 public abstract class ObjectReferenceColumn<T> extends PropertyColumn<T, String> {
@@ -83,8 +84,12 @@ public abstract class ObjectReferenceColumn<T> extends PropertyColumn<T, String>
         return () -> {
             IModel<List<ObjectReferenceType>> extractedRefs = extractDataModel(rowModel);
             List<ObjectReferenceType> referenceTypes = extractedRefs.getObject();
+            if (referenceTypes == null) {
+                return "";
+            }
 
             return referenceTypes.stream()
+                    .filter(Objects::nonNull)
                     .map(r -> {
                         String refName = WebComponentUtil.getOrigStringFromPoly(r.getTargetName());
                         String refOid = r.getOid();

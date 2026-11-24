@@ -151,7 +151,7 @@ class ShadowDeltaComputerRelative {
                 // ignoring all other password related modifications, except for metadata that must go to shadow
             } else if (path.equivalent(ShadowType.F_NAME)) {
                 explicitNameMod = modification;
-            } else if (path.equivalent(ShadowType.F_POLICY_STATEMENT)) {
+            } else if (path.startsWith(ShadowType.F_POLICY_STATEMENT)) {
                 resultingRepoModifications.add(modification);
                 resultingRepoModifications.add(computeEffectiveMarkDelta(modification));
             } else if (path.startsWith(ShadowType.F_ASSOCIATIONS)) {

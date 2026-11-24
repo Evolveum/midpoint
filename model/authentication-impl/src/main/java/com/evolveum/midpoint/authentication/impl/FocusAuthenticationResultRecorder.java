@@ -171,15 +171,7 @@ public class FocusAuthenticationResultRecorder {
 
     public void recordSequenceAuthenticationFailure(String username, MidPointPrincipal principal, CredentialPolicyType credentialsPolicy, String reason, ConnectionEnvironment connEnv) {
         FocusType focusType = null;
-        if (principal == null && StringUtils.isNotEmpty(username)) {
-            try {
-                // For recording audit log, we don't need to support GUI config
-                principal = focusProfileService.getPrincipal(
-                        username, FocusType.class, ProfileCompilerOptions.createOnlyPrincipalOption());
-            } catch (CommonException e) {
-                //ignore error
-            }
-        }
+        principal = resolvePrincipalForAudit(username, principal);
         if (principal != null) {
             focusType = principal.getFocus();
             if (AuthSequenceUtil.isAllowUpdatingAuthBehavior(true)) {
@@ -191,6 +183,25 @@ public class FocusAuthenticationResultRecorder {
             }
         }
         securityHelper.auditLoginFailure(username, focusType, connEnv, reason);
+    }
+
+    /** Records an authentication failure in audit only, without updating authentication behavior. */
+    public void auditAuthenticationFailure(String username, MidPointPrincipal principal, String reason, ConnectionEnvironment connEnv) {
+        principal = resolvePrincipalForAudit(username, principal);
+        securityHelper.auditLoginFailure(username, principal != null ? principal.getFocus() : null, connEnv, reason);
+    }
+
+    private MidPointPrincipal resolvePrincipalForAudit(String username, MidPointPrincipal principal) {
+        if (principal == null && StringUtils.isNotEmpty(username)) {
+            try {
+                // For recording audit log, we don't need to support GUI config
+                return focusProfileService.getPrincipal(
+                        username, FocusType.class, ProfileCompilerOptions.createOnlyPrincipalOption());
+            } catch (CommonException e) {
+                // Ignore error, failures for unresolved users have to be audited as well.
+            }
+        }
+        return principal;
     }
 
     private void applySequenceFailure(

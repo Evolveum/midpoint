@@ -10,9 +10,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
@@ -485,8 +485,8 @@ public class TestDefaultServiceClientAudit extends AbstractSmartIntegrationTest 
         }
 
         @Override
-        public Optional<AiInfo> getAiInfo() {
-            return Optional.empty();
+        public @NotNull AiInfo getAiInfo() {
+            return AiInfo.unavailable();
         }
 
         @Override

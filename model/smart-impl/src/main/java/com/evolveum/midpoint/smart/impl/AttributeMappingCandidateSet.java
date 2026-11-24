@@ -28,8 +28,6 @@ import org.jetbrains.annotations.Nullable;
  */
 class AttributeMappingCandidateSet {
 
-    private static final float QUALITY_THRESHOLD = 0.4f;
-
     private final List<Candidate> candidates = new ArrayList<>();
 
     /** Target paths that already have mappings or are accepted as suggestions; proposals for these are skipped. */
@@ -47,11 +45,6 @@ class AttributeMappingCandidateSet {
      * - Among suggestions: Based on triple (source, target, script) where script is null for AS-IS mappings
      * - Against existing mappings: Based on target path only
      *
-     * Filtering logic:
-     *
-     * - New data scenario (quality = null): Keep ALL mappings
-     * - Existing data scenario (quality != null): Keep all above threshold (0.4)
-     *
      * When duplicates exist, the better quality candidate is kept.
      * System-provided mappings are preferred over AI when quality is equal.
      */
@@ -63,13 +56,7 @@ class AttributeMappingCandidateSet {
             return;
         }
 
-        Float quality = suggestion.getExpectedQuality();
         boolean isSystemProvided = SmartMetadataUtil.isMarkedAsSystemProvided(suggestion.asPrismContainerValue());
-
-        // Quality filtering: if quality is present, apply threshold
-        if (quality != null && quality <= QUALITY_THRESHOLD) {
-            return;
-        }
 
         // Deduplicate among suggestions by (source, target, script) triple
         var iterator = candidates.iterator();

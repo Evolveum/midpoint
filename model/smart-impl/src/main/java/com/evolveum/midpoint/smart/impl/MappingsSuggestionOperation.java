@@ -78,7 +78,7 @@ class MappingsSuggestionOperation {
     private static final Trace LOGGER = TraceManager.getTrace(MappingsSuggestionOperation.class);
 
     private static final float MISSING_DATA_THRESHOLD = 0.05f;
-    private static final float MINIMUM_QUALITY_THRESHOLD = 0.1f;
+    private static final float MINIMUM_QUALITY_THRESHOLD = 0.4f;
 
     private static final String ID_SHADOWS_COLLECTION = "collectingShadowsWithOwners";
     private static final String ID_MAPPINGS_SUGGESTION = "mappingsSuggestion";
@@ -697,7 +697,7 @@ class MappingsSuggestionOperation {
         }
 
         // Try AI service if enabled
-        if (useAiService) {
+        if (useAiService && bestExpectedQuality < 1.0f) {
             var aiExpression = evaluateAiMappingWithRetry(matchPair, valuePairsForLLM, valuePairsForValidation, parentResult);
             if (aiExpression != null) {
                 var aiQuality = qualityAssessor.assessMappingsQuality(valuePairsForValidation, aiExpression, ctx.task, parentResult)
@@ -740,8 +740,7 @@ class MappingsSuggestionOperation {
                     errorLog = e.getMessage();
                     LOGGER.warn("Validation issues found on attempt {}; retrying.", attempt);
                 } else {
-                    LOGGER.warn("Validation issues found in mapping script; giving up.");
-                    throw e;
+                    LOGGER.warn("Validation issues found in mapping script; giving up on AI mapping: {}", e.getMessage());
                 }
             }
         }

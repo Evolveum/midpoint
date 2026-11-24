@@ -15,6 +15,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CapabilitiesType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.XmlSchemaType;
 
@@ -36,6 +37,8 @@ public class ResourceUtils {
         ObjectDelta<ResourceType> delta = PrismContext.get().deltaFor(ResourceType.class)
                 .item(ItemPath.create(ResourceType.F_SCHEMA, XmlSchemaType.F_DEFINITION)).replace()
                 .item(ItemPath.create(ResourceType.F_SCHEMA, XmlSchemaType.F_CACHING_METADATA)).replace()
+                .item(ItemPath.create(ResourceType.F_CAPABILITIES, CapabilitiesType.F_NATIVE)).replace()
+                .item(ItemPath.create(ResourceType.F_CAPABILITIES, CapabilitiesType.F_CACHING_METADATA)).replace()
                 .asObjectDelta(resource);
         modelService.executeChanges(singleton(delta), ModelExecuteOptions.create().raw(), task, parentResult);
     }

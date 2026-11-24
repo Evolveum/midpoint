@@ -14,6 +14,8 @@ import java.io.File;
 
 import com.evolveum.icf.dummy.resource.DummyGroup;
 import com.evolveum.midpoint.schema.util.Resource;
+import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyStatementType;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -144,6 +146,51 @@ public class TestDummyShadowMarks extends AbstractDummyTest {
 
         then("shadow is correctly marked");
         assertShadow(shadow.getPrismObject(), "after marking")
+                .displayXml()
+                .assertEffectiveMarks(MARK_INVALID_DATA.oid);
+    }
+
+    /**
+     * A policy statement should be modifiable also by an "inner" delta that changes one of its component, e.g. the `markRef`.
+     * See #12493.
+     */
+    @Test
+    public void test120ModifyPolicyStatement() throws Exception {
+        var task = getTestTask();
+        var result = task.getResult();
+        var accountName = getTestNameShort();
+
+        given("a non-protected account on the resource, then marked as protected");
+        var shadowOid = provisioningService.addObject(
+                createAccountShadow(accountName),
+                null,
+                null,
+                task,
+                result);
+        markShadow(shadowOid, MARK_PROTECTED_OID, task, result);
+        var accountBefore = provisioningService.getObject(ShadowType.class, shadowOid, null, task, result);
+        assertShadow(accountBefore, "shadow before")
+                .displayXml()
+                .asShadow()
+                .assertProtected()
+                .assertEffectiveMarks(MARK_PROTECTED_OID);
+
+        when("markRef is modified to INVALID_DATA");
+        long policyStatementId =
+                MiscUtil.extractSingletonRequired(accountBefore.asObjectable().getPolicyStatement())
+                        .getId();
+        provisioningService.modifyObject(
+                ShadowType.class,
+                shadowOid,
+                deltaFor(ShadowType.class)
+                        .item(ShadowType.F_POLICY_STATEMENT, policyStatementId, PolicyStatementType.F_MARK_REF)
+                        .replace(MARK_INVALID_DATA.ref())
+                        .asItemDeltas(),
+                null, null, task, result);
+
+        then("shadow is marked as INVALID_DATA");
+        var accountAfterRepo = repositoryService.getObject(ShadowType.class, shadowOid, null, result);
+        assertShadow(accountAfterRepo, "after marking (from repo)")
                 .displayXml()
                 .assertEffectiveMarks(MARK_INVALID_DATA.oid);
     }

@@ -7,12 +7,12 @@
 package com.evolveum.midpoint.smart.impl;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.TimeUnit;
 
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -170,7 +170,7 @@ class AuditingServiceClient implements ServiceClient {
     }
 
     @Override
-    public Optional<AiInfo> getAiInfo() {
+    public @NotNull AiInfo getAiInfo() {
         return delegate.getAiInfo();
     }
 

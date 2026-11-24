@@ -51,6 +51,17 @@ public class AvailableLocale {
     private static final String PROP_FLAG = ".flag";
     private static final String PROP_DEFAULT = ".default";
 
+    /**
+     * English (Europe) locale. Region "150" is the UN M.49 code for Europe, see CLDR locale "en_150".
+     */
+    public static final Locale ENGLISH_EUROPE = new Locale("en", "150");
+
+    /**
+     * Non-standard code used for English (Europe) in midPoint 4.11.0 ("EU" is not an ISO 3166-1 country,
+     * so neither the JDK nor browsers have locale data for it). Kept only to be mapped to {@link #ENGLISH_EUROPE}.
+     */
+    private static final Locale LEGACY_ENGLISH_EUROPE = new Locale("en", "EU");
+
     static {
         String midpointHome = System.getProperty(MidpointConfiguration.MIDPOINT_HOME_PROPERTY);
         File file = new File(midpointHome, LOCALIZATION_DESCRIPTOR);
@@ -158,11 +169,23 @@ public class AvailableLocale {
         }
     }
 
+    /**
+     * Maps legacy locale codes to the ones currently used, e.g. "en_EU" (used in 4.11.0) to "en_150".
+     * Other locales are returned unchanged.
+     */
+    public static Locale normalizeLocale(Locale locale) {
+        if (LEGACY_ENGLISH_EUROPE.equals(locale)) {
+            return ENGLISH_EUROPE;
+        }
+        return locale;
+    }
+
     public static boolean containsLocale(Locale locale) {
         if (locale == null) {
             return false;
         }
 
+        locale = normalizeLocale(locale);
         for (LocaleDescriptor descriptor : AVAILABLE_LOCALES) {
             if (locale.equals(descriptor.getLocale())) {
                 return true;
@@ -174,6 +197,7 @@ public class AvailableLocale {
 
     public static Locale getBestMatchingLocale(Locale target) {
         final List<Locale> locales = AVAILABLE_LOCALES.stream().map(l -> l.getLocale()).toList();
+        target = normalizeLocale(target);
 
         // Step 1: Look for an exact match
         for (Locale locale : locales) {

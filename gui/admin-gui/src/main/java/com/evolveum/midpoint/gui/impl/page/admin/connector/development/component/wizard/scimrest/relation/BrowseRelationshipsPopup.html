@@ -1,0 +1,47 @@
+<!--
+  ~ Copyright (C) 2026 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+    <div class="d-flex flex-column">
+        <p class="text-secondary">
+            <wicket:message key="BrowseRelationshipsPopup.description"/>
+        </p>
+        <div class="d-flex flex-row gap-2">
+            <div>
+                <select class="form-select w-auto" wicket:id="objectClassFilter"></select>
+            </div>
+            <div class="flex-grow-1" wicket:id="nameSearch"></div>
+        </div>
+        <form wicket:id="selectionForm">
+            <div class="table-td-middle gen-select-table" wicket:id="relationshipRadioGroup">
+                <div wicket:id="relationshipsTable"></div>
+            </div>
+        </form>
+    </div>
+
+    <wicket:fragment wicket:id="relationshipHeader">
+        <div class="d-flex flex-row w-100">
+            <div class="col-6 ps-4">
+                <wicket:message key="RelationshipSelectConnectorStepPanel.name"/>
+            </div>
+            <div class="col-3">
+                <wicket:message key="RelationshipSelectConnectorStepPanel.subject"/>
+            </div>
+            <div class="col-3">
+                <wicket:message key="RelationshipSelectConnectorStepPanel.object"/>
+            </div>
+        </div>
+    </wicket:fragment>
+
+    <wicket:fragment wicket:id="buttons">
+        <div class="d-flex flex-wrap gap-2 w-100 justify-content-between">
+            <a class="btn btn-link" wicket:id="cancel"></a>
+            <a class="btn btn-primary" wicket:id="continue"></a>
+        </div>
+    </wicket:fragment>
+</wicket:panel>
+</html>

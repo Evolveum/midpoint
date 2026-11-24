@@ -73,15 +73,6 @@ public class MappingScriptValidatorTest extends AbstractUnitTest implements Infr
     }
 
     @Test
-    void groovyScriptIsValid_validateScript_scriptFailsDueToSecurityRestriction() {
-        final ExpressionType expression = createExpression(GROOVY, "input.replaceAll('-', '')");
-
-        final MappingScriptValidator validator = new MappingScriptValidator(this.expressionFactory);
-        Assert.assertThrows(SecurityViolationException.class, () -> validator.evaluateExpression(
-                expression, "input", "1-2-3", String.class, new NullTaskImpl(), createOperationResult()));
-    }
-
-    @Test
     void melExpressionIsValid_validateScript_expressionPassValidation()
             throws CommonException {
         final ExpressionType expression = createExpression(MEL, "input.replace('-', '')");

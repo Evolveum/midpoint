@@ -11,6 +11,7 @@ import static org.testng.AssertJUnit.assertEquals;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
+import java.util.List;
 import java.util.function.Consumer;
 import javax.xml.namespace.QName;
 
@@ -20,7 +21,9 @@ import org.xml.sax.SAXException;
 
 import com.evolveum.midpoint.model.common.ModelCommonBeans;
 import com.evolveum.midpoint.model.common.expression.ExpressionTestUtil;
+import com.evolveum.midpoint.model.common.mapping.metadata.ItemValueMetadataProcessingSpec;
 import com.evolveum.midpoint.model.common.mapping.metadata.MetadataMappingEvaluator;
+import com.evolveum.midpoint.model.common.mapping.metadata.TransformationalMetadataComputation;
 import com.evolveum.midpoint.model.common.mapping.metadata.builtin.BuiltinMetadataMappingsRegistry;
 import com.evolveum.midpoint.model.common.mapping.metadata.builtin.ProvenanceBuiltinMapping;
 import com.evolveum.midpoint.prism.*;
@@ -110,6 +113,20 @@ public class MappingTestEvaluator {
 
     public Protector getProtector() {
         return protector;
+    }
+
+    public TransformationalMetadataComputation createMetadataComputation(MappingSpecificationType mappingSpecification) throws Exception {
+        MappingImpl<?, ?> mapping = createMapping(
+                "mapping-const-fullname-metadata.xml",
+                "value metadata ownership test",
+                "fullName",
+                null,
+                builder -> builder.mappingSpecification(mappingSpecification));
+        mapping.task = new NullTaskImpl();
+        return TransformationalMetadataComputation.forMapping(
+                List.of(),
+                ItemValueMetadataProcessingSpec.forScope(MetadataMappingScopeType.TRANSFORMATION),
+                mapping);
     }
 
     <T> MappingImpl<PrismPropertyValue<T>, PrismPropertyDefinition<T>> createMapping(

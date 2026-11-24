@@ -31,6 +31,7 @@ import com.evolveum.midpoint.gui.impl.page.admin.focus.FocusDetailsModels;
 import com.evolveum.midpoint.model.api.trigger.TriggerHandler;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.web.component.input.QNameObjectTypeChoiceRenderer;
+import com.evolveum.midpoint.web.component.behavior.JavaScriptEventBehavior;
 import com.evolveum.midpoint.web.component.util.*;
 import com.evolveum.midpoint.web.page.admin.server.dto.ApprovalOutcomeIcon;
 
@@ -1521,7 +1522,7 @@ public final class WebComponentUtil {
     public static String getLocalizedDatePattern(String style) {
         Locale locale = getCurrentLocale();
         if (com.evolveum.midpoint.gui.api.util.LocalizationUtil.isEnglishEuropeLocale(locale)) {
-            String override = com.evolveum.midpoint.gui.api.util.LocalizationUtil.EN_EU_PATTERNS.get(style);
+            String override = com.evolveum.midpoint.gui.api.util.LocalizationUtil.EN_150_PATTERNS.get(style);
             if (override != null) {
                 return override;
             }
@@ -2227,45 +2228,20 @@ public final class WebComponentUtil {
      */
     @Deprecated
     public static Behavior getSubmitOnEnterKeyDownBehavior(String submitButtonAboutAttribute) {
-        return new Behavior() {
-
-            @Serial private static final long serialVersionUID = 1L;
-
-            @Override
-            public void bind(Component component) {
-                super.bind(component);
-
-                component.add(AttributeModifier.replace("onkeydown",
-                        Model.of("if(event.keyCode == 13) {"
-                                + "event.die();"
-                                + "$('[about=\"" + submitButtonAboutAttribute + "\"]').click();"
-                                + "}")));
-            }
-        };
+        return new JavaScriptEventBehavior(
+                "keydown",
+                "if(event.keyCode == 13) {"
+                        + "event.die();"
+                        + "$('[about=\"" + submitButtonAboutAttribute + "\"]').click();"
+                        + "}");
     }
 
     public static Behavior getBlurOnEnterKeyDownBehavior() {
-        return new Behavior() {
-            @Serial private static final long serialVersionUID = 1L;
-
-            @Override
-            public void bind(Component component) {
-                super.bind(component);
-                component.add(AttributeModifier.replace("onkeydown", Model.of("if(event.keyCode == 13) {event.target.blur();}")));
-            }
-        };
+        return new JavaScriptEventBehavior("keydown", "if(event.keyCode == 13) {event.target.blur();}");
     }
 
     public static Behavior preventSubmitOnEnterKeyDownBehavior() {
-        return new Behavior() {
-            @Serial private static final long serialVersionUID = 1L;
-
-            @Override
-            public void bind(Component component) {
-                super.bind(component);
-                component.add(AttributeModifier.replace("onkeydown", Model.of("if(event.keyCode == 13) {event.preventDefault();}")));
-            }
-        };
+        return new JavaScriptEventBehavior("keydown", "if(event.keyCode == 13) {event.preventDefault();}");
     }
 
     public static List<QName> getAssignableRelationsList(PrismObject<? extends FocusType> focusObject, Class<? extends AbstractRoleType> type,
@@ -4455,5 +4431,16 @@ public final class WebComponentUtil {
         overlay.add(AttributeModifier.remove("data-bs-keyboard"));
         overlay.add(AttributeModifier.remove("data-backdrop"));
         overlay.add(AttributeModifier.remove("data-keyboard"));
+    }
+
+    /**
+     * Creates the script copying the text to the clipboard.
+     *
+     * @param text text to copy
+     * @return the script to append to the Ajax response
+     */
+    public static @NotNull String createCopyToClipboardScript(String text) {
+        return "if (navigator.clipboard) { navigator.clipboard.writeText(\"%s\"); }"
+                .formatted(StringEscapeUtils.escapeEcmaScript(StringUtils.defaultString(text)));
     }
 }

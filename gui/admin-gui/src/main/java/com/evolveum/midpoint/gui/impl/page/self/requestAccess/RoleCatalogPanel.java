@@ -150,6 +150,13 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
 
     @Override
     protected void onBeforeRender() {
+        if (getModelObject().getPersonOfInterest().isEmpty()) {
+            PageParameters params = new PageParameters();
+            params.set(WizardModelBasic.PARAM_STEP, PersonOfInterestPanel.STEP_ID);
+
+            throw new RestartResponseException(new PageRequestAccess(params, (WizardModelBasic) getWizard()));
+        }
+
         if (getModelObject().getRelation() == null) {
             PageParameters params = new PageParameters();
             params.set(WizardModelBasic.PARAM_STEP, RelationPanel.STEP_ID);
