@@ -80,6 +80,8 @@ The user now gets a message about the invalid input.
 * Fixed the roles list in the request access role catalog showing services after "All services" was opened. See bug:MID-13480[]
 * Fixed the role catalog step of the request access wizard listing roles that cannot be requested when the step was opened directly by URL.
 The wizard now starts at the person of interest step if no person is selected. See bug:MID-13482[]
+* The `End user` role now allows only selected assignment items (`targetRef`, `description`, `activation`, `tenantRef`, `orgRef`) when requesting a role.
+See <<_behavior_changes_since_4_11,Behavior Changes>>.
 
 == Changes With Respect to Version 4.10
 
@@ -745,6 +747,7 @@ Modified:
 * 017-mark-privileged-access.xml (former 250-mark-privileged-access.xml) - Added archetype.
 * 018-archetype-classification.xml (former 062-archetype-classification.xml) - Changed display icon.
 * 029-archetype-application.xml - Poly-string translation keys added.
+* 040-role-enduser.xml - The `assign-requestable-roles` authorization was limited to assignment items `targetRef`, `description`, `activation`, `tenantRef` and `orgRef`.
 * 041-role-approver.xml, 042-role-reviewer.xml - Removed obsolete authorization item references (`employeeType`, `roleType`, `orgType`, `serviceType`) and added `personalNumber` alongside deprecated `employeeNumber`.
 * 050-user-administrator.xml - Added displayName.
 * 100-report-reconciliation.xml, 110-report-user-list.xml, 130-report-certification-definitions.xml, 140-report-certification-campaigns.xml, 150-report-certification-cases.xml, 160-report-certification-work-items.xml, 170-report-simulation-objects.xml, 171-report-simulation-objects-with-metrics.xml, 172-report-simulation-items-changed.xml, 173-report-simulation-values-changed.xml, 180-report-simulation-results.xml, 200-report-indirect-assignments.xml - Expressions migrated from Groovy (and `javaMethodReference`) to MEL.
@@ -969,6 +972,17 @@ The legacy template was removed and the container initialization now uses the sa
 An existing `config.xml` is not updated automatically.
 To fix such a deployment, add `<expressions><safeScriptingLanguagesOnly>true</safeScriptingLanguagesOnly></expressions>` to the `midpoint` element of `config.xml`, or set the `MP_SET_midpoint_expressions_safeScriptingLanguagesOnly=true` environment variable.
 See xrefv:/midpoint/reference/support-4.11/expressions/expressions/configuration/[], xrefv:/midpoint/reference/support-4.11/expressions/expressions/profiles/[], xrefv:/midpoint/reference/support-4.11/expressions/expressions/security/[], and xrefv:/midpoint/reference/support-4.11/connector-generator/enable/[].
+
+* The `End user` role limits the assignment items that can be requested.
++
+The `assign-requestable-roles` authorization of the `End user` role now lists the permitted assignment items: `targetRef`, `description`, `activation`, `tenantRef` and `orgRef`.
+A request for a role whose assignment contains any other item is denied.
+If your deployment lets users fill in other assignment items when requesting access (e.g. assignment extension items), add these items to the authorization.
++
+Existing deployments keep their `End user` role, as midPoint does not overwrite existing initial objects.
+It is strongly recommended to apply this change to the `End user` role, and to review all custom roles that contain `#assign` (or `#delegate`) authorization for the request phase without `item` specification.
+Also make sure that the default expression profile for authorized objects (`expressions/defaults/authorizedObjects` in the system configuration) is set to a restrictive profile.
+See xrefv:/midpoint/reference/support-4.11/security/authorization/configuration/#limiting-assignment-items[Limiting Assignment Items].
 
 
 ++++
