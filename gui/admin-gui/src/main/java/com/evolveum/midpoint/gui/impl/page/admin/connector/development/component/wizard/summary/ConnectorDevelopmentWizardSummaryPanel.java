@@ -41,6 +41,7 @@ import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnDevAuthInfoType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnDevConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnDevObjectClassInfoType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorDevelopmentType;
@@ -63,6 +64,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
  * @author lskublik
@@ -328,7 +330,7 @@ public class ConnectorDevelopmentWizardSummaryPanel extends WizardStepPanel impl
                                 detailsModel, null, EndpointConnectorStepPanel.PROPERTY_ITEM_NAME)));
                 values.put(
                         createStringResource("ConnectorDevelopmentWizardSummaryPanel.authMethod"),
-                        defineValueModel("Basic auth")); //TODO fix it
+                        defineValueModel(getAuthMethodNames()));
                 return new StringValuesWidgetDetailsDto(values);
             }
         };
@@ -355,6 +357,13 @@ public class ConnectorDevelopmentWizardSummaryPanel extends WizardStepPanel impl
                 return new StringValuesWidgetDetailsDto(values);
             }
         };
+    }
+
+    private String getAuthMethodNames() {
+        return detailsModel.getObjectType().getConnector().getAuth().stream()
+                .map(ConnDevAuthInfoType::getName)
+                .filter(StringUtils::isNotEmpty)
+                .collect(Collectors.joining(", "));
     }
 
     private static String shortenJdbcUrl(String jdbcUrl) {
