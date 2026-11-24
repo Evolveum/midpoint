@@ -35,6 +35,34 @@ public class TestSecurityFilterChainInitialization extends RestServiceInitialize
             "/favicon.ico",
     };
 
+    private static final String WICKET_SCOPE_ROOT = "/wicket/resource/org.apache.wicket.Application/$-$/$-$/$-$";
+
+    private static final ResourcePathPair[] WICKET_RESOURCE_EXISTING_AND_MISSING_PATHS = {
+            // classes
+            new ResourcePathPair(WICKET_SCOPE_ROOT, "/wicket/resource/org.apache.wicket.Nope/$-$/$-$/$-$"),
+            new ResourcePathPair("/wicket/resource/java.util.ArrayList/x", "/wicket/resource/java.util.Nope/x"),
+            new ResourcePathPair(
+                    "/wicket/resource/com.evolveum.midpoint.web.security.MidPointApplication/$-$/$-$/$-$/$-$/$-$/$-$",
+                    "/wicket/resource/com.evolveum.midpoint.web.security.Nope/$-$/$-$/$-$/$-$/$-$/$-$"),
+            // files that are never served
+            new ResourcePathPair(WICKET_SCOPE_ROOT + "/META-INF/MANIFEST.MF", WICKET_SCOPE_ROOT + "/META-INF/NOPE.MF"),
+            new ResourcePathPair(
+                    WICKET_SCOPE_ROOT + "/org/springframework/boot/SpringApplication.class",
+                    WICKET_SCOPE_ROOT + "/org/springframework/boot/Nope.class"),
+            new ResourcePathPair(
+                    "/wicket/resource/org.apache.wicket.Application/Application.class",
+                    "/wicket/resource/org.apache.wicket.Application/Nope.class"),
+            // file of servable type outside of the library that owns it
+            new ResourcePathPair(
+                    WICKET_SCOPE_ROOT + "/org/apache/wicket/ajax/res/js/wicket-ajax-jquery.js",
+                    WICKET_SCOPE_ROOT + "/org/apache/wicket/ajax/res/js/nope.js"),
+    };
+
+    private static final String[] WICKET_LIBRARY_RESOURCE_PATHS = {
+            "/wicket/resource/org.apache.wicket.ajax.AbstractDefaultAjaxBehavior/res/js/wicket-ajax-jquery.js",
+            "/wicket/resource/jp.try0.wicket.honeypot.behavior.HoneypotBehavior/HoneypotBehavior.min.js",
+    };
+
     @LocalServerPort private int serverPort;
 
     @Override
@@ -92,6 +120,63 @@ public class TestSecurityFilterChainInitialization extends RestServiceInitialize
 
         assertThat(response.getStatus()).isEqualTo(Response.Status.NOT_FOUND.getStatusCode());
         assertThat(response.getHeaderString("Location")).isNull();
+    }
+
+    /**
+     * Package resource requests must not reveal which classes and files exist on the classpath.
+     * Existing ones are answered as the missing ones, with the common error page.
+     */
+    @Test
+    public void test116WicketResourceDoesNotRevealClasspathContent() {
+        for (ResourcePathPair pair : WICKET_RESOURCE_EXISTING_AND_MISSING_PATHS) {
+            assertAnsweredAsNotFound(pair.existing());
+            assertAnsweredAsNotFound(pair.missing());
+        }
+    }
+
+    private void assertAnsweredAsNotFound(String path) {
+        Response response = getAnonymously(path);
+
+        assertThat(response.getStatus())
+                .as("status for %s", path)
+                .isEqualTo(Response.Status.NOT_FOUND.getStatusCode());
+        assertThat(response.getHeaderString("Location")).as("redirect for %s", path).isNull();
+        assertThat(response.getMediaType())
+                .as("content type for %s", path)
+                .matches(type -> type.isCompatible(MediaType.TEXT_HTML_TYPE), "is the HTML error page");
+        response.close();
+    }
+
+    /**
+     * Scripts of UI libraries are served as package resources, pages do not work without them.
+     */
+    @Test
+    public void test117WicketLibraryResourcesAreServed() {
+        for (String path : WICKET_LIBRARY_RESOURCE_PATHS) {
+            Response response = getAnonymously(path);
+
+            assertThat(response.getStatus())
+                    .as("status for %s", path)
+                    .isEqualTo(Response.Status.OK.getStatusCode());
+            assertThat(response.readEntity(String.class)).as("content of %s", path).isNotBlank();
+        }
+    }
+
+    /**
+     * Two package resource paths that differ only in whether their target is on the classpath.
+     * A client must not be able to tell them apart from the response.
+     *
+     * @param existing path to a class or file that exists, but must not be served
+     * @param missing the same path shape pointing to a class or file that does not exist
+     */
+    private record ResourcePathPair(String existing, String missing) {
+    }
+
+    private Response getAnonymously(String path) {
+        WebClient client = prepareRootClient(null, null);
+        client.accept(MediaType.WILDCARD);
+        client.path(path);
+        return client.get();
     }
 
     @Test

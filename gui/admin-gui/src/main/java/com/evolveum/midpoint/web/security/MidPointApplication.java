@@ -207,6 +207,8 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
     public void init() {
         super.init();
 
+        RestrictedResourceReferenceMapper.install(this);
+
         getRequestCycleSettings().setTimeout(requestCycleTimeout);
 
         getCspSettings().blocking().clear()
