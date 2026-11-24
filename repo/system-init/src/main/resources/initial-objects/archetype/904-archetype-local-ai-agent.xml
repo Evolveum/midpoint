@@ -1,0 +1,37 @@
+<!--
+  ~ Copyright (c) 2026 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<archetype oid="9f0fb69f-79e0-4671-8015-bff7cf3b8e3c"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3">
+    <name>Local AI agent</name>
+    <assignment id="1">
+        <assignmentRelation id="2">
+            <holderType>ServiceType</holderType>
+        </assignmentRelation>
+    </assignment>
+    <archetypePolicy>
+        <display>
+            <label>
+                <orig>Local AI agent</orig>
+                <translation>
+                    <key>localAiAgent.label</key>
+                </translation>
+            </label>
+            <pluralLabel>
+                <orig>Local AI agents</orig>
+                <translation>
+                    <key>localAiAgent.pluralLabel</key>
+                </translation>
+            </pluralLabel>
+            <icon>
+                <cssClass>fa fa-laptop-code</cssClass>
+            </icon>
+        </display>
+    </archetypePolicy>
+    <superArchetypeRef oid="63c5f76f-7c68-41fa-a7bf-95f72328ad20" relation="org:default" type="c:ArchetypeType"/>
+</archetype>

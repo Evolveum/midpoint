@@ -1,0 +1,35 @@
+<!--
+  ~ Copyright (c) 2026 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<archetype oid="596d5321-1f18-42a2-b308-f552c7989cdc"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <name>AI Model Provider</name>
+    <assignment id="1">
+        <assignmentRelation id="2">
+            <holderType>ServiceType</holderType>
+        </assignmentRelation>
+    </assignment>
+    <archetypePolicy>
+        <display>
+            <label>
+                <orig>AI model provider</orig>
+                <translation>
+                    <key>aiModelProvider.label</key>
+                </translation>
+            </label>
+            <pluralLabel>
+                <orig>AI model providers</orig>
+                <translation>
+                    <key>aiModelProvider.pluralLabel</key>
+                </translation>
+            </pluralLabel>
+            <icon>
+                <cssClass>fa fa-server</cssClass>
+                <color>#8b008b</color>
+            </icon>
+        </display>
+    </archetypePolicy>
+</archetype>
