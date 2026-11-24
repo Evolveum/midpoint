@@ -149,18 +149,18 @@ See <<_behavior_changes_since_4_9,Behavior Changes>>.
 * Self-service user interface is now very close to WCAG 2.2 AA compliance.
 * Implemented multiple improvements related to background tasks:
 ** Better indication for failed tasks and their subtasks. See bug:MID-10410[].
-** Configurable xrefv:/midpoint/reference/master/tasks/activity-policies/[policies] for executing activities. See bug:MID-10412[].
-** Better xrefv:/midpoint/reference/master/tasks/task-errors/[search for errors] in task run history. See bug:MID-10411[].
-* Added xrefv:/midpoint/reference/master/admin-gui/dashboards/compliance-dashboard/[Compliance dashboard].
+** Configurable xrefv:/midpoint/reference/support-4.10/tasks/activity-policies/[policies] for executing activities. See bug:MID-10412[].
+** Better xrefv:/midpoint/reference/support-4.10/tasks/task-errors/[search for errors] in task run history. See bug:MID-10411[].
+* Added xrefv:/midpoint/reference/support-4.10/admin-gui/dashboards/compliance-dashboard/[Compliance dashboard].
 * Improved expression security:
-** Added xrefv:/midpoint/reference/master/expressions/expressions/filter/[Filter expression evaluator]. See bug:MID-10060[].
+** Added xrefv:/midpoint/reference/support-4.10/expressions/expressions/filter/[Filter expression evaluator]. See bug:MID-10060[].
 ** Improved `safe` expression profile in default system configuration.
 ** Recommended xref:/midpoint/reference/expressions/expressions/security/[_semi-safe_ configuration of expression profiles] to provide reasonable level of xref:/midpoint/reference/expressions/expressions/security/[expression security] for some delegated administration scenarios.
-* Improved ways to report audit delta in GUI and reports using xrefv:/midpoint/reference/master/security/audit/#improving-search-capabilities-for-changed-item-paths-in-audit-records[changed item paths].
+* Improved ways to report audit delta in GUI and reports using xrefv:/midpoint/reference/support-4.10/security/audit/#improving-search-capabilities-for-changed-item-paths-in-audit-records[changed item paths].
 Improved indexing of audit records with "add object" deltas.
 See bug:MID-10413[].
 * Added xrefv:/midpoint/reference/support-4.10/resources/resource-configuration/capabilities/#last-login-timestamp-capability[`lastLoginTimestamp` capability]. See bug:MID-10147[].
-* Implemented xrefv:/midpoint/reference/master/admin-gui/admin-gui-config/#_default_gui_object_list_panel_configuration/[Default List View Panel Configuration] which brings a possibility to set the common paging options for list panels. See bug:MID-10414[].
+* Implemented xrefv:/midpoint/reference/support-4.10/admin-gui/admin-gui-config/#_default_gui_object_list_panel_configuration/[Default List View Panel Configuration] which brings a possibility to set the common paging options for list panels. See bug:MID-10414[].
 
 === Other Improvements
 
@@ -186,8 +186,8 @@ This can be used for approval of indirect role assignments and similar cases. Se
 * There are two new functions in midPoint function library for access to "governance" users (approvers/owners): `getRoleMemberUsers`, `getServiceMemberUsers`.
 * Use delta's "visualizer" used by GUI also in notifications and other improvements in notifications. See bug:MID-6112[], bug:MID-10633[], bug:MID-10632[], bug:MID-10635[], bug:MID-10372[], bug:MID-10634[], bug:MID-10636[].
 * Built-in archetypes for organizational structures and locations.
-* xrefv:/midpoint/reference/master/roles-policies/policies/identity-governance-rules/[Compliance-related] marks (no classification, unowned, privileged access), object collections and policies.
-* xrefv:/midpoint/reference/master/roles-policies/policies/privileged-access/[`Privileged access` classification] automatically sets `Privileged access` mark for directly affected roles and users.
+* xrefv:/midpoint/reference/support-4.10/roles-policies/policies/identity-governance-rules/[Compliance-related] marks (no classification, unowned, privileged access), object collections and policies.
+* xrefv:/midpoint/reference/support-4.10/roles-policies/policies/privileged-access/[`Privileged access` classification] automatically sets `Privileged access` mark for directly affected roles and users.
 * Updated various libraries, mainly: Spring Boot, Tomcat, PostgresSQL JDBC driver.
 * Add OAuth 2 credential flow to mail servers notification configuration
 * Added languages, specifically Korean, Dutch, and Ukrainian.
@@ -700,7 +700,7 @@ The `assign-requestable-roles` authorization was limited to assignment items `ta
 * 899-dashboard-compliance.xml: a new one.
 * 910-task-recompute-all-users.xml: a new one.
 
-Please review link:https://github.com/Evolveum/midpoint/commits/master/repo/system-init/src/main/resources/initial-objects[source code history] for detailed list of changes.
+Please review link:https://github.com/Evolveum/midpoint/commits/support-4.10/repo/system-init/src/main/resources/initial-objects[source code history] for detailed list of changes.
 
 TIP: Copies of initial object files are located in `doc/config/initial-objects` directory of midPoint distribution packages. These files can be used as a reference during upgrades.
 On-line version can be found in https://github.com/Evolveum/midpoint/tree/v{release-version}/repo/system-init/src/main/resources/initial-objects[midPoint source code].
