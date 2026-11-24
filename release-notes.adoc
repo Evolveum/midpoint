@@ -38,6 +38,11 @@ See xref:/midpoint/guides/account-activation-sequence/[Account Activation Authen
 * Requests for unknown paths outside the REST API (for example under /actuator or /static) now return HTTP 404 instead of 500 with a stack trace. See bug:MID-12566[].
 * Failed password reset attempts are now recorded in the audit log, improving security monitoring and troubleshooting.
 * Improved Spring Security initialization by replacing ignored URL patterns with a dedicated security filter chain, preserving existing authentication behavior.
+* Fixed link and authorization of read-only references. See bug:MID-11853[]
+* Fixed arguments not being filled in backend-translated messages that contain single quotes, e.g. French password policy messages. See bug:MID-10226[]
+* Fixed the role catalog step of the request access wizard listing roles that cannot be requested when the step was opened directly by URL.
+The wizard now starts at the person of interest step if no person is selected. See bug:MID-13482[]
+* Fixed the roles list in the request access role catalog showing services after "All services" was opened. See bug:MID-13480[]
 
 == Changes with Respect To Version 4.8.13
 
