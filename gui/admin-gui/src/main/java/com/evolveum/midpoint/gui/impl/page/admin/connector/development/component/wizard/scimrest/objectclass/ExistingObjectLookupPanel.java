@@ -37,7 +37,7 @@ public class ExistingObjectLookupPanel extends BasePanel<String> {
     private static final String ID_CHECK_OBJECT = "checkObject";
     private static final String ID_IDENTIFIER_HINT = "identifierHint";
     private static final String ID_FOUND_OBJECT = "foundObject";
-    private static final String ID_FOUND_OBJECT_TEXT = "foundObjectText";
+    private static final String ID_FOUND_OBJECT_ALERT = "foundObjectAlert";
     private static final String ID_FOUND_OBJECT_CARD = "foundObjectCard";
     private static final String ID_CHANGE_OBJECT = "changeObject";
 
@@ -165,14 +165,16 @@ public class ExistingObjectLookupPanel extends BasePanel<String> {
     private WebMarkupContainer createFoundObjectPanel() {
         WebMarkupContainer panel = new WebMarkupContainer(ID_FOUND_OBJECT);
         panel.add(new VisibleBehaviour(() -> foundObjectModel.getObject() != null));
-        panel.add(createFoundObjectText());
+        panel.add(createFoundObjectAlert());
         panel.add(createFoundObjectCard());
         panel.add(createChangeObjectLink());
         return panel;
     }
 
-    private Label createFoundObjectText() {
-        return new Label(ID_FOUND_OBJECT_TEXT, () -> getString("ExistingObjectLookupPanel.objectFoundText", operationName));
+    private WizardAlertPanel createFoundObjectAlert() {
+        return new WizardAlertPanel(ID_FOUND_OBJECT_ALERT, WizardAlertPanel.AlertType.SUCCESS,
+                createStringResource("ExistingObjectLookupPanel.objectFound"),
+                () -> getString("ExistingObjectLookupPanel.objectFoundText", operationName));
     }
 
     private TestObjectCardPanel createFoundObjectCard() {

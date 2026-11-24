@@ -132,15 +132,6 @@ public abstract class AbstractCapabilityTestStepPanel extends ScriptConfirmation
     }
 
     /**
-     * Returns the message of the failed operation, shown in the failure alert.
-     *
-     * @return the failure message model
-     */
-    protected final IModel<String> getFailureModel() {
-        return failureModel;
-    }
-
-    /**
      * Tells whether the last operation on the testing resource failed.
      *
      * @return true if it failed

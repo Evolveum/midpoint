@@ -4432,4 +4432,15 @@ public final class WebComponentUtil {
         overlay.add(AttributeModifier.remove("data-backdrop"));
         overlay.add(AttributeModifier.remove("data-keyboard"));
     }
+
+    /**
+     * Creates the script copying the text to the clipboard.
+     *
+     * @param text text to copy
+     * @return the script to append to the Ajax response
+     */
+    public static @NotNull String createCopyToClipboardScript(String text) {
+        return "if (navigator.clipboard) { navigator.clipboard.writeText(\"%s\"); }"
+                .formatted(StringEscapeUtils.escapeEcmaScript(StringUtils.defaultString(text)));
+    }
 }

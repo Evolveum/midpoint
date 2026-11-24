@@ -117,7 +117,7 @@ public class AxiomSearchPanel extends BasePanel<AxiomQueryWrapper> {
                 IRequestParameters params = RequestCycle.get().getRequest().getRequestParameters();
                 String keyPressed = String.valueOf(params.getParameterValue("key"));
 
-                if (axiomQueryWrapper != null && !("ArrowUp".equals(keyPressed) || "ArrowDown".equals(keyPressed) || "Escape".equals(keyPressed))) {
+                if (axiomQueryWrapper != null && !("ArrowUp".equals(keyPressed) || "ArrowDown".equals(keyPressed) || "Escape".equals(keyPressed) || "Enter".equals(keyPressed))) {
                     ItemDefinition<?> rootDef = axiomQueryWrapper.getContainerDefinitionOverride() != null ?
                             axiomQueryWrapper.getContainerDefinitionOverride() :
                             getPrismContext().getSchemaRegistry().findItemDefinitionByType(new QName(axiomQueryWrapper.getTypeClass().getSimpleName()));

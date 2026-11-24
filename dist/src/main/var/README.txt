@@ -15,9 +15,8 @@ INITIAL CONFIGURATION FILE
 
 Initial configuration file, config.xml, is also placed here.
 It is automatically created if missing during start, but has to be populated
-for midPoint to start correctly. Example of config.xml for Native PG repository
-is provided in doc/config. You can copy it here, don't forget to rename it to
-config.xml.
+for midPoint to start correctly. The same default config.xml is also provided
+in doc/config. You can copy it here and adjust it before the first start.
 
 OPTIONAL/ADDITIONAL LIBS
 

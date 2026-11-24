@@ -19,11 +19,7 @@
         <div class="form-text small mt-2" wicket:id="identifierHint"></div>
     </div>
     <div class="card shadow-sm p-3 mb-0" wicket:id="foundObject">
-        <div class="alert alert-success alert-opaque px-3 mb-3" role="alert">
-            <i class="fa fa-check-circle me-1"></i>
-            <span class="fw-bold"><wicket:message key="ExistingObjectLookupPanel.objectFound"/></span>
-            <span wicket:id="foundObjectText"></span>
-        </div>
+        <div class="mb-3" wicket:id="foundObjectAlert"></div>
         <div class="card shadow-sm p-3 mb-0 d-flex flex-row align-items-center">
             <div class="d-flex align-items-center me-auto" wicket:id="foundObjectCard"></div>
             <a href="#" class="btn btn-link" wicket:id="changeObject">

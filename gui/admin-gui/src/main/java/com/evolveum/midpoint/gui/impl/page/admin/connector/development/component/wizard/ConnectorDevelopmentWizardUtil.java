@@ -510,6 +510,7 @@ public class ConnectorDevelopmentWizardUtil {
         }
         return testing.getTestObject().stream()
                 .map(ObjectReferenceType::getOid)
+                .filter(Objects::nonNull)
                 .toList();
     }
 

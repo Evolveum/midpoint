@@ -9,7 +9,6 @@ package com.evolveum.midpoint.gui.impl.component.wizard.collapse.log;
 import java.io.Serial;
 import java.util.List;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.markup.html.basic.Label;
@@ -19,10 +18,8 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 
 /**
  * Represents line-numbered code block with a "copy to clipboard" action.
@@ -30,8 +27,6 @@ import com.evolveum.midpoint.gui.api.component.BasePanel;
 public class CodeBlockPanel extends BasePanel<String> {
 
     @Serial private static final long serialVersionUID = 1L;
-
-    private static final ObjectMapper JSON_MAPPER = new ObjectMapper();
 
     private static final String ID_LABEL = "label";
     private static final String ID_COPY = "copy";
@@ -82,26 +77,8 @@ public class CodeBlockPanel extends BasePanel<String> {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                target.appendJavaScript(buildCopyScript(CodeBlockPanel.this.getModelObject()));
+                target.appendJavaScript(WebComponentUtil.createCopyToClipboardScript(CodeBlockPanel.this.getModelObject()));
             }
         };
-    }
-
-    /**
-     * Builds the script copying the text to the clipboard.
-     *
-     * @param text text to copy
-     * @return the script to append to the Ajax response
-     */
-    public static @NotNull String buildCopyScript(String text) {
-        return "if (navigator.clipboard) { navigator.clipboard.writeText(%s); }".formatted(toJsStringLiteral(text));
-    }
-
-    private static String toJsStringLiteral(String text) {
-        try {
-            return JSON_MAPPER.writeValueAsString(StringUtils.defaultString(text));
-        } catch (JsonProcessingException e) {
-            return "\"\"";
-        }
     }
 }

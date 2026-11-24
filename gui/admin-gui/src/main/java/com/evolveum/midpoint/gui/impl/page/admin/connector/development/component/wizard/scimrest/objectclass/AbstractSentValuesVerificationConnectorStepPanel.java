@@ -18,11 +18,11 @@ import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulato
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.LambdaColumn;
-import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
@@ -42,12 +42,11 @@ public abstract class AbstractSentValuesVerificationConnectorStepPanel<T extends
         extends AbstractObjectVerificationConnectorStepPanel<T> {
 
     private static final String ID_ALERT = "alert";
-    private static final String ID_ALERT_TEXT = "alertText";
 
     /**
      * Alert shown when no attribute is marked as mismatching, refreshed when the marks change.
      */
-    private WebMarkupContainer alert;
+    private WizardAlertPanel alert;
 
     public AbstractSentValuesVerificationConnectorStepPanel(
             WizardPanelHelper<? extends Containerable, ConnectorDevelopmentDetailsModel> helper,
@@ -119,16 +118,12 @@ public abstract class AbstractSentValuesVerificationConnectorStepPanel<T extends
      */
     protected abstract String getSuccessMessageKey();
 
-    private WebMarkupContainer createAlert() {
-        WebMarkupContainer container = new WebMarkupContainer(ID_ALERT);
-        container.setOutputMarkupPlaceholderTag(true);
-        container.add(new VisibleBehaviour(() -> !getMismatchState().isAnyMarked()));
-        container.add(createAlertText());
-        return container;
-    }
-
-    private Label createAlertText() {
-        return new Label(ID_ALERT_TEXT, () -> getString(getSuccessMessageKey()));
+    private WizardAlertPanel createAlert() {
+        WizardAlertPanel alert = new WizardAlertPanel(ID_ALERT, WizardAlertPanel.AlertType.SUCCESS, Model.of(),
+                () -> getString(getSuccessMessageKey()));
+        alert.setOutputMarkupPlaceholderTag(true);
+        alert.add(new VisibleBehaviour(() -> !getMismatchState().isAnyMarked()));
+        return alert;
     }
 
     private IColumn<T, String> createStatusColumn() {

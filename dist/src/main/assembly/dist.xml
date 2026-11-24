@@ -22,6 +22,11 @@
             <source>../install-dist.adoc</source>
             <destName>install.adoc</destName>
         </file>
+        <!-- The only config.xml template: used by midPoint on the first start and by "midpoint.sh init-native". -->
+        <file>
+            <source>../repo/system-init/src/main/resources/config.xml</source>
+            <outputDirectory>doc/config</outputDirectory>
+        </file>
         <!-- We do this the old/simple way, because adding midpoint-jar dep breaks javadoc steps. -->
         <file>
             <source>../gui/midpoint-jar/target/midpoint.jar</source>
