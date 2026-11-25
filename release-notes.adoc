@@ -49,6 +49,7 @@ See xref:/midpoint/guides/account-activation-sequence/[Account Activation Authen
 * Fixed report import loading the entire CSV file into memory, which caused OutOfMemoryError. See bug:MID-11009[]
 * Fixed arguments not being filled in backend-translated messages that contain single quotes. See bug:MID-10226[]
 * Fixed password strength indicator showing inaccurate score that jumped up and down while typing. See bug:MID-12480[]
+* Fixed report preview showing an empty table when the report collection defines its own get options. See bug:MID-12812[]
 * The `End user` role now allows only selected assignment items (`targetRef`, `description`, `activation`, `tenantRef`, `orgRef`) when requesting a role.
 See <<_behavior_changes_since_4_9,Behavior Changes>>.
 
