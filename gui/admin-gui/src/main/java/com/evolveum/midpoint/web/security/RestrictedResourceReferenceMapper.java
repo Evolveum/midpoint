@@ -33,19 +33,33 @@ import com.evolveum.midpoint.util.logging.TraceManager;
  *
  * The stock mapper accepts any class on the classpath as a scope and allows to walk up from its package,
  * which makes the whole classpath readable (for allowed file types) and lets unauthenticated clients
- * find out which classes and files exist. Here requests with other scope, with parent folder references
- * or failing during lookup are not handled at all, so they are answered exactly as any unknown path.
+ * find out which classes and files exist. Here requests with other scope, resolving to a file outside
+ * of the allowed locations or failing during lookup are not handled at all, so they are answered exactly
+ * as any unknown path.
  */
 public class RestrictedResourceReferenceMapper extends ParentPathReferenceRewriter {
 
     private static final Trace LOGGER = TraceManager.getTrace(RestrictedResourceReferenceMapper.class);
 
-    /** Packages of libraries that serve their scripts, styles and images as package resources. */
+    /** Packages of classes that UI libraries use as scope of their package resources. */
     private static final List<String> ALLOWED_SCOPE_PREFIXES = List.of(
             "org.apache.wicket.",
-            "jp.try0.wicket.honeypot.");
+            "jp.try0.wicket.honeypot.",
+            // chart.js, taken from webjar by walking up from the panel package
+            "com.evolveum.wicket.chartjs.",
+            // webjars references, used by select2 for its language files
+            "de.agilecoders.wicket.webjars.");
 
-    private static final String PARENT_FOLDER = "..";
+    /**
+     * Classpath locations that may be served. It is the resolved location that is checked, so it does not
+     * matter whether the request names the file directly or walks up from the scope package.
+     */
+    private static final List<String> ALLOWED_PATH_PREFIXES = List.of(
+            "org/apache/wicket/",
+            "jp/try0/wicket/honeypot/",
+            "webjars/chartjs/",
+            // webjars references are requested relative to the package of the reference class
+            "de/agilecoders/wicket/webjars/request/resource/webjars/select2/");
 
     public RestrictedResourceReferenceMapper(
             Supplier<String> parentFolderPlaceholder, Supplier<IResourceCachingStrategy> cachingStrategy) {
@@ -83,9 +97,6 @@ public class RestrictedResourceReferenceMapper extends ParentPathReferenceRewrit
 
         @Override
         public IRequestHandler mapRequest(Request request) {
-            if (request.getUrl().getSegments().contains(PARENT_FOLDER)) {
-                return null;
-            }
             try {
                 IRequestHandler handler = super.mapRequest(request);
                 return isServable(handler) ? handler : null;
@@ -96,8 +107,8 @@ public class RestrictedResourceReferenceMapper extends ParentPathReferenceRewrit
         }
 
         /**
-         * Files denied by the package resource guard would fail later while being served,
-         * which would make them distinguishable from the missing ones.
+         * Only files from allowed locations are served. Files denied by the package resource guard
+         * would fail later while being served, which would make them distinguishable from the missing ones.
          */
         private boolean isServable(IRequestHandler handler) {
             if (!(handler instanceof ResourceReferenceRequestHandler resourceHandler)) {
@@ -108,6 +119,12 @@ public class RestrictedResourceReferenceMapper extends ParentPathReferenceRewrit
                 return true;
             }
             String path = Packages.absolutePath(reference.getScope(), reference.getName());
+            if (path.startsWith("/")) {
+                path = path.substring(1);
+            }
+            if (ALLOWED_PATH_PREFIXES.stream().noneMatch(path::startsWith)) {
+                return false;
+            }
             return Application.get().getResourceSettings().getPackageResourceGuard().accept(path);
         }
 
