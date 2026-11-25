@@ -38,12 +38,13 @@ A REST client controls the request content directly.
 It is therefore up to the authorizations to limit what a user can put into objects, including expressions in assignments (for example a `focusMappings` script).
 
 The stock _End user_ role grants *no* REST access.
-Its self-service `#assign` authorization is also limited to safe assignment items, so requests with expressions in the assignment are denied.
+Its self-service `#assign` authorization is also limited to safe assignment items (since 4.10.6), so requests with expressions in the assignment are either denied or these expressions are stored in the repository, but not executed.
 
 If end users need to reach the REST API, make sure that every role they have limits `#assign` to safe assignment items, especially custom roles and roles of upgraded deployments.
 See xref:/midpoint/reference/security/authorization/configuration/#limiting-assignment-items[Limiting Assignment Items].
 
 Optionally, expressions in user objects can be restricted by an expression profile as well, see xref:/midpoint/reference/expressions/expressions/security/#semi-safe-configuration[Semi-Safe Configuration].
+Be warned that the support for expression profiles in 4.10.x is incomplete, so this shouldn't be considered as the final security measure.
 
 == How To Use
 

@@ -221,7 +221,7 @@ Likewise, the administration part of midPoint user interface is not designed to 
 Administrative part of midPoint user interface may have an ability to include expressions in some data structures, most notably as part of the _inducement_.
 Therefore, be very careful when delegating administrative access to midPoint objects and user interface.
 
-The default _End user_ role therefore limits the assignment items that users can request for themselves, so a request with expressions in the assignment is denied.
+Since 4.10.6, the default _End user_ role therefore limits the assignment items that users can request for themselves, so a request with expressions in the assignment is denied (or these expressions are effectively ignored).
 Custom self-service roles should do the same, see xref:/midpoint/reference/security/authorization/configuration/#limiting-assignment-items[Limiting Assignment Items].
 Also, use `#assign` rather than `#add` or `#modify` on `assignment` for self-service, as the latter also accepts a `targetRef` without an OID, whose search filter may contain an expression.
 
@@ -341,7 +341,8 @@ Expression profiles are defined in system configuration by default, yet they are
 System administrators of midPoint 4.10 are expected to apply expression profiles explicitly in a way that matches the requirement of their specific deployment.
 
 Default configuration of expression profiles and other security aspects of midPoint are being constantly developed and improved.
-It is likely that this configuration of expression profiles will be applied by default in midPoint 4.11.
+The strict configuration of expression profiles is applied by default in midPoint 4.11.0 and later.
+However, when migrating, you have to explicitly apply the stricter settings, in order to avoid breaking existing expressions.
 ====
 
 == Limitations
