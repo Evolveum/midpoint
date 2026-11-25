@@ -71,7 +71,6 @@ public class LoggingConfigurationManager {
 
     private static final String SHORTENED_THROWABLE_CONVERTER_CLASS_NAME = ShortenedThrowableConverter.class.getName();
 
-
     private static final ObjectMapper JSON_MAPPER = JsonMapper.builder().build();
 
     /**
@@ -363,11 +362,12 @@ public class LoggingConfigurationManager {
     private static String getPatternOrDefault(AppenderConfigurationType appender) {
         return StringUtils.isNotBlank(appender.getPattern()) ? appender.getPattern() : DEFAULT_ROOT_APPENDER_PATTERN;
     }
+
     private static void prepareAltAppenderConfiguration(StringBuilder sb, AppenderConfigurationType appender,
             MidpointConfiguration midpointConfiguration) {
         String altFilename = getAltAppenderFilename(midpointConfiguration);
         String altPrefix = getAltAppenderPrefix(midpointConfiguration);
-        prepareAltAppenderConfiguration(sb,appender,altFilename,altPrefix);
+        prepareAltAppenderConfiguration(sb, appender, altFilename, altPrefix);
     }
 
     @VisibleForTesting
@@ -390,7 +390,6 @@ public class LoggingConfigurationManager {
                     .append("\t\t\t</appender>\n");
         }
     }
-
 
     private static boolean isAltAppenderEnabled(MidpointConfiguration midpointConfiguration) {
         Configuration config = midpointConfiguration.getConfiguration();
@@ -542,8 +541,8 @@ public class LoggingConfigurationManager {
         }
         String indent = "\t\t\t";
         appendEscapedProp(sb, indent, "timestampPattern", json.getTimestampPattern());
-        appendEscapedProp(sb, indent, "timeZone", json.getTimeZone());
-        prepareCustomFieldsProperty(sb,indent,json.getCustomField() );
+        appendEscapedProp(sb, indent, "timeZone", json.getTimezone());
+        prepareCustomFieldsProperty(sb, indent, json.getCustomField());
         prepareStacktraceProperties(sb, indent, json);
     }
 
@@ -579,7 +578,7 @@ public class LoggingConfigurationManager {
         if (json == null) {
             return;
         }
-        String timeZone = json.getTimeZone();
+        String timeZone = json.getTimezone();
         if (timeZone != null) {
             try {
                 ZoneId.of(timeZone);

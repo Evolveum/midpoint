@@ -25,7 +25,7 @@ Set the `format` of an appender to `JSON`:
 <logging>
     <appender id="1" xsi:type="c:FileAppenderConfigurationType">
         <name>MIDPOINT_JSON</name>
-        <format>JSON</format>
+        <format>json</format>
         <fileName>${midpoint.home}/log/midpoint-json.log</fileName>
         <maxHistory>10</maxHistory>
         <maxFileSize>100MB</maxFileSize>
@@ -118,10 +118,10 @@ The values that are not specified keep their defaults.
 ----
 <appender id="1" xsi:type="c:FileAppenderConfigurationType">
     <name>MIDPOINT_JSON</name>
-    <format>JSON</format>
+    <format>json</format>
     <json>
         <timestampPattern>yyyy-MM-dd'T'HH:mm:ss.SSSZ</timestampPattern>
-        <timeZone>UTC</timeZone>
+        <timezone>UTC</timezone>
         <includeStacktrace>true</includeStacktrace>
         <maxStacktraceDepth>10</maxStacktraceDepth>
         <customField id="2">
@@ -142,7 +142,7 @@ The values that are not specified keep their defaults.
 It uses the syntax of `java.time.format.DateTimeFormatter`.
 | ISO 8601
 
-| `timeZone`
+| `timezone`
 | Time zone of the timestamp, for example `UTC` or `Europe/Bratislava`.
 | Time zone of the server
 

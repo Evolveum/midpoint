@@ -191,7 +191,7 @@ public class LoggingConfigurationManagerTest {
     @Test(expectedExceptions = SchemaException.class)
     public void testJsonInvalidTimeZoneFails() throws Exception {
         AppenderConfigurationType appender = jsonAppender("JSON");
-        appender.getJson().setTimeZone("Not/AZone");
+        appender.getJson().setTimezone("Not/AZone");
         LoggingConfigurationManager.prepareCommonAppenderFooter(new StringBuilder(), appender);
     }
 
@@ -273,7 +273,7 @@ public class LoggingConfigurationManagerTest {
     @Test
     public void testJsonTimestampPatternAndTimeZoneAreApplied() throws Exception {
         JsonFormatConfigurationType json = new JsonFormatConfigurationType();
-        json.setTimeZone("UTC");
+        json.setTimezone("UTC");
         json.setTimestampPattern("yyyy-MM-dd'T'HH:mm:ss'Z'");
 
         String line = logExceptionThroughJsonAppender("TIMESTAMP", json);
@@ -284,7 +284,7 @@ public class LoggingConfigurationManagerTest {
     public void testJsonSettingsAreIgnoredForTextFormat() throws Exception {
         AppenderConfigurationType appender = textAppender("TEXT", "%msg%n");
         appender.setJson(new JsonFormatConfigurationType());
-        appender.getJson().setTimeZone("Not/AZone");   // would fail for the JSON format
+        appender.getJson().setTimezone("Not/AZone");   // would fail for the JSON format
 
         StringBuilder sb = new StringBuilder();
         LoggingConfigurationManager.prepareCommonAppenderFooter(sb, appender);
