@@ -70,7 +70,7 @@ Which data midPoint sends depends on the data access permissions granted to the 
 
 Item paths and type names in requests use a shortened format, see xref:../service-item-paths.adoc[].
 
-MidPoint records the communication with the AI service in the audit trail, see xref:../security/auditing.adoc[].
+MidPoint records the communication with the AI service in the audit trail, see xref:/midpoint/reference/security/audit[].
 
 == Topics
 
