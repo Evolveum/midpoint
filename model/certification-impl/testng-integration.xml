@@ -15,6 +15,7 @@
             <class name="com.evolveum.midpoint.certification.test.TestSoDCertification"/>
             <class name="com.evolveum.midpoint.certification.test.TestEscalation"/>
             <class name="com.evolveum.midpoint.certification.test.TestClockUsage"/>
+            <class name="com.evolveum.midpoint.certification.test.TestCertificationTargetTypes"/>
         </classes>
     </test>
     <test name="Complex" preserve-order="true" parallel="none" verbose="10" enabled="true">
