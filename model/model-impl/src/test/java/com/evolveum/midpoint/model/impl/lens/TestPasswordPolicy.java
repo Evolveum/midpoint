@@ -478,6 +478,23 @@ public class TestPasswordPolicy extends AbstractInternalModelIntegrationTest {
         assertThat(isPasswordValid("Password1", pp)).as("common password with disabled dictionary").isTrue();
     }
 
+    /** The options of the dictionary check, read from the policy, add more forms of the value to compare. */
+    @Test
+    public void passwordValidationTestDictionaryOptions() throws Exception {
+        ValuePolicyType pp = parsePasswordPolicy("password-policy-dictionary-options.xml");
+
+        assertThat(isPasswordValid("yeknom", pp, null)).as("reversed word").isFalse();
+        assertThat(isPasswordValid("fooPassword", pp, null)).as("word inside the value").isFalse();
+        assertThat(isPasswordValid("m0nk3y", pp, null)).as("leetspeak").isFalse();
+        assertThat(isPasswordValid("Zk7mQx2pLw", pp, null)).as("password that is not common").isTrue();
+
+        pp.getStringPolicy().getLimitations().setDictionaryCheck(null);
+
+        assertThat(isPasswordValid("yeknom", pp, null)).as("reversed word without options").isTrue();
+        assertThat(isPasswordValid("fooPassword", pp, null)).as("word inside the value without options").isTrue();
+        assertThat(isPasswordValid("m0nk3y", pp, null)).as("leetspeak without options").isTrue();
+    }
+
     /** An external dictionary file in midpoint.home replaces the built-in dictionary. */
     @Test
     public void passwordValidationTestExternalDictionary() throws Exception {
