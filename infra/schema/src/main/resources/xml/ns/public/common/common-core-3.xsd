@@ -16139,7 +16139,7 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:restriction base="xsd:string">
-            <xsd:enumeration value="PATTERN">
+            <xsd:enumeration value="pattern">
                 <xsd:annotation>
                     <xsd:documentation>
                         Text output formatted by the "pattern" element (default).
@@ -16149,7 +16149,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
-            <xsd:enumeration value="JSON">
+            <xsd:enumeration value="json">
                 <xsd:annotation>
                     <xsd:documentation>
                         One JSON object per log record.
