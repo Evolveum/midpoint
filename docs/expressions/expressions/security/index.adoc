@@ -199,6 +199,7 @@ Expressions profiles control ability to _execute_ an expression, regardless of h
 On the other hand, authorizations control the ability to _create and edit_ expressions, without regard to their eventual execution.
 Both mechanisms are necessary for setting up a secure midPoint deployment.
 
+[#semi-safe-configuration]
 == Semi-Safe Configuration
 
 Security is a trade-off, or rather a complex series of many intricate trade-offs.
@@ -212,13 +213,17 @@ For example, expression can be used in a condition in an xref:/midpoint/referenc
 This ability comes from the fact that _assignment_ and _inducement_ are represented by the same data structure, as well as a potential to implement some intricate use cases.
 However, _assignment_ are a common data structure in _user_ objects.
 Users may have ability to create their own assignments, e.g. in a form of _access request_ process, or by using RESTful API.
-In such a case, users may theoretically create an assignment which includes unsafe scripting expressions.
+In such a case, users could try to create an assignment which includes scripting expressions, for example an inline `focusMappings` script or an assignment `condition`.
 
 NOTE: MidPoint user interface does not provide any ability for users to add expressions into assignments (or any other places), while using the self-service part of the user interface.
-Therefore, midPoint is safe in that respect.
-However, the administration part of midPoint user interface is not designed to have such constraints.
+However, this does not apply to the REST API (or data import), where the user controls the request content directly.
+Likewise, the administration part of midPoint user interface is not designed to have such constraints.
 Administrative part of midPoint user interface may have an ability to include expressions in some data structures, most notably as part of the _inducement_.
 Therefore, be very careful when delegating administrative access to midPoint objects and user interface.
+
+The default _End user_ role therefore limits the assignment items that users can request for themselves, so a request with expressions in the assignment is denied.
+Custom self-service roles should do the same, see xref:/midpoint/reference/security/authorization/configuration/#limiting-assignment-items[Limiting Assignment Items].
+Also, use `#assign` rather than `#add` or `#modify` on `assignment` for self-service, as the latter also accepts a `targetRef` without an OID, whose search filter may contain an expression.
 
 Ordinary midPoint deployment do not need extreme flexibility provided by expression in user assignments.
 Therefore, it is more than reasonable to limit use of expressions in user objects, as well as other types of objects.
@@ -287,6 +292,12 @@ The recommended way to apply the profiles is to use `defaultObjectPolicyConfigur
     ...
 </systemConfiguration>
 ----
+
+Only the first `defaultObjectPolicyConfiguration` for a type (without `subtype`) is used.
+If your configuration already has a `UserType` entry, e.g. for an object template, add `expressionProfile` to that entry instead of adding a second one.
+
+MidPoint 4.11 ships stricter expression profile defaults in the system configuration.
+Note that an in-place upgrade keeps your existing system configuration, so the new defaults have to be added to it manually.
 
 The specific configuration of expression profiles is somehow deployment-specific.
 E.g. some deployments may allow script expression in xref:/midpoint/reference/misc/services/[Service objects], others may not.
