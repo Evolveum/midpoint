@@ -13,6 +13,8 @@ import java.util.Set;
 import javax.sql.DataSource;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.repo.sqale.qmodel.policy.MPolicyReferenceType;
+
 import com.querydsl.sql.types.ArrayType;
 import com.querydsl.sql.types.EnumAsObjectType;
 import jakarta.annotation.PostConstruct;
@@ -98,6 +100,7 @@ public class SqaleRepoContext extends SqlRepoContext {
         querydslConfig.register(new EnumAsObjectType<>(MExtItemCardinality.class));
         querydslConfig.register(new EnumAsObjectType<>(MObjectType.class));
         querydslConfig.register(new EnumAsObjectType<>(MReferenceType.class));
+        querydslConfig.register(new EnumAsObjectType<>(MPolicyReferenceType.class));
         querydslConfig.register(new EnumAsObjectType<>(NodeOperationalStateType.class));
         querydslConfig.register(new EnumAsObjectType<>(ObjectProcessingStateType.class));
         querydslConfig.register(new EnumAsObjectType<>(OperationExecutionRecordTypeType.class));

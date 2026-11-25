@@ -258,6 +258,14 @@ CREATE TYPE ThreadStopActionType AS ENUM ('RESTART', 'RESCHEDULE', 'SUSPEND', 'C
 -- @description: Stores time interval status values.
 -- @type: http://midpoint.evolveum.com/xml/ns/public/common/common-3#TimeIntervalStatusType
 CREATE TYPE TimeIntervalStatusType AS ENUM ('BEFORE', 'IN', 'AFTER');
+
+-- @description: Identifies which reference of an indexed policy rule a policy rule reference row holds.
+CREATE TYPE PolicyReferenceType AS ENUM (
+    'MARK',
+    'EXCLUSION_TARGET', 'EXCLUSION_TARGET_ARCHETYPE',
+    'REQUIREMENT_TARGET', 'REQUIREMENT_TARGET_ARCHETYPE',
+    'HAS_ASSIGNMENT_TARGET', 'HAS_ASSIGNMENT_TARGET_ARCHETYPE',
+    'HAS_NO_ASSIGNMENT_TARGET', 'HAS_NO_ASSIGNMENT_TARGET_ARCHETYPE');
 -- endregion
 
 -- region OID-pool table
@@ -3915,11 +3923,11 @@ CREATE TABLE m_ref_assignment_policy_rule (
     -- @description: Container ID of the assignment or inducement holding the policy rule.
     assignmentCid INTEGER NOT NULL,
     -- @description: URI identifier (m_uri) of the reference path relative to policyRule, e.g. markRef or exclusion/targetRef.
-    pathId INTEGER NOT NULL REFERENCES m_uri(id),
+    policyReferenceType PolicyReferenceType NOT NULL,
     referenceType ReferenceType GENERATED ALWAYS AS ('ASSIGNMENT_POLICY_RULE') STORED
         CHECK (referenceType = 'ASSIGNMENT_POLICY_RULE'),
 
-    PRIMARY KEY (ownerOid, assignmentCid, pathId, relationId, targetOid),
+    PRIMARY KEY (ownerOid, assignmentCid, policyReferenceType, relationId, targetOid),
     FOREIGN KEY (ownerOid, assignmentCid) REFERENCES m_assignment (ownerOid, cid) ON DELETE CASCADE
 )
     INHERITS (m_reference);
@@ -4096,11 +4104,11 @@ CREATE TABLE m_ref_policy_rule (
     -- @description: Container ID of the policy rule.
     policyRuleCid INTEGER NOT NULL,
     -- @description: URI identifier (m_uri) of the reference path relative to policyRule, e.g. markRef or exclusion/targetRef.
-    pathId INTEGER NOT NULL REFERENCES m_uri(id),
+    policyReferenceType PolicyReferenceType NOT NULL,
     referenceType ReferenceType GENERATED ALWAYS AS ('POLICY_RULE') STORED
         CHECK (referenceType = 'POLICY_RULE'),
 
-    PRIMARY KEY (ownerOid, policyRuleCid, pathId, relationId, targetOid),
+    PRIMARY KEY (ownerOid, policyRuleCid, policyReferenceType, relationId, targetOid),
     FOREIGN KEY (ownerOid, policyRuleCid) REFERENCES m_policy_rule (ownerOid, cid) ON DELETE CASCADE
 )
     INHERITS (m_reference);
@@ -4122,11 +4130,11 @@ CREATE VIEW m_indexed_policy_rule AS
 
 -- @description: Presents references of policy rules from both storages as one read-only relation for searching.
 CREATE VIEW m_ref_indexed_policy_rule AS
-    SELECT ownerOid, ownerType, assignmentCid AS ruleCid, pathId,
+    SELECT ownerOid, ownerType, assignmentCid AS ruleCid, policyReferenceType,
             referenceType, targetOid, targetType, relationId
         FROM m_ref_assignment_policy_rule
     UNION ALL
-    SELECT ownerOid, ownerType, policyRuleCid AS ruleCid, pathId,
+    SELECT ownerOid, ownerType, policyRuleCid AS ruleCid, policyReferenceType,
             referenceType, targetOid, targetType, relationId
         FROM m_ref_policy_rule;
 -- endregion

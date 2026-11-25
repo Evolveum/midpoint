@@ -86,8 +86,8 @@ public class QAssignmentPolicyRuleReferenceMapping<AOR extends MObject> extends
             if (!PolicyRuleIndexSupport.fillTarget(row, ref, repositoryContext())) {
                 continue;
             }
-            row.pathId = PolicyRuleIndexSupport.pathIdForStore(repositoryContext(), ref.path());
-            if (storedKeys.add(List.of(row.pathId, row.relationId, row.targetOid))) {
+            row.policyReferenceType = MPolicyReferenceType.from(ref.holder(), ref.refItem());
+            if (storedKeys.add(List.of(row.policyReferenceType, row.relationId, row.targetOid))) {
                 insert(row, jdbcSession);
             }
         }

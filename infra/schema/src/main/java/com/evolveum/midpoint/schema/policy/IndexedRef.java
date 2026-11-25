@@ -18,21 +18,22 @@ import org.jetbrains.annotations.NotNull;
 import javax.xml.namespace.QName;
 import java.util.Objects;
 
-public record IndexedRef(@NotNull String path,
+public record IndexedRef(@NotNull QName holder,
+                         @NotNull QName refItem,
                          @NotNull String targetOid,
                          @Nullable QName targetType,
                          @NotNull QName relation) {
     /**
      * Returns null when the reference has no OID: a target given only by a filter is not indexed.
      */
-    public static @Nullable IndexedRef of(@NotNull String path, @Nullable ObjectReferenceType ref) {
+    public static @Nullable IndexedRef of(@NotNull QName holder, QName refItem, @Nullable ObjectReferenceType ref) {
         if (ref == null || ref.getOid() == null) {
             return null;
         }
         QName relation = ref.getRelation() != null
                 ? ref.getRelation()
                 : PrismContext.get().getDefaultRelation();
-        return new IndexedRef(path, ref.getOid(), targetType(ref), relation);
+        return new IndexedRef(holder, refItem, ref.getOid(), targetType(ref), relation);
 
     }
 
@@ -47,13 +48,14 @@ public record IndexedRef(@NotNull String path,
     @Override
     public boolean equals(Object o) {
         return o instanceof IndexedRef other
-                && path.equals(other.path)
+                && holder.equals(other.holder)
+                && refItem.equals(other.refItem)
                 && targetOid.equals(other.targetOid)
                 && relation.equals(other.relation);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(path, targetOid, relation);
+        return Objects.hash(holder, refItem, targetOid, relation);
     }
 }

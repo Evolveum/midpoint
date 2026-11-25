@@ -41,12 +41,12 @@ public class TestPolicyRuleIndexExtractor extends AbstractSchemaTest {
         assertThat(data.actions()).containsExactly(PolicyActionsType.F_ENFORCEMENT);
         assertThat(data.refs()).hasSize(1);
         IndexedRef ref = data.refs().iterator().next();
-        assertThat(ref.path()).isEqualTo("exclusion/targetRef");
+        assertThat(ref.holder()).isEqualTo(PolicyConstraintsType.F_EXCLUSION);
+        assertThat(ref.refItem()).isEqualTo(AssignmentType.F_TARGET_REF);
         assertThat(ref.targetOid()).isEqualTo(ROLE_A_OID);
         assertThat(ref.targetType()).isEqualTo(RoleType.COMPLEX_TYPE);
         assertThat(ref.relation()).isEqualTo(PrismContext.get().getDefaultRelation());
     }
-
 
     @Test
     public void test110NestedConstraintsAreFlattened() {
@@ -142,10 +142,10 @@ public class TestPolicyRuleIndexExtractor extends AbstractSchemaTest {
                 .markRef(MARK_OID, MarkType.COMPLEX_TYPE);
 
         PolicyRuleIndexData data = PolicyRuleIndexExtractor.extract(rule);
-
         assertThat(data.refs()).hasSize(1);
         IndexedRef ref = data.refs().iterator().next();
-        assertThat(ref.path()).isEqualTo("markRef");
+        assertThat(ref.refItem()).isEqualTo(PolicyRuleType.F_MARK_REF);
+        assertThat(ref.holder()).isEqualTo(AssignmentType.F_POLICY_RULE);
         assertThat(ref.targetOid()).isEqualTo(MARK_OID);
     }
 
@@ -226,6 +226,7 @@ public class TestPolicyRuleIndexExtractor extends AbstractSchemaTest {
                 .containsExactlyInAnyOrder("modification", "assignment")
                 .doesNotContain("objectModification", "assignmentModification");
     }
+
     @Test
     public void test400ActivityPoliciesCollector() {
         ActivityPoliciesType top = new ActivityPoliciesType()
@@ -257,10 +258,9 @@ public class TestPolicyRuleIndexExtractor extends AbstractSchemaTest {
         assertThat(ActivityPoliciesCollector.collect(null)).isEmpty();
     }
 
-
-
     private List<String> paths(PolicyRuleIndexData data) {
-        return data.refs().stream().map(IndexedRef::path).collect(Collectors.toList());
+        return data.refs().stream()
+                .map(r -> r.holder().getLocalPart() + "/" + r.refItem().getLocalPart())
+                .collect(Collectors.toList());
     }
-
 }

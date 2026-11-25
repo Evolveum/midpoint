@@ -8,21 +8,19 @@
 
 package com.evolveum.midpoint.repo.sqale.qmodel.policy;
 
+import java.util.Collection;
+import java.util.UUID;
+import javax.xml.namespace.QName;
+
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.MReference;
 import com.evolveum.midpoint.schema.policy.IndexedRef;
-import com.evolveum.midpoint.schema.policy.PolicyRuleIndexPaths;
 import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ExclusionPolicyConstraintType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyRuleType;
-
-import org.jetbrains.annotations.NotNull;
-
-import javax.xml.namespace.QName;
-import java.util.Collection;
-import java.util.UUID;
-
-
 
 public final class PolicyRuleIndexSupport {
     /** Namespace used for unqualified constraint and action names in queries. */
@@ -65,17 +63,12 @@ public final class PolicyRuleIndexSupport {
         if (ref.targetType() != null) {
             return MObjectType.fromSchemaType(repositoryContext.qNameToSchemaClass(ref.targetType()));
         }
-        if (PolicyRuleIndexPaths.MARK_REF.equals(ref.path())) {
+        if (QNameUtil.match(ref.refItem(), PolicyRuleType.F_MARK_REF)) {
             return MObjectType.MARK;
         }
-        if (ref.path().endsWith(TARGET_ARCHETYPE_REF_SUFFIX)) {
+        if (QNameUtil.match(ref.refItem(), ExclusionPolicyConstraintType.F_TARGET_ARCHETYPE_REF)) {
             return MObjectType.ARCHETYPE;
         }
         return MObjectType.ABSTRACT_ROLE;
-    }
-    /** URI ID of a reference path (see {@link PolicyRuleIndexPaths}) for storing. */
-    public static @NotNull Integer pathIdForStore(
-            @NotNull SqaleRepoContext repositoryContext, @NotNull String path) {
-        return repositoryContext.processCacheableUri(path);
     }
 }

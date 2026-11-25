@@ -414,6 +414,9 @@ public class QAssignmentMapping<OR extends MObject>
         return row;
     }
 
+
+
+
     @Override
     public ItemPath getItemPath() {
         return path;

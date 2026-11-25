@@ -1608,12 +1608,21 @@ $aa$);
 -- @since: 4.12.0
 -- @affects: enum ContainerType | Modified enum type | Adds `POLICY_RULE`.
 -- @affects: enum ReferenceType | Modified enum type | Adds `ASSIGNMENT_POLICY_RULE`, `POLICY_RULE` and `TASK_POLICY`.
+-- @affects: enum PolicyReferenceType | New enum type |
 
 call apply_change(68, $aa$
     ALTER TYPE ContainerType ADD VALUE IF NOT EXISTS 'POLICY_RULE' AFTER 'OUTLIER_PARTITION';
     ALTER TYPE ReferenceType ADD VALUE IF NOT EXISTS 'ASSIGNMENT_POLICY_RULE' AFTER 'ASSIGNMENT_EFFECTIVE_MARK';
     ALTER TYPE ReferenceType ADD VALUE IF NOT EXISTS 'POLICY_RULE' AFTER 'PERSONA';
     ALTER TYPE ReferenceType ADD VALUE IF NOT EXISTS 'TASK_POLICY' AFTER 'TASK_AFFECTED_OBJECT';
+
+    CREATE TYPE PolicyReferenceType AS ENUM (
+    'MARK',
+    'EXCLUSION_TARGET', 'EXCLUSION_TARGET_ARCHETYPE',
+    'REQUIREMENT_TARGET', 'REQUIREMENT_TARGET_ARCHETYPE',
+    'HAS_ASSIGNMENT_TARGET', 'HAS_ASSIGNMENT_TARGET_ARCHETYPE',
+    'HAS_NO_ASSIGNMENT_TARGET', 'HAS_NO_ASSIGNMENT_TARGET_ARCHETYPE');
+
 $aa$);
 
 -- #69 m_assignment columns, tables and indexes
@@ -1639,14 +1648,15 @@ call apply_change(69, $aa$
         WHERE policyRuleActions IS NOT NULL;
 
     -- references inside assignment/inducement rules: markRef, exclusion/requirement/hasAssignment
-    -- targetRef and targetArchetypeRef; pathId = m_uri id of the path relative to policyRule
+
+
     CREATE TABLE m_ref_assignment_policy_rule (
         ownerOid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
         assignmentCid INTEGER NOT NULL,
-        pathId INTEGER NOT NULL REFERENCES m_uri(id),
+       policyReferenceType PolicyReferenceType NOT NULL,
         referenceType ReferenceType GENERATED ALWAYS AS ('ASSIGNMENT_POLICY_RULE') STORED
             CHECK (referenceType = 'ASSIGNMENT_POLICY_RULE'),
-        PRIMARY KEY (ownerOid, assignmentCid, pathId, relationId, targetOid),
+        PRIMARY KEY (ownerOid, assignmentCid, policyReferenceType, relationId, targetOid),
         FOREIGN KEY (ownerOid, assignmentCid) REFERENCES m_assignment (ownerOid, cid) ON DELETE CASCADE
     )
         INHERITS (m_reference);
@@ -1684,10 +1694,10 @@ call apply_change(70, $aa$
     CREATE TABLE m_ref_policy_rule (
         ownerOid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
         policyRuleCid INTEGER NOT NULL,
-        pathId INTEGER NOT NULL REFERENCES m_uri(id),
+        policyReferenceType PolicyReferenceType NOT NULL,
         referenceType ReferenceType GENERATED ALWAYS AS ('POLICY_RULE') STORED
             CHECK (referenceType = 'POLICY_RULE'),
-        PRIMARY KEY (ownerOid, policyRuleCid, pathId, relationId, targetOid),
+        PRIMARY KEY (ownerOid, policyRuleCid, policyReferenceType, relationId, targetOid),
         FOREIGN KEY (ownerOid, policyRuleCid) REFERENCES m_policy_rule (ownerOid, cid) ON DELETE CASCADE
     )
         INHERITS (m_reference);
@@ -1728,11 +1738,11 @@ call apply_change(72, $aa$
             FROM m_policy_rule;
 
     CREATE VIEW m_ref_indexed_policy_rule AS
-        SELECT ownerOid, ownerType, assignmentCid AS ruleCid, pathId,
+        SELECT ownerOid, ownerType, assignmentCid AS ruleCid, policyReferenceType,
                 referenceType, targetOid, targetType, relationId
             FROM m_ref_assignment_policy_rule
         UNION ALL
-        SELECT ownerOid, ownerType, policyRuleCid AS ruleCid, pathId,
+        SELECT ownerOid, ownerType, policyRuleCid AS ruleCid, policyReferenceType,
                 referenceType, targetOid, targetType, relationId
             FROM m_ref_policy_rule;
 $aa$);

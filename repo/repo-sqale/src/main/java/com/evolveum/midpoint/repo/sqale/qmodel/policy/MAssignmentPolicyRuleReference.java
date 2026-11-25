@@ -13,14 +13,14 @@ import com.evolveum.midpoint.repo.sqale.qmodel.ref.MReference;
 public class MAssignmentPolicyRuleReference extends MReference {
 
     public Long assignmentCid;
-    public Integer pathId;
+    public MPolicyReferenceType policyReferenceType;
 
     @Override
     public String toString() {
         return "MAssignmentPolicyRuleReference{" +
                 "ownerOid=" + ownerOid +
                 ", assignmentCid=" + assignmentCid +
-                ", pathId=" + pathId +
+                ", policyReferenceType=" + policyReferenceType.toString() +
                 ", targetOid=" + targetOid +
                 ", targetType=" + targetType +
                 ", relationId=" + relationId +

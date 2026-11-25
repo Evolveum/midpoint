@@ -61,7 +61,7 @@ public final class PolicyRuleIndexExtractor {
                 true
         );
         for (ObjectReferenceType markRef : rule.getMarkRef()) {
-            addRef(refs, IndexedRef.of(PolicyRuleIndexPaths.MARK_REF, markRef));
+            addRef(refs, IndexedRef.of(AssignmentType.F_POLICY_RULE,PolicyRuleType.F_MARK_REF,markRef));
         }
 
         return new PolicyRuleIndexData(
@@ -72,7 +72,7 @@ public final class PolicyRuleIndexExtractor {
 
     private static void addRef(
             Set<IndexedRef> refs, QName constraintName, QName refItemName, ObjectReferenceType ref) {
-        addRef(refs, IndexedRef.of(PolicyRuleIndexPaths.of(constraintName, refItemName), ref));
+        addRef(refs,IndexedRef.of(constraintName,refItemName,ref));
     }
 
     private static void addRef(Set<IndexedRef> refs, IndexedRef ref) {
