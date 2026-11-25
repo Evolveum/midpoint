@@ -322,7 +322,7 @@ In such a case, users could try to create an assignment which includes scripting
 MidPoint user interface does not provide any ability for users to add expressions into assignments while using the self-service part of the user interface.
 However, this does not apply to the REST API (or data import), where the user controls the request content directly.
 
-The default _End user_ role therefore limits the assignment items that users can request for themselves, so a request with expressions in the assignment is denied.
+Since 4.8.15, the default _End user_ role therefore limits the assignment items that users can request for themselves, so a request with expressions in the assignment is denied (or these expressions are effectively ignored).
 Custom self-service roles should do the same, see xref:/midpoint/reference/security/authorization/configuration/#limiting-assignment-items[Limiting Assignment Items].
 Also, use `#assign` rather than `#add` or `#modify` on `assignment` for self-service, as the latter also accepts a `targetRef` without an OID, whose search filter may contain an expression.
 
