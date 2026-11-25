@@ -31,6 +31,21 @@ xref:/midpoint/reference/interfaces/rest/endpoints/[REST Endpoints]
 .For a *more technical description* of our REST api please have a look here:
 xref:/midpoint/reference/interfaces/rest/concepts/[Concepts]
 
+=== REST Access for End Users
+
+Think twice before giving end users or other untrusted principals write access to the REST API.
+A REST client controls the request content directly.
+It is therefore up to the authorizations to limit what a user can put into objects, including expressions in assignments (for example a `focusMappings` script).
+
+The stock _End user_ role grants *no* REST access.
+Since 4.11.1, its self-service `#assign` authorization is also limited to safe assignment items, so requests with expressions in the assignment are either denied or these expressions are stored in the repository, but not executed.
+
+If end users need to reach the REST API, make sure that every role they have limits `#assign` to safe assignment items, especially custom roles and roles of upgraded deployments.
+See xref:/midpoint/reference/security/authorization/configuration/#limiting-assignment-items[Limiting Assignment Items].
+
+Expressions in user objects are also restricted by the `prohibitive` expression profile by default.
+Deployments upgraded from earlier versions may lack this setting, see xref:/midpoint/reference/expressions/expressions/security/#using-expression-profiles-in-objects[Using these Expression Profiles in Objects].
+
 == How To Use
 
 The *format of the REST request* depends on the type of web resource you try to invoke, the  operation
