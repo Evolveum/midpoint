@@ -368,6 +368,7 @@ NOTE: These profiles are set in the default system configuration of new deployme
 Types without their own `defaultObjectPolicyConfiguration` entry, such as `UserType`, get the profile from the `expressions/defaults/authorizedObjects` setting.
 Deployments upgraded from earlier versions keep their existing system configuration, where these settings are usually missing, so all expressions are evaluated with full access.
 It is recommended to add these settings to such deployments, for example by merging the system configuration with the current xref:/midpoint/reference/deployment/initial-objects/[initial objects] using the xref:/midpoint/reference/deployment/ninja/command/initial-objects/[Ninja initial-objects command].
+(But be sure to change these settings only after thorough testing of whether existing expressions - in mappings, reports, etc. - work well under restricted execution profiles!)
 
 // === Migration
 //
