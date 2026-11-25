@@ -11,9 +11,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
+import java.text.Normalizer;
 import java.util.HashSet;
 import java.util.Locale;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -23,15 +25,25 @@ import org.jetbrains.annotations.NotNull;
  */
 final class PasswordDictionaryFormat {
 
+    private static final Pattern WHITESPACE = Pattern.compile("[\\s\\p{Z}]+");
+
     private PasswordDictionaryFormat() {
     }
 
     /**
      * Normalizes a value before it is compared with dictionary words. The same normalization is applied
      * to the checked value and to the words of the dictionaries. The value itself is never changed.
+     *
+     * <ol>
+     *     <li>Unicode normalization NFKC (e.g. full-width letters become ordinary letters),</li>
+     *     <li>any sequence of white space becomes one space,</li>
+     *     <li>leading and trailing white space is removed,</li>
+     *     <li>lower case.</li>
+     * </ol>
      */
     static @NotNull String normalize(@NotNull String value) {
-        return value.toLowerCase(Locale.ROOT);
+        String composed = Normalizer.normalize(value, Normalizer.Form.NFKC);
+        return WHITESPACE.matcher(composed).replaceAll(" ").strip().toLowerCase(Locale.ROOT);
     }
 
     /** Reads the words of a dictionary. The words are already normalized. */

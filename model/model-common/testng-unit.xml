@@ -39,6 +39,7 @@
         <classes>
             <class name="com.evolveum.midpoint.model.common.stringpolicy.TestPasswordDictionary" />
             <class name="com.evolveum.midpoint.model.common.stringpolicy.TestFilePasswordDictionary" />
+            <class name="com.evolveum.midpoint.model.common.stringpolicy.TestPasswordDictionaryNormalization" />
         </classes>
     </test>
 

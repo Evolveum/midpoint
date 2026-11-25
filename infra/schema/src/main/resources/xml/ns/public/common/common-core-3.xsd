@@ -11031,7 +11031,10 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         If set to true, the value must not be one of the common passwords from the built-in dictionary.
-                        The whole value is compared, ignoring the case.
+                        The whole value is compared after normalization: Unicode normalization NFKC,
+                        any sequence of white space is reduced to one space, leading and trailing white space
+                        is removed, and the case is ignored. The words of the dictionaries are normalized in the same way.
+                        The value itself is not changed.
                         The check applies both to validation and to generation of values.
                     </xsd:documentation>
                 </xsd:annotation>
