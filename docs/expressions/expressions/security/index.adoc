@@ -239,6 +239,7 @@ Also, an evaluator may affect performance of the system by using inefficient sea
 Or, they can exfiltrate information using various techniques.
 Therefore, even _safe_ expression evaluators should still be used with care.
 
+[#using-expression-profiles-in-objects]
 === Using these Expression Profiles in Objects
 
 The following table summarizes which profiles are used for individual object types by default.
@@ -362,6 +363,11 @@ Again, this setting is fully configurable; both at the level of object types and
 | SmartIntegrationArtifactType
 | prohibitive
 |===
+
+NOTE: These profiles are set in the default system configuration of new deployments.
+Types without their own `defaultObjectPolicyConfiguration` entry, such as `UserType`, get the profile from the `expressions/defaults/authorizedObjects` setting.
+Deployments upgraded from earlier versions keep their existing system configuration, where these settings are usually missing, so all expressions are evaluated with full access.
+It is recommended to add these settings to such deployments.
 
 // === Migration
 //
