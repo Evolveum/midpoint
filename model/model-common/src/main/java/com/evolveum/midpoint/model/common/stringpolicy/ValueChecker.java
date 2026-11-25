@@ -112,6 +112,11 @@ class ValueChecker {
             this.distinctCharacters = StringPolicyUtils.stringAsCharacters(value);
         }
 
+        /**
+         * Quick check used when generating values: it only returns the verdict and does not fill
+         * the {@link #resultList}. That is why the dictionary is checked directly by {@link #isCommonPassword()}
+         * and not by {@link #testDictionary()}, which records a limitation result.
+         */
         boolean executeForExpressionsAndProhibitions(OperationResult result)
                 throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
                 CommunicationException, ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
@@ -121,6 +126,10 @@ class ValueChecker {
             }
             if (!checkProhibitedValues(null, result)) {
                 LOGGER.trace("Value is prohibited in {}", shortDesc);
+                return false;
+            }
+            if (isCommonPassword()) {
+                LOGGER.trace("Value is a common password in {}", shortDesc);
                 return false;
             }
             return true;
@@ -133,6 +142,7 @@ class ValueChecker {
             testLength();
             testMinimalUniqueCharacters();
             testProhibitedValues(result);
+            testDictionary();
             testCheckExpression(result);
             testCharacterClasses();
 
@@ -297,6 +307,35 @@ class ValueChecker {
                             .build()),
                     result);
 
+            addResult(limResult);
+        }
+
+        private boolean isCommonPassword() {
+            return !stringPolicy.isValidAgainstDictionaries(value);
+        }
+
+        private void testDictionary() {
+            if (!stringPolicy.isDictionaryCheckEnabled()) {
+                return;
+            }
+
+            StringLimitationResult limResult = new StringLimitationResult();
+            PolyStringType name = new PolyStringType("common password");
+            PolyStringTranslationType translation = new PolyStringTranslationType();
+            translation.setKey("ValuePolicy.commonPasswordName");
+            name.setTranslation(translation);
+            limResult.setName(name);
+            PolyStringType help = new PolyStringType("");
+            PolyStringTranslationType helpTranslation = new PolyStringTranslationType();
+            helpTranslation.setKey("ValuePolicy.commonPassword");
+            help.setTranslation(helpTranslation);
+            limResult.setHelp(help);
+
+            if (isCommonPassword()) {
+                limResult.recordFailure(new LocalizableMessageBuilder()
+                        .key("ValuePolicy.commonPassword")
+                        .build());
+            }
             addResult(limResult);
         }
 

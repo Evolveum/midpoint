@@ -29,6 +29,7 @@ import org.jetbrains.annotations.Nullable;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
+import org.testng.Assert;
 import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
@@ -89,7 +90,8 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
     static final String USER_PASSWORD_A_CLEAR = "A"; // too short
     private static final String USER_PASSWORD_JACK_CLEAR = "12jAcK34"; // contains username
     private static final String USER_PASSWORD_SPARROW_CLEAR = "spaRRow123"; // contains familyName
-    static final String USER_PASSWORD_VALID_1 = "abcd123";
+    private static final String USER_PASSWORD_COMMON = "Password1"; // complies with the policy, but is a common password
+    static final String USER_PASSWORD_VALID_1 = "abcd023";
     static final String USER_PASSWORD_VALID_2 = "abcd223";
     private static final String USER_PASSWORD_VALID_3 = "abcd323";
     private static final String USER_PASSWORD_VALID_4 = "abcd423";
@@ -1300,6 +1302,34 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
     public void test226ModifyUserJackPasswordBadSparrow() throws Exception {
         doTestModifyUserJackPasswordFailureWithHistory(
                 USER_PASSWORD_SPARROW_CLEAR, USER_PASSWORD_VALID_1, USER_PASSWORD_AA_CLEAR);
+    }
+
+    /**
+     * Change to password that complies with the character rules of the password policy,
+     * but is in the dictionary of common passwords.
+     */
+    @Test
+    public void test228ModifyUserJackPasswordCommon() throws Exception {
+        // GIVEN
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+        prepareTest();
+
+        // WHEN
+        PolicyViolationException e = Assert.expectThrows(
+                PolicyViolationException.class,
+                () -> modifyUserChangePassword(USER_JACK_OID, USER_PASSWORD_COMMON, task, result));
+
+        // THEN
+        displayExpectedException(e);
+        AssertJUnit.assertTrue(
+                "Violation is not caused by the dictionary: " + e,
+                e.toString().contains("ValuePolicy.commonPassword"));
+        assertFailure(result);
+
+        assertJackPasswordsWithHistory(USER_PASSWORD_VALID_1, USER_PASSWORD_AA_CLEAR);
+        assertNoAccountPasswordNotifications();
+        assertNoUserPasswordNotifications();
     }
 
     /**

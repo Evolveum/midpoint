@@ -35,5 +35,11 @@
             <class name="com.evolveum.midpoint.model.common.mapping.metadata.builtin.TestBuiltinMetadataMappingOwnership" />
         </classes>
     </test>
+    <test name="StringPolicy" preserve-order="false">
+        <classes>
+            <class name="com.evolveum.midpoint.model.common.stringpolicy.TestPasswordDictionary" />
+            <class name="com.evolveum.midpoint.model.common.stringpolicy.TestFilePasswordDictionary" />
+        </classes>
+    </test>
 
 </suite>

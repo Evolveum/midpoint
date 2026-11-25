@@ -11030,8 +11030,26 @@
             <xsd:element name="checkAgainstDictionary" type="xsd:boolean" default="false" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Currently ignored.
+                        If set to true, the value must not be one of the common passwords from the built-in dictionary.
+                        The whole value is compared, ignoring the case.
+                        The check applies both to validation and to generation of values.
                     </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="dictionaryFile" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Path to a file with an external password dictionary. The path is relative to midpoint.home
+                        and the file must stay inside it. The file contains one word per line in UTF-8.
+                        Empty lines and lines starting with "#" are ignored.
+                        The file is used only if checkAgainstDictionary is true.
+                        If at least one file is configured, the built-in dictionary is not used.
+                        A value is rejected if it is found in any of the configured files.
+                        A file is read when it is first used and kept in memory until midPoint restarts.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.12</a:since>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="checkPattern" type="xsd:string" minOccurs="0">
