@@ -686,7 +686,7 @@ The paths are relative to the object that holds the assignment, therefore they s
 
 With this authorization, a request to assign a requestable role is allowed only if the assignment contains nothing but the listed items.
 A request that adds e.g. `focusMappings` or `condition` to the assignment is denied.
-This is how the default end user role is defined since midPoint 4.12.
+This is how the default end user role is defined since midPoint 4.11.1 and 4.12.0.
 
 If your deployment lets users provide other assignment items when requesting access (e.g. assignment extension items), add these items to the list.
 Do not add items that can contain expressions.
