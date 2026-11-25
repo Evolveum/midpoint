@@ -106,6 +106,11 @@ public class CacheableSecretsProviderDelegate<C> implements SecretsProvider<C> {
         }
 
         ST secret = resolveSecret(key, type);
+        if (secret == null) {
+            // Missing secret is not cached, so it can be resolved as soon as it is made available.
+            LOGGER.trace("Secret for key {} not found, nothing to cache", key);
+            return null;
+        }
 
         LOGGER.trace("Caching secret for key {}", key);
 

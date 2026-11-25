@@ -82,12 +82,11 @@ public class ProtectedStringValidatorForKeyField implements INullAcceptingValida
                 err.addKey("ProtectedStringValidator.incorrectValueError");
             }
             validatable.error(err);
-            if (feedback != null) {
-                Optional<AjaxRequestTarget> target = RequestCycle.get().find(AjaxRequestTarget.class);
-                if (target.isPresent()) {
-                    target.get().add(feedback);
-                }
-            }
+        }
+
+        if (feedback != null) {
+            Optional<AjaxRequestTarget> target = RequestCycle.get().find(AjaxRequestTarget.class);
+            target.ifPresent(ajaxRequestTarget -> ajaxRequestTarget.add(feedback));
         }
     }
 
