@@ -44,7 +44,8 @@ Moreover, midPoint 4.11.0 made a significant leap towards secure-by-default conf
 * Improved Spring Security initialization by replacing ignored URL patterns with a dedicated security filter chain, preserving existing authentication behavior.
 * English (Europe) is now the default locale.
 It uses the standard locale code `en_150` instead of the non-existent `en_EU`, for which neither the JDK nor browsers have locale data.
-Users who have `en_EU` stored (midPoint 4.11.0) keep English (Europe). See bug:MID-12889[]
+Users who use `en_EU` (labeled as English/Europe in midPoint 4.11.0) will keep English (Europe) and user interface will internally use correct `en_150`.
+Locale attribute in focus object is not updated automatically. See bug:MID-12889[]
 * Fixed password strength indicator showing inaccurate score that jumped up and down while typing. See bug:MID-12480[]
 * Fixed border styling of input fields with a button. See bug:MID-12469[]
 * Fixed NullPointerException when creating a new schema. See bug:MID-12407[]
@@ -84,6 +85,8 @@ The wizard now starts at the person of interest step if no person is selected. S
 * Fixed an issue with migrating application role assignments to business role assignments. See bug:MID-12679[]
 * The `End user` role now allows only selected assignment items (`targetRef`, `description`, `activation`, `tenantRef`, `orgRef`) when requesting a role.
 See <<_behavior_changes_since_4_10,Behavior Changes>>.
+* Implemented more restrictive static resource handling in GUI.
+* Upgraded LDAP and AD Connector to 4.0.0 version.
 
 == Changes With Respect to Version 4.10
 
@@ -368,7 +371,7 @@ See bug:MID-11230[].
 
 === Releases Of Other Components
 
-* New version (3.10) of xref:/connectors/connectors/com.evolveum.polygon.connector.ldap.LdapConnector/[AD/LDAP Connector] was released and bundled with midPoint.
+* New version (4.0.0) of xref:/connectors/connectors/com.evolveum.polygon.connector.ldap.LdapConnector/[AD/LDAP Connector] was released and bundled with midPoint.
 ** Object class descriptions are provided in the schema.
 ** Improved configuration suggestions for OpenLDAP (e.g., `placeholderMember` attribute).
 ** Managed association pairs are ordered by relevancy and the default member attribute is suggested. See bug:MID-11447[].
@@ -529,7 +532,7 @@ We reserve the right not to support customized web browsers.
 | ConnId Connector Framework
 
 | xref:/connectors/connectors/com.evolveum.polygon.connector.ldap.LdapConnector/[LDAP connector bundle]
-| 3.10
+| 4.0.0
 | LDAP and Active Directory
 
 | xref:/connectors/connectors/com.evolveum.polygon.connector.csv.CsvConnector/[CSV connector]
