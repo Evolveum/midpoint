@@ -55,6 +55,7 @@ See <<_behavior_changes_since_4_11,Behavior Changes>>.
 * Improved Spring Security initialization by replacing ignored URL patterns with a dedicated security filter chain, preserving existing authentication behavior.
 * Hardened Content Security Policy by removing unsafe-inline and unsafe-eval JavaScript permissions and restricting inline CSS in <style> elements.
 * Implemented more restrictive static resource handling in GUI.
+* Password hint field is now rendered as password input.
 
 ==== User Interface
 
