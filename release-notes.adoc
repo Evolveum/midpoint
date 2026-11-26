@@ -47,6 +47,7 @@ The wizard now starts at the person of interest step if no person is selected. S
 See <<_behavior_changes_since_4_7,Behavior Changes>>.
 * Upgraded libraries (Spring Boot, Wicket, and others).
 * Implemented more restrictive static resource handling in GUI.
+* Password hint field is now rendered as password input.
 
 == Changes with Respect To Version 4.8.13
 
