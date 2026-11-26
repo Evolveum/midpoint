@@ -87,6 +87,7 @@ The wizard now starts at the person of interest step if no person is selected. S
 See <<_behavior_changes_since_4_10,Behavior Changes>>.
 * Implemented more restrictive static resource handling in GUI.
 * Upgraded LDAP and AD Connector to 4.0.0 version.
+* Password hint field is now rendered as password input.
 
 == Changes With Respect to Version 4.10
 
