@@ -402,6 +402,7 @@ public abstract class PageAssignmentHolderDetails<AH extends AssignmentHolderTyp
             @Nullable SerializableConsumer<AjaxRequestTarget> postSaveHandler) {
 
         getFeedbackPanel().setVisible(false);
+        target.add(getFeedbackPanel());
         Fragment fragment = new Fragment(ID_DETAILS_VIEW, ID_WIZARD_FRAGMENT, PageAssignmentHolderDetails.this);
         fragment.setOutputMarkupId(true);
         addOrReplace(fragment);
