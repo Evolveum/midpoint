@@ -52,6 +52,7 @@ See xref:/midpoint/guides/account-activation-sequence/[Account Activation Authen
 * Fixed report preview showing an empty table when the report collection defines its own get options. See bug:MID-12812[]
 * The `End user` role now allows only selected assignment items (`targetRef`, `description`, `activation`, `tenantRef`, `orgRef`) when requesting a role.
 See <<_behavior_changes_since_4_9,Behavior Changes>>.
+* Implemented more restrictive static resource handling in GUI.
 
 == Changes With Respect To Version 4.10.4
 
@@ -399,7 +400,7 @@ Create metadata were added to campaign object while its creation. See bug:MID-10
 ** Fixed NPE with multivalue attributes when delimiter is not defined. (bug:MID-8609[]).
 ** Fix UTF-8 BOM character in csv file during of discovery functions. (bug:MID-9497[] and bug:MID-9498[]).
 
-* New version (3.8) of xref:/connectors/connectors/com.evolveum.polygon.connector.ldap.LdapConnector/[AD/LDAP Connector] was released and bundled with midPoint. The connector suggest all names of columns for configuration properties related with name of column.
+* New version (3.9.4) of xref:/connectors/connectors/com.evolveum.polygon.connector.ldap.LdapConnector/[AD/LDAP Connector] was released and bundled with midPoint. The connector suggest all names of columns for configuration properties related with name of column.
 ** Native association support.
 ** Possibility to choose attributes that should not be returned by default.
 ** Possibility to choose to encode string values in case of the presence of non standard ASCII characters.
@@ -550,7 +551,7 @@ We reserve the right not to support customized web browsers.
 | ConnId Connector Framework
 
 | xref:/connectors/connectors/com.evolveum.polygon.connector.ldap.LdapConnector/[LDAP connector bundle]
-| 3.9.2
+| 3.9.4
 | LDAP and Active Directory
 
 | xref:/connectors/connectors/com.evolveum.polygon.connector.csv.CsvConnector/[CSV connector]
