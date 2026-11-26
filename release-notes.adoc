@@ -450,7 +450,22 @@ For more information see xrefv:/midpoint/reference/master/upgrade/upgrade-with-n
 
 New initial objects:
 
+* 900-archetype-ai-agent.xml
+* 901-archetype-ai-model.xml
+* 902-archetype-ai-model-provider.xml
+* 903-archetype-ai-tool-server.xml
+* 904-archetype-local-ai-agent.xml
+* 905-archetype-access-key.xml
+* 906-archetype-workstation.xml
+* 910-object-collection-unowned-ai-agents.xml
+* 911-object-collection-unowned-access-keys.xml
+* 920-dashboard-ai-governance.xml
+
 Modified:
+
+* 040-role-enduser.xml - The `assign-requestable-roles` authorization is limited to the assignment items `targetRef`, `description`, `activation`, `tenantRef` and `orgRef` (see behavior changes below).
+* 172-report-simulation-items-changed.xml - Fixed MEL expressions of the item delta and related assignment columns and of the `relatedAssignment` subreport, so that they handle multiple values. See bug:MID-12882[].
+* 210-lookup-locales.xml - Key of the English (Europe) locale changed from `en_EU` to the standard locale code `en_150`.
 
 Please review link:https://github.com/Evolveum/midpoint/commits/master/repo/system-init/src/main/resources/initial-objects[source code history] for detailed list of changes.
 
@@ -463,26 +478,54 @@ NOTE: This section is relevant to the majority of midPoint deployments.
 It describes what data items were marked as deprecated, or removed altogether from the schema.
 You should at least scan through it - or use the `ninja` tool to check the deprecations for you.
 
-.Items being deprecated
-[%autowidth]
-|===
-| Type | Item or value | Note
-
-|===
-
-.Items being removed
-[%autowidth]
-|===
-
-|===
+// .Items being deprecated
+// [%autowidth]
+// |===
+// | Type | Item or value | Note
+// |===
+//
+// .Items being removed
+// [%autowidth]
+// |===
+// | Type | Item or value | Note
+// |===
 
 .Items being added
 [%autowidth]
 |===
+| Type | Item or value | Note
+| `AppenderConfigurationType`
+| `format`, `json`
+| Output format of the logging appender (`pattern` or `json`) and settings of the JSON format.
 
+| `AppenderFormatType`, `JsonFormatConfigurationType`, `JsonCustomFieldType`
+| (new types)
+| Types for the JSON format of logging appenders.
+
+| `AccessCertificationAssignmentReviewScopeType`
+| `includeApplications`
+| Controls whether assignments/inducements of applications are included in the certification.
+
+| `ObjectTypeRelatedSuggestionWorkDefinitionType`
+| `useAiService`
+| If `false`, only system-provided (heuristic) suggestions are generated in smart integration activities.
+
+| `AssociationSuggestionWorkDefinitionType`
+| `configuredAssociationPair`
+| Already configured subject/object type pairs to exclude from association suggestions, using the new `AssociationPairType`.
+
+| `ConnDevExportConnectorWorkDefinitionType`
+| `saveToConnectorDirectory`, `updateConnectorVersion`
+| Options of the connector export activity (connector development).
+
+| `ConnDevTestingType`
+| `testObject`
+| Shadows created on the testing resource while testing connector operations (connector development).
 |===
 
 Other changes:
+
+* `AppenderConfigurationType.pattern` is now optional, as it is not used by appenders with the `json` format.
 
 _Actions required:_
 
