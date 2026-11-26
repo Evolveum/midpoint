@@ -15,13 +15,16 @@ import org.apache.wicket.core.request.mapper.ResourceReferenceMapper;
 import org.apache.wicket.request.IRequestHandler;
 import org.apache.wicket.request.IRequestMapper;
 import org.apache.wicket.request.Request;
+import org.apache.wicket.request.Url;
 import org.apache.wicket.request.handler.resource.ResourceReferenceRequestHandler;
 import org.apache.wicket.request.mapper.ICompoundRequestMapper;
 import org.apache.wicket.request.mapper.ParentPathReferenceRewriter;
 import org.apache.wicket.request.mapper.parameter.PageParametersEncoder;
 import org.apache.wicket.request.resource.PackageResourceReference;
 import org.apache.wicket.request.resource.ResourceReference;
+import org.apache.wicket.request.resource.UrlResourceReference;
 import org.apache.wicket.request.resource.caching.IResourceCachingStrategy;
+import org.apache.wicket.resource.bundles.ResourceBundleReference;
 import org.apache.wicket.util.lang.Packages;
 
 import com.evolveum.midpoint.util.logging.Trace;
@@ -107,6 +110,27 @@ public class RestrictedResourceReferenceMapper extends ParentPathReferenceRewrit
                 LOGGER.debug("Couldn't map package resource request {}, not handling it", request.getUrl(), ex);
                 return null;
             }
+        }
+
+        /**
+         * References to plain URLs (e.g. files in static folder) are not package resources. This mapper is added
+         * after the stock ones, so it is asked first and would encode them as wicket/resource/[scope]/[url].
+         * They are left to the mapper Wicket has for them.
+         */
+        @Override
+        public Url mapHandler(IRequestHandler handler) {
+            if (handler instanceof ResourceReferenceRequestHandler resourceHandler
+                    && isUrlReference(resourceHandler.getResourceReference())) {
+                return null;
+            }
+            return super.mapHandler(handler);
+        }
+
+        private boolean isUrlReference(ResourceReference reference) {
+            if (reference instanceof ResourceBundleReference bundle) {
+                reference = bundle.getBundleReference();
+            }
+            return reference instanceof UrlResourceReference;
         }
 
         /**

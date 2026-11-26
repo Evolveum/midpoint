@@ -30,6 +30,7 @@ import org.apache.wicket.request.cycle.RequestCycle;
 import org.apache.wicket.request.handler.resource.ResourceReferenceRequestHandler;
 import org.apache.wicket.request.resource.PackageResourceReference;
 import org.apache.wicket.request.resource.ResourceReference;
+import org.apache.wicket.request.resource.UrlResourceReference;
 import org.apache.wicket.resource.JQueryResourceReference;
 import org.apache.wicket.util.tester.WicketTester;
 import org.testng.Assert;
@@ -142,6 +143,26 @@ public class RestrictedResourceReferenceMapperTest {
             Assert.assertTrue(tester.processRequest(), "Not handled: " + url);
             Assert.assertNull(exception.get(), "Exception for " + url);
             Assert.assertEquals(tester.getLastResponse().getStatus(), 200, "Status for " + url);
+        } finally {
+            tester.destroy();
+        }
+    }
+
+    /**
+     * Files referenced by URL (e.g. static/vendors-passwords.js of password panel) are not package resources,
+     * their URL must stay as it is.
+     */
+    @Test
+    public void testUrlReferenceIsNotRewritten() {
+        WicketTester tester = newTester(new AtomicReference<>());
+        try {
+            ResourceReference reference =
+                    new UrlResourceReference(Url.parse("static/vendors-passwords.js")).setContextRelative(true);
+            Url url = tester.getApplication().getRootRequestMapper().mapHandler(
+                    new ResourceReferenceRequestHandler(reference));
+
+            Assert.assertNotNull(url, "No URL generated");
+            Assert.assertEquals(url.getPath(), "static/vendors-passwords.js");
         } finally {
             tester.destroy();
         }
