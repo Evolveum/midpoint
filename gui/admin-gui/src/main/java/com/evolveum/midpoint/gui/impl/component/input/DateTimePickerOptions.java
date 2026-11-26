@@ -13,6 +13,7 @@ import com.evolveum.midpoint.web.security.MidPointAuthWebSession;
 import com.evolveum.midpoint.web.session.SessionStorage;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.text.StringEscapeUtils;
 import org.apache.wicket.Session;
 import org.jetbrains.annotations.NotNull;
 
@@ -101,7 +102,7 @@ public class DateTimePickerOptions implements Serializable {
         LIST_OF_LOCALIZATION_KEYS.forEach(
                 key -> sb.append(key)
                         .append(": '")
-                        .append(LocalizationUtil.translate("DateTimePickerOptions." + key))
+                        .append(StringEscapeUtils.escapeEcmaScript(LocalizationUtil.translate("DateTimePickerOptions." + key)))
                         .append("', "));
         sb.append("dayViewHeaderFormat: { month: 'long', year: 'numeric', hour: '2-digit' }, ");
 
