@@ -8,7 +8,12 @@ package com.evolveum.midpoint.testing.rest;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.UncheckedIOException;
 import java.net.URI;
+import java.util.Objects;
+import java.util.Properties;
 
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
@@ -52,15 +57,23 @@ public class TestSecurityFilterChainInitialization extends RestServiceInitialize
             new ResourcePathPair(
                     "/wicket/resource/org.apache.wicket.Application/Application.class",
                     "/wicket/resource/org.apache.wicket.Application/Nope.class"),
-            // file of servable type outside of the library that owns it
+            // file of servable type outside of the locations that UI libraries are served from
             new ResourcePathPair(
-                    WICKET_SCOPE_ROOT + "/org/apache/wicket/ajax/res/js/wicket-ajax-jquery.js",
-                    WICKET_SCOPE_ROOT + "/org/apache/wicket/ajax/res/js/nope.js"),
+                    WICKET_SCOPE_ROOT + "/org/wicketstuff/select2/res/bootstrap/select2-bootstrap.css",
+                    WICKET_SCOPE_ROOT + "/org/wicketstuff/select2/res/bootstrap/nope.css"),
     };
 
     private static final String[] WICKET_LIBRARY_RESOURCE_PATHS = {
             "/wicket/resource/org.apache.wicket.ajax.AbstractDefaultAjaxBehavior/res/js/wicket-ajax-jquery.js",
-            "/wicket/resource/jp.try0.wicket.honeypot.behavior.HoneypotBehavior/HoneypotBehavior.min.js",
+            // jQuery, taken from webjar by the reference set in MidPointApplication
+            "/wicket/resource/com.evolveum.midpoint.web.security.MidPointApplication/$-$/$-$/$-$/$-$/$-$"
+                    + "/META-INF/resources/webjars/jquery/" + webjarVersion("org.webjars", "jquery") + "/jquery.min.js",
+            // chart.js for chart panels, taken from webjar
+            "/wicket/resource/com.evolveum.wicket.chartjs.ChartJsPanel/$-$/$-$/$-$/$-$/webjars/chartjs/"
+                    + webjarVersion("org.webjars", "chartjs") + "/dist/chart.umd.js",
+            // language file of select2 components, taken from webjar
+            "/wicket/resource/de.agilecoders.wicket.webjars.request.resource.WebjarsJavaScriptResourceReference"
+                    + "/webjars/select2/" + webjarVersion("org.webjars.npm", "select2") + "/dist/js/i18n/en.js",
     };
 
     @LocalServerPort private int serverPort;
@@ -170,6 +183,20 @@ public class TestSecurityFilterChainInitialization extends RestServiceInitialize
      * @param missing the same path shape pointing to a class or file that does not exist
      */
     private record ResourcePathPair(String existing, String missing) {
+    }
+
+    /**
+     * Version of webjar on the classpath, so the paths do not have to be changed with each library upgrade.
+     */
+    private static String webjarVersion(String groupId, String artifactId) {
+        String path = "/META-INF/maven/" + groupId + "/" + artifactId + "/pom.properties";
+        try (InputStream is = TestSecurityFilterChainInitialization.class.getResourceAsStream(path)) {
+            Properties properties = new Properties();
+            properties.load(Objects.requireNonNull(is, "Webjar not found: " + path));
+            return properties.getProperty("version");
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
     }
 
     private Response getAnonymously(String path) {

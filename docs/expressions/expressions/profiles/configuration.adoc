@@ -314,6 +314,42 @@ An example:
 
 This is also the method how to specify default expression profile for a particular type of objects.
 
+[#restricting-user-submittable-objects]
+==== Restricting Expressions on User-Submittable Objects
+
+Users may have ability to create their own assignments, e.g. in a form of _access request_ process, or by using xref:/midpoint/reference/interfaces/rest/[REST API].
+In such a case, users could try to create an assignment which includes scripting expressions, for example an inline `focusMappings` script or an assignment `condition`.
+MidPoint user interface does not provide any ability for users to add expressions into assignments while using the self-service part of the user interface.
+However, this does not apply to the REST API (or data import), where the user controls the request content directly.
+
+Since 4.8.15, the default _End user_ role therefore limits the assignment items that users can request for themselves, so a request with expressions in the assignment is denied (or these expressions are effectively ignored).
+Custom self-service roles should do the same, see xref:/midpoint/reference/security/authorization/configuration/#limiting-assignment-items[Limiting Assignment Items].
+Also, use `#assign` rather than `#add` or `#modify` on `assignment` for self-service, as the latter also accepts a `targetRef` without an OID, whose search filter may contain an expression.
+
+Optionally, expressions in user objects (and in any other type an untrusted user can modify) can be restricted by an expression profile as well.
+Note that `UserType` has no expression profile by default, and the stock `safe` profile still allows the `script` evaluator, so bind such types to a profile that denies `script`:
+
+.Listing 6. Restricting expressions on user objects
+[source,xml]
+----
+<systemConfiguration>
+    ...
+    <expressions>
+        <expressionProfile>
+            <identifier>restricted-user</identifier>
+            <decision>deny</decision> <!-- deny everything not listed; this blocks script -->
+        </expressionProfile>
+    </expressions>
+    <defaultObjectPolicyConfiguration>
+        <type>UserType</type>
+        <expressionProfile>restricted-user</expressionProfile>
+    </defaultObjectPolicyConfiguration>
+</systemConfiguration>
+----
+
+Only the first `defaultObjectPolicyConfiguration` for a type (without `subtype`) is used.
+If your configuration already has a `UserType` entry, e.g. for an object template, add `expressionProfile` to that entry instead of adding a second one.
+
 === Defaults
 
 === For Expressions
