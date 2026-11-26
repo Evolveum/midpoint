@@ -41,6 +41,7 @@ Moreover, midPoint 4.11.0 made a significant leap towards secure-by-default conf
 // TODO
 
 === Other Improvements
+* Added support for JSON and YAML in initial and post-initial objects. See bug:MID-13306[]
 
 ==== Security
 
@@ -116,6 +117,8 @@ The user now gets a message about the invalid input.
 * Fixed adding a documentation URL in the connector generator wizard. See bug:MID-13286[]
 * Fixed outbound mapping source not being saved when it was added in the mapping table. See bug:MID-11823[]
 * Fixed Retry connection in the connector generator wizard accepting an empty or invalid base URL. See bug:MID-12890[]
+* Improved the connector generator wizard.
+* Fixed an issue with migrating application role assignments to business role assignments. See bug:MID-12679[]
 // TODO
 
 

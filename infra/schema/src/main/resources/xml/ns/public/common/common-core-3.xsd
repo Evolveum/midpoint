@@ -16139,7 +16139,7 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:restriction base="xsd:string">
-            <xsd:enumeration value="PATTERN">
+            <xsd:enumeration value="pattern">
                 <xsd:annotation>
                     <xsd:documentation>
                         Text output formatted by the "pattern" element (default).
@@ -16149,7 +16149,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
-            <xsd:enumeration value="JSON">
+            <xsd:enumeration value="json">
                 <xsd:annotation>
                     <xsd:documentation>
                         One JSON object per log record.
@@ -16187,14 +16187,14 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="timeZone" type="xsd:string" minOccurs="0">
+            <xsd:element name="timezone" type="xsd:string" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         Time zone of the timestamp, e.g. UTC or Europe/Bratislava.
                         If not specified, the time zone of the server is used.
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <a:displayName>JsonFormatConfigurationType.timeZone</a:displayName>
+                        <a:displayName>JsonFormatConfigurationType.timezone</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
