@@ -33,98 +33,92 @@ Moreover, midPoint 4.11.0 made a significant leap towards secure-by-default conf
 {% include release-dedication.html content=dedicationContent %}
 ++++
 
-== Changes With Respect to Version 4.11
+== Changes With Respect to Version 4.11.0
 
 === New Features and Major Improvements
-* Added JSON logging: a logging appender can now write records as JSON objects, e.g. for SIEM integration. See xrefv:/midpoint/reference/master/diag/logging/json-logging/[JSON Logging]
 
-// TODO
+// currently empty
 
 === Other Improvements
-* Added support for JSON and YAML in initial and post-initial objects. See bug:MID-13306[]
+
+* Added support for JSON and YAML in initial and post-initial objects. See bug:MID-13306[].
+* Added JSON logging: a logging appender can now write records as JSON objects, e.g. for SIEM integration. See xrefv:/midpoint/reference/master/diag/logging/json-logging/[JSON Logging].
 
 ==== Security
 
-* Failed password reset attempts are now recorded in the audit log, improving security monitoring and troubleshooting.
-* Improved Spring Security initialization by replacing ignored URL patterns with a dedicated security filter chain, preserving existing authentication behavior.
-* Hardened Content Security Policy by removing unsafe-inline and unsafe-eval JavaScript permissions and restricting inline CSS in <style> elements.
 * The REST API and most of the Spring Boot Actuator endpoints are disabled by default and can be enabled by startup options.
 Requests to a disabled endpoint end with HTTP 404 (Not Found) before authentication.
 See <<_behavior_changes_since_4_11,Behavior Changes>>.
 * The `End user` role now allows only selected assignment items (`targetRef`, `description`, `activation`, `tenantRef`, `orgRef`) when requesting a role.
 See <<_behavior_changes_since_4_11,Behavior Changes>>.
-// TODO
+* Failed password reset attempts are now recorded in the audit log, improving security monitoring and troubleshooting.
+* Improved Spring Security initialization by replacing ignored URL patterns with a dedicated security filter chain, preserving existing authentication behavior.
+* Hardened Content Security Policy by removing unsafe-inline and unsafe-eval JavaScript permissions and restricting inline CSS in <style> elements.
 
 ==== User Interface
 
 * English (Europe) is now the default locale.
 It uses the standard locale code `en_150` instead of the non-existent `en_EU`, for which neither the JDK nor browsers have locale data.
-Users who have `en_EU` stored (midPoint 4.11.0) keep English (Europe). See bug:MID-12889[]
-* Connector generator wizard can now test the generated get, create, update and delete operations on the testing resource. See bug:MID-11802[], bug:MID-12501[], bug:MID-11441[] and bug:MID-11442[]
-* Connector generator wizard can export the developed connector as a JAR or a project ZIP, either downloaded or saved to the midPoint connector directory, optionally with a new connector version. See bug:MID-11259[]
-* Improved selection of a new relationship in the connector generator wizard. See bug:MID-11791[]
-// TODO
+Users who have `en_EU` stored (midPoint 4.11.0) keep English (Europe). See bug:MID-12889[].
+* Connector generator wizard can now test the generated get, create, update and delete operations on the testing resource. See bug:MID-11802[], bug:MID-12501[], bug:MID-11441[] and bug:MID-11442[].
+* Connector generator wizard can export the developed connector as a JAR or a project ZIP, either downloaded or saved to the midPoint connector directory, optionally with a new connector version. See bug:MID-11259[].
+* Improved selection of a new relationship in the connector generator wizard. See bug:MID-11791[].
+* Various other improvements in the connector generator wizard.
 
-=== Other Areas
+==== Other Areas
 
-* Assignment approval expressions can now access the assignment being approved directly through the `assignment` variable, without manually extracting it from `objectDelta`. See bug:MID-11000[]
-// TODO
+* Assignment approval expressions can now access the assignment being approved directly through the `assignment` variable, without manually extracting it from `objectDelta`. See bug:MID-11000[].
 
 === Bug Fixes
 
-* bug:MID-11658[] Fixed inconsistency in help  for ninja export command
-* Fixed distributed task workers incorrectly completing when their coordinator is suspended, preventing the task from resuming. See bug:MID-12627[]
+* Fixed inconsistency in help for ninja `export` command. See bug:MID-11658[].
+* Fixed distributed task workers incorrectly completing when their coordinator is suspended, preventing the task from resuming. See bug:MID-12627[].
 * Requests for unknown paths outside the REST API (for example under /actuator or /static) now return HTTP 404 instead of 500 with a stack trace. See bug:MID-12566[].
-* Prevented oversized string values from corrupting persisted object data and making objects unreadable. See bug:MID-12813[]
-* Fixed statistics regeneration tasks displaying the resource OID instead of its name. See bug:MID-11518[]
-* Fixed misleading messages after certification campaign actions and prevented an already closed campaign from being closed again. See bug:MID-12832[]
-* Fixed outbound mapping simulations ignoring the filter configured in the simulation sampling popup. See bug:MID-12060[]
-* Fixed multi-threaded reconciliation failures caused by concurrent group membership synchronization, preventing incorrect assignments and Prism value parent errors. See bug:MID-11746[]
-* Fixed an issue with file-based secret providers when the secret file ends with a trailing newline. See bug:MID-10836[]
-* Fixed password strength indicator showing inaccurate score that jumped up and down while typing. See bug:MID-12480[]
-* Fixed border styling of input fields with a button. See bug:MID-12469[]
-* Fixed NullPointerException when creating a new schema. See bug:MID-12407[]
-* Fixed paging and search of the Repository objects page not being kept in session storage. See bug:MID-11645[]
-* Fixed NullPointerException during export of cases. See bug:MID-12830[]
-* Fixed errors in log while editing API key. See bug:MID-12834[] and bug:MID-12779[]
-* Fixed report generation for objects without marks. See bug:MID-12814[]
-* Fixed horizontal scroll of the report preview table and expressions in the `Simulation report: Items changed` initial object. See bug:MID-12882[]
+* Prevented oversized string values from corrupting persisted object data and making objects unreadable. See bug:MID-12813[].
+* Fixed statistics regeneration tasks displaying the resource OID instead of its name. See bug:MID-11518[].
+* Fixed misleading messages after certification campaign actions and preventing an already closed campaign from being closed again. See bug:MID-12832[].
+* Fixed outbound mapping simulations ignoring the filter configured in the simulation sampling popup. See bug:MID-12060[].
+* Fixed multi-threaded reconciliation failures caused by concurrent group membership synchronization, preventing incorrect assignments and Prism value parent errors. See bug:MID-11746[].
+* Fixed an issue with file-based secret providers when the secret file ends with a trailing newline. See bug:MID-10836[].
+* Fixed password strength indicator showing inaccurate score that jumped up and down while typing. See bug:MID-12480[].
+* Fixed border styling of input fields with a button. See bug:MID-12469[].
+* Fixed NullPointerException when creating a new schema. See bug:MID-12407[].
+* Fixed paging and search of the Repository objects page not being kept in session storage, causing e.g. returning to the first page after opening an object. See bug:MID-11645[].
+* Fixed NullPointerException during export of cases. See bug:MID-12830[].
+* Fixed errors in log while editing API key. See bug:MID-12834[] and bug:MID-12779[].
+* Fixed report generation for objects without marks. See bug:MID-12814[].
+* Fixed horizontal scroll of the report preview table and expressions in the `Simulation report: Items changed` initial object. See bug:MID-12882[].
 * Fixed error 500 when opening the System Notifications panel.
-The legacy `mail` and `file` transport configuration is shown only if it is present in system configuration. See bug:MID-12776[]
-* Fixed focus mapping wizard in role wizard allowing an empty target for empty, "as is" and path expressions, and the source column in the mappings table growing when multiple values are selected. See bug:MID-13021[]
-* Fixed incorrect display names of System GUI configuration items (shadow collection views, default settings of object list views and object details). See bug:MID-11752[]
-* Fixed failures of large multipart form submissions in GUI by raising the embedded Tomcat multipart limits (`max-part-count` to 250, `max-part-header-size` to 1024). See bug:MID-12616[]
+The legacy `mail` and `file` transport configuration is shown only if it is present in system configuration. See bug:MID-12776[].
+* Fixed focus mapping wizard in role wizard allowing an empty target for empty, "as is" and path expressions, and the source column in the mappings table growing when multiple values are selected. See bug:MID-13021[].
+* Fixed incorrect display names of System GUI configuration items (shadow collection views, default settings of object list views and object details). See bug:MID-11752[].
+* Fixed failures of large multipart form submissions in GUI by raising the embedded Tomcat multipart limits (`max-part-count` to 250, `max-part-header-size` to 1024). See bug:MID-12616[].
 * Fixed container deployments (`midpoint.sh init-native`) creating `config.xml` from the legacy `config-native.xml` template.
 The same default `config.xml` is now used for all forms of deployment. See <<_behavior_changes_since_4_11>>.
-* Fixed adding a documentation URL in the connector generator wizard de-selecting documentation suggested by AI. See bug:MID-12799[]
-* Fixed Range step of the mapping wizard showing a stale value after the range is adjusted automatically. See bug:MID-12578[]
-* Fixed selecting an autocompletion suggestion with keyboard in advanced search overwriting the whole query. See bug:MID-13485[]
-* Fixed Connection tile of the connector generator wizard always showing Basic auth as the authentication method. See bug:MID-13501[]
-* Fixed the roles list in the request access role catalog showing services after "All services" was opened. See bug:MID-13480[]
+* Fixed adding a documentation URL in the connector generator wizard de-selecting documentation suggested by AI. See bug:MID-12799[].
+* Fixed Range step of the mapping wizard showing a stale value after the range is adjusted automatically. See bug:MID-12578[].
+* Fixed selecting an autocompletion suggestion with keyboard in advanced search overwriting the whole query. See bug:MID-13485[].
+* Fixed Connection tile of the connector generator wizard always showing Basic auth as the authentication method. See bug:MID-13501[].
+* Fixed the roles list in the request access role catalog showing services after "All services" was opened. See bug:MID-13480[].
 * Fixed the role catalog step of the request access wizard listing roles that cannot be requested when the step was opened directly by URL.
-The wizard now starts at the person of interest step if no person is selected. See bug:MID-13482[]
-* Fixed script language check in the editor of suggested mappings. See bug:MID-13214[]
-* Fixed help, tooltip and validator customization being ignored in the first step of the resource wizard. See bug:MID-12359[]
+The wizard now starts at the person of interest step if no person is selected. See bug:MID-13482[].
+* Fixed script language check in the editor of suggested mappings. See bug:MID-13214[].
+* Fixed help, tooltip and validator customization being ignored in the first step of the resource wizard. See bug:MID-12359[].
 * Fixed correlation authentication module showing a general error when a correlation attribute value is missing or invalid.
 The user now gets a message about the invalid input.
-* Fixed the Delta column of audit reports showing `POV:dummy` with the object reference, the reference now shows only the OID. See bug:MID-12825[]
-* Fixed error 500 after changing the language on the resource details page. See bug:MID-13215[]
-* Fixed `summaryPanel/displayName` customization being ignored. See bug:MID-13037[]
-* Fixed untranslated validation error messages in the schema extension wizard. See bug:MID-13216[]
-* Fixed the members table in Organization tree overflowing its panel. See bug:MID-13311[]
-* Fixed NullPointerException when exiting the new schema form. See bug:MID-13349[]
-* Fixed validation error messages in wizard steps remaining visible after the value was corrected. See bug:MID-13355[]
-* Fixed adding a documentation URL in the connector generator wizard. See bug:MID-13286[]
-* Fixed outbound mapping source not being saved when it was added in the mapping table. See bug:MID-11823[]
-* Fixed Retry connection in the connector generator wizard accepting an empty or invalid base URL. See bug:MID-12890[]
-* Improved the connector generator wizard.
-* Fixed an issue with migrating application role assignments to business role assignments. See bug:MID-12679[]
-// TODO
-
+* Fixed the Delta column of audit reports showing `POV:dummy` with the object reference, the reference now shows only the OID. See bug:MID-12825[].
+* Fixed error 500 after changing the language on the resource details page. See bug:MID-13215[].
+* Fixed `summaryPanel/displayName` customization being ignored. See bug:MID-13037[].
+* Fixed untranslated validation error messages in the schema extension wizard. See bug:MID-13216[].
+* Fixed the members table in Organization tree overflowing its panel. See bug:MID-13311[].
+* Fixed NullPointerException when exiting the new schema form. See bug:MID-13349[].
+* Fixed validation error messages in wizard steps remaining visible after the value was corrected. See bug:MID-13355[].
+* Fixed adding a documentation URL in the connector generator wizard. See bug:MID-13286[].
+* Fixed outbound mapping source not being saved when it was added in the mapping table. See bug:MID-11823[].
+* Fixed Retry connection in the connector generator wizard accepting an empty or invalid base URL. See bug:MID-12890[].
+* Fixed an issue with migrating application role assignments to business role assignments. See bug:MID-12679[].
 
 === Other changes
-
-// TODO
 
 === Releases Of Other Components
 
