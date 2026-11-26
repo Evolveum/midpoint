@@ -53,6 +53,7 @@ See xref:/midpoint/guides/account-activation-sequence/[Account Activation Authen
 * The `End user` role now allows only selected assignment items (`targetRef`, `description`, `activation`, `tenantRef`, `orgRef`) when requesting a role.
 See <<_behavior_changes_since_4_9,Behavior Changes>>.
 * Implemented more restrictive static resource handling in GUI.
+* Password hint field is now rendered as password input.
 
 == Changes With Respect To Version 4.10.4
 
