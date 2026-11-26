@@ -46,6 +46,7 @@ The wizard now starts at the person of interest step if no person is selected. S
 * The `End user` role now allows only selected assignment items (`targetRef`, `description`, `activation`, `tenantRef`, `orgRef`) when requesting a role.
 See <<_behavior_changes_since_4_7,Behavior Changes>>.
 * Upgraded libraries (Spring Boot, Wicket, and others).
+* Implemented more restrictive static resource handling in GUI.
 
 == Changes with Respect To Version 4.8.13
 
@@ -646,7 +647,7 @@ Note that this resulted in migration from Java EE `javax` package names to `jaka
 ** Fixed NPE with multivalue attributes when delimiter is not defined. (bug:MID-8609[]).
 ** Fix UTF-8 BOM character in csv file during of discovery functions. (bug:MID-9497[] and bug:MID-9498[]).
 
-* New version (3.7.3) of LDAP connector bundle (including xref:/connectors/connectors/com.evolveum.polygon.connector.ldap.LdapConnector/[LDAP Connector] and xref:/connectors/connectors/com.evolveum.polygon.connector.ldap.ad.AdLdapConnector/[Active Directory Connector]) was released and bundled with midPoint.
+* New version (3.7.6) of LDAP connector bundle (including xref:/connectors/connectors/com.evolveum.polygon.connector.ldap.LdapConnector/[LDAP Connector] and xref:/connectors/connectors/com.evolveum.polygon.connector.ldap.ad.AdLdapConnector/[Active Directory Connector]) was released and bundled with midPoint.
 ** Adding third error code for AD X_BIND_REQUIRED error. (bug:MID-9724[]).
 
 * Docker images will be released in Docker Hub soon after midPoint {release-version} release.
@@ -879,7 +880,7 @@ We reserve the right not to support customized web browsers.
 | ConnId Connector Framework
 
 | xref:/connectors/connectors/com.evolveum.polygon.connector.ldap.LdapConnector/[LDAP connector bundle]
-| 3.7.4
+| 3.7.6
 | LDAP and Active Directory
 
 | xref:/connectors/connectors/com.evolveum.polygon.connector.csv.CsvConnector/[CSV connector]
