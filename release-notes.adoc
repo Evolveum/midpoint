@@ -45,6 +45,7 @@ The wizard now starts at the person of interest step if no person is selected. S
 * Fixed the roles list in the request access role catalog showing services after "All services" was opened. See bug:MID-13480[]
 * The `End user` role now allows only selected assignment items (`targetRef`, `description`, `activation`, `tenantRef`, `orgRef`) when requesting a role.
 See <<_behavior_changes_since_4_7,Behavior Changes>>.
+* Upgraded libraries (Spring Boot, Wicket, and others).
 
 == Changes with Respect To Version 4.8.13
 
