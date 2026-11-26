@@ -160,12 +160,14 @@ public abstract class AbstractMappingsTable<P extends Containerable> extends Abs
                         try {
                             PrismPropertyValue<VariableBindingDefinitionType> newPrismValue
                                     = pageBase.getPrismContext().itemFactory().createPropertyValue();
-                            sourceItem.getItem().add(newPrismValue);
+
+                            // Wrap the empty value so the source is tracked as changed (MID-11823).
                             PrismPropertyValueWrapper<VariableBindingDefinitionType> newValueWrapper =
                                     WebPrismUtil.createNewValueWrapper(sourceItem, newPrismValue, pageBase);
-                            sourceItem.getValues().add(newValueWrapper);
-                            // We add an empty value first and fill it in afterwards, so the wrapper sees it as changed (MID-11823)
+
                             newValueWrapper.setRealValue(newValue);
+                            sourceItem.getItem().add(newPrismValue);
+                            sourceItem.getValues().add(newValueWrapper);
                         } catch (SchemaException e) {
                             LOGGER.error("Couldn't initialize new value for Source item", e);
                         }
