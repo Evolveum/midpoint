@@ -34,6 +34,7 @@ import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.common.ModelCommonBeans;
 import com.evolveum.midpoint.model.common.expression.evaluator.caching.AbstractSearchExpressionEvaluatorCache;
+import com.evolveum.midpoint.model.common.expression.evaluator.caching.SimulatedCreateOnDemandRegistry;
 import com.evolveum.midpoint.model.common.expression.evaluator.transformation.AbstractValueTransformationExpressionEvaluator;
 import com.evolveum.midpoint.model.common.util.PopulatorUtil;
 import com.evolveum.midpoint.prism.*;
@@ -181,7 +182,7 @@ public abstract class AbstractSearchExpressionEvaluator<
 
             if (Boolean.TRUE.equals(expressionEvaluatorBean.isCreateOnDemand()) && vtCtx.isEvaluateNew()) {
                 try {
-                    PrismObject<O> createdObject = createOnDemand();
+                    PrismObject<O> createdObject = createOnDemand(queries);
                     if (createdObject != null) {
                         log("create-on-demand", 1);
                         return List.of(createResultValue(
@@ -496,9 +497,18 @@ public abstract class AbstractSearchExpressionEvaluator<
             }
         }
 
-        private PrismObject<O> createOnDemand()
+        private PrismObject<O> createOnDemand(Collection<ObjectQuery> queries)
                 throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,
                 ConfigurationException, SecurityViolationException, ObjectAlreadyExistsException, SubscriptionComplianceException {
+
+            SimulatedCreateOnDemandRegistry simulatedObjects =
+                    getTask().isExecutionFullyPersistent() ? null : SimulatedCreateOnDemandRegistry.get();
+            if (simulatedObjects != null) {
+                PrismObject<O> alreadyCreated = simulatedObjects.find(targetTypeClass, queries);
+                if (alreadyCreated != null) {
+                    return alreadyCreated;
+                }
+            }
 
             var eeCtx = vtCtx.getExpressionEvaluationContext();
             var variables = vtCtx.getVariablesMap();
@@ -535,7 +545,11 @@ public abstract class AbstractSearchExpressionEvaluator<
             }
 
             ObjectDeltaOperation<O> deltaOperation = ObjectDeltaOperation.findAddDelta(executedChanges, newObject);
-            return deltaOperation != null ? deltaOperation.getObjectDelta().getObjectToAdd() : null;
+            PrismObject<O> createdObject = deltaOperation != null ? deltaOperation.getObjectDelta().getObjectToAdd() : null;
+            if (simulatedObjects != null && createdObject != null) {
+                simulatedObjects.put(targetTypeClass, queries, createdObject);
+            }
+            return createdObject;
         }
 
         private Task getTask() {

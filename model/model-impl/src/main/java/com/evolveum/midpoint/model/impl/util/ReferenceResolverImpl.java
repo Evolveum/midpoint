@@ -11,6 +11,7 @@ import static java.util.Collections.singletonList;
 import java.util.Collection;
 import java.util.List;
 
+import com.evolveum.midpoint.model.common.expression.evaluator.caching.SimulatedCreateOnDemandRegistry;
 import com.evolveum.midpoint.model.api.util.ReferenceResolver;
 
 import com.evolveum.midpoint.schema.SearchResultList;
@@ -89,6 +90,10 @@ public class ReferenceResolverImpl implements ReferenceResolver {
             throws SchemaException, ObjectNotFoundException, ConfigurationException, CommunicationException,
             SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
         LOGGER.trace("Resolving {}:{} from {}", targetClass.getSimpleName(), oid, source);
+        PrismObject<? extends ObjectType> simulated = SimulatedCreateOnDemandRegistry.findSimulated(task, oid);
+        if (simulated != null && targetClass.isInstance(simulated.asObjectable())) {
+            return simulated.clone();
+        }
         return switch (source) {
             case REPOSITORY -> repositoryService.getObject(targetClass, oid, options, result);
             case MODEL -> modelService.getObject(targetClass, oid, options, task, result);

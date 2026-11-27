@@ -22,6 +22,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
+import com.evolveum.midpoint.model.common.expression.evaluator.caching.SimulatedCreateOnDemandRegistry;
 import com.evolveum.midpoint.model.api.hooks.HookRegistry;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -143,6 +144,10 @@ public class ModelObjectResolver implements ObjectResolver {
             @NotNull Task task,
             @NotNull OperationResult result) throws ObjectNotFoundException, CommunicationException, SchemaException,
             ConfigurationException, SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
+        PrismObject<? extends ObjectType> simulated = SimulatedCreateOnDemandRegistry.findSimulated(task, oid);
+        if (simulated != null && clazz.isInstance(simulated.asObjectable())) {
+            return clazz.cast(simulated.clone().asObjectable());
+        }
         T objectType;
         try {
             PrismObject<T> object;
