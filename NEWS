@@ -1,12 +1,12 @@
-MidPoint 4.11.0 "Čapek"
+MidPoint 4.11 "Čapek" Update 1
 ----------------------
 
-Release 4.11.0 is an eighty-sixth midPoint release code-named Čapek.
-The 4.11.0 release brings AI-assisted rapid application onboarding, major security improvements, and numerous improvements for end users, engineers, and administrators.
+Release 4.11.1 is an eighty-ninth midPoint release code-named Čapek.
+The 4.11.1 release brings AI-assisted rapid application onboarding, major security improvements, and numerous improvements for end users, engineers, and administrators.
 
-Release date: 21st October 2026
+Release date: 27th November 2026
 Release type: Feature release
 End of support: 20th October 2028
 
 Please see the release notes for detailed list of changes:
-https://docs.evolveum.com/midpoint/release/4.11.0/
+https://docs.evolveum.com/midpoint/release/4.11.1/
