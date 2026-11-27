@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (C) 2010-2026 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<user oid="6239ab72-732b-43f0-84ce-ba6ae7283c68"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <name>rest-audit</name>
+    <assignment>
+        <targetRef oid="5c28a988-2960-4c09-ab14-33216cd6f97c" type="RoleType"/>
+    </assignment>
+    <credentials>
+        <password>
+            <value>r3stAud1tR34d</value>
+        </password>
+        <securityQuestions>
+            <questionAnswer>
+                <questionIdentifier>http://midpoint.evolveum.com/xml/ns/public/security/question-2#q001</questionIdentifier>
+                <questionAnswer>r3stAud1tR34d</questionAnswer>
+            </questionAnswer>
+        </securityQuestions>
+    </credentials>
+</user>

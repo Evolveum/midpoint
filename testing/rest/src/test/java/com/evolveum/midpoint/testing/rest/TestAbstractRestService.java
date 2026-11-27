@@ -9,6 +9,7 @@ package com.evolveum.midpoint.testing.rest;
 import static org.testng.AssertJUnit.*;
 
 import java.io.File;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -34,6 +35,9 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.rest.impl.AuditRecordRedactor;
+import com.evolveum.midpoint.rest.impl.AuditSearchGuard;
+import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -46,9 +50,18 @@ import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ExecuteScriptResponseType;
+import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordListType;
+import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
+import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.PipelineItemType;
+import com.evolveum.prism.xml.ns._public.query_3.OrderDirectionType;
+import com.evolveum.prism.xml.ns._public.query_3.PagingType;
 import com.evolveum.prism.xml.ns._public.query_3.QueryType;
+import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
+import com.evolveum.prism.xml.ns._public.types_3.ItemDeltaType;
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
+import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
 
@@ -1950,6 +1963,503 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
         displayValue("response body", response.readEntity(String.class));
         assertStatus(response, 404);
     }
+
+    // region Audit records search (/audit/search)
+
+    private static final String AUDIT_SEARCH_PATH = "/audit/search";
+
+    /** Local names of the protected data items that must never be returned. */
+    private static final List<String> PROTECTED_DATA_ITEMS = List.of("encryptedData", "hashedData", "clearValue");
+
+    /**
+     * Superuser searches audit records about jack. The password of jack is changed first, so there is an audited
+     * delta with protected data. Deltas are not returned by default. This also checks that the request is not
+     * handled by the generic `/{type}/search` endpoint (which would respond with 400 for an unknown type).
+     */
+    @Test
+    public void test900SearchAuditRecords() throws Exception {
+        given("jack's password is changed, so there is an audited delta with a protected value");
+        // Must satisfy the value policy; unique to avoid conflicts with the password history.
+        modifyUserChangePassword(USER_JACK_OID, "Aud1t" + System.currentTimeMillis() % 1_000_000);
+
+        WebClient client = prepareClient();
+        client.path(AUDIT_SEARCH_PATH);
+
+        when();
+        Response response = client.post(auditQuery(auditAnchor() + " and " + targetIsJack(), 100));
+
+        then();
+        displayResponse(response);
+        assertStatus(response, 200);
+        AuditEventRecordListType records = parseAuditRecords(response.readEntity(String.class));
+        assertFalse("No audit records about jack found", records.getObject().isEmpty());
+        assertNull("Count should not be returned unless asked for", records.getCount());
+        for (AuditEventRecordType record : records.getObject()) {
+            assertTrue("Delta returned without being asked for: " + record, record.getDelta().isEmpty());
+            assertEquals("Wrong target", USER_JACK_OID, record.getTargetRef().getOid());
+        }
+        assertTimestampsOrdered(records, true);
+    }
+
+    /** Deltas are returned when asked for, but the content of the protected values is removed. */
+    @Test
+    public void test901SearchAuditRecordsWithDeltas() throws Exception {
+        WebClient client = prepareClient();
+        client.path(AUDIT_SEARCH_PATH);
+        client.query("include", "delta");
+
+        when();
+        Response response = client.post(auditQuery(auditAnchor() + " and " + targetIsJack(), 100));
+
+        then();
+        displayResponse(response);
+        assertStatus(response, 200);
+        String body = response.readEntity(String.class);
+        AuditEventRecordListType records = parseAuditRecords(body);
+        assertFalse("No audit records about jack's password change found", records.getObject().isEmpty());
+        boolean passwordValueDeltaFound = false;
+        for (AuditEventRecordType record : records.getObject()) {
+            for (ObjectDeltaOperationType deltaOperation : record.getDelta()) {
+                assertNull("Execution result returned without being asked for", deltaOperation.getExecutionResult());
+                ObjectDeltaType objectDelta = deltaOperation.getObjectDelta();
+                if (objectDelta == null) {
+                    continue;
+                }
+                for (ItemDeltaType itemDelta : objectDelta.getItemDelta()) {
+                    if (itemDelta.getPath().getItemPath().equivalent(SchemaConstants.PATH_PASSWORD_VALUE)) {
+                        passwordValueDeltaFound = true;
+                    }
+                }
+            }
+        }
+        // The delta is kept (only the content of the protected value is removed), it is not dropped as a whole.
+        assertTrue("No (redacted) password value delta returned", passwordValueDeltaFound);
+        assertNoProtectedData(body);
+    }
+
+    /** Execution results of deltas are returned when asked for; protected data are still removed. */
+    @Test
+    public void test902SearchAuditRecordsWithDeltasAndResults() throws Exception {
+        WebClient client = prepareClient();
+        client.path(AUDIT_SEARCH_PATH);
+        client.query("include", AuditRecordRedactor.INCLUDE_DELTA_EXECUTION_RESULT);
+
+        when();
+        Response response = client.post(auditQuery(auditAnchor() + " and " + targetIsJack(), 100));
+
+        then();
+        displayResponse(response);
+        assertStatus(response, 200);
+        String body = response.readEntity(String.class);
+        assertFalse("No audit records found", parseAuditRecords(body).getObject().isEmpty());
+        assertNoProtectedData(body);
+    }
+
+    /** The total count is returned in the `count` attribute when asked for. */
+    @Test
+    public void test903SearchAuditRecordsWithTotalCount() throws Exception {
+        WebClient client = prepareClient();
+        client.path(AUDIT_SEARCH_PATH);
+        client.query("returnTotalCount", true);
+
+        when();
+        Response response = client.post(auditQuery(auditAnchor(), 1));
+
+        then();
+        displayResponse(response);
+        assertStatus(response, 200);
+        AuditEventRecordListType records = parseAuditRecords(response.readEntity(String.class));
+        assertEquals("Wrong number of returned records", 1, records.getObject().size());
+        assertNotNull("No count returned", records.getCount());
+        assertTrue("Count is too low: " + records.getCount(), records.getCount() > 1);
+    }
+
+    /** Ordering by timestamp descending is supported (repoId is added as a tie-breaker). */
+    @Test
+    public void test904SearchAuditRecordsDescending() throws Exception {
+        WebClient client = prepareClient();
+        client.path(AUDIT_SEARCH_PATH);
+        QueryType query = auditQuery(auditAnchor(), 50);
+        query.getPaging().setOrderBy(new ItemPathType(AuditEventRecordType.F_TIMESTAMP));
+        query.getPaging().setOrderDirection(OrderDirectionType.DESCENDING);
+
+        when();
+        Response response = client.post(query);
+
+        then();
+        displayResponse(response);
+        assertStatus(response, 200);
+        AuditEventRecordListType records = parseAuditRecords(response.readEntity(String.class));
+        assertTrue("Expected more records", records.getObject().size() > 1);
+        assertTimestampsOrdered(records, false);
+    }
+
+    /** A query anchored by timestamp only must not cover more than the maximal time window (31 days by default). */
+    @Test
+    public void test905SearchAuditRecordsWithTooLongTimeWindow() {
+        // The durations are exact, so that a range just over the limit does not read as equal to it.
+        assertAuditSearchRejected(auditQuery(timestampCondition(">=", 40), 10),
+                "longer than the allowed maximum of 31 days.", "(from ", "40 days", "equality on");
+    }
+
+    /** An old, but narrow time range is fine. */
+    @Test
+    public void test906SearchAuditRecordsWithOldNarrowTimeWindow() throws Exception {
+        WebClient client = prepareClient();
+        client.path(AUDIT_SEARCH_PATH);
+
+        when();
+        Response response = client.post(auditQuery(
+                timestampCondition(">=", 60) + " and " + timestampCondition("<", 40), 10));
+
+        then();
+        displayResponse(response);
+        assertStatus(response, 200);
+        parseAuditRecords(response.readEntity(String.class));
+    }
+
+    /** The time window is not limited for queries resolved by an indexed identifier (here, the target). */
+    @Test
+    public void test907SearchAuditRecordsByTargetWithLongTimeWindow() throws Exception {
+        WebClient client = prepareClient();
+        client.path(AUDIT_SEARCH_PATH);
+
+        when();
+        Response response = client.post(auditQuery(timestampCondition(">=", 365) + " and " + targetIsJack(), 10));
+
+        then();
+        displayResponse(response);
+        assertStatus(response, 200);
+        assertFalse("No audit records found",
+                parseAuditRecords(response.readEntity(String.class)).getObject().isEmpty());
+    }
+
+    @Test
+    public void test910SearchAuditRecordsWithoutMaxSize() {
+        assertAuditSearchRejected(auditQuery(auditAnchor(), null), "maxSize");
+    }
+
+    @Test
+    public void test911SearchAuditRecordsWithTooBigMaxSize() {
+        assertAuditSearchRejected(auditQuery(auditAnchor(), 1001), "maxSize");
+    }
+
+    @Test
+    public void test912SearchAuditRecordsWithTooBigOffset() {
+        QueryType query = auditQuery(auditAnchor(), 10);
+        query.getPaging().setOffset(10_001);
+        assertAuditSearchRejected(query, "offset");
+    }
+
+    /** Filtering by a non-indexed item only would scan all the audit partitions. */
+    @Test
+    public void test913SearchAuditRecordsWithoutIndexedAnchor() {
+        assertAuditSearchRejected(auditQuery("eventType = \"modifyObject\"", 10), "indexed");
+    }
+
+    /** A condition in a disjunction is not an anchor. */
+    @Test
+    public void test914SearchAuditRecordsWithAnchorInDisjunction() {
+        assertAuditSearchRejected(auditQuery(auditAnchor() + " or eventType = \"modifyObject\"", 10), "indexed");
+    }
+
+    /** Dereferencing would join the main repository tables without any authorization. */
+    @Test
+    public void test915SearchAuditRecordsWithDereferencing() {
+        assertAuditSearchRejected(
+                auditQuery(auditAnchor() + " and targetRef/@/name = \"jack\"", 10), "Dereferencing");
+    }
+
+    @Test
+    public void test916SearchAuditRecordsWithUnsupportedOrdering() {
+        QueryType query = auditQuery(auditAnchor(), 10);
+        query.getPaging().setOrderBy(new ItemPathType(AuditEventRecordType.F_EVENT_TYPE));
+        assertAuditSearchRejected(query, "Ordering");
+    }
+
+    @Test
+    public void test917SearchAuditRecordsWithUnsupportedInclude() {
+        WebClient client = prepareClient();
+        client.path(AUDIT_SEARCH_PATH);
+        client.query("include", "fullObject");
+        assertAuditSearchRejected(client, auditQuery(auditAnchor(), 10), "include");
+    }
+
+    @Test
+    public void test918SearchAuditRecordsWithInvalidQuery() {
+        assertAuditSearchRejected(auditQuery(auditAnchor() + " and nonExistingItem = \"x\"", 10), "Invalid query");
+    }
+
+    /* User has neither `rest-3#all` nor `rest-3#searchAuditRecords` authorization. Rejected by the REST layer. */
+    @Test
+    public void test920SearchAuditRecordsNotAuthorizedAtRestLevel() {
+        WebClient client = prepareClient(USER_REST_LOG_NAME, USER_REST_LOG_PASSWORD);
+        client.path(AUDIT_SEARCH_PATH);
+
+        when();
+        Response response = client.post(auditQuery(auditAnchor(), 10));
+
+        then();
+        displayResponse(response);
+        assertStatus(response, 403);
+    }
+
+    /* User has the REST autz for the audit search, but not the model-level "auditRead" one. So this fails. */
+    @Test
+    public void test921SearchAuditRecordsNotAuthorizedAtModelLevel() {
+        WebClient client = prepareClient(USER_REST_LIMITED_NAME, USER_REST_LIMITED_PASSWORD);
+        client.path(AUDIT_SEARCH_PATH);
+
+        when();
+        Response response = client.post(auditQuery(auditAnchor(), 10));
+
+        then();
+        displayResponse(response);
+        assertStatus(response, 403);
+    }
+
+    /* User has both the REST and the model-level "auditRead" autz - and is not a superuser. So this succeeds. */
+    @Test
+    public void test922SearchAuditRecordsAuthorized() throws Exception {
+        WebClient client = prepareClient(USER_REST_AUDIT_NAME, USER_REST_AUDIT_PASSWORD);
+        client.path(AUDIT_SEARCH_PATH);
+        client.query("include", "delta");
+
+        when();
+        Response response = client.post(auditQuery(auditAnchor() + " and " + targetIsJack(), 100));
+
+        then();
+        displayResponse(response);
+        assertStatus(response, 200);
+        String body = response.readEntity(String.class);
+        assertFalse("No audit records found", parseAuditRecords(body).getObject().isEmpty());
+        assertNoProtectedData(body);
+    }
+
+    /** The redactor removes protected values from parsed deltas, keeping the rest of the delta. */
+    @Test
+    public void test930RedactorRemovesProtectedValues() throws Exception {
+        given("a delta with a password value");
+        ProtectedStringType password = new ProtectedStringType();
+        password.setClearValue("s3cr3t");
+        ObjectDelta<UserType> delta = getPrismContext().deltaFor(UserType.class)
+                .item(SchemaConstants.PATH_PASSWORD_VALUE).replace(password)
+                .item(UserType.F_FULL_NAME).replace(PolyString.fromOrig("Jack Sparrow"))
+                .asObjectDelta(USER_JACK_OID);
+        ObjectDeltaOperationType deltaOperation = new ObjectDeltaOperationType()
+                .objectDelta(DeltaConvertor.toObjectDeltaType(delta));
+
+        when();
+        boolean safe = new AuditRecordRedactor(getPrismContext()).removeProtectedData(deltaOperation);
+
+        then();
+        String serialized = getPrismContext().xmlSerializer().serializeRealValue(deltaOperation, new QName(SchemaConstants.NS_C, "delta"));
+        displayValue("redacted delta", serialized);
+        assertTrue("Delta was not considered safe after redaction", safe);
+        assertNoProtectedData(serialized);
+        assertFalse("Clear value is still there", serialized.contains("s3cr3t"));
+        assertTrue("Other parts of the delta are missing", serialized.contains("Jack Sparrow"));
+    }
+
+    /**
+     * Protected data in a raw value that cannot be resolved using the schema (an attribute of a shadow without
+     * resource schema) must not be returned: either it is removed, or the whole delta is rejected (fail-closed).
+     */
+    @Test
+    public void test931RedactorFailsClosedForUnresolvableValues() throws Exception {
+        given("a shadow delta with a raw value containing encrypted data");
+        String deltaXml = """
+                <objectDelta xmlns="http://prism.evolveum.com/xml/ns/public/types-3"
+                        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+                        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
+                    <changeType>modify</changeType>
+                    <objectType>c:ShadowType</objectType>
+                    <oid>a8f1e3f2-6d1c-4b55-9a0e-6f5d5f4b2c11</oid>
+                    <itemDelta>
+                        <modificationType>replace</modificationType>
+                        <path>c:attributes/ri:secret</path>
+                        <value>
+                            <encryptedData>
+                                <cipherData>
+                                    <cipherValue>U2VjcmV0Q2lwaGVyVGV4dA==</cipherValue>
+                                </cipherData>
+                            </encryptedData>
+                        </value>
+                    </itemDelta>
+                </objectDelta>
+                """;
+        ObjectDeltaOperationType deltaOperation = new ObjectDeltaOperationType()
+                .objectDelta(getPrismContext().parserFor(deltaXml).xml().parseRealValue(ObjectDeltaType.class));
+
+        AuditEventRecordType record = new AuditEventRecordType()
+                .delta(deltaOperation);
+
+        when();
+        int removed = new AuditRecordRedactor(getPrismContext()).redact(
+                List.of(record), new AuditRecordRedactor.Includes(true, false, false));
+
+        then();
+        String serialized = getPrismContext().xmlSerializer().serializeRealValue(record, new QName(SchemaConstants.NS_C, "record"));
+        displayValue("record after redaction (removed=" + removed + ")", serialized);
+        assertNoProtectedData(serialized);
+        assertFalse("Cipher value is still there", serialized.contains("U2VjcmV0Q2lwaGVyVGV4dA=="));
+        assertEquals("Wrong number of deltas with removed content", 1, removed);
+        assertNull("Delta content was not removed", record.getDelta().get(0).getObjectDelta());
+    }
+
+    /** Parsing of the configured maximal time window. */
+    @Test
+    public void test932MaxTimeWindowConfiguration() {
+        Duration defaultWindow = AuditSearchGuard.Limits.DEFAULT_MAX_TIME_WINDOW;
+        assertEquals(defaultWindow, AuditSearchGuard.Limits.parseMaxTimeWindow(null));
+        assertEquals(defaultWindow, AuditSearchGuard.Limits.parseMaxTimeWindow(" "));
+        assertEquals(Duration.ofDays(7), AuditSearchGuard.Limits.parseMaxTimeWindow("P7D"));
+        assertEquals(Duration.ofHours(12), AuditSearchGuard.Limits.parseMaxTimeWindow(" PT12H "));
+        assertNull("Zero should switch the limit off", AuditSearchGuard.Limits.parseMaxTimeWindow("0"));
+        assertNull("Zero should switch the limit off", AuditSearchGuard.Limits.parseMaxTimeWindow("P0D"));
+        assertEquals("Invalid value should fall back to the default",
+                defaultWindow, AuditSearchGuard.Limits.parseMaxTimeWindow("one month"));
+        assertEquals("Negative value should fall back to the default",
+                defaultWindow, AuditSearchGuard.Limits.parseMaxTimeWindow("-P1D"));
+    }
+
+    /**
+     * Search by a changed item. Changed items are stored namespace-qualified, so the path must be qualified as well.
+     * The `c` prefix is declared by the request (XML), or predefined (JSON, YAML).
+     */
+    @Test
+    public void test940SearchAuditRecordsByChangedItem() throws Exception {
+        WebClient client = prepareClient();
+        client.path(AUDIT_SEARCH_PATH);
+
+        when("searching for the password change of jack (made in test900)");
+        Response response = client.post(auditQuery(auditAnchor() + " and " + targetIsJack()
+                + " and changedItem = c:credentials/c:password/c:value", 100));
+
+        then();
+        displayResponse(response);
+        assertStatus(response, 200);
+        AuditEventRecordListType records = parseAuditRecords(response.readEntity(String.class));
+        assertFalse("No audit records about jack's password change found", records.getObject().isEmpty());
+        for (AuditEventRecordType record : records.getObject()) {
+            assertEquals("Wrong event type", AuditEventTypeType.MODIFY_OBJECT, record.getEventType());
+        }
+    }
+
+    /** An unqualified changed item path never matches a stored one; it is rejected instead of returning nothing. */
+    @Test
+    public void test941SearchAuditRecordsByUnqualifiedChangedItem() {
+        assertAuditSearchRejected(
+                auditQuery(auditAnchor() + " and changedItem = credentials/password/value", 10),
+                "must be namespace-qualified");
+    }
+
+    /** Invalid values are reported by the query language parser by runtime exceptions; they are client errors. */
+    @Test
+    public void test942SearchAuditRecordsWithUnknownEnumValue() {
+        assertAuditSearchRejected(auditQuery(auditAnchor() + " and outcome = \"bogus\"", 10),
+                "Invalid query", "bogus");
+    }
+
+    /** Reference target filter without the target type fails in the parser; it must be a client error, not 500. */
+    @Test
+    public void test943SearchAuditRecordsWithReferenceTargetFilterWithoutType() {
+        assertAuditSearchRejected(auditQuery(auditAnchor() + " and targetRef matches (@ matches (name = \"jack\"))", 10),
+                "Invalid query");
+    }
+
+    /** Full-text filter is accepted: it searches the content of audit record payloads (not the message). */
+    @Test
+    public void test944SearchAuditRecordsByFullText() throws Exception {
+        WebClient client = prepareClient();
+        client.path(AUDIT_SEARCH_PATH);
+
+        when();
+        Response response = client.post(auditQuery(auditAnchor() + " and . fullText \"no-such-payload-word\"", 10));
+
+        then();
+        displayResponse(response);
+        assertStatus(response, 200);
+        assertTrue("No payload should match", parseAuditRecords(response.readEntity(String.class)).getObject().isEmpty());
+    }
+
+    /** A day back; all audit records created by this test class are newer. */
+    private String auditAnchor() {
+        return "timestamp >= \""
+                + XmlTypeConverter.createXMLGregorianCalendar(System.currentTimeMillis() - 86_400_000L).toXMLFormat() + "\"";
+    }
+
+    private String timestampCondition(String operator, int daysAgo) {
+        return "timestamp " + operator + " \""
+                + XmlTypeConverter.createXMLGregorianCalendar(System.currentTimeMillis() - daysAgo * 86_400_000L).toXMLFormat()
+                + "\"";
+    }
+
+    private String targetIsJack() {
+        return "targetRef matches (oid = \"" + USER_JACK_OID + "\")";
+    }
+
+    private QueryType auditQuery(String mql, Integer maxSize) {
+        QueryType query = new QueryType();
+        SearchFilterType filter = new SearchFilterType();
+        filter.setText(mql);
+        query.setFilter(filter);
+        if (maxSize != null) {
+            PagingType paging = new PagingType();
+            paging.setMaxSize(maxSize);
+            query.setPaging(paging);
+        }
+        return query;
+    }
+
+    private AuditEventRecordListType parseAuditRecords(String body) throws SchemaException {
+        displayValue("audit records", body);
+        return getPrismContext().parserFor(body).parseRealValue(AuditEventRecordListType.class);
+    }
+
+    private void assertNoProtectedData(String serialized) {
+        for (String item : PROTECTED_DATA_ITEMS) {
+            assertFalse("Protected data (" + item + ") returned", serialized.contains(item));
+        }
+    }
+
+    private void assertTimestampsOrdered(AuditEventRecordListType records, boolean ascending) {
+        XMLGregorianCalendar previous = null;
+        for (AuditEventRecordType record : records.getObject()) {
+            XMLGregorianCalendar current = record.getTimestamp();
+            if (previous != null) {
+                int comparison = previous.compare(current);
+                assertTrue("Records are not ordered by timestamp (" + (ascending ? "ascending" : "descending") + "): "
+                                + previous + " vs " + current,
+                        ascending ? comparison <= 0 : comparison >= 0);
+            }
+            previous = current;
+        }
+    }
+
+    private void assertAuditSearchRejected(QueryType query, String... expectedMessageParts) {
+        WebClient client = prepareClient();
+        client.path(AUDIT_SEARCH_PATH);
+        assertAuditSearchRejected(client, query, expectedMessageParts);
+    }
+
+    private void assertAuditSearchRejected(WebClient client, QueryType query, String... expectedMessageParts) {
+        when();
+        Response response = client.post(query);
+
+        then();
+        displayResponse(response);
+        assertStatus(response, 400);
+        OperationResultType result = response.readEntity(OperationResultType.class);
+        displayValue("result", result);
+        String message = Objects.requireNonNullElse(result.getMessage(), "");
+        for (String expectedMessagePart : expectedMessageParts) {
+            assertTrue("Message '" + message + "' does not contain '" + expectedMessagePart + "'",
+                    message.contains(expectedMessagePart));
+        }
+    }
+
+    // endregion
 
     /** Client for the server root (outside /ws/rest), without midPoint providers. */
     private WebClient prepareRootClient(String username, String password) {
