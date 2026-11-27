@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.model.impl.lens.projector.projection.outbounds;
 
 import java.util.Collection;
+import java.util.List;
 
 import org.jetbrains.annotations.Nullable;
 import org.springframework.stereotype.Component;
@@ -21,6 +22,7 @@ import com.evolveum.midpoint.model.impl.lens.ItemValueWithOrigin;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.DeltaSetTripleIvwoMap;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.consolidation.DeltaSetTripleMapConsolidation;
 import com.evolveum.midpoint.model.impl.lens.projector.mappings.MappingEvaluator;
+import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismValue;
@@ -162,6 +164,7 @@ public class OutboundMappingProcessing {
 
         configureFocusSources(builder, focusOdo);
         configureTarget(builder, targetItemPath, targetDefinition);
+        configureOriginalTargetValues(builder, shadow, targetItemPath);
         configureShadowVariables(builder, shadow);
         configureAdditionalVariables(builder, resource, systemConfiguration);
 
@@ -200,6 +203,18 @@ public class OutboundMappingProcessing {
         if (lastName != null) {
             builder.targetItemName(lastName);
         }
+    }
+
+    /**
+     * Configures the builder with the values of the target attribute that the shadow has now. They are needed to
+     * check the range of the mapping. A shadow without the attribute, e.g. an empty fake shadow, has no original
+     * values.
+     */
+    @SuppressWarnings("unchecked")
+    private void configureOriginalTargetValues(MappingBuilder<PrismValue, ItemDefinition<?>> builder, ShadowType shadow,
+            ItemPath targetItemPath) {
+        final Item<?, ?> item = shadow.asPrismObject().findItem(ShadowType.F_ATTRIBUTES.append(targetItemPath));
+        builder.originalTargetValues(item != null ? (Collection<PrismValue>) item.getValues() : List.of());
     }
 
     /**
