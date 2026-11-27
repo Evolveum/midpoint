@@ -54,12 +54,20 @@ public class StringPolicy {
     /** All declared check expressions. */
     @NotNull private final List<CheckExpressionType> checkExpressions;
 
+    /** Checks the value against password dictionaries. It is null if they are not available. The dictionaries decide by {@link #limitations}. */
+    @Nullable private final PasswordDictionaryService dictionaryService;
+
+    /** Limitations the dictionaries decide by. It is null if the policy declares none. */
+    @Nullable private final LimitationsType limitations;
+
     private StringPolicy(
             @NotNull ConfigurationItemOrigin origin,
             int minLength, int maxLength, int minUniqueChars,
             int maxGenerationAttempts,
             @NotNull Collection<CharacterClassLimitation> characterClassLimitations,
-            @NotNull List<CheckExpressionType> checkExpressions) {
+            @NotNull List<CheckExpressionType> checkExpressions,
+            @Nullable PasswordDictionaryService dictionaryService,
+            @Nullable LimitationsType limitations) {
         this.origin = origin;
         assert minLength >= 0;
         this.minLength = minLength;
@@ -69,21 +77,29 @@ public class StringPolicy {
         this.maxGenerationAttempts = maxGenerationAttempts;
         this.characterClassLimitations = characterClassLimitations;
         this.checkExpressions = checkExpressions;
+        this.dictionaryService = dictionaryService;
+        this.limitations = limitations;
     }
 
     public static @NotNull StringPolicy compile(@Nullable ConfigurationItem<StringPolicyType> policyConfigItem)
             throws ConfigurationException {
+        return compile(policyConfigItem, null);
+    }
+
+    public static @NotNull StringPolicy compile(
+            @Nullable ConfigurationItem<StringPolicyType> policyConfigItem, @Nullable PasswordDictionaryService dictionaryService)
+            throws ConfigurationException {
 
         if (policyConfigItem == null) {
             return noLimitations(
-                    ConfigurationItemOrigin.generated(), null);
+                    ConfigurationItemOrigin.generated(), null, dictionaryService);
         }
 
         StringPolicyType policyBean = policyConfigItem.value();
         LimitationsType limitationsBean = policyBean.getLimitations();
         if (limitationsBean == null) {
             return noLimitations(
-                    policyConfigItem.origin(), policyBean);
+                    policyConfigItem.origin(), policyBean, dictionaryService);
         }
 
         int minLength = defaultIfNull(limitationsBean.getMinLength(), 0);
@@ -96,17 +112,21 @@ public class StringPolicy {
                 minLength, maxLength, minUniqueChars,
                 maxAttempts,
                 CharacterClassLimitation.compile(policyConfigItem),
-                limitationsBean.getCheckExpression());
+                limitationsBean.getCheckExpression(),
+                dictionaryService,
+                limitationsBean);
     }
 
     private static @NotNull StringPolicy noLimitations(
-            @NotNull ConfigurationItemOrigin origin, @Nullable StringPolicyType bean) {
+            @NotNull ConfigurationItemOrigin origin, @Nullable StringPolicyType bean, @Nullable PasswordDictionaryService dictionaryService) {
         assert bean == null || bean.getLimitations() == null;
         return new StringPolicy(
                 origin, 0, UNLIMITED, 0,
                 DEFAULT_MAX_GENERATION_ATTEMPTS,
                 List.of(),
-                List.of());
+                List.of(),
+                dictionaryService,
+                null);
     }
 
     public int getMinLength() {
@@ -138,6 +158,14 @@ public class StringPolicy {
         return checkExpressions;
     }
 
+    boolean isDictionaryCheckEnabled() {
+        return limitations != null && Boolean.TRUE.equals(limitations.isCheckAgainstDictionary());
+    }
+
+    boolean isValidAgainstDictionaries(@NotNull String value) {
+        return !isDictionaryCheckEnabled() || dictionaryService == null || dictionaryService.isValid(value, limitations);
+    }
+
     boolean hasFirstClassesSpecified() {
         return characterClassLimitations.stream()
                 .anyMatch(limitation -> limitation.mustBeFirst);
@@ -152,6 +180,7 @@ public class StringPolicy {
                 ", minUniqueChars=" + minUniqueChars +
                 ", characterClassLimitations: " + characterClassLimitations.size() +
                 ", checkExpressions: " + checkExpressions.size() +
+                ", dictionaryCheckEnabled=" + isDictionaryCheckEnabled() +
                 '}';
     }
 

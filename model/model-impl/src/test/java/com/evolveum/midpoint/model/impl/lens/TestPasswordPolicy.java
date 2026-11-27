@@ -13,12 +13,16 @@ import static org.testng.AssertJUnit.assertNotNull;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.model.common.expression.functions.BasicExpressionFunctions;
 import com.evolveum.midpoint.model.common.expression.script.ScriptFactory;
 import com.evolveum.midpoint.model.common.expression.script.TestingExpressionConfiguration;
@@ -74,6 +78,7 @@ public class TestPasswordPolicy extends AbstractInternalModelIntegrationTest {
     @Autowired private ScriptFactory scriptFactory;
     @Autowired private MelScriptExecutor melScriptExecutor;
     @Autowired private BasicExpressionFunctions basicExpressionFunctions;
+    @Autowired private MidpointConfiguration midpointConfiguration;
 
     /** Tests parsing the minimal (empty) value policy. */
     @Test
@@ -450,6 +455,88 @@ public class TestPasswordPolicy extends AbstractInternalModelIntegrationTest {
                     .isTrue();
         } finally {
             scriptFactory.replaceExecutor(melScriptExecutor);
+        }
+    }
+
+    /** A password from the dictionary of common passwords is rejected, ignoring the case. Others are accepted. */
+    @Test
+    public void passwordValidationTestDictionary() throws Exception {
+        ValuePolicyType pp = parsePasswordPolicy("password-policy-dictionary.xml");
+
+        assertThat(isPasswordValid("Password1", pp, null)).as("common password").isFalse();
+        assertThat(isPasswordValid("password1", pp, null)).as("common password in lower case").isFalse();
+        assertThat(isPasswordValid("PASSWORD", pp, null)).as("common password in upper case").isFalse();
+        assertThat(isPasswordValid("Zk7mQx2pLw", pp, null)).as("password that is not common").isTrue();
+    }
+
+    /** The dictionary is not used when the policy does not enable it. */
+    @Test
+    public void passwordValidationTestDictionaryDisabled() throws Exception {
+        ValuePolicyType pp = parsePasswordPolicy("password-policy-dictionary.xml");
+        pp.getStringPolicy().getLimitations().setCheckAgainstDictionary(false);
+
+        assertThat(isPasswordValid("Password1", pp)).as("common password with disabled dictionary").isTrue();
+    }
+
+    /** The options of the dictionary check, read from the policy, add more forms of the value to compare. */
+    @Test
+    public void passwordValidationTestDictionaryOptions() throws Exception {
+        ValuePolicyType pp = parsePasswordPolicy("password-policy-dictionary-options.xml");
+
+        assertThat(isPasswordValid("yeknom", pp, null)).as("reversed word").isFalse();
+        assertThat(isPasswordValid("fooPassword", pp, null)).as("word inside the value").isFalse();
+        assertThat(isPasswordValid("m0nk3y", pp, null)).as("leetspeak").isFalse();
+        assertThat(isPasswordValid("Zk7mQx2pLw", pp, null)).as("password that is not common").isTrue();
+
+        pp.getStringPolicy().getLimitations().setDictionaryCheck(null);
+
+        assertThat(isPasswordValid("yeknom", pp, null)).as("reversed word without options").isTrue();
+        assertThat(isPasswordValid("fooPassword", pp, null)).as("word inside the value without options").isTrue();
+        assertThat(isPasswordValid("m0nk3y", pp, null)).as("leetspeak without options").isTrue();
+    }
+
+    /** An external dictionary file in midpoint.home replaces the built-in dictionary. */
+    @Test
+    public void passwordValidationTestExternalDictionary() throws Exception {
+        Path directory = Files.createDirectories(Paths.get(midpointConfiguration.getMidpointHome(), "dictionaries"));
+        Path file = directory.resolve("test-external-dictionary.txt");
+        Files.writeString(file, "firmaheslo\n");
+        try {
+            ValuePolicyType pp = parsePasswordPolicy("password-policy-dictionary.xml");
+            pp.getStringPolicy().getLimitations().dictionaryFile("dictionaries/test-external-dictionary.txt");
+
+            assertThat(isPasswordValid("Firmaheslo", pp, null)).as("word from the external file").isFalse();
+            assertThat(isPasswordValid("Password1", pp, null)).as("word of the replaced built-in dictionary").isTrue();
+        } finally {
+            Files.deleteIfExists(file);
+        }
+    }
+
+    /** The shipped default password policy rejects common passwords that otherwise comply with it. */
+    @Test
+    public void testDefaultPasswordPolicyRejectsCommonPassword() throws Exception {
+        ValuePolicyType policy = parseDefaultPasswordPolicy();
+        PrismObject<UserType> user = createUserAb();
+
+        assertThat(isPasswordValid("Password1", policy, user)).as("common password").isFalse();
+        assertThat(isPasswordValid("GoodSafe123!", policy, user)).as("password that is not common").isTrue();
+    }
+
+    /**
+     * Generated passwords are never taken from the dictionary.
+     * About 3 % of all four-digit values are in the dictionary, so without the check the 1000 rounds would fail.
+     */
+    @Test
+    public void testPasswordGeneratorAvoidsDictionary() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+        ValuePolicyType pp = parsePasswordPolicy("password-policy-dictionary-pin.xml");
+
+        for (int i = 0; i < 1000; i++) {
+            String password = valuePolicyProcessor.generate(
+                    SchemaConstants.PATH_PASSWORD_VALUE, pp, 4, null, getTestNameShort(), task, result);
+            assertNotNull(password);
+            assertThat(isPasswordValid(password, pp)).as("generated password " + password).isTrue();
         }
     }
 

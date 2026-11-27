@@ -66,6 +66,7 @@ public class ValuePolicyProcessor {
     @Autowired private ModelCommonBeans beans;
     @Autowired private ExpressionFactory expressionFactory;
     @Autowired private Protector protector;
+    @Autowired private PasswordDictionaryService dictionaryService;
 
     public ExpressionFactory getExpressionFactory() {
         return expressionFactory;
@@ -127,11 +128,11 @@ public class ValuePolicyProcessor {
         }
     }
 
-    private static @NotNull StringPolicy getCompiledStringPolicy(@Nullable ValuePolicyType valuePolicy)
+    private @NotNull StringPolicy getCompiledStringPolicy(@Nullable ValuePolicyType valuePolicy)
             throws ConfigurationException {
         StringPolicyType stringPolicyBean = valuePolicy != null ? valuePolicy.getStringPolicy() : null;
         var stringPolicyConfigItem = ConfigurationItem.embeddedNullable(stringPolicyBean);
-        return StringPolicy.compile(stringPolicyConfigItem);
+        return StringPolicy.compile(stringPolicyConfigItem, dictionaryService);
     }
 
     @NotNull

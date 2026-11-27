@@ -11030,8 +11030,40 @@
             <xsd:element name="checkAgainstDictionary" type="xsd:boolean" default="false" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Currently ignored.
+                        If set to true, the value must not be one of the common passwords from the built-in dictionary.
+                        The whole value is compared after normalization: Unicode normalization NFKC,
+                        any sequence of white space is reduced to one space, leading and trailing white space
+                        is removed, and the case is ignored. The words of the dictionaries are normalized in the same way.
+                        The value itself is not changed.
+                        The check applies both to validation and to generation of values.
                     </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="dictionaryFile" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Path to a file with an external password dictionary. The path is relative to midpoint.home
+                        and the file must stay inside it. The file contains one word per line in UTF-8.
+                        Empty lines and lines starting with "#" are ignored.
+                        The file is used only if checkAgainstDictionary is true.
+                        If at least one file is configured, the built-in dictionary is not used.
+                        A value is rejected if it is found in any of the configured files.
+                        A file is read when it is first used and kept in memory until midPoint restarts.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.12</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="dictionaryCheck" type="tns:DictionaryCheckType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Additional options of the dictionary check. They are used only if checkAgainstDictionary
+                        is true. All of them are off by default.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.12</a:since>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="checkPattern" type="xsd:string" minOccurs="0">
@@ -11091,6 +11123,75 @@
 
                             If there are no specific limitations, alphanumeric chars are used for value generation.
                         </p>
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="DictionaryCheckType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Options of the check of a value against password dictionaries.
+                Each option adds more forms of the value that are compared with the words of the dictionaries.
+                The value is normalized first, as described by checkAgainstDictionary.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.12</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="reversed" type="xsd:boolean" default="false" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The value written backwards is checked too, e.g. "drowssap" is rejected
+                        if "password" is in the dictionary.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="stripNonAlpha" type="xsd:boolean" default="false" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The value without all characters that are not letters is checked too,
+                        e.g. "42password!" is rejected if "password" is in the dictionary.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="substring" type="xsd:boolean" default="false" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The value is rejected if it contains a word of the dictionary,
+                        e.g. "fooPassword" is rejected if "password" is in the dictionary.
+                        Words shorter than minWordLength are ignored. If minWordLength is not set,
+                        words shorter than 4 characters are ignored.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="leetspeak" type="xsd:boolean" default="false" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Common substitutions of letters by digits and symbols are reversed
+                        (0 o, 1 i or l, 3 e, 4 a, 5 s, 7 t, @ a, $ s, + t),
+                        e.g. "pa55w0rd" is rejected if "password" is in the dictionary.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="minWordLength" type="xsd:int" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Words of the dictionaries that are shorter than this number of characters are ignored.
+                        If it is not set, no words are ignored in the exact comparison and words shorter
+                        than 4 characters are ignored in the substring check.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="eachWord" type="xsd:boolean" default="false" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        A value with several words (separated by white space) is checked word by word,
+                        so it is rejected if any of its words is found in a dictionary.
+                        It is off by default, because it would reject pass phrases such as
+                        "correct horse battery staple".
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
