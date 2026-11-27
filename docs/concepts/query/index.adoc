@@ -27,5 +27,5 @@ This section describes usage and configuration details of:
 * concept of xref:query-concepts/[query in midPoint] in more depth.
 
 It should be mentioned, that midPoint provides also xref:full-text-search.adoc[*Full text search*] option.
-It is available only for searching of specific data in GUI. The full text search is not enabled by default and must be configured by engineer.
+It is available only for searching of specific data in GUI. The full text search is not enabled by default and must be configured by an engineer.
 The full text search was introduced just for user convenience. It definitely does not provide options and power of midPoint Query Language.
