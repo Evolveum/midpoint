@@ -1,4 +1,4 @@
-MidPoint 4.12.0 Development Branch
+MidPoint 4.12-M1
 -------------------------------
 
 General information:
