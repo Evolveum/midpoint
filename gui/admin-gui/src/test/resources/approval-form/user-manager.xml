@@ -1,0 +1,10 @@
+<user xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      oid="a0000000-0000-0000-0000-00000000a001">
+    <name>approval-manager</name>
+    <givenName>Approval</givenName>
+    <familyName>Manager</familyName>
+    <fullName>Approval Manager</fullName>
+    <assignment>
+        <targetRef oid="00000000-0000-0000-0000-000000000004" type="RoleType"/>
+    </assignment>
+</user>
