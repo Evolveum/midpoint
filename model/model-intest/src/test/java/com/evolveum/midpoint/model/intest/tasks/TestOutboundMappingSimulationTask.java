@@ -75,8 +75,11 @@ public class TestOutboundMappingSimulationTask extends AbstractEmptyModelIntegra
     private static final File ACCOUNTS = new File(TEST_DIR, "accounts.csv");
     private static final File SIMULATION_TASK = new File(TEST_DIR, "task-mapping-simulation.xml");
     private static final String SIMULATION_TASK_OID = "1c670eb2-e07f-477d-a2cd-b5377d2827ff";
+    private static final File RANGE_SIMULATION_TASK = new File(TEST_DIR, "task-mapping-simulation-range.xml");
+    private static final String RANGE_SIMULATION_TASK_OID = "6c4f3a2e-3f0b-4c3e-9a1d-5e1361700001";
 
     private TestTask mappingTask;
+    private TestTask rangeMappingTask;
     private DummyTestResource resource;
 
     @Override
@@ -88,6 +91,7 @@ public class TestOutboundMappingSimulationTask extends AbstractEmptyModelIntegra
                 .withAccountsFromCsv(ACCOUNTS);
         this.resource.init(this, initTask, initResult);
         this.mappingTask = TestTask.fromFile(SIMULATION_TASK, SIMULATION_TASK_OID);
+        this.rangeMappingTask = TestTask.fromFile(RANGE_SIMULATION_TASK, RANGE_SIMULATION_TASK_OID);
         repoAddObjectsFromFile(USERS, UserType.class, initResult);
         assertUsers(9); // Including one admin.
     }
@@ -95,6 +99,7 @@ public class TestOutboundMappingSimulationTask extends AbstractEmptyModelIntegra
     @BeforeMethod
     void initObjects() throws Exception {
         this.mappingTask.initWithOverwrite(this, getTestTask(), getTestOperationResult());
+        this.rangeMappingTask.initWithOverwrite(this, getTestTask(), getTestOperationResult());
     }
 
     @Test
@@ -260,6 +265,66 @@ public class TestOutboundMappingSimulationTask extends AbstractEmptyModelIntegra
                         SystemObjectsType.MARK_ITEM_VALUE_MODIFIED.value()));
     }
 
+    /**
+     * MID-13617: a mapping with an explicit range (target/set) needs the original values of the target attribute.
+     * A user without a projection has no such values, the same as an empty shadow. The simulation must not fail.
+     */
+    @Test
+    void mappingWithRangeAndUserWithoutProjection_simulateMappings_fakeShadowShouldBeUsedAndTaskShouldNotFail()
+            throws Exception {
+        final OperationResult result = getTestOperationResult();
+
+        given("Mapping simulation task contains a mapping with an explicit range.");
+        and("User's filter matches one user without any projection, but with a personal number");
+        setUsersFilterToTask(RANGE_SIMULATION_TASK_OID,
+                "organizationalUnit = \"Without projection\" and personalNumber exists");
+
+        when("Mapping simulation task is run on the resource.");
+        rangeMappingTask.rerun(result);
+
+        then("The user should be processed, and the personal number should be added to the 'fake' shadow.");
+        assertSimulationResult(rangeMappingTask.oid, "Assert mapping simulation result metrics.")
+                .assertObjectsProcessed(1)
+                .assertObjectsModified(1);
+        assertProcessedShadowsCount(rangeMappingTask.oid, 1)
+                .then(assertModifiedObjectsCount(1))
+                .then(assertModifiedAttribute("employeeNumber"));
+    }
+
+    /**
+     * The range of the mapping does not change the outcomes for existing accounts: the original values are taken
+     * from the shadows. The expected results are the same as for the mapping without a range.
+     */
+    @Test
+    void mappingWithRangeAndExistingAccounts_simulateMappings_originalValuesShouldBeTakenFromShadows()
+            throws Exception {
+        final OperationResult result = getTestOperationResult();
+
+        given("Mapping simulation task contains a mapping with an explicit range.");
+        and("Filtered users and their projections have items corresponding to various mapping outcome cases");
+        setUsersFilterToTask(RANGE_SIMULATION_TASK_OID, "organizationalUnit = \"Marking\"");
+
+        when("Mapping simulation task is run on the resource.");
+        rangeMappingTask.rerun(result);
+
+        then("The outcomes correspond to the original values of the employee number on the accounts.");
+        final Map<String, String> shadowNameToOidMap = extractShadowOidsAndCorrelationValues(result);
+        assertSimulationResult(rangeMappingTask.oid, "Assert mapping simulation result.")
+                .assertObjectsProcessed(4)
+                .assertObjectsModified(3);
+        assertProcessedShadowsCount(rangeMappingTask.oid, 4)
+                .then(assertUnModifiedObjectsCount(1))
+                .then(assertModifiedObjectsCount(3))
+                .then(assertContainsEventMark(shadowNameToOidMap.get("connor"),
+                        SystemObjectsType.MARK_ITEM_VALUE_NOT_CHANGED.value()))
+                .then(assertContainsEventMark(shadowNameToOidMap.get("cena"),
+                        SystemObjectsType.MARK_ITEM_VALUE_ADDED.value()))
+                .then(assertContainsEventMark(shadowNameToOidMap.get("snow"),
+                        SystemObjectsType.MARK_ITEM_VALUE_REMOVED.value()))
+                .then(assertContainsEventMark(shadowNameToOidMap.get("rambo"),
+                        SystemObjectsType.MARK_ITEM_VALUE_MODIFIED.value()));
+    }
+
     @DataProvider
     Object[] nonPreviewExecutionModes() {
         return Arrays.stream(ExecutionModeType.values())
@@ -285,6 +350,10 @@ public class TestOutboundMappingSimulationTask extends AbstractEmptyModelIntegra
     }
 
     private void setUsersFilterToTask(String query) throws Exception {
+        setUsersFilterToTask(SIMULATION_TASK_OID, query);
+    }
+
+    private void setUsersFilterToTask(String taskOid, String query) throws Exception {
         final SearchFilterType filter = new SearchFilterType();
         filter.setText(query);
         executeChanges(
@@ -295,7 +364,7 @@ public class TestOutboundMappingSimulationTask extends AbstractEmptyModelIntegra
                         .replace(new ObjectSetType().type(UserType.COMPLEX_TYPE).query(
                                 new QueryType().filter(filter)
                         ))
-                        .asObjectDelta(SIMULATION_TASK_OID),
+                        .asObjectDelta(taskOid),
                 null, getTestTask(), getTestOperationResult()
         );
     }
@@ -327,7 +396,12 @@ public class TestOutboundMappingSimulationTask extends AbstractEmptyModelIntegra
 
     private ProcessedObjectsAsserter<ProcessedObjectsAsserter<Void>> assertProcessedShadowsCount(int expectedCount)
             throws CommonException {
-        return assertProcessedObjects(this.mappingTask.oid, "Check processed objects")
+        return assertProcessedShadowsCount(this.mappingTask.oid, expectedCount);
+    }
+
+    private ProcessedObjectsAsserter<ProcessedObjectsAsserter<Void>> assertProcessedShadowsCount(
+            String taskOid, int expectedCount) throws CommonException {
+        return assertProcessedObjects(taskOid, "Check processed objects")
                 .by().objectType(ShadowType.class)
                 .collect("Check number of processed shadows")
                 .assertSize(expectedCount);

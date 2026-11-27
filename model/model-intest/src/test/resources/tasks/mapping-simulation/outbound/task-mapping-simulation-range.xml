@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (C) 2010-2025 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  ~
+  -->
+
+<task oid="6c4f3a2e-3f0b-4c3e-9a1d-5e1361700001"
+      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+>
+
+    <name>Mapping Simulation With Range</name>
+
+    <taskIdentifier>10000000-0000-0000-5656-56560000a209</taskIdentifier>
+    <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
+    <executionState>closed</executionState>
+
+    <activity>
+        <identifier>simulation-of-mapping-with-range</identifier>
+        <work>
+            <outboundMappingsSimulation>
+                <resourceObjects>
+                    <resourceRef oid="9e776e33-90b0-4550-a367-46948b317e34" />
+                    <kind>account</kind>
+                    <intent>default</intent>
+                </resourceObjects>
+                <inlineMappings>
+                    <ref>ri:employeeNumber</ref>
+                    <outbound>
+                        <name>Personal number to employeeNumber</name>
+                        <source>
+                            <path>personalNumber</path>
+                        </source>
+                        <target>
+                            <set>
+                                <predefined>all</predefined>
+                            </set>
+                        </target>
+                    </outbound>
+                </inlineMappings>
+            </outboundMappingsSimulation>
+        </work>
+        <execution>
+            <mode>preview</mode>
+        </execution>
+    </activity>
+</task>
