@@ -1,4 +1,4 @@
-MidPoint 4.11 "Čapek" Update 1
+MidPoint 4.11 Support Branch
 -------------------------------
 
 General information:
