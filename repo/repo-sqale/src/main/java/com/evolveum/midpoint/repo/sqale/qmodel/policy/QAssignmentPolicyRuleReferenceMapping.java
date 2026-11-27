@@ -76,6 +76,13 @@ public class QAssignmentPolicyRuleReferenceMapping<AOR extends MObject> extends
                 .and(a.cid.eq(r.assignmentCid));
     }
 
+    public void deleteAll(MAssignment ownerRow, JdbcSession jdbcSession) {
+        QAssignmentPolicyRuleReference r = defaultAlias();
+        jdbcSession.newDelete(r)
+                .where(r.isOwnedBy(ownerRow))
+                .execute();
+    }
+
     /** Stores the references of the rule of the assignment; the assignment row must already exist. */
     public void insertAll(
             @NotNull Collection<IndexedRef> refs, @NotNull MAssignment ownerRow, @NotNull JdbcSession jdbcSession) {

@@ -16,12 +16,15 @@ import java.util.UUID;
 
 import com.evolveum.axiom.concepts.CheckedFunction;
 import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.path.InfraItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.schema.SchemaRegistryState;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainerWithFullObjectMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.policy.PolicyRuleIndexSupport;
 import com.evolveum.midpoint.repo.sqale.qmodel.policy.QAssignmentPolicyRuleReferenceMapping;
+import com.evolveum.midpoint.repo.sqale.update.SqaleUpdateContext;
 import com.evolveum.midpoint.schema.policy.PolicyRuleIndexData;
 import com.evolveum.midpoint.schema.policy.PolicyRuleIndexExtractor;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -414,9 +417,6 @@ public class QAssignmentMapping<OR extends MObject>
         return row;
     }
 
-
-
-
     @Override
     public ItemPath getItemPath() {
         return path;
@@ -447,5 +447,44 @@ public class QAssignmentMapping<OR extends MObject>
     @Override
     protected CheckedFunction<SchemaRegistryState, ItemDefinition<?>, SystemException> definitionDerivation() {
         return derivationMapping;
+    }
+
+    /**
+     * Besides refreshing the full object (super), this re-indexes the policy rule of the assignment.
+     * Called for every modification inside the assignment, so the rule index needs no item mapping.
+     */
+    @Override
+    public void afterModify(SqaleUpdateContext<AssignmentType, QAssignment<OR>, MAssignment> updateContext)
+            throws SchemaException {
+        super.afterModify(updateContext);
+
+        PrismContainer<AssignmentType> container = updateContext.findValueOrItem(getItemPath());
+        if (container == null) {
+            return;
+        }
+        MAssignment row = updateContext.row();
+        PrismContainerValue<AssignmentType> pcv = container.findValue(row.cid);
+        if (pcv == null) {
+            return; // the assignment was deleted, its references go with it (cascade)
+        }
+
+        QAssignment<OR> a = updateContext.entityPath();
+        QAssignmentPolicyRuleReferenceMapping<OR> refMapping = QAssignmentPolicyRuleReferenceMapping.get();
+
+        refMapping.deleteAll(row, updateContext.jdbcSession());
+
+        PolicyRuleType policyRule = pcv.asContainerable().getPolicyRule();
+        if (policyRule == null) {
+            updateContext.setNull(a.policyRuleConstraints);
+            updateContext.setNull(a.policyRuleActions);
+            return;
+        }
+
+        PolicyRuleIndexData index = PolicyRuleIndexExtractor.extract(policyRule);
+        updateContext.set(a.policyRuleConstraints,
+                PolicyRuleIndexSupport.uriIdsForStore(repositoryContext(), index.constraints()));
+        updateContext.set(a.policyRuleActions,
+                PolicyRuleIndexSupport.uriIdsForStore(repositoryContext(), index.actions()));
+        refMapping.insertAll(index.refs(), row, updateContext.jdbcSession());
     }
 }

@@ -8,6 +8,10 @@ package com.evolveum.midpoint.repo.sqale.qmodel.tag;
 
 import java.util.Objects;
 
+import com.evolveum.midpoint.repo.sqale.qmodel.policy.QPolicyRuleMapping;
+import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.GlobalPolicyRuleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MarkType;
 import org.jetbrains.annotations.NotNull;
 
@@ -37,10 +41,10 @@ public class QMarkMapping
 
 
 
-    private QMarkMapping(@NotNull SqaleRepoContext repositoryContext) {
-        super(QMark.TABLE_NAME, DEFAULT_ALIAS_NAME,
-                MarkType.class, QMark.class, repositoryContext);
-    }
+//    private QMarkMapping(@NotNull SqaleRepoContext repositoryContext) {
+//        super(QMark.TABLE_NAME, DEFAULT_ALIAS_NAME,
+//                MarkType.class, QMark.class, repositoryContext);
+//    }
 
     @Override
     protected QMark newAliasInstance(String alias) {
@@ -50,5 +54,23 @@ public class QMarkMapping
     @Override
     public MObject newRowObject() {
         return new MObject();
+    }
+
+    private QMarkMapping(@NotNull SqaleRepoContext repositoryContext) {
+        super(QMark.TABLE_NAME, DEFAULT_ALIAS_NAME, MarkType.class, QMark.class, repositoryContext);
+
+        addContainerTableMapping(MarkType.F_POLICY_RULE,
+                QPolicyRuleMapping.init(repositoryContext),
+                joinOn((m, r) -> m.oid.eq(r.ownerOid)));
+    }
+
+    @Override
+    public void storeRelatedEntities(
+            @NotNull MObject row, @NotNull MarkType mark, @NotNull JdbcSession jdbcSession)
+            throws SchemaException {
+        super.storeRelatedEntities(row, mark, jdbcSession);
+        for (GlobalPolicyRuleType rule : mark.getPolicyRule()) {
+            QPolicyRuleMapping.get().insert(rule, row, jdbcSession);
+        }
     }
 }
