@@ -11,6 +11,7 @@ import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
 import com.evolveum.midpoint.model.api.expr.OrgStructFunctions;
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.model.common.expression.evaluator.caching.SimulatedCreateOnDemandRegistry;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -28,6 +29,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import org.jetbrains.annotations.Nullable;
+import com.evolveum.midpoint.task.api.Task;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -296,23 +299,45 @@ public class OrgStructFunctionsImpl implements OrgStructFunctions {
             if (!prismContext.relationMatches(relation, parentOrgRef.getRelation())) {
                 continue;
             }
-            OrgType parentOrg;
-            try {
-                parentOrg = getObject(OrgType.class, parentOrgRef.getOid(), preAuthorized);
-            } catch (ObjectNotFoundException e) {
-                LOGGER.warn("Org "+parentOrgRef.getOid()+" specified in parentOrgRef in "+object+" was not found: "+e.getMessage(), e);
-                // but do not rethrow, just skip this
-                continue;
-            } catch (CommunicationException | ConfigurationException | ExpressionEvaluationException |
-                     SubscriptionComplianceException e) {
-                // This should not happen.
-                throw new SystemException(e.getMessage(), e);
+            OrgType parentOrg = getSimulatedOrg(parentOrgRef);
+            if (parentOrg == null) {
+                if (parentOrgRef.getOid() == null) {
+                    LOGGER.debug("Skipping parentOrgRef without OID in {}: {}", object, parentOrgRef);
+                    continue;
+                }
+                try {
+                    parentOrg = getObject(OrgType.class, parentOrgRef.getOid(), preAuthorized);
+                } catch (ObjectNotFoundException e) {
+                    LOGGER.warn("Org "+parentOrgRef.getOid()+" specified in parentOrgRef in "+object+" was not found: "+e.getMessage(), e);
+                    // but do not rethrow, just skip this
+                    continue;
+                } catch (CommunicationException | ConfigurationException | ExpressionEvaluationException |
+                         SubscriptionComplianceException e) {
+                    // This should not happen.
+                    throw new SystemException(e.getMessage(), e);
+                }
             }
             if (predicate.test(parentOrg)) {
                 parentOrgs.add(parentOrg);
             }
         }
         return parentOrgs;
+    }
+
+    /**
+     * Returns the org created on demand in the current simulation. It does not exist in the repository, so the only
+     * trusted source is what the simulation itself has created. The object embedded in a reference is used only
+     * if the reference has no OID, and only in a simulation. Outside a simulation, nothing is returned.
+     */
+    private @Nullable OrgType getSimulatedOrg(ObjectReferenceType ref) {
+        Task task = midpointFunctions.getCurrentTask();
+        if (task == null || task.isExecutionFullyPersistent()) {
+            return null;
+        }
+        PrismObject<? extends ObjectType> simulated = ref.getOid() != null
+                ? SimulatedCreateOnDemandRegistry.findSimulated(task, ref.getOid())
+                : ref.asReferenceValue().getObject();
+        return simulated != null && simulated.asObjectable() instanceof OrgType ? (OrgType) simulated.clone().asObjectable() : null;
     }
 
     @Override

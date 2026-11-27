@@ -27,6 +27,7 @@ import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.ProgressInformation;
 import com.evolveum.midpoint.model.api.hooks.HookOperationMode;
 import com.evolveum.midpoint.model.common.expression.evaluator.caching.AssociationSearchExpressionEvaluatorCache;
+import com.evolveum.midpoint.model.common.expression.evaluator.caching.SimulatedCreateOnDemandRegistry;
 import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.FocusConstraintsChecker;
 import com.evolveum.midpoint.model.impl.simulation.FullOperationSimulationDataImpl;
@@ -212,6 +213,7 @@ public class Clockwork {
         FocusConstraintsChecker.enterCache(
                 cacheConfigurationManager.getConfiguration(CacheType.LOCAL_FOCUS_CONSTRAINT_CHECKER_CACHE));
         enterAssociationSearchExpressionEvaluatorCache();
+        SimulatedCreateOnDemandRegistry.enter();
         //enterDefaultSearchExpressionEvaluatorCache();
         provisioningService.enterConstraintsCheckerCache();
     }
@@ -219,6 +221,7 @@ public class Clockwork {
     private void exitCaches() {
         FocusConstraintsChecker.exitCache();
         //exitDefaultSearchExpressionEvaluatorCache();
+        SimulatedCreateOnDemandRegistry.exit();
         exitAssociationSearchExpressionEvaluatorCache();
         provisioningService.exitConstraintsCheckerCache();
     }
